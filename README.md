@@ -2,9 +2,21 @@
 
 **CyberEdu** — интерактивная платформа курса по информационной безопасности: лекции, тесты, практика, AI-адаптация под интересы пользователя, сертификат, админ-панель.
 
-**Визуальный бренд:** логотипы и favicon лежат в `cyberedu/frontend/public/brand/` (`logo-full.svg`, `logo-mark.svg`, `favicon.svg`); в интерфейсе используется компонент `components/brand/brand-logo.tsx`.
+**Визуальный бренд:** логотипы и favicon — `cyberedu/frontend/public/brand/`.
 
-Исходный код и **полная документация** (стек, архитектура, Docker, демо-доступ, безопасность, сценарии) — в каталоге **[`cyberedu/`](./cyberedu/)**, файл **[`cyberedu/README.md`](./cyberedu/README.md)**.
+## Документация
+
+| Документ | Описание |
+|----------|----------|
+| [`cyberedu/README.md`](./cyberedu/README.md) | Запуск, демо-доступ, сценарии |
+| [`cyberedu/docs/PRODUCTION_READINESS.md`](./cyberedu/docs/PRODUCTION_READINESS.md) | Оценка готовности к production |
+| [`cyberedu/docs/ARCHITECTURE.md`](./cyberedu/docs/ARCHITECTURE.md) | Архитектура |
+| [`cyberedu/docs/SECURITY.md`](./cyberedu/docs/SECURITY.md) | Безопасность |
+| [`cyberedu/docs/DEPLOYMENT.md`](./cyberedu/docs/DEPLOYMENT.md) | Production deployment |
+| [`cyberedu/docs/API.md`](./cyberedu/docs/API.md) | HTTP API |
+| [`cyberedu/docs/checklists/`](./cyberedu/docs/checklists/) | Final / Release / Security / Deploy чеклисты |
+
+**CI:** [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) · **Release:** [`.github/workflows/release.yml`](./.github/workflows/release.yml)
 
 Запуск **только через Docker** из каталога `cyberedu/`:
 

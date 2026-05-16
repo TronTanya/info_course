@@ -215,10 +215,10 @@ export function ModuleTestRunner({ moduleId, testId, title, minScore, questions,
   }
 
   return (
-    <Card>
+    <Card className="ce-quiz-shell overflow-hidden">
       <CardHeader
         className={cn(
-          "space-y-2",
+          "space-y-2 border-b border-border/60 bg-linear-to-r from-card via-muted/20 to-card",
           "max-md:sticky max-md:top-14 max-md:z-20 max-md:border-b max-md:border-border max-md:bg-card/95 max-md:pb-3 max-md:backdrop-blur-sm max-md:shadow-sm",
         )}
       >
@@ -264,7 +264,7 @@ export function ModuleTestRunner({ moduleId, testId, title, minScore, questions,
               const checked = local.multi[q.id]?.includes(a.id) ?? false;
               return (
                 <li key={a.id}>
-                  <label className="flex min-h-[52px] w-full cursor-pointer items-start gap-3 rounded-xl border border-border bg-muted/20 px-4 py-3.5 text-base leading-snug hover:bg-muted/40 active:bg-muted/50 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring">
+                  <label className="ce-quiz-option flex min-h-[52px] w-full cursor-pointer items-start gap-3 px-4 py-3.5 text-base leading-snug has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring">
                     <input
                       type="checkbox"
                       className="mt-1 size-5 shrink-0 rounded border-border"
@@ -281,7 +281,7 @@ export function ModuleTestRunner({ moduleId, testId, title, minScore, questions,
           <ul className="space-y-3">
             {q.answers.map((a) => (
               <li key={a.id}>
-                <label className="flex min-h-[52px] w-full cursor-pointer items-start gap-3 rounded-xl border border-border bg-muted/20 px-4 py-3.5 text-base leading-snug hover:bg-muted/40 active:bg-muted/50 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring">
+                <label className="ce-quiz-option flex min-h-[52px] w-full cursor-pointer items-start gap-3 px-4 py-3.5 text-base leading-snug has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring">
                   <input
                     type="radio"
                     className="mt-1 size-5 shrink-0"

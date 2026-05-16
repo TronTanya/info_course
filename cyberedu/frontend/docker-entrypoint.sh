@@ -4,7 +4,28 @@ cd /tools
 echo "[cyberedu] prisma migrate deploy..."
 ./node_modules/.bin/prisma migrate deploy
 cd /app
-echo "[cyberedu] seed..."
-NODE_PATH=/tools/node_modules /tools/node_modules/.bin/tsx prisma/seed.ts
+
+# Seed только при RUN_SEED=1. В production (NODE_ENV=production) — никогда.
+_run_seed() {
+  if [ "${NODE_ENV:-}" = "production" ]; then
+    echo "[cyberedu] seed blocked: NODE_ENV=production (use RUN_SEED=0)"
+    return 1
+  fi
+  echo "[cyberedu] seed (RUN_SEED=1)..."
+  NODE_PATH=/tools/node_modules /tools/node_modules/.bin/tsx prisma/seed.ts
+}
+
+case "${RUN_SEED:-0}" in
+  1)
+    _run_seed
+    ;;
+  0|false|FALSE|no|NO|"")
+    echo "[cyberedu] seed skipped (set RUN_SEED=1 for demo data; never in production)"
+    ;;
+  *)
+    echo "[cyberedu] seed skipped: RUN_SEED='${RUN_SEED}' (only RUN_SEED=1 enables seed)" >&2
+    ;;
+esac
+
 echo "[cyberedu] starting app..."
 exec node server.js

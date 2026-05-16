@@ -1,3 +1,5 @@
+import { isSafeExternalHttpsUrl } from "@/lib/security/sanitize";
+
 /** Готовые аватары CyberEdu в `public/avatars/` — публичные пути для `Profile.avatarUrl`. */
 export const PRESET_AVATAR_PATHS = [
   "/avatars/avatar-shield.svg",
@@ -65,7 +67,8 @@ export function isAllowedStoredAvatarUrl(value: string): boolean {
   const v = value.trim();
   if (!v) return false;
   if (isBuiltinPresetAvatarUrl(v) || isCustomAvatarApiPath(v)) return true;
-  return /^https?:\/\/.+/i.test(v);
+  if (v.startsWith("https://")) return isSafeExternalHttpsUrl(v);
+  return false;
 }
 
 /** Legacy `/avatars/preset-NN.svg` → актуальный путь набора CyberEdu. */

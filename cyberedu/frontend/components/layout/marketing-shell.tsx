@@ -6,7 +6,11 @@ export async function MarketingShell({ children }: { children: React.ReactNode }
   return (
     <div className="flex min-h-screen min-w-0 flex-col">
       <SiteHeader />
-      <main className="container-page ce-app-marketing-main flex min-w-0 flex-1 flex-col py-12 md:py-20">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="container-page ce-app-marketing-main flex min-w-0 flex-1 flex-col py-12 md:py-20"
+      >
         <PageShell>{children}</PageShell>
       </main>
       <SiteFooter />

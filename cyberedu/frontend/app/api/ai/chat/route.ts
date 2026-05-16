@@ -3,22 +3,16 @@ import { z } from "zod";
 import type { CheckType, PracticalTaskType } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { AiNotConfiguredError, AiProviderError } from "@/lib/ai-config";
-import { assertSafeTutorUserMessage } from "@/lib/ai-content-policy";
-import {
-  checkTypeLabel,
-  practicalTaskTypeLabel,
-  runTutorChat,
-  TUTOR_PRACTICE_SOCRATIC_EXTRA,
-  type TutorChatHistoryItem,
-  type TutorPageContext,
-} from "@/lib/ai-chat";
 import { checkModuleAccessForApi, checkPracticeEntry } from "@/lib/course-progress-guards";
 import { prisma } from "@/lib/db";
 import { formatInterestsDisplay, parseProfileInterests } from "@/lib/profile-interests";
-import { consumeRateLimit } from "@/lib/rate-limit";
-import { clientIpFromRequest } from "@/lib/request-ip";
+import { toPracticalContext } from "@/lib/ai/tutor";
+import { runTutorPipeline } from "@/lib/ai/tutor/pipeline";
+import type { TutorPageContext } from "@/lib/ai/tutor/types";
+import { securityAudit } from "@/lib/security/audit";
+import { consumeCompositeRateLimit } from "@/lib/security/rate-limit";
+import { clientIpFromRequest } from "@/lib/security/request-ip";
 
-/** Принимаем camelCase и snake_case; в модель не попадают лишние поля. */
 function normalizeChatBodyJson(raw: unknown): unknown {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
   const o = raw as Record<string, unknown>;
@@ -41,7 +35,6 @@ const bodySchema = z.object({
   moduleId: idOrNull,
   lessonId: idOrNull,
   practicalTaskId: idOrNull,
-  /** Усилить режим: только наводящие вопросы, без готового решения практики. */
   practiceSocraticHints: z.boolean().optional(),
   history: z
     .array(
@@ -55,22 +48,23 @@ const bodySchema = z.object({
     .default([]),
 });
 
-function sliceHistory(h: TutorChatHistoryItem[]): TutorChatHistoryItem[] {
-  if (h.length <= 24) return h;
-  return h.slice(-24);
-}
-
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Требуется авторизация." }, { status: 401 });
   }
 
+  const userId = session.user.id;
   const ip = clientIpFromRequest(req);
-  if (
-    !consumeRateLimit(`ai:chat:ip:${ip}`, 120, 60 * 60 * 1000) ||
-    !consumeRateLimit(`ai:chat:user:${session.user.id}`, 60, 60 * 60 * 1000)
-  ) {
+
+  const rl = await consumeCompositeRateLimit({
+    ipKey: `ai:chat:ip:${ip}`,
+    userKey: `ai:chat:user:${userId}`,
+    ipMax: 120,
+    userMax: 60,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!rl.allowed) {
     return NextResponse.json({ error: "Превышен лимит запросов к AI. Попробуйте позже." }, { status: 429 });
   }
 
@@ -86,30 +80,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Некорректное тело запроса.", details: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { message, moduleId: bodyModuleId, lessonId, practicalTaskId, practiceSocraticHints, history } = parsed.data;
-  const historySafe = sliceHistory(history);
-
-  const policy = assertSafeTutorUserMessage(message);
-  if (!policy.ok) {
-    return NextResponse.json({ error: policy.reason }, { status: 400 });
-  }
-
-  const userId = session.user.id;
+  const {
+    message,
+    moduleId: bodyModuleId,
+    lessonId,
+    practicalTaskId,
+    practiceSocraticHints,
+    history,
+  } = parsed.data;
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: {
-      id: true,
-      profile: true,
-    },
+    select: { profile: true },
   });
 
   const rawInterests = user?.profile ? formatInterestsDisplay(parseProfileInterests(user.profile.interests)) : "—";
-  const interestsLineRaw = rawInterests === "—" ? "не указаны" : rawInterests;
-  const interestsLine = interestsLineRaw.length > 2000 ? `${interestsLineRaw.slice(0, 1997)}…` : interestsLineRaw;
+  const interestsLine = rawInterests === "—" ? "не указаны" : rawInterests.slice(0, 2000);
   const spec = user?.profile?.specialty?.trim();
-  const specialtyLineRaw = spec && spec !== "—" ? spec : "не указана";
-  const specialtyLine = specialtyLineRaw.length > 500 ? `${specialtyLineRaw.slice(0, 497)}…` : specialtyLineRaw;
+  const specialtyLine = spec && spec !== "—" ? spec.slice(0, 500) : "не указана";
 
   let lessonRow: { moduleId: string; title: string; content: string } | null = null;
   let taskRow: {
@@ -123,40 +111,28 @@ export async function POST(req: Request) {
   if (lessonId) {
     const l = await prisma.lesson.findUnique({
       where: { id: lessonId },
-      /** Только заголовок и текст лекции; без связанных тестов и ответов. */
       select: { moduleId: true, title: true, content: true },
     });
-    if (!l) {
-      return NextResponse.json({ error: "Лекция не найдена." }, { status: 404 });
-    }
+    if (!l) return NextResponse.json({ error: "Лекция не найдена." }, { status: 404 });
     const lessonAccess = await checkModuleAccessForApi(userId, l.moduleId);
-    if (!lessonAccess.ok) {
-      return NextResponse.json({ error: lessonAccess.message }, { status: 403 });
-    }
+    if (!lessonAccess.ok) return NextResponse.json({ error: lessonAccess.message }, { status: 403 });
     lessonRow = l;
   }
 
   if (practicalTaskId) {
     const t = await prisma.practicalTask.findUnique({
       where: { id: practicalTaskId },
-      /** Только безопасный контекст для наставника: без scenarioData, expected*, ответов. */
       select: { moduleId: true, title: true, description: true, taskType: true, checkType: true },
     });
-    if (!t) {
-      return NextResponse.json({ error: "Практическое задание не найдено." }, { status: 404 });
-    }
+    if (!t) return NextResponse.json({ error: "Практическое задание не найдено." }, { status: 404 });
     const practiceAccess = await checkPracticeEntry(userId, t.moduleId);
-    if (!practiceAccess.ok) {
-      return NextResponse.json({ error: practiceAccess.message }, { status: 403 });
-    }
+    if (!practiceAccess.ok) return NextResponse.json({ error: practiceAccess.message }, { status: 403 });
     taskRow = t;
   }
 
   if (bodyModuleId) {
     const bodyAccess = await checkModuleAccessForApi(userId, bodyModuleId);
-    if (!bodyAccess.ok) {
-      return NextResponse.json({ error: bodyAccess.message }, { status: 403 });
-    }
+    if (!bodyAccess.ok) return NextResponse.json({ error: bodyAccess.message }, { status: 403 });
   }
 
   if (lessonRow && bodyModuleId && lessonRow.moduleId !== bodyModuleId) {
@@ -175,15 +151,14 @@ export async function POST(req: Request) {
   if (resolvedModuleId) {
     const mod = await prisma.module.findUnique({
       where: { id: resolvedModuleId },
-      select: { title: true, isActive: true },
+      select: { title: true, isActive: true, orderNumber: true },
     });
-    if (!mod?.isActive) {
-      return NextResponse.json({ error: "Модуль недоступен." }, { status: 403 });
-    }
+    if (!mod?.isActive) return NextResponse.json({ error: "Модуль недоступен." }, { status: 403 });
     moduleTitle = mod.title;
   }
 
   const pageContext: TutorPageContext = {
+    moduleId: resolvedModuleId,
     moduleTitle,
     interestsLine,
     specialtyLine,
@@ -193,25 +168,25 @@ export async function POST(req: Request) {
     pageContext.lessonTitle = lessonRow.title;
     pageContext.lessonExcerpt = lessonRow.content;
   }
-
   if (taskRow) {
-    pageContext.practicalTask = {
-      title: taskRow.title,
-      description: taskRow.description,
-      taskTypeLabel: practicalTaskTypeLabel(taskRow.taskType),
-      checkTypeLabel: checkTypeLabel(taskRow.checkType),
-    };
+    pageContext.practicalTask = toPracticalContext(taskRow);
   }
 
   try {
-    const reply = await runTutorChat({
+    const result = await runTutorPipeline({
+      userId,
       userMessage: message,
       pageContext,
-      history: historySafe,
-      systemPromptExtra: practiceSocraticHints ? TUTOR_PRACTICE_SOCRATIC_EXTRA : undefined,
+      history,
+      practiceSocraticHints,
+      lessonId,
+      practicalTaskId,
     });
 
-    return NextResponse.json({ reply });
+    return NextResponse.json({
+      reply: result.reply,
+      meta: result.meta,
+    });
   } catch (e) {
     if (e instanceof AiNotConfiguredError) {
       return NextResponse.json({ error: e.message, code: e.code }, { status: 503 });
@@ -220,6 +195,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: e.message, code: e.code }, { status: 502 });
     }
     console.error(e);
+    securityAudit({
+      event: "ai.tutor.unhandled_error",
+      severity: "high",
+      actorId: userId,
+      ip,
+      path: "/api/ai/chat",
+    });
     return NextResponse.json({ error: "Не удалось получить ответ наставника. Попробуйте позже." }, { status: 500 });
   }
 }

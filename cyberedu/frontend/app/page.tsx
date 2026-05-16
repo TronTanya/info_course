@@ -23,14 +23,30 @@ export default function HomePage() {
     <MarketingShell>
       <>
         <LandingHero />
-        <LandingProblem />
-        <LandingCourseInside />
-        <LandingHowItWorks />
-        <LandingPracticeShowcase />
-        <LandingAiFeatures />
-        <LandingStats />
-        <LandingReviews />
-        <LandingCta />
+        <div className="ce-animate-in ce-stagger-1">
+          <LandingProblem />
+        </div>
+        <div className="ce-animate-in ce-stagger-2">
+          <LandingCourseInside />
+        </div>
+        <div className="ce-animate-in ce-stagger-3">
+          <LandingHowItWorks />
+        </div>
+        <div className="ce-animate-in ce-stagger-4">
+          <LandingPracticeShowcase />
+        </div>
+        <div className="ce-animate-in ce-stagger-5">
+          <LandingAiFeatures />
+        </div>
+        <div className="ce-animate-in">
+          <LandingStats />
+        </div>
+        <div className="ce-animate-in ce-stagger-1">
+          <LandingReviews />
+        </div>
+        <div className="ce-animate-in ce-stagger-2">
+          <LandingCta />
+        </div>
       </>
     </MarketingShell>
   );

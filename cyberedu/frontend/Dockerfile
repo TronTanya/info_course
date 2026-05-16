@@ -34,10 +34,11 @@ RUN node -e "require('fs').writeFileSync('lib/docker-build-stamp.ts', 'export co
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
-ARG DATABASE_URL=postgresql://cyberedu:cyberedu_password@postgres:5432/cyberedu?schema=public
+# Только placeholder на этапе сборки — не передавайте реальные секреты через --build-arg.
+# Runtime: DATABASE_URL, AUTH_SECRET, OPENAI_API_KEY задаются в docker-compose (environment / env_file).
+ARG DATABASE_URL=postgresql://build:build@127.0.0.1:5432/cyberedu?schema=public
+ARG AUTH_SECRET=build-placeholder-secret-min-32-chars-do-not-use-in-prod
 ENV DATABASE_URL=${DATABASE_URL}
-
-ARG AUTH_SECRET=build-time-placeholder-secret-min-32-chars-ok
 ENV AUTH_SECRET=${AUTH_SECRET}
 
 RUN --mount=type=cache,target=/root/.npm \
@@ -73,9 +74,9 @@ COPY --from=builder /app/prisma /tools/prisma
 COPY --from=builder /app/package.json /tools/package.json
 COPY --from=builder /app/package-lock.json /tools/package-lock.json
 COPY --from=builder /app/node_modules /tools/node_modules
-COPY docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod +x /app/docker-entrypoint.sh \
-    && chown nextjs:nodejs /app/docker-entrypoint.sh \
+COPY docker-entrypoint.sh docker-entrypoint.prod.sh /app/
+RUN chmod +x /app/docker-entrypoint.sh /app/docker-entrypoint.prod.sh \
+    && chown nextjs:nodejs /app/docker-entrypoint.sh /app/docker-entrypoint.prod.sh \
     && chown -R nextjs:nodejs /tools /app/prisma /app/lib
 
 USER nextjs
@@ -85,4 +86,15 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
+HEALTHCHECK --interval=20s --timeout=5s --start-period=40s --retries=5 \
+  CMD node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
+
+# --- One-shot: Prisma migrate (production compose) ---
+FROM deps AS migrate
+WORKDIR /app
+COPY prisma ./prisma
+COPY lib/00-init-prisma-env.ts ./lib/00-init-prisma-env.ts
+ENV NODE_ENV=production
+CMD ["./node_modules/.bin/prisma", "migrate", "deploy"]

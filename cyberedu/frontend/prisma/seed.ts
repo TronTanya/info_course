@@ -1,18 +1,16 @@
 import "../lib/00-init-prisma-env";
 
 /**
- * Начальное наполнение БД (локальная разработка).
- * Пароли только в виде bcrypt-хешей в БД; открытый текст паролей не сохраняется.
- * Повторный запуск: пользователи и профиль обновляются через upsert; курс дополняется при неполных модулях.
+ * Начальное наполнение БД (только development / RUN_SEED=1).
+ * Пароли только как bcrypt-хеши. Существующим пользователям passwordHash не перезаписывается.
+ * Демо-учётки в production запрещены — см. assertSeedAllowed().
  */
-import bcrypt from "bcryptjs";
 import { Prisma, Role } from "@prisma/client";
 import { prisma } from "../lib/db";
+import { assertSeedAllowed, ensureDemoUser } from "../lib/seed/ensure-demo-user";
 import { getLessonMarkdown } from "./lesson-content";
 import { getPracticalTaskSeedForModule } from "./practicalTasksSeed";
 import { getModuleTestQuestions } from "./testQuestions";
-
-const BCRYPT_COST = 12;
 
 const ADMIN_EMAIL = "admin@cyberedu.local";
 const STUDENT_EMAIL = "student@cyberedu.local";
@@ -844,10 +842,6 @@ const PROFILE_KISP9_24_SUFFIX = ", очное отделение, группа �
 /** Админ: организация и группа без курса обучения. */
 const PROFILE_ADMIN_SCHOOL_LINE = "CyberEdu — администрирование платформы, группа КИ-25";
 
-async function hashPassword(plain: string): Promise<string> {
-  return bcrypt.hash(plain, BCRYPT_COST);
-}
-
 function moduleShortDescription(orderNumber: number): string {
   const n = orderNumber;
   const lines: Record<number, string> = {
@@ -873,40 +867,28 @@ function buildQuestionsForModule(moduleIndex: number): Prisma.QuestionCreateWith
 }
 
 async function seedUsers(): Promise<{ adminId: string; studentId: string }> {
-  const [adminHash, studentHash] = await Promise.all([
-    hashPassword(ADMIN_PASSWORD_PLAIN),
-    hashPassword(STUDENT_PASSWORD_PLAIN),
-  ]);
-
-  const admin = await prisma.user.upsert({
-    where: { email: ADMIN_EMAIL },
-    create: {
-      email: ADMIN_EMAIL,
-      passwordHash: adminHash,
-      role: Role.ADMIN,
-      createdAt: ADMIN_REGISTERED_AT,
-    },
-    update: {
-      passwordHash: adminHash,
-      role: Role.ADMIN,
-      createdAt: ADMIN_REGISTERED_AT,
-    },
+  const adminResult = await ensureDemoUser({
+    email: ADMIN_EMAIL,
+    role: Role.ADMIN,
+    createdAt: ADMIN_REGISTERED_AT,
+    passwordPlain: ADMIN_PASSWORD_PLAIN,
+  });
+  const studentResult = await ensureDemoUser({
+    email: STUDENT_EMAIL,
+    role: Role.USER,
+    createdAt: STUDENT_REGISTERED_AT,
+    passwordPlain: STUDENT_PASSWORD_PLAIN,
   });
 
-  const student = await prisma.user.upsert({
-    where: { email: STUDENT_EMAIL },
-    create: {
-      email: STUDENT_EMAIL,
-      passwordHash: studentHash,
-      role: Role.USER,
-      createdAt: STUDENT_REGISTERED_AT,
-    },
-    update: {
-      passwordHash: studentHash,
-      role: Role.USER,
-      createdAt: STUDENT_REGISTERED_AT,
-    },
-  });
+  if (!adminResult.created && !adminResult.passwordHashUnchanged) {
+    throw new Error(`Seed: passwordHash admin ${ADMIN_EMAIL} был изменён — это недопустимо`);
+  }
+  if (!studentResult.created && !studentResult.passwordHashUnchanged) {
+    throw new Error(`Seed: passwordHash student ${STUDENT_EMAIL} был изменён — это недопустимо`);
+  }
+
+  const admin = adminResult.user;
+  const student = studentResult.user;
 
   await prisma.profile.upsert({
     where: { userId: admin.id },
@@ -989,23 +971,14 @@ async function upsertDemoStudentCohort(
   rows: ReadonlyArray<DemoStudentSeedRow>,
   educationalInstitution: string,
 ): Promise<number> {
-  const studentHash = await hashPassword(STUDENT_PASSWORD_PLAIN);
   const city = "Якутск";
 
   for (const row of rows) {
-    const user = await prisma.user.upsert({
-      where: { email: row.email },
-      create: {
-        email: row.email,
-        passwordHash: studentHash,
-        role: Role.USER,
-        createdAt: row.registeredAt,
-      },
-      update: {
-        passwordHash: studentHash,
-        role: Role.USER,
-        createdAt: row.registeredAt,
-      },
+    const { user } = await ensureDemoUser({
+      email: row.email,
+      role: Role.USER,
+      createdAt: row.registeredAt,
+      passwordPlain: STUDENT_PASSWORD_PLAIN,
     });
 
     await prisma.profile.upsert({
@@ -1692,6 +1665,8 @@ async function seedCourseTree(courseId: string): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  assertSeedAllowed();
+
   const { adminId, studentId } = await seedUsers();
   const extraN = await seedExtraDemoStudents();
   const ki24N = await seedKi24DemoStudents();

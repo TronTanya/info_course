@@ -1,0 +1,45 @@
+# Пример HTTPS vhost. После certbot:
+#   cp cyberedu.ssl.conf.example deploy/nginx/conf.d/cyberedu.ssl.conf
+#   Подставьте YOUR_DOMAIN и пути к fullchain.pem / privkey.pem
+#
+# В cyberedu.conf закомментируйте proxy location / и включите return 301 на HTTPS.
+
+server {
+  listen 443 ssl http2;
+  listen [::]:443 ssl http2;
+  server_name YOUR_DOMAIN;
+
+  ssl_certificate     /etc/nginx/certs/live/YOUR_DOMAIN/fullchain.pem;
+  ssl_certificate_key /etc/nginx/certs/live/YOUR_DOMAIN/privkey.pem;
+  ssl_session_timeout 1d;
+  ssl_session_cache shared:SSL:10m;
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_prefer_server_ciphers off;
+
+  add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+  add_header X-Frame-Options "DENY" always;
+  add_header X-Content-Type-Options "nosniff" always;
+  add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+  location /api/v1/ {
+    proxy_pass http://cyberedu_backend;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_read_timeout 120s;
+  }
+
+  location / {
+    proxy_pass http://cyberedu_frontend;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_read_timeout 120s;
+  }
+}

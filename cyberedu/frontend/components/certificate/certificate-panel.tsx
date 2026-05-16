@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast";
 import { formatRuDateLongUtc } from "@/lib/datetime-stable";
 
 export type CertificatePanelProps = {
@@ -27,6 +28,7 @@ export function CertificatePanel({
   downloadButtonText = "Скачать PDF",
 }: CertificatePanelProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,9 +43,12 @@ export function CertificatePanel({
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        setError(data.error ?? "Не удалось создать сертификат.");
+        const msg = data.error ?? "Не удалось создать сертификат.";
+        setError(msg);
+        toast({ title: "Ошибка", description: msg, variant: "error" });
         return;
       }
+      toast({ title: "Сертификат готов", description: "Документ создан и доступен для скачивания.", variant: "success" });
       router.refresh();
     } catch {
       setError("Сетевая ошибка. Попробуйте позже.");
@@ -56,7 +61,7 @@ export function CertificatePanel({
     const issued = formatRuDateLongUtc(certificate.issuedAt);
 
     return (
-      <div className="relative overflow-hidden rounded-2xl border border-border/70 bg-linear-to-br from-secondary/[0.05] via-card to-cyan/[0.06] p-6 shadow-card ring-1 ring-inset ring-white/50">
+      <div className="ce-cert-card relative overflow-hidden p-6 ring-1 ring-inset ring-white/10 dark:ring-white/5">
         <div className="pointer-events-none absolute -right-16 top-0 h-40 w-40 rounded-full bg-cyan/12 blur-3xl" aria-hidden />
         <div className="relative space-y-5">
           <div className="flex flex-wrap items-center gap-2">

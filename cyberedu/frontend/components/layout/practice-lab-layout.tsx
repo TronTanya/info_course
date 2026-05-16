@@ -16,8 +16,9 @@ export type PracticeLabLayoutProps = {
  */
 export function PracticeLabLayout({ breadcrumb, header, main, aside, className }: PracticeLabLayoutProps) {
   return (
-    <div className={cn("lab-shell min-w-0 overflow-x-clip", className)}>
+    <div className={cn("lab-shell ce-animate-in min-w-0 overflow-x-clip", className)}>
       <header className="lab-shell-header px-4 py-5 sm:px-6 sm:py-6">
+        <div className="mb-3 hidden h-0.5 w-16 rounded-full bg-linear-to-r from-primary via-cyan to-transparent sm:block" aria-hidden />
         {breadcrumb ? <div className="min-w-0">{breadcrumb}</div> : null}
         <div className={breadcrumb ? "mt-4" : ""}>{header}</div>
       </header>

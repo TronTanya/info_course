@@ -13,17 +13,35 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
 });
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3100";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(appUrl),
   title: {
     default: "CyberEdu — курс по информационной безопасности",
     template: "%s · CyberEdu",
   },
   description:
     "Образовательная платформа: модули, тесты, практика и сертификат по основам информационной безопасности.",
+  openGraph: {
+    type: "website",
+    locale: "ru_RU",
+    siteName: "CyberEdu",
+    title: "CyberEdu — курс по информационной безопасности",
+    description:
+      "Интерактивный курс по ИБ: лекции, практика, AI-наставник и сертификат.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CyberEdu",
+    description: "Интерактивный курс по информационной безопасности",
+  },
   icons: {
     icon: [{ url: "/brand/favicon.svg", type: "image/svg+xml" }],
   },
 };
+
+const themeInitScript = `(function(){try{var t=localStorage.getItem('ce-theme');var d=t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);document.documentElement.style.colorScheme=d?'dark':'light';}catch(e){}})();`;
 
 export default function RootLayout({
   children,
@@ -31,8 +49,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}>
+    <html
+      lang="ru"
+      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="min-h-full">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-xl focus:bg-card focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:shadow-card focus:ring-2 focus:ring-ring"
+        >
+          Перейти к содержимому
+        </a>
         <Providers>{children}</Providers>
       </body>
     </html>

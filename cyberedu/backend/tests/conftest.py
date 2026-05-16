@@ -11,3 +11,7 @@ os.environ.setdefault(
     "postgresql+psycopg://cyberedu:cyberedu_password@127.0.0.1:5432/cyberedu",
 )
 os.environ.setdefault("SKIP_DB_LIFESPAN_CHECK", "1")
+os.environ.setdefault(
+    "INTERNAL_API_KEY",
+    "pytest-internal-api-key-for-tests-only",
+)

@@ -13,7 +13,7 @@ export function MetricCard({ label, value, hint, className }: MetricCardProps) {
   return (
     <div
       className={cn(
-        "rounded-2xl border border-border/70 bg-linear-to-br from-card to-muted/15 px-4 py-3 shadow-sm ring-1 ring-inset ring-white/40 transition-shadow hover:shadow-card",
+        "rounded-2xl border border-border/70 bg-linear-to-br from-card to-muted/15 px-4 py-3 shadow-sm ring-1 ring-inset ring-white/20 transition-shadow hover:shadow-card dark:ring-white/5",
         className,
       )}
     >

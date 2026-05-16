@@ -27,11 +27,16 @@ async def lifespan(app: FastAPI):
     yield
 
 
+_is_prod = os.getenv("ENVIRONMENT", "development").lower() == "production"
+
 app = FastAPI(
     title="CyberEdu API",
     version="0.1.0",
     description="FastAPI-слой платформы CyberEdu: api → services → repositories → models.",
     lifespan=lifespan,
+    docs_url=None if _is_prod else "/docs",
+    redoc_url=None if _is_prod else "/redoc",
+    openapi_url=None if _is_prod else "/openapi.json",
 )
 
 

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type EmptyStateProps = {
@@ -12,19 +13,19 @@ export type EmptyStateProps = {
 export function EmptyState({ className, icon, title, description, action }: EmptyStateProps) {
   return (
     <div
+      role="status"
       className={cn(
-        "flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/60 px-6 py-12 text-center shadow-sm transition-colors duration-200 hover:border-primary/25 hover:bg-card",
+        "ce-animate-in flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 bg-card/50 px-6 py-14 text-center shadow-sm backdrop-blur-sm",
+        "transition-colors duration-300 hover:border-primary/30 hover:bg-card/80",
         className,
       )}
     >
-      {icon ? (
-        <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground ring-1 ring-border">
-          {icon}
-        </div>
-      ) : null}
-      <h3 className="text-base font-semibold text-foreground">{title}</h3>
-      {description ? <p className="mt-2 max-w-sm text-sm text-muted-foreground">{description}</p> : null}
-      {action ? <div className="mt-6 flex flex-wrap justify-center gap-2">{action}</div> : null}
+      <div className="mb-5 flex size-16 items-center justify-center rounded-2xl bg-muted/80 text-muted-foreground ring-1 ring-border shadow-sm">
+        {icon ?? <Inbox className="size-7 opacity-70" aria-hidden />}
+      </div>
+      <h3 className="typo-h3 text-balance">{title}</h3>
+      {description ? <p className="typo-body-muted mt-2 max-w-md text-pretty">{description}</p> : null}
+      {action ? <div className="mt-8 flex flex-wrap justify-center gap-3">{action}</div> : null}
     </div>
   );
 }

@@ -6,77 +6,13 @@ import {
   type PracticeUploadLimits,
   defaultPracticeUploadLimits,
 } from "@/lib/practice-file-constants";
+import {
+  assertBinaryMatchesExtension,
+  assertSafeUploadFilename,
+  safeFileExtension,
+} from "@/lib/security/upload-sandbox";
 
-/** Запрещённые расширения (даже если фигурируют в составном имени — доп. проверка). */
-const FORBIDDEN_EXTENSIONS = new Set([
-  "exe",
-  "dll",
-  "com",
-  "bat",
-  "cmd",
-  "msi",
-  "scr",
-  "pif",
-  "js",
-  "mjs",
-  "cjs",
-  "jar",
-  "sh",
-  "bash",
-  "zsh",
-  "ps1",
-  "vbs",
-  "wsf",
-  "hta",
-  "php",
-  "phtml",
-  "asp",
-  "aspx",
-  "jsp",
-  "cgi",
-  "pl",
-  "py",
-  "rb",
-  "deb",
-  "rpm",
-  "dmg",
-  "app",
-  "wasm",
-  "so",
-  "dylib",
-]);
-
-/** Имя файла: только базовое имя, без путей и управляющих символов. */
-export function assertSafeUploadFilename(originalName: string): { ok: true } | { ok: false; error: string } {
-  const base = path.basename(String(originalName).replace(/\\/g, "/")).trim();
-  if (!base || base.length > 240) {
-    return { ok: false, error: "Некорректное или слишком длинное имя файла." };
-  }
-  if (base.includes("..") || /[\x00-\x1f]/.test(base)) {
-    return { ok: false, error: "Некорректное имя файла." };
-  }
-  const parts = base.toLowerCase().split(".");
-  for (let i = 1; i < parts.length; i++) {
-    const seg = parts[i];
-    if (seg && FORBIDDEN_EXTENSIONS.has(seg)) {
-      return { ok: false, error: "Такой тип файла не допускается (исполняемые и скрипты запрещены)." };
-    }
-  }
-  return { ok: true };
-}
-
-function bufStartsWith(buf: Buffer, prefix: number[]): boolean {
-  if (buf.length < prefix.length) return false;
-  return prefix.every((b, i) => buf[i] === b);
-}
-
-/** Расширение без точки, нижний регистр; пустая строка если нет. */
-export function safeFileExtension(filename: string): string {
-  const base = path.basename(filename).replace(/\\/g, "/");
-  const i = base.lastIndexOf(".");
-  if (i < 0 || i === base.length - 1) return "";
-  return base.slice(i + 1).toLowerCase();
-}
+export { assertSafeUploadFilename, safeFileExtension } from "@/lib/security/upload-sandbox";
 
 export type FileValidationResult = { ok: true; ext: PracticeStoredExt } | { ok: false; error: string };
 
@@ -89,7 +25,7 @@ export function validatePracticeUpload(
   limits: PracticeUploadLimits = defaultPracticeUploadLimits(),
 ): FileValidationResult {
   const nameCheck = assertSafeUploadFilename(originalName);
-  if (!nameCheck.ok) return nameCheck;
+  if (!nameCheck.ok) return { ok: false, error: nameCheck.error };
 
   if (buffer.length === 0) {
     return { ok: false, error: "Пустой файл." };
@@ -109,35 +45,10 @@ export function validatePracticeUpload(
   }
   const kind = extCanon as PracticeStoredExt;
 
-  if (kind === "pdf") {
-    if (!bufStartsWith(buffer, [0x25, 0x50, 0x44, 0x46])) return { ok: false, error: "Файл не похож на PDF." };
-    return { ok: true, ext: "pdf" };
-  }
-  if (kind === "png") {
-    if (!bufStartsWith(buffer, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]) && !bufStartsWith(buffer, [0x89, 0x50, 0x4e, 0x47])) {
-      return { ok: false, error: "Файл не похож на PNG." };
-    }
-    return { ok: true, ext: "png" };
-  }
-  if (kind === "jpg") {
-    if (!bufStartsWith(buffer, [0xff, 0xd8, 0xff])) return { ok: false, error: "Файл не похож на JPEG." };
-    return { ok: true, ext: "jpg" };
-  }
-  if (kind === "zip" || kind === "docx") {
-    if (!bufStartsWith(buffer, [0x50, 0x4b, 0x03, 0x04]) && !bufStartsWith(buffer, [0x50, 0x4b, 0x05, 0x06])) {
-      return { ok: false, error: kind === "docx" ? "Файл не похож на DOCX." : "Файл не похож на ZIP." };
-    }
-    return { ok: true, ext: kind };
-  }
-  if (kind === "txt") {
-    const slice = buffer.subarray(0, Math.min(buffer.length, 65536));
-    if (slice.includes(0)) {
-      return { ok: false, error: "Текстовый файл содержит недопустимые двоичные данные." };
-    }
-    return { ok: true, ext: "txt" };
-  }
+  const magic = assertBinaryMatchesExtension(buffer, kind);
+  if (!magic.ok) return { ok: false, error: magic.error };
 
-  return { ok: false, error: "Неподдерживаемый тип файла." };
+  return { ok: true, ext: kind };
 }
 
 /** Алиас для единообразия с требованиями к тестам (`validateFileUpload`). */

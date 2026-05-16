@@ -125,7 +125,7 @@ function CertificatePreview() {
 
 export function LandingHero() {
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/98 shadow-[var(--shadow-glow)] ring-1 ring-secondary/[0.07] backdrop-blur-[2px]">
+    <section className="ce-animate-in relative overflow-hidden rounded-3xl border border-border/70 bg-card/98 shadow-[var(--shadow-glow)] ring-1 ring-secondary/7 backdrop-blur-[2px] dark:ring-primary/10">
       <div className="pointer-events-none absolute -right-20 -top-24 h-80 w-80 rounded-full bg-cyan/18 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-28 -left-16 h-[22rem] w-[22rem] rounded-full bg-primary/10 blur-3xl" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(108deg,transparent_35%,color-mix(in_oklab,var(--secondary)_5%,transparent)_100%)]" />

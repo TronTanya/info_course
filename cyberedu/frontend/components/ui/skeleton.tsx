@@ -1,12 +1,19 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-export type SkeletonProps = React.HTMLAttributes<HTMLDivElement>;
+export type SkeletonProps = React.HTMLAttributes<HTMLDivElement> & {
+  /** Shimmer gradient instead of flat pulse */
+  shimmer?: boolean;
+};
 
-export function Skeleton({ className, ...props }: SkeletonProps) {
+export function Skeleton({ className, shimmer = true, ...props }: SkeletonProps) {
   return (
     <div
-      className={cn("animate-pulse rounded-xl bg-muted/90 ring-1 ring-border/60", className)}
+      className={cn(
+        "rounded-xl ring-1 ring-border/50",
+        shimmer ? "ce-skeleton-shimmer" : "animate-pulse bg-muted/90",
+        className,
+      )}
       aria-hidden
       {...props}
     />

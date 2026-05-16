@@ -1,6 +1,7 @@
+import os
+import uuid
 from unittest.mock import MagicMock
 
-import uuid
 from fastapi.testclient import TestClient
 
 from api.deps import get_user_service
@@ -8,6 +9,8 @@ from main import app
 from services.user_service import UserService
 
 client = TestClient(app)
+
+_API_HEADERS = {"X-API-Key": os.environ["INTERNAL_API_KEY"]}
 
 
 def test_health() -> None:
@@ -25,7 +28,7 @@ def test_user_not_found() -> None:
     app.dependency_overrides[get_user_service] = lambda: mock_svc
     try:
         rid = uuid.uuid4()
-        response = client.get(f"/api/v1/users/{rid}")
+        response = client.get(f"/api/v1/users/{rid}", headers=_API_HEADERS)
         assert response.status_code == 404
     finally:
         app.dependency_overrides.clear()

@@ -1,3 +1,4 @@
+import os
 from unittest.mock import MagicMock
 
 from fastapi.testclient import TestClient
@@ -8,6 +9,13 @@ from models.course_progress import CourseProgress
 from services.course_progress_service import CourseProgressService
 
 client = TestClient(app)
+
+_API_HEADERS = {"X-API-Key": os.environ["INTERNAL_API_KEY"]}
+
+
+def test_course_progress_requires_api_key() -> None:
+    r = client.get("/api/v1/course-progress?limit=1")
+    assert r.status_code == 401
 
 
 def test_course_progress_list_mocked() -> None:
@@ -29,7 +37,7 @@ def test_course_progress_list_mocked() -> None:
 
     app.dependency_overrides[get_course_progress_service] = lambda: mock_svc
     try:
-        r = client.get("/api/v1/course-progress?group_name=КИ-25&limit=10")
+        r = client.get("/api/v1/course-progress?group_name=КИ-25&limit=10", headers=_API_HEADERS)
         assert r.status_code == 200
         data = r.json()
         assert len(data) == 1

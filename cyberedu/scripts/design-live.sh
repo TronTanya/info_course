@@ -21,7 +21,7 @@ if [[ -f .env ]]; then
   set +a
 fi
 
-export DATABASE_URL="${DATABASE_URL:-postgresql://cyberedu:cyberedu_password@127.0.0.1:15432/cyberedu?schema=public}"
+export DATABASE_URL="${DATABASE_URL:-postgresql://cyberedu:cyberedu_dev_password@127.0.0.1:15432/cyberedu?schema=public}"
 export AUTH_SECRET="${AUTH_SECRET:-dev-secret-change-me-in-production-min-32-chars}"
 export AUTH_URL="${AUTH_URL:-http://localhost:3100}"
 export NEXTAUTH_URL="${NEXTAUTH_URL:-${AUTH_URL}}"

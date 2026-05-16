@@ -69,20 +69,23 @@ React-компоненты: **`frontend/components/brand/brand-logo.tsx`** (`Bra
 
 ```text
 cyberedu/
-├── docker-compose.yml     # PostgreSQL, pgAdmin, backend, frontend; Redis — опционально
-├── .env.example           # Пример переменных для compose (скопировать в .env)
-├── README.md              # Этот файл
-├── frontend/              # Next.js: курс, дашборд, админка, Prisma, NextAuth, AI routes
-│   ├── Dockerfile
-│   ├── prisma/            # Схема, миграции, seed
-│   └── app/               # Маршруты, API-роуты Next.js
-└── backend/               # FastAPI: health, пользователи, задел под REST API
-    ├── Dockerfile
-    ├── alembic/           # Миграции SQLAlchemy
-    └── src/               # main, api, models, repositories, services
+├── docker-compose.yml          # dev
+├── docker-compose.prod.yml     # production VPS
+├── docs/                       # ARCHITECTURE, SECURITY, API, checklists
+├── deploy/                     # nginx, prometheus, vps-deploy.sh
+├── frontend/                   # Next.js + Prisma
+└── backend/                    # FastAPI
 ```
 
-Корень репозитория (`../README.md`) содержит только указатель на каталог **`cyberedu/`**.
+Подробно: **[`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)**.
+
+## Production
+
+- Оценка готовности: **[`docs/PRODUCTION_READINESS.md`](./docs/PRODUCTION_READINESS.md)** (7.2/10)
+- Деплой: **[`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)** · чеклист: **[`docs/checklists/DEPLOYMENT_CHECKLIST.md`](./docs/checklists/DEPLOYMENT_CHECKLIST.md)**
+- Перед релизом: **[`docs/checklists/FINAL_CHECKLIST.md`](./docs/checklists/FINAL_CHECKLIST.md)**
+
+Корень репозитория (`../README.md`) — указатель и индекс документации.
 
 ## Пользовательский сценарий
 
@@ -115,18 +118,40 @@ cyberedu/
 
 В логах `docker compose logs frontend` сообщение **`[auth][error] CredentialsSignin`** чаще всего от **одной неудачной** попытки входа (неверный пароль); запись **`auth.sign_in_success`** относится к **успешной** попытке до или после неё — это не обязательно противоречие.
 
-Используйте только в **изолированной** демо-среде; в production задайте собственные секреты и пароли.
+Используйте только в **изолированной** демо-среде.
 
-## Запуск (только Docker)
+**Production:** демо-учётки (`admin@cyberedu.local`, `student@cyberedu.local` и др.) **запрещены**. Держите `RUN_SEED=0`; seed в production завершится с ошибкой. После первого входа смените пароли; повторный seed **не перезаписывает** `passwordHash` уже существующих пользователей.
 
-Официальный способ поднять платформу — **docker compose** из каталога **`cyberedu/`**. Запуск Next.js или Postgres **на хосте без контейнеров** для полного стека не поддерживается в этой документации.
+## Docker: dev и production
+
+| | Development | Production |
+|---|-------------|------------|
+| Файл | `docker-compose.yml` | `docker-compose.prod.yml` |
+| Env | `.env` (из `.env.example`) | `.env.production` (из `.env.production.example`) |
+| Сайт | http://127.0.0.1:3100 | Nginx :80 / :443 |
+| pgAdmin | да (`127.0.0.1:15050`) | **нет** |
+| Postgres / Redis наружу | только `127.0.0.1` (dev) | **нет** (internal network) |
+| Seed | только `RUN_SEED=1` | `RUN_SEED=0` (не запускается) |
+| Секреты в образ | **нет** (только runtime env) | `env_file` + `--env-file` |
+
+Production: **[`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)**
+
+## Запуск (development)
+
+Официальный способ поднять платформу — **docker compose** из каталога **`cyberedu/`**.
 
 ```bash
 cp .env.example .env
 docker compose up --build
 ```
 
-После сборки контейнер **frontend** при старте выполняет `prisma migrate deploy` и `prisma db seed` (см. `frontend/docker-entrypoint.sh`), затем запускает приложение. Отдельный `docker compose exec … migrate` обычно не нужен.
+**Первый запуск с демо-учётками** (admin/student из seed):
+
+```bash
+RUN_SEED=1 docker compose up --build
+```
+
+После сборки контейнер **frontend** при старте выполняет `prisma migrate deploy`. **Seed** запускается **только** при `RUN_SEED=1` (по умолчанию `0`). Повторный seed не меняет пароль существующих пользователей. См. `frontend/docker-entrypoint.sh` и `npm run seed:verify-password` в `frontend/`.
 
 Если миграции или seed завершились с ошибкой, смотрите логи: `docker compose logs frontend`.
 
@@ -188,9 +213,9 @@ docker compose exec backend alembic upgrade head
 |--------|-----|
 | **Frontend** | http://localhost:3100 |
 | **Backend** (OpenAPI / Swagger) | http://localhost:18000/docs (если 8000 занят) |
-| **pgAdmin** | http://localhost:15050 (логин `pgadmin@example.com` / пароль `admin123` из compose) |
+| **pgAdmin** | http://127.0.0.1:15050 (логин/пароль — `PGADMIN_*` в `.env`) |
 
-**PostgreSQL** с хоста: порт **15432** (внутри сети compose по-прежнему `postgres:5432`), БД `cyberedu`, пользователь `cyberedu`, пароль см. `docker-compose.yml`.
+**PostgreSQL** с хоста: `127.0.0.1:15432` (только localhost), БД `cyberedu`, пользователь `cyberedu`, пароль — `POSTGRES_PASSWORD` в `.env` (по умолчанию `cyberedu_dev_password`).
 
 В **pgAdmin** при добавлении сервера: host **`postgres`**, порт **5432** (из сети контейнеров).
 
@@ -206,14 +231,12 @@ docker compose --profile cache up --build
 
 ## Безопасность (кратко)
 
-- **Пароли** — хеширование (**bcrypt**), открытый пароль не хранится и не возвращается из API.  
-- **Роли** — `USER` / `ADMIN` в сессии; админ-маршруты защищены middleware и серверными проверками.  
-- **Маршруты** — `/dashboard/*` только для авторизованных; `/admin/*` — только для `ADMIN`.  
-- **Файлы практики** — лимит размера, белый список расширений, проверка **магических байтов**, запрет исполняемых и скриптовых расширений в имени, выдача файлов только владельцу (или админу).  
-- **AI** — в промпт не попадают эталоны практики и корректные ответы тестов; политика наставника; rate limit на AI- и auth-эндпоинты.  
-- **Тесты** — флаг **`isCorrect`** не отдаётся на клиент; оценка только на **backend**; варианты ответов для выбора перемешиваются при отдаче страницы.
+- **Пароли** — bcrypt; **роли** `USER` / `ADMIN`; middleware + server checks  
+- **CSRF** на mutating `/api/*`; **CSP** и security headers  
+- **Backend internal API** — `X-API-Key`; **upload sandbox** для практики  
+- **AI** — moderation, rate limits, без эталонов тестов в промпте  
 
-Подробный аудит и рекомендации можно оформить отдельным документом в репозитории при необходимости.
+Полный документ: **[`docs/SECURITY.md`](./docs/SECURITY.md)** · чеклист: **[`docs/checklists/SECURITY_CHECKLIST.md`](./docs/checklists/SECURITY_CHECKLIST.md)**
 
 ## Скриншоты
 

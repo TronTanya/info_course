@@ -3,10 +3,15 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from api.deps import get_user_service
+from api.deps_auth import require_internal_api_key
 from schemas.user import UserRead
 from services.user_service import UserService
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(
+    prefix="/users",
+    tags=["users"],
+    dependencies=[Depends(require_internal_api_key)],
+)
 
 
 @router.get("/{user_id}", response_model=UserRead)

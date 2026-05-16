@@ -15,6 +15,7 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "seed": "prisma db seed",
+    "seed:verify-password": "tsx scripts/verify-seed-password-preservation.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {
@@ -43,6 +44,9 @@
     "recharts": "^3.5.1",
     "tailwind-merge": "^3.6.0",
     "zod": "^4.4.3"
+  },
+  "optionalDependencies": {
+    "redis": "^5.10.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

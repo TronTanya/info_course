@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import { requireAdmin } from "@/lib/permissions";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   await requireAdmin();
@@ -8,7 +13,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="flex min-h-screen min-w-0 flex-col">
       <SiteHeader />
-      <div className="flex min-w-0 flex-1 flex-col">{children}</div>
+      <div id="main-content" className="flex min-w-0 flex-1 flex-col" tabIndex={-1}>
+        {children}
+      </div>
       <SiteFooter />
     </div>
   );

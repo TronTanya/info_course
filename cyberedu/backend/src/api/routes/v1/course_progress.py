@@ -6,10 +6,15 @@ from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, Query
 
 from api.deps import get_course_progress_service
+from api.deps_auth import require_internal_api_key
 from schemas.course_progress import CourseProgressRead
 from services.course_progress_service import CourseProgressService
 
-router = APIRouter(prefix="/course-progress", tags=["course-progress"])
+router = APIRouter(
+    prefix="/course-progress",
+    tags=["course-progress"],
+    dependencies=[Depends(require_internal_api_key)],
+)
 
 
 @router.get("", response_model=list[CourseProgressRead])

@@ -17,6 +17,7 @@ describe("runTutorChat без ключа AI", () => {
 
     await expect(
       runTutorChat({
+        userId: "test-user-id",
         userMessage: "Что такое фишинг?",
         pageContext: {
           moduleTitle: "Тест",

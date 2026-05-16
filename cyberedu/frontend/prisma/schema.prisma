@@ -450,3 +450,22 @@ model Review {
   @@index([isPublished])
   @@index([rating])
 }
+
+// --- Security audit (SIEM / forensics) ---
+
+model SecurityAuditLog {
+  id        String   @id @default(cuid())
+  event     String
+  severity  String   @default("info")
+  actorId   String?
+  ip        String?
+  path      String?
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  @@index([event])
+  @@index([actorId])
+  @@index([createdAt])
+  @@index([severity])
+  @@map("security_audit_log")
+}

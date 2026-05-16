@@ -41,6 +41,7 @@ const optionalLooseString = z
   .transform((s) => (s === "" ? undefined : s));
 
 import { isAllowedStoredAvatarUrl } from "@/lib/avatar-presets";
+import { isSafeExternalHttpsUrl } from "@/lib/security/sanitize";
 
 /** Данные формы редактирования профиля (после разбора FormData). */
 export const profileEditInputSchema = z
@@ -60,7 +61,13 @@ export const profileEditInputSchema = z
       .trim()
       .optional()
       .transform((s) => s ?? "")
-      .refine((s) => s.length === 0 || isAllowedStoredAvatarUrl(s), "Некорректная ссылка на аватар"),
+      .refine(
+        (s) =>
+          s.length === 0 ||
+          isAllowedStoredAvatarUrl(s) ||
+          (s.startsWith("https://") && isSafeExternalHttpsUrl(s)),
+        "Некорректная ссылка на аватар",
+      ),
     tags: z.array(z.string()),
     customInterest: z.string().trim().default(""),
   })

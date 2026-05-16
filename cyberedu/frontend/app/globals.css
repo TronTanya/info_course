@@ -1,7 +1,23 @@
 @import "tailwindcss";
 
-/* Дизайн-система v2: прохладные нейтрали, глубже сланец, акцент изумруд + циан */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Дизайн-система v3: cybersecurity SaaS — light / dark, spacing scale, motion */
 :root {
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 450ms;
   --background: #c8d4e6;
   --foreground: #0a1224;
   --card: #ffffff;
@@ -22,6 +38,48 @@
   --danger-foreground: #fef2f2;
   --cyan: #0f766e;
   --cyan-foreground: #ecfeff;
+  --accent: #0e7490;
+  --accent-foreground: #ecfeff;
+  --popover: #ffffff;
+  --popover-foreground: #0a1224;
+}
+
+.dark {
+  --background: #050a12;
+  --foreground: #e8eef8;
+  --card: #0b1220;
+  --card-foreground: #e8eef8;
+  --primary: #34d399;
+  --primary-foreground: #022c22;
+  --secondary: #162032;
+  --secondary-foreground: #dbeafe;
+  --muted: #111827;
+  --muted-foreground: #94a3b8;
+  --border: #1e293b;
+  --ring: #2dd4bf;
+  --success: #2dd4bf;
+  --success-foreground: #042f2e;
+  --warning: #fb923c;
+  --warning-foreground: #431407;
+  --danger: #f87171;
+  --danger-foreground: #450a0a;
+  --cyan: #22d3ee;
+  --cyan-foreground: #083344;
+  --accent: #22d3ee;
+  --accent-foreground: #083344;
+  --popover: #0f172a;
+  --popover-foreground: #e8eef8;
+  --shadow-card:
+    0 1px 0 0 color-mix(in oklab, #fff 6%, transparent) inset,
+    0 1px 2px rgb(0 0 0 / 0.35),
+    0 8px 24px -8px rgb(0 0 0 / 0.45);
+  --shadow-card-hover:
+    0 1px 0 0 color-mix(in oklab, #fff 8%, transparent) inset,
+    0 12px 32px -10px rgb(0 0 0 / 0.5),
+    0 0 0 1px color-mix(in oklab, var(--primary) 22%, transparent);
+  --shadow-glow:
+    0 0 0 1px color-mix(in oklab, var(--primary) 18%, transparent),
+    0 24px 64px -28px color-mix(in oklab, var(--cyan) 32%, transparent);
 }
 
 @theme inline {
@@ -45,6 +103,10 @@
   --color-danger-foreground: var(--danger-foreground);
   --color-cyan: var(--cyan);
   --color-cyan-foreground: var(--cyan-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --shadow-card:
     0 1px 0 0 color-mix(in oklab, #fff 58%, transparent) inset,
     0 1px 2px rgb(8 20 40 / 0.035),
@@ -69,6 +131,17 @@
 html {
   color-scheme: light;
   overflow-x: clip;
+  scroll-behavior: smooth;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 ::selection {
@@ -183,7 +256,7 @@ html {
     border: 2px solid color-mix(in oklab, var(--primary) 22%, var(--border));
     background: linear-gradient(
       165deg,
-      #ffffff 0%,
+      var(--card) 0%,
       color-mix(in oklab, var(--card) 96%, var(--cyan)) 42%,
       color-mix(in oklab, var(--card) 88%, var(--primary)) 100%
     );
@@ -202,10 +275,10 @@ html {
     border-bottom: 1px solid color-mix(in oklab, var(--border) 82%, var(--primary) 18%);
     background: linear-gradient(
       180deg,
-      color-mix(in oklab, #fff 82%, var(--card)) 0%,
+      color-mix(in oklab, var(--card) 92%, var(--foreground)) 0%,
       color-mix(in oklab, var(--card) 88%, transparent) 100%
     );
-    background-color: color-mix(in oklab, var(--card) 68%, transparent);
+    background-color: color-mix(in oklab, var(--card) 78%, transparent);
     backdrop-filter: blur(18px) saturate(1.12);
     box-shadow:
       0 1px 0 0 color-mix(in oklab, #fff 65%, transparent),
@@ -527,10 +600,10 @@ html {
   /** Оболочка контента админки: стекло, внутренний блик, глубже тень */
   .ce-admin-shell {
     border-radius: 1.75rem;
-    border: 1px solid color-mix(in oklab, #fff 42%, var(--border));
+    border: 1px solid color-mix(in oklab, var(--foreground) 8%, var(--border));
     background: linear-gradient(
       168deg,
-      color-mix(in oklab, #fff 88%, var(--card)) 0%,
+      color-mix(in oklab, var(--card) 96%, var(--foreground)) 0%,
       var(--card) 38%,
       color-mix(in oklab, var(--cyan) 5.5%, var(--card)) 72%,
       color-mix(in oklab, var(--primary) 4%, var(--card)) 100%
@@ -662,7 +735,7 @@ html {
     border: 2px solid color-mix(in oklab, var(--primary) 28%, var(--border));
     background: linear-gradient(
       145deg,
-      #ffffff 0%,
+      var(--card) 0%,
       color-mix(in oklab, var(--cyan) 10%, var(--card)) 38%,
       color-mix(in oklab, var(--primary) 8%, var(--card)) 100%
     );
@@ -844,6 +917,132 @@ html {
     .ce-admin-profile-action:hover,
     .ce-admin-profile-action:active {
       transform: none;
+    }
+  }
+
+  /* --- Motion: entrance, stagger, quiz, skeleton shimmer --- */
+  @keyframes ce-fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes ce-shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+  @keyframes ce-toast-in {
+    from {
+      opacity: 0;
+      transform: translateX(100%) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+  }
+  @keyframes ce-modal-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -48%) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+
+  .ce-animate-in {
+    opacity: 0;
+    animation: ce-fade-in-up var(--duration-slow) var(--ease-out-expo) forwards;
+  }
+  .ce-stagger-1 {
+    animation-delay: 0.06s;
+  }
+  .ce-stagger-2 {
+    animation-delay: 0.12s;
+  }
+  .ce-stagger-3 {
+    animation-delay: 0.18s;
+  }
+  .ce-stagger-4 {
+    animation-delay: 0.24s;
+  }
+  .ce-stagger-5 {
+    animation-delay: 0.3s;
+  }
+
+  .ce-skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--muted) 88%, transparent) 0%,
+      color-mix(in oklab, var(--muted) 55%, var(--card)) 50%,
+      color-mix(in oklab, var(--muted) 88%, transparent) 100%
+    );
+    background-size: 200% 100%;
+    animation: ce-shimmer 1.8s ease-in-out infinite;
+  }
+
+  .ce-quiz-shell {
+    border-radius: var(--radius-2xl);
+    border: 1px solid color-mix(in oklab, var(--border) 90%, var(--primary) 10%);
+    box-shadow: var(--shadow-card);
+  }
+  .ce-quiz-option {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    background: color-mix(in oklab, var(--muted) 35%, var(--card));
+    transition:
+      border-color var(--duration-normal) ease,
+      background var(--duration-normal) ease,
+      box-shadow var(--duration-normal) ease,
+      transform var(--duration-fast) ease;
+  }
+  .ce-quiz-option:hover {
+    border-color: color-mix(in oklab, var(--primary) 35%, var(--border));
+    background: color-mix(in oklab, var(--muted) 55%, var(--card));
+  }
+  .ce-quiz-option:has(:checked) {
+    border-color: color-mix(in oklab, var(--primary) 55%, var(--border));
+    background: color-mix(in oklab, var(--primary) 10%, var(--card));
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--primary) 20%, transparent);
+  }
+
+  .ce-cert-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-2xl);
+    border: 1px solid color-mix(in oklab, var(--primary) 22%, var(--border));
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--secondary) 8%, var(--card)) 0%,
+      var(--card) 45%,
+      color-mix(in oklab, var(--cyan) 8%, var(--card)) 100%
+    );
+    box-shadow: var(--shadow-glow);
+  }
+
+  .ce-focus-ring:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 0 0 4px var(--ring);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ce-animate-in,
+    .ce-skeleton-shimmer {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
     }
   }
 }

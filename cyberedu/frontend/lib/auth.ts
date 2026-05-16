@@ -2,10 +2,19 @@ import type { Role } from "@prisma/client";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
+import { headers } from "next/headers";
 import { prisma } from "@/lib/db";
-import { securityLog } from "@/lib/security-log";
+import { securityAudit } from "@/lib/security/audit";
+import {
+  clearLoginAttempts,
+  isLoginLocked,
+  recordFailedLogin,
+} from "@/lib/security/login-attempts";
+import { clientIpFromHeaders } from "@/lib/security/request-ip";
 
-if (process.env.NODE_ENV === "production") {
+const isProd = process.env.NODE_ENV === "production";
+
+if (isProd) {
   const s = process.env.AUTH_SECRET?.trim();
   if (!s || s.length < 32) {
     throw new Error(
@@ -16,21 +25,37 @@ if (process.env.NODE_ENV === "production") {
   const s = process.env.AUTH_SECRET?.trim();
   if (!s || s.length < 32) {
     console.warn(
-      "[auth] В development задайте AUTH_SECRET (≥32 символа) в frontend/.env — тот же, что в Docker compose, иначе JWT из cookie не расшифруется (JWTSessionError / no matching decryption secret).",
+      "[auth] В development задайте AUTH_SECRET (≥32 символа) в frontend/.env — тот же, что в Docker compose.",
     );
   }
 }
 
+const sessionMaxAge = Number(process.env.AUTH_SESSION_MAX_AGE ?? 60 * 60 * 24 * 2); // 2 суток по умолчанию
+
 const nextAuth = NextAuth({
-  // Важно: middleware и getToken используют `AUTH_SECRET` для расшифровки JWT.
-  // Если NextAuth не получает тот же `secret`, cookie сессии шифруется одним ключом,
-  // а читается другим (JWTSessionError: no matching decryption secret).
   secret: process.env.AUTH_SECRET?.trim(),
-  session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 7 },
+  session: {
+    strategy: "jwt",
+    maxAge: sessionMaxAge,
+    updateAge: 60 * 60, // обновление JWT раз в час при активности
+  },
   trustHost: true,
-  /** Битая cookie после смены AUTH_SECRET — ожидаемо; не засоряем консоль Next dev красным оверлеем. */
+  useSecureCookies: isProd,
+  cookies: isProd
+    ? {
+        sessionToken: {
+          name: "__Secure-authjs.session-token",
+          options: {
+            httpOnly: true,
+            sameSite: "lax",
+            path: "/",
+            secure: true,
+          },
+        },
+      }
+    : undefined,
   logger:
-    process.env.NODE_ENV !== "production"
+    !isProd
       ? {
           error(code, ...metadata: unknown[]) {
             const text = typeof code === "string" ? code : code instanceof Error ? code.message : String(code);
@@ -45,7 +70,7 @@ const nextAuth = NextAuth({
   events: {
     async signIn({ user }) {
       if (user?.id) {
-        securityLog("auth.sign_in_success", { userId: user.id });
+        securityAudit({ event: "auth.sign_in_success", actorId: user.id, severity: "info" });
       }
     },
   },
@@ -65,15 +90,48 @@ const nextAuth = NextAuth({
         const email = emailRaw.trim().toLowerCase();
         if (!email || !passwordRaw) return null;
 
+        const h = await headers();
+        const ip = clientIpFromHeaders(h);
+
+        if (isLoginLocked(email, ip)) {
+          securityAudit({
+            event: "auth.login_locked",
+            severity: "warn",
+            ip,
+            meta: { emailDomain: email.split("@")[1] },
+          });
+          return null;
+        }
+
         const user = await prisma.user.findUnique({
           where: { email },
           select: { id: true, email: true, passwordHash: true, role: true },
         });
-        if (!user?.passwordHash) return null;
+        if (!user?.passwordHash) {
+          recordFailedLogin(email, ip);
+          securityAudit({
+            event: "auth.login_failed",
+            severity: "warn",
+            ip,
+            meta: { reason: "unknown_user" },
+          });
+          return null;
+        }
 
         const valid = await bcrypt.compare(passwordRaw, user.passwordHash);
-        if (!valid) return null;
+        if (!valid) {
+          const attempt = recordFailedLogin(email, ip);
+          securityAudit({
+            event: "auth.login_failed",
+            severity: attempt.locked ? "high" : "warn",
+            actorId: user.id,
+            ip,
+            meta: { failures: attempt.failures, locked: attempt.locked },
+          });
+          return null;
+        }
 
+        clearLoginAttempts(email, ip);
         return {
           id: user.id,
           email: user.email,
@@ -107,10 +165,6 @@ const nextAuth = NextAuth({
 
 export const { handlers, auth, signIn, signOut } = nextAuth;
 
-/**
- * Вызов сессии без падения страницы: при смене `AUTH_SECRET` или битой cookie JWT
- * NextAuth бросает JWTSessionError — тогда показываем гостевую шапку (пользователь может войти снова).
- */
 export async function authSafe() {
   try {
     return await auth();
