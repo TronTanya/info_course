@@ -11,7 +11,7 @@ import {
 } from "@/lib/practice-progress-engine";
 import { STRUCTURED_SCENARIO_TASK_TYPES, verifyStructuredPractice } from "@/lib/practice-scenario-verify";
 import { guardPracticeSubmission } from "@/lib/practice-submit-guard";
-import { consumeRateLimit } from "@/lib/rate-limit";
+import { enforceServerActionRateLimit } from "@/lib/security/server-action-rate-limit";
 import { securityLog } from "@/lib/security-log";
 
 function revalidatePractice(moduleId: string) {
@@ -45,9 +45,8 @@ export async function submitPracticeTextAction(input: {
   const g = await guardPracticeSubmission(session?.user?.id, input.moduleId, input.practicalTaskId, ["TEXT_ANSWER"]);
   if (!g.ok) return { error: g.message };
 
-  if (!consumeRateLimit(`practice:text:user:${g.userId}`, 45, 60 * 60 * 1000)) {
-    return { error: "Слишком много отправок. Подождите и попробуйте позже." };
-  }
+  const textRl = await enforceServerActionRateLimit("practiceText", g.userId);
+  if (!textRl.allowed) return { error: textRl.error };
 
   const task = await prisma.practicalTask.findUnique({
     where: { id: input.practicalTaskId },
@@ -114,9 +113,10 @@ export async function verifyPracticeInteractiveAction(input: {
   ]);
   if (!g.ok) return { error: g.message };
 
-  if (!consumeRateLimit(`practice:interactive:user:${g.userId}`, 60, 60 * 60 * 1000)) {
-    return { error: "Слишком много проверок задания. Подождите и попробуйте позже." };
-  }
+  const interactiveRl = await enforceServerActionRateLimit("practiceInteractive", g.userId, {
+    exceeded: "Слишком много проверок задания. Подождите и попробуйте позже.",
+  });
+  if (!interactiveRl.allowed) return { error: interactiveRl.error };
 
   const task = await prisma.practicalTask.findUnique({
     where: { id: input.practicalTaskId },
@@ -243,9 +243,8 @@ export async function submitPracticeStructuredAction(input: {
   );
   if (!g.ok) return { error: g.message };
 
-  if (!consumeRateLimit(`practice:structured:user:${g.userId}`, 80, 60 * 60 * 1000)) {
-    return { error: "Слишком много отправок. Подождите и попробуйте позже." };
-  }
+  const structuredRl = await enforceServerActionRateLimit("practiceStructured", g.userId);
+  if (!structuredRl.allowed) return { error: structuredRl.error };
 
   const task = await prisma.practicalTask.findUnique({
     where: { id: input.practicalTaskId },

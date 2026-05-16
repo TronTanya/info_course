@@ -49,25 +49,34 @@
 
 ### Rate limiting
 
-| Зона | Пример лимита |
-|------|----------------|
-| Login callback | 20 / 15 min / IP |
-| AI POST | 120 / hour / IP (+ per-user in routes) |
-| Certificate verify | 40 / 15 min / IP |
-| Admin API | 60 / hour / IP |
+| Зона | Лимит (ориентир) | Реализация |
+|------|------------------|------------|
+| Login / credentials | 25 / 20 per 15 min | `login-attempts.ts` → Redis |
+| Register | 8 / IP·час, 5 / email·сутки | `registerAction` → Redis |
+| AI chat / lesson adapt | 60 / 40 per hour / user | `withApiGuard` → Redis |
+| Certificate verify | 40 / 15 min / IP | page + Redis |
+| Admin export | 10 / hour | `withApiGuard` → Redis |
+| Practice API checks / upload | 40 / 20 per hour | `withApiGuard` → Redis |
+| **Test submit (Server Action)** | 40 / hour / user | `enforceServerActionRateLimit` → Redis |
+| **Practice submit (Server Action)** | 45–80 / hour / user | `enforceServerActionRateLimit` → Redis |
 
-Реализация: `lib/security/rate-limit.ts` (memory; Redis if `REDIS_URL`).
+Источник: `lib/security/rate-limit-service.ts` (fixed window + TTL).
 
-### API guard (целевой стандарт)
+- **Production (`ENVIRONMENT=production`):** только Redis (`REDIS_URL` в compose). Без Redis — **fail-closed** (`reason: unavailable`), не bypass.
+- **Development:** in-memory fallback с `console.warn` (не shared между репликами).
+
+Server Actions: `lib/security/server-action-rate-limit.ts` (не использовать sync `consumeRateLimit`).
+
+### API guard
 
 ```typescript
 export const GET = withApiGuard(
-  { auth: "admin", permission: "admin.users.export", rateLimit: {...} },
-  async (ctx) => { ... }
+  { requireAdmin: true, permission: "admin:export", rateLimit: "adminExport" },
+  async ({ session, ip }) => { ... }
 );
 ```
 
-**Статус:** внедрён на admin export; остальные routes — ручной `auth()` + limits (технический долг).
+**Статус:** все Route Handlers в `app/api/**` на `withApiGuard` / `withAuthApiRoute` / `withPublicApiRoute`. Admin CSV export — `requireAdmin` + `logAdminSecurityEvent` (без email в audit meta).
 
 ## Защита API (FastAPI)
 

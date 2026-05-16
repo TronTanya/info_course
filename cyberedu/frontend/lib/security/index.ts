@@ -19,6 +19,7 @@ export {
 export {
   consumeRateLimit,
   consumeRateLimitAsync,
+  type RateLimitDenyReason,
   consumeCompositeRateLimit,
   consumeScopedRateLimit,
   enforceRateLimit,

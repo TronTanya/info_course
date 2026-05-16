@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { checkTestPrerequisites } from "@/lib/course-progress-guards";
 import { recalculateModuleProgress } from "@/lib/progress";
-import { consumeRateLimit } from "@/lib/rate-limit";
+import { enforceServerActionRateLimit } from "@/lib/security/server-action-rate-limit";
 import {
   buildSubmittedMap,
   calculateTestScore,
@@ -41,8 +41,11 @@ export async function submitTestAttemptAction(input: {
   if (!session?.user?.id) return { ok: false, error: "Требуется вход." };
 
   const userId = session.user.id;
-  if (!consumeRateLimit(`test:submit:user:${userId}`, 40, 60 * 60 * 1000)) {
-    return { ok: false, error: "Слишком много отправок теста. Подождите и попробуйте позже." };
+  const rateLimit = await enforceServerActionRateLimit("testSubmit", userId, {
+    exceeded: "Слишком много отправок теста. Подождите и попробуйте позже.",
+  });
+  if (!rateLimit.allowed) {
+    return { ok: false, error: rateLimit.error };
   }
 
   const { moduleId, testId, answers } = input;

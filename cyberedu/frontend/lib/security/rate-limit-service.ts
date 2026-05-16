@@ -2,7 +2,11 @@
  * Централизованный rate limiter: Redis (fixed window + TTL), in-memory только в dev с warning.
  */
 
-export type RateLimitResult = { allowed: true } | { allowed: false; retryAfterMs: number };
+export type RateLimitDenyReason = "exceeded" | "unavailable";
+
+export type RateLimitResult =
+  | { allowed: true }
+  | { allowed: false; retryAfterMs: number; reason: RateLimitDenyReason };
 
 export const RATE_LIMIT_POLICIES = {
   login: { scope: "auth:login", max: 25, windowMs: 15 * 60 * 1000 },
@@ -17,6 +21,10 @@ export const RATE_LIMIT_POLICIES = {
   practiceDownload: { scope: "practice:download", max: 80, windowMs: 60 * 60 * 1000 },
   certGenerate: { scope: "cert:generate", max: 15, windowMs: 24 * 60 * 60 * 1000 },
   aiLessonAdapt: { scope: "ai:adapt", max: 40, windowMs: 60 * 60 * 1000 },
+  testSubmit: { scope: "test:submit", max: 40, windowMs: 60 * 60 * 1000 },
+  practiceText: { scope: "practice:text", max: 45, windowMs: 60 * 60 * 1000 },
+  practiceInteractive: { scope: "practice:interactive", max: 60, windowMs: 60 * 60 * 1000 },
+  practiceStructured: { scope: "practice:structured", max: 80, windowMs: 60 * 60 * 1000 },
 } as const;
 
 type MemoryBucket = { count: number; resetAt: number };
@@ -69,7 +77,11 @@ function memoryFixedWindowConsume(key: string, max: number, windowMs: number): R
     memory.set(key, bucket);
   }
   if (bucket.count >= max) {
-    return { allowed: false, retryAfterMs: Math.max(0, bucket.resetAt - now) };
+    return {
+      allowed: false,
+      retryAfterMs: Math.max(0, bucket.resetAt - now),
+      reason: "exceeded",
+    };
   }
   bucket.count += 1;
   return { allowed: true };
@@ -112,7 +124,7 @@ async function redisFixedWindowConsume(
     if (count <= max) return { allowed: true };
     const ttl = await client.pTTL(key);
     const retryAfterMs = ttl > 0 ? ttl : windowMs;
-    return { allowed: false, retryAfterMs };
+    return { allowed: false, retryAfterMs, reason: "exceeded" };
   } catch {
     return null;
   }
@@ -143,7 +155,7 @@ export async function consumeRateLimitKey(
 
   if (!isDevMemoryFallbackAllowed()) {
     console.error("[rate-limit] Redis unavailable in production — request denied");
-    return { allowed: false, retryAfterMs: windowMs };
+    return { allowed: false, retryAfterMs: windowMs, reason: "unavailable" };
   }
 
   warnMemoryFallback("REDIS_URL unset or Redis unreachable");
@@ -176,7 +188,7 @@ export function getMemoryRateLimitResetAt(key: string): number | null {
 export function consumeRateLimitSyncDevOnly(key: string, max: number, windowMs: number): boolean {
   const normalized = key.startsWith("rl:") ? key : `rl:${key}`;
   if (!isDevMemoryFallbackAllowed()) {
-    console.error("[rate-limit] sync limiter refused in production (use Redis + enforceRateLimit)");
+    console.error("[rate-limit] sync limiter refused in production (use enforceRateLimit + Redis)");
     return false;
   }
   warnMemoryFallback("sync consumeRateLimit");

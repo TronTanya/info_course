@@ -1,10 +1,10 @@
 # Production readiness — итоговая оценка
 
-**Дата ревью:** 2026-05-16  
+**Дата ревью:** 2026-05-16 (обновлено: P0 rate limit Server Actions)  
 **Версия стека:** Next.js 16 + FastAPI + PostgreSQL + Docker Compose  
 **Целевой сценарий:** single-node VPS (production compose + Nginx)
 
-## Оценка готовности: **7.2 / 10**
+## Оценка готовности: **7.8 / 10**
 
 | Область | Балл | Комментарий |
 |---------|------|-------------|
@@ -14,29 +14,32 @@
 | DX | 8.0 | Docker-first, design-live, CI, env examples |
 | UX | 7.5 | Design system v3, dark mode, loading skeletons |
 | Accessibility | 7.0 | Skip-link, focus rings; нет полного WCAG-аудита / e2e a11y |
-| SEO | 5.5 | Metadata на страницах; нет `robots.txt`, `sitemap`, Open Graph |
+| SEO | 6.5 | `robots.ts`, `sitemap.ts`, `noindex` на dashboard/admin; Open Graph — P2 |
 | CI/CD | 7.5 | Lint, test, compose validate, GHCR release; нет deploy workflow |
 | Observability | 6.0 | Healthchecks, optional Prometheus; нет APM/Sentry/central logs |
 | Maintainability | 7.5 | Тесты frontend + schema contract; Prisma — единый DDL |
 
-**Вердикт:** готов к **controlled production** (учебный/пилотный VPS с мониторингом uptime и ручным релизом). Для **публичного SaaS at scale** — закрыть пункты из [FINAL_CHECKLIST](./checklists/FINAL_CHECKLIST.md) (P0/P1).
+**Вердикт:** после **staging smoke submit** (тест + практика) — готов к **controlled production** (учебный/пилотный VPS). Для **публичного SaaS at scale** — закрыть оставшиеся P1 из [FINAL_CHECKLIST](./checklists/FINAL_CHECKLIST.md).
 
 ---
 
 ## Критичные остатки (P0)
 
-**Закрыто (C1–C3):** course-progress/users только с `X-API-Key`; prod compose без публичных DB/Redis; seed только при `RUN_SEED=1`; dev-порты на `127.0.0.1`.
+**Закрыто (C1–C4):**
 
-1. **Rate limit в памяти** — при нескольких репликах frontend лимиты не общие; в prod compose Redis есть, но не все пути гарантированно используют `REDIS_URL`.
-2. ~~Двойная схема БД~~ — снято: Prisma владеет DDL; Alembic no-op ([DATABASE.md](./DATABASE.md)).
+- C1–C3: internal API key, prod network, seed guards (как ранее).
+- **C4 (2026-05-16):** Server Actions `submitTestAttemptAction` / practice actions → `enforceServerActionRateLimit` + Redis (не sync `consumeRateLimit`).
+
+~~Двойная схема БД~~ — снято: Prisma владеет DDL; Alembic no-op ([DATABASE.md](./DATABASE.md)).
 
 ## Высокий приоритет (P1)
 
-1. Мигрировать оставшиеся Route Handlers на `withApiGuard` (единый auth, RBAC, audit).
-2. E2E smoke (Playwright): login → course → lesson → test.
-3. CI: job `npm audit` / `pip audit` (опционально fail on critical).
-4. Structured logging (JSON) + внешний uptime на `/api/health`.
-5. Backup runbook PostgreSQL (pg_dump cron, restore test).
+1. ~~Мигрировать Route Handlers на `withApiGuard`~~ — сделано.
+2. E2E smoke: login → course → **submit test** → **submit practice** (Playwright `e2e/smoke.spec.ts`).
+3. **Staging smoke (обязательно перед go-live):** на VPS/staging с `ENVIRONMENT=production` + `REDIS_URL` — пройти тест и TEXT-практику; убедиться, что нет ложного «Слишком много отправок».
+4. CI: job `npm audit` / `pip audit` (опционально fail on critical).
+5. Structured logging (JSON) + внешний uptime на `/api/health`.
+6. Backup runbook PostgreSQL (pg_dump cron, restore test).
 
 ## Рекомендуемые улучшения (P2)
 

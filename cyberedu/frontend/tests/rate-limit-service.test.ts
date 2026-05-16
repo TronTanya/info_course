@@ -76,6 +76,7 @@ describe("security/rate-limit-service", () => {
     expect(denied.allowed).toBe(false);
     if (!denied.allowed) {
       expect(denied.retryAfterMs).toBeGreaterThan(0);
+      expect(denied.reason).toBe("exceeded");
     }
   });
 
@@ -89,6 +90,9 @@ describe("security/rate-limit-service", () => {
       windowMs: 60_000,
     });
     expect(denied.allowed).toBe(false);
+    if (!denied.allowed) {
+      expect(denied.reason).toBe("unavailable");
+    }
     warn.mockRestore();
   });
 

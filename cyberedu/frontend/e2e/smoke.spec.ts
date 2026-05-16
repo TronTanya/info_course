@@ -1,5 +1,11 @@
 import { expect, test } from "@playwright/test";
 import { loginAs, logoutFromApp } from "./helpers/auth";
+import {
+  openFirstPracticePage,
+  openFirstTestPage,
+  submitModuleTest,
+  submitPracticeTextIfPresent,
+} from "./helpers/course-flow";
 
 test.describe.configure({ mode: "serial" });
 
@@ -23,55 +29,21 @@ test.describe("CyberEdu smoke", () => {
     await expect(page.getByRole("link", { name: /Начать|Продолжить|Открыть модуль/i }).first()).toBeVisible();
   });
 
-  test("4. test page — answer one question flow", async ({ page }) => {
+  test("4. submit module test (no false rate-limit error)", async ({ page }) => {
     await loginAs(page, "student");
-    await page.goto("/dashboard/course");
-
-    const testLink = page.locator('a[href*="/test"]').first();
-    if ((await testLink.count()) === 0) {
-      const continueLink = page.getByRole("link", { name: /Начать|Продолжить|тест/i }).first();
-      await continueLink.click();
-    } else {
-      await testLink.click();
-    }
-
-    await expect(page).toHaveURL(/\/dashboard\/course\/[^/]+\/test/);
-
-    const retake = page.getByRole("button", { name: /Пройти тест ещё раз/i });
-    if (await retake.isVisible().catch(() => false)) {
-      await retake.click();
-    }
-
-    const firstRadio = page.locator('input[type="radio"]').first();
-    const firstCheckbox = page.locator('input[type="checkbox"]').first();
-    const textarea = page.locator("textarea").first();
-
-    if (await firstRadio.isVisible().catch(() => false)) {
-      await firstRadio.check();
-    } else if (await firstCheckbox.isVisible().catch(() => false)) {
-      await firstCheckbox.check();
-    } else if (await textarea.isVisible().catch(() => false)) {
-      await textarea.fill("E2E smoke answer");
-    }
-
-    const nextBtn = page.getByRole("button", { name: /Следующий вопрос/i });
-    if (await nextBtn.isEnabled().catch(() => false)) {
-      await nextBtn.click();
-    }
-
-    await expect(page.getByText(/Вопрос \d+ из/i)).toBeVisible();
+    await openFirstTestPage(page);
+    await submitModuleTest(page);
   });
 
-  test("5. open practice page", async ({ page }) => {
+  test("5. submit practice text (no false rate-limit error)", async ({ page }) => {
     await loginAs(page, "student");
-    await page.goto("/dashboard/course");
-
-    const practiceLink = page.locator('a[href*="/practice"]').first();
-    test.skip((await practiceLink.count()) === 0, "Практика недоступна без пройденного теста (seed)");
-
-    await practiceLink.click();
-    await expect(page).toHaveURL(/\/dashboard\/course\/[^/]+\/practice/);
+    try {
+      await openFirstPracticePage(page);
+    } catch {
+      test.skip(true, "Практика недоступна без пройденного теста (seed)");
+    }
     await expect(page.getByText(/Практика|практик/i).first()).toBeVisible();
+    await submitPracticeTextIfPresent(page);
   });
 
   test("6. admin login and users page", async ({ page }) => {
