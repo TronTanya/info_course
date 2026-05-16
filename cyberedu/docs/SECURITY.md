@@ -81,13 +81,71 @@ Production без ключа → fail closed.
 
 ## HTTP security headers
 
-Задаются в `next.config.ts` + `middleware` через `lib/security/headers.ts`:
+Источник: `frontend/lib/security/headers.ts`, применяется в **`next.config.ts`** (`headers()`) и **`middleware.ts`** (`applySecurityHeaders`) — все HTML/API-ответы приложения, включая `_next/static` (через config).
 
-- Content-Security-Policy (restrictive baseline)
-- `X-Frame-Options` / frame-ancestors
-- `X-Content-Type-Options: nosniff`
-- `Referrer-Policy`
-- HSTS — через Nginx SSL config (production)
+### Rollout CSP (сначала report-only, потом enforce)
+
+| Этап | `CSP_MODE` | Заголовок |
+|------|------------|-----------|
+| 1 — мониторинг (default prod) | `report-only` или не задан | `Content-Security-Policy-Report-Only` |
+| 2 — блокировка | `enforce` | `Content-Security-Policy` |
+| Dev / отладка | `off` (default) | CSP не отправляется |
+
+Политика **одинакова** в report-only и enforce — нарушения видны в отчётах до включения блокировки. Готовая строка: `getEnforceReadyCsp()` в коде.
+
+Опционально: `CSP_REPORT_URI=/api/csp-report` (нужен свой Route Handler для приёма отчётов).
+
+```bash
+# production (.env.production)
+CSP_MODE=report-only
+# после 1–2 недель без ложных срабатываний:
+CSP_MODE=enforce
+```
+
+### Заголовки (production security)
+
+`isProductionSecurity()` = `ENVIRONMENT=production` **или** `NODE_ENV=production` (в Docker dev-образе задайте `ENVIRONMENT=development`, чтобы не включать HSTS на localhost).
+
+| Header | Значение | Назначение |
+|--------|----------|------------|
+| **Content-Security-Policy** / **-Report-Only** | см. rollout | XSS, injection; `frame-ancestors 'none'` |
+| **Strict-Transport-Security** | `max-age=63072000; includeSubDomains; preload` | HSTS только в production |
+| **X-Frame-Options** | `DENY` | Clickjacking (дублирует CSP `frame-ancestors`) |
+| **X-Content-Type-Options** | `nosniff` | MIME sniffing |
+| **Referrer-Policy** | `strict-origin-when-cross-origin` | Утечка URL |
+| **Permissions-Policy** | restrictive defaults | Отключение camera/mic/geo/payment… |
+| **Cross-Origin-Opener-Policy** | `same-origin` | Изоляция окон |
+| **Cross-Origin-Resource-Policy** | `same-site` | Ограничение встраивания ресурсов |
+| **X-DNS-Prefetch-Control** | `off` | DNS prefetch |
+| **X-Permitted-Cross-Domain-Policies** | `none` | Flash/PDF cross-domain |
+
+Nginx может **дополнительно** выставить HSTS на edge — дублирование с приложением допустимо.
+
+### CSP и Next.js (не ломаем assets)
+
+| Директива | Разрешено | Зачем |
+|-----------|-----------|--------|
+| `default-src` | `'self'` | Базовый origin |
+| `script-src` | `'self' 'unsafe-inline'` (+ `'unsafe-eval'` в dev) | Next.js chunks / React Refresh |
+| `style-src` | `'self' 'unsafe-inline'` | CSS-in-JS / Tailwind |
+| `img-src` | `'self' data: blob:` | `next/image`, аватары, canvas |
+| `font-src` | `'self' data:` | `@fontsource` / локальные шрифты |
+| `connect-src` | `'self'` + app origin + `NEXT_PUBLIC_API_URL` + AI API origin | `/api/*`, FastAPI, LLM |
+| `worker-src` | `'self' blob:` | Web workers |
+| `media-src` | `'self' blob:` | Медиа в практикумах |
+| `manifest-src` | `'self'` | PWA manifest |
+| `frame-ancestors` | `'none'` | Встраивание в iframe запрещено |
+| `form-action` | `'self'` | Формы auth/settings |
+| `object-src` | `'none'` | Плагины |
+| `upgrade-insecure-requests` | production only | HTTPS upgrade |
+
+Middleware **не** матчит `_next/static`, `_next/image`, `favicon.ico`, `brand/` — статика всё равно получает заголовки из `next.config.ts`.
+
+### Тесты
+
+```bash
+cd frontend && npm run test -- tests/security-headers.test.ts
+```
 
 ## Файлы и uploads
 
@@ -116,11 +174,29 @@ Production без ключа → fail closed.
 
 **Хранение:** `.env.production` on VPS (`chmod 600`), GitHub Secrets for CI — never commit.
 
-## Аудит
+## Аудит (SecurityAuditLog)
 
-`SECURITY_AUDIT_DB=1` → Prisma `SecurityAuditLog` для:
+`SECURITY_AUDIT_DB=1` (default) → запись в `security_audit_log` + JSON в stdout (SIEM).
 
-- auth denied, rate limited, admin actions (по мере внедрения)
+**Helper:** `logSecurityEvent({ userId, action, targetId, metadata, ip, path })` — `lib/security/audit.ts`  
+**Admin mutations:** `logAdminSecurityEvent(adminId, action, targetId, metadata)` — обязателен после успешной мутации.
+
+| action | Когда |
+|--------|--------|
+| `auth.login.success` / `auth.login.failed` | Вход (без email/пароля в meta) |
+| `admin.user.role_change` | Смена роли (`updateUserRoleAction`) |
+| `admin.users.csv_export` | Выгрузка CSV |
+| `admin.practice.review` | Проверка отправки практики |
+| `admin.content.publish` / `unpublish` | Отзывы, модули (`isActive`) |
+| `certificate.generate` | Выдача сертификата |
+| `certificate.verify.abuse` | Rate limit на verify |
+| `certificate.verify.failed` | Неверный код (только `codePrefix`, не полный код) |
+| `ai.safety.refusal` | Отказ AI tutor (без prompt/ответа) |
+
+**Не логируем:** пароли, токены, полный verification code, тела AI-сообщений, email в metadata.  
+**IP:** только нормализованный (`normalizeAuditIp`) — валидный IPv4/IPv6 или `direct` / `invalid`.
+
+Поля записи: `actorId` (userId), `action`, `targetId`, `meta`, `createdAt`, `severity`, `path`, `ip`.
 
 ## Critical controls (C1–C3) — исправлено
 

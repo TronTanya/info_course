@@ -1,5 +1,4 @@
 import os
-import uuid
 from unittest.mock import MagicMock
 
 from fastapi.testclient import TestClient
@@ -27,8 +26,7 @@ def test_user_not_found() -> None:
 
     app.dependency_overrides[get_user_service] = lambda: mock_svc
     try:
-        rid = uuid.uuid4()
-        response = client.get(f"/api/v1/users/{rid}", headers=_API_HEADERS)
+        response = client.get("/api/v1/users/nonexistent_user_id", headers=_API_HEADERS)
         assert response.status_code == 404
     finally:
         app.dependency_overrides.clear()

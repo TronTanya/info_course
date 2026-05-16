@@ -4,6 +4,7 @@ declare module "redis" {
     connect: () => Promise<void>;
     on: (event: string, listener: () => void) => void;
     incr: (key: string) => Promise<number>;
-    pExpire: (key: string, ms: number) => Promise<boolean>;
+    pExpire: (key: string, ms: number) => Promise<number>;
+    pTTL: (key: string) => Promise<number>;
   };
 }

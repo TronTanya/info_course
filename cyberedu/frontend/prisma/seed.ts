@@ -974,12 +974,18 @@ async function upsertDemoStudentCohort(
   const city = "Якутск";
 
   for (const row of rows) {
-    const { user } = await ensureDemoUser({
+    const demoUser = await ensureDemoUser({
       email: row.email,
       role: Role.USER,
       createdAt: row.registeredAt,
       passwordPlain: STUDENT_PASSWORD_PLAIN,
     });
+
+    if (!demoUser.created && !demoUser.passwordHashUnchanged) {
+      throw new Error(`Seed: passwordHash ${row.email} был изменён — это недопустимо`);
+    }
+
+    const { user } = demoUser;
 
     await prisma.profile.upsert({
       where: { userId: user.id },

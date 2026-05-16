@@ -1,7 +1,12 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { prisma } from "@/lib/db";
+import { headers } from "next/headers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { prisma } from "@/lib/db";
+import { SECURITY_ACTIONS } from "@/lib/security/audit-actions";
+import { logSecurityEvent } from "@/lib/security/audit";
+import { enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/security/rate-limit";
+import { clientIpFromHeaders } from "@/lib/security/request-ip";
 
 type Props = { params: Promise<{ verificationCode: string }> };
 
@@ -20,6 +25,43 @@ export default async function VerifyCertificatePage({ params }: Props) {
   const raw = (await params).verificationCode;
   const verificationCode = decodeURIComponent(raw);
 
+  const h = await headers();
+  const clientIp = clientIpFromHeaders(h);
+  const certPolicy = RATE_LIMIT_POLICIES.certVerify;
+  const certRl = await enforceRateLimit({
+    scope: certPolicy.scope,
+    clientIp,
+    max: certPolicy.max,
+    windowMs: certPolicy.windowMs,
+  });
+
+  if (!certRl.allowed) {
+    logSecurityEvent({
+      action: SECURITY_ACTIONS.CERTIFICATE_VERIFY_ABUSE,
+      severity: "warn",
+      ip: clientIp,
+      path: "/certificate/verify",
+      metadata: { reason: "rate_limited" },
+    });
+    return (
+      <div className="ce-app-auth-main flex min-h-screen items-center justify-center px-4 py-16">
+          <div className="mx-auto max-w-lg">
+          <Card className="border-border/80">
+            <CardHeader>
+              <CardTitle className="text-xl">Проверка сертификата</CardTitle>
+              <p className="text-sm text-muted-foreground">Слишком много запросов. Попробуйте позже.</p>
+            </CardHeader>
+            <CardContent>
+              <Link href="/" className="text-sm font-medium text-primary underline-offset-4 hover:underline">
+                На главную
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   const cert = await prisma.certificate.findUnique({
     where: { verificationCode },
     include: {
@@ -35,6 +77,13 @@ export default async function VerifyCertificatePage({ params }: Props) {
   });
 
   if (!cert) {
+    logSecurityEvent({
+      action: SECURITY_ACTIONS.CERTIFICATE_VERIFY_FAILED,
+      severity: "info",
+      ip: clientIp,
+      path: "/certificate/verify",
+      metadata: { reason: "not_found", codePrefix: verificationCode.slice(0, 8) },
+    });
     return (
       <div className="ce-app-auth-main flex min-h-screen items-center justify-center px-4 py-16">
         <div className="mx-auto max-w-lg">

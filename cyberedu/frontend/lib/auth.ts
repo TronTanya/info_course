@@ -4,8 +4,10 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/db";
-import { securityAudit } from "@/lib/security/audit";
+import { SECURITY_ACTIONS } from "@/lib/security/audit-actions";
+import { logSecurityEvent } from "@/lib/security/audit";
 import {
+  checkLoginRateLimit,
   clearLoginAttempts,
   isLoginLocked,
   recordFailedLogin,
@@ -70,7 +72,13 @@ const nextAuth = NextAuth({
   events: {
     async signIn({ user }) {
       if (user?.id) {
-        securityAudit({ event: "auth.sign_in_success", actorId: user.id, severity: "info" });
+        const h = await headers();
+        logSecurityEvent({
+          userId: user.id,
+          action: SECURITY_ACTIONS.AUTH_LOGIN_SUCCESS,
+          ip: clientIpFromHeaders(h),
+          path: "/auth/login",
+        });
       }
     },
   },
@@ -93,12 +101,25 @@ const nextAuth = NextAuth({
         const h = await headers();
         const ip = clientIpFromHeaders(h);
 
-        if (isLoginLocked(email, ip)) {
-          securityAudit({
-            event: "auth.login_locked",
+        const loginRl = await checkLoginRateLimit(ip);
+        if (!loginRl.ok) {
+          logSecurityEvent({
+            action: SECURITY_ACTIONS.AUTH_LOGIN_RATE_LIMITED,
             severity: "warn",
             ip,
-            meta: { emailDomain: email.split("@")[1] },
+            path: "/auth/login",
+            metadata: { reason: "rate_limit" },
+          });
+          return null;
+        }
+
+        if (isLoginLocked(email, ip)) {
+          logSecurityEvent({
+            action: SECURITY_ACTIONS.AUTH_LOGIN_LOCKED,
+            severity: "warn",
+            ip,
+            path: "/auth/login",
+            metadata: { reason: "account_locked" },
           });
           return null;
         }
@@ -109,11 +130,12 @@ const nextAuth = NextAuth({
         });
         if (!user?.passwordHash) {
           recordFailedLogin(email, ip);
-          securityAudit({
-            event: "auth.login_failed",
+          logSecurityEvent({
+            action: SECURITY_ACTIONS.AUTH_LOGIN_FAILED,
             severity: "warn",
             ip,
-            meta: { reason: "unknown_user" },
+            path: "/auth/login",
+            metadata: { reason: "unknown_user" },
           });
           return null;
         }
@@ -121,12 +143,13 @@ const nextAuth = NextAuth({
         const valid = await bcrypt.compare(passwordRaw, user.passwordHash);
         if (!valid) {
           const attempt = recordFailedLogin(email, ip);
-          securityAudit({
-            event: "auth.login_failed",
+          logSecurityEvent({
+            userId: user.id,
+            action: SECURITY_ACTIONS.AUTH_LOGIN_FAILED,
             severity: attempt.locked ? "high" : "warn",
-            actorId: user.id,
             ip,
-            meta: { failures: attempt.failures, locked: attempt.locked },
+            path: "/auth/login",
+            metadata: { reason: "bad_password", failures: attempt.failures, locked: attempt.locked },
           });
           return null;
         }

@@ -84,18 +84,18 @@ prisma/                 # schema + migrations
 ## Backend (FastAPI)
 
 - Слои: `api` → `services` → `repositories` → `models`
-- **Alembic** миграции для SQLAlchemy-моделей (частично пересекаются с Prisma)
+- SQLAlchemy: `course_progress` + read-only `"User"` (без Alembic DDL)
 - Production: OpenAPI disabled; CORS из env
 - Защита: `require_internal_api_key` на v1 business routes
 
 ## Данные и миграции
 
-| Инструмент | Схема | Когда применяется |
-|------------|-------|-------------------|
-| Prisma Migrate | Основная учебная модель | `frontend-migrate` (prod), entrypoint (dev) |
-| Alembic | Backend models (`course_progress`, users UUID) | Manual / backend container |
+| Инструмент | Владение | Когда применяется |
+|------------|----------|-------------------|
+| **Prisma Migrate** | Вся учебная схема + `course_progress` | `frontend-migrate` (prod), entrypoint (dev) |
+| **Alembic** | Только no-op ревизии (история); DDL не создаёт | Опционально `alembic upgrade head` |
 
-> **Tech debt:** две ORM на одной БД. Правило: новые учебные сущности — только Prisma; backend — read/reporting или явно согласованные таблицы.
+Подробно: [DATABASE.md](./DATABASE.md). Backend: SQLAlchemy только для `course_progress` и read-only `"User"`; без `create_all` для Prisma-таблиц.
 
 ## AI subsystem
 

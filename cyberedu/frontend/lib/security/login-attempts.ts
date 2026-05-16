@@ -2,7 +2,7 @@
  * Учёт неудачных попыток входа (brute force / credential stuffing).
  */
 
-import { consumeRateLimitAsync } from "@/lib/security/rate-limit";
+import { enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/security/rate-limit";
 
 type AttemptBucket = { failures: number; lockedUntil: number };
 
@@ -48,8 +48,28 @@ export function clearLoginAttempts(email: string, ip: string): void {
   byKey.delete(key(email, ip));
 }
 
-/** Дополнительный лимит на уровне IP для callback credentials. */
-export async function checkLoginRateLimit(ip: string): Promise<{ ok: true } | { ok: false }> {
-  const r = await consumeRateLimitAsync(`auth:login:ip:${ip}`, 25, 15 * 60 * 1000);
+/** Лимит попыток входа по доверенному IP (до проверки пароля). */
+export async function checkLoginRateLimit(clientIp: string): Promise<{ ok: true } | { ok: false }> {
+  const p = RATE_LIMIT_POLICIES.login;
+  const r = await enforceRateLimit({
+    scope: p.scope,
+    clientIp,
+    max: p.max,
+    windowMs: p.windowMs,
+  });
+  return r.allowed ? { ok: true } : { ok: false };
+}
+
+/** Лимит POST /api/auth/callback/credentials (по IP). */
+export async function checkCredentialsCallbackRateLimit(
+  clientIp: string,
+): Promise<{ ok: true } | { ok: false }> {
+  const p = RATE_LIMIT_POLICIES.loginCredentials;
+  const r = await enforceRateLimit({
+    scope: p.scope,
+    clientIp,
+    max: p.max,
+    windowMs: p.windowMs,
+  });
   return r.allowed ? { ok: true } : { ok: false };
 }

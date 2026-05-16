@@ -74,8 +74,6 @@ export function AiMentorChat({ moduleId, lessonId, practicalTaskId, openSignal }
     setError(null);
     setLoading(true);
 
-    const history = messages.map((m) => ({ role: m.role, content: m.content }));
-
     try {
       const res = await fetch("/api/ai/chat", {
         method: "POST",
@@ -85,7 +83,6 @@ export function AiMentorChat({ moduleId, lessonId, practicalTaskId, openSignal }
           module_id: moduleId ?? null,
           lesson_id: lessonId ?? null,
           practical_task_id: practicalTaskId ?? null,
-          history,
         }),
       });
 

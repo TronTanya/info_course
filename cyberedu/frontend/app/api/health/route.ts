@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import { withPublicApiRoute } from "@/lib/security/api-guard";
 
-/** Liveness/readiness для Docker, Nginx и мониторинга. */
-export async function GET() {
+/** @public Liveness/readiness — без авторизации. */
+export const GET = withPublicApiRoute({}, async () => {
   return NextResponse.json(
     {
       status: "ok",
@@ -10,4 +11,4 @@ export async function GET() {
     },
     { status: 200, headers: { "Cache-Control": "no-store" } },
   );
-}
+});

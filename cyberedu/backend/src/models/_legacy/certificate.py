@@ -12,8 +12,8 @@ from models.base import Base
 from models.mixins import UUIDPrimaryKeyMixin
 
 if TYPE_CHECKING:
-    from models.course import Course
-    from models.user import User
+    from models._legacy.course import Course
+    from models._legacy.user import User
 
 
 class Certificate(UUIDPrimaryKeyMixin, Base):

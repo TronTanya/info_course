@@ -8,7 +8,7 @@
 
 | Область | Балл | Комментарий |
 |---------|------|-------------|
-| Безопасность | 7.5 | Сильная база (headers, CSRF, RBAC, audit, upload sandbox); остаются in-memory rate limit, неполный `withApiGuard`, dual-schema |
+| Безопасность | 7.5 | Сильная база (headers, CSRF, RBAC, audit, upload sandbox); rate limit через Redis в prod |
 | Производительность | 7.0 | Multi-stage Docker, standalone Next; тяжёлый frontend-образ, нет CDN/cache layer |
 | Архитектура | 6.5 | Рабочий split Next/FastAPI; доменная логика в основном в Next/Prisma |
 | DX | 8.0 | Docker-first, design-live, CI, env examples |
@@ -17,7 +17,7 @@
 | SEO | 5.5 | Metadata на страницах; нет `robots.txt`, `sitemap`, Open Graph |
 | CI/CD | 7.5 | Lint, test, compose validate, GHCR release; нет deploy workflow |
 | Observability | 6.0 | Healthchecks, optional Prometheus; нет APM/Sentry/central logs |
-| Maintainability | 7.0 | Тесты frontend; дублирование схем Prisma + Alembic |
+| Maintainability | 7.5 | Тесты frontend + schema contract; Prisma — единый DDL |
 
 **Вердикт:** готов к **controlled production** (учебный/пилотный VPS с мониторингом uptime и ручным релизом). Для **публичного SaaS at scale** — закрыть пункты из [FINAL_CHECKLIST](./checklists/FINAL_CHECKLIST.md) (P0/P1).
 
@@ -28,7 +28,7 @@
 **Закрыто (C1–C3):** course-progress/users только с `X-API-Key`; prod compose без публичных DB/Redis; seed только при `RUN_SEED=1`; dev-порты на `127.0.0.1`.
 
 1. **Rate limit в памяти** — при нескольких репликах frontend лимиты не общие; в prod compose Redis есть, но не все пути гарантированно используют `REDIS_URL`.
-2. **Двойная схема БД** (Prisma + SQLAlchemy/Alembic) — риск рассинхронизации при миграциях.
+2. ~~Двойная схема БД~~ — снято: Prisma владеет DDL; Alembic no-op ([DATABASE.md](./DATABASE.md)).
 
 ## Высокий приоритет (P1)
 

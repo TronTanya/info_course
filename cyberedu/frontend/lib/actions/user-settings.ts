@@ -79,7 +79,7 @@ export async function updateUserSettingsAction(
   let finalAvatarUrl: string | null;
   if (clearAvatar) {
     finalAvatarUrl = null;
-    deleteUserAvatarFiles(userId);
+    await deleteUserAvatarFiles(userId);
   } else if (pendingFile) {
     try {
       await saveUserAvatarFile(userId, pendingFile.ext, pendingFile.buf);
@@ -92,7 +92,7 @@ export async function updateUserSettingsAction(
     const trimmed = d.avatarUrl.trim();
     finalAvatarUrl = trimmed.length ? trimmed : null;
     if (isCustomAvatarApiPath(prevAvatar) && !isCustomAvatarApiPath(finalAvatarUrl)) {
-      deleteUserAvatarFiles(userId);
+      await deleteUserAvatarFiles(userId);
     }
   }
 

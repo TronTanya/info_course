@@ -1,12 +1,13 @@
--- Связь course_progress с учёткой Prisma ("User"). Идемпотентно: таблица создаётся Alembic (backend 0003).
+-- Связь course_progress с учёткой Prisma ("User"). Идемпотентно.
+-- Полная DDL таблицы — migration 20260525100000_course_progress_prisma_owned.
 DO $$
 BEGIN
   IF to_regclass('public.course_progress') IS NULL THEN
     RETURN;
   END IF;
+
   IF EXISTS (
-    SELECT 1
-    FROM information_schema.columns
+    SELECT 1 FROM information_schema.columns
     WHERE table_schema = 'public'
       AND table_name = 'course_progress'
       AND column_name = 'user_id'
@@ -27,6 +28,6 @@ BEGIN
   ) THEN
     ALTER TABLE course_progress
       ADD CONSTRAINT course_progress_user_id_fkey
-      FOREIGN KEY (user_id) REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+      FOREIGN KEY (user_id) REFERENCES "User"(id) ON DELETE SET NULL ON UPDATE CASCADE;
   END IF;
 END $$;

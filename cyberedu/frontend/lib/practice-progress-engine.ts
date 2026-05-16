@@ -15,7 +15,8 @@ import { prisma } from "@/lib/db";
 import { canGenerateCertificate } from "@/lib/certificate";
 import { recalculateModuleProgress, unlockNextModule } from "@/lib/progress";
 import type { ScenarioVerifyOutcome } from "@/lib/practice-scenario-verify";
-import { securityLog } from "@/lib/security-log";
+import { SECURITY_ACTIONS } from "@/lib/security/audit-actions";
+import { logAdminSecurityEvent } from "@/lib/security/audit";
 
 export { recalculateModuleProgress, unlockNextModule, canGenerateCertificate };
 
@@ -208,12 +209,18 @@ export async function updatePracticeStatusAfterAdminReview(input: {
     },
   });
 
-  securityLog("admin.submission_review", {
-    submissionId: input.submissionId,
-    reviewerUserId: input.reviewerUserId,
-    studentUserId: input.studentUserId,
-    status: input.status,
-  });
+  logAdminSecurityEvent(
+    input.reviewerUserId,
+    SECURITY_ACTIONS.ADMIN_PRACTICE_REVIEW,
+    input.submissionId,
+    {
+      studentUserId: input.studentUserId,
+      moduleId: input.moduleId,
+      status: input.status,
+      score: input.score,
+    },
+    { path: "/admin/submissions" },
+  );
 
   await recalculateModuleProgress(input.studentUserId, input.moduleId);
 }

@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
 import { adminUsersToCsv } from "@/lib/admin-users-csv";
 import { getAdminUserListRows } from "@/lib/admin-users-list";
-import { securityAudit } from "@/lib/security/audit";
+import { SECURITY_ACTIONS } from "@/lib/security/audit-actions";
+import { logAdminSecurityEvent } from "@/lib/security/audit";
 import { withApiGuard } from "@/lib/security/api-guard";
 
 export const GET = withApiGuard(
   {
-    auth: "admin",
+    requireAdmin: true,
     permission: "admin:export",
-    rateLimit: { name: "admin:export", ipMax: 20, userMax: 10, windowMs: 60 * 60 * 1000 },
+    rateLimit: "adminExport",
   },
   async ({ session, ip, req }) => {
     const rows = await getAdminUserListRows();
@@ -16,14 +17,13 @@ export const GET = withApiGuard(
     const day = new Date().toISOString().slice(0, 10);
     const filename = `cyberedu-users-${day}.csv`;
 
-    securityAudit({
-      event: "admin.users_export",
-      severity: "info",
-      actorId: session?.user?.id,
-      ip,
-      path: new URL(req.url).pathname,
-      meta: { rowCount: rows.length },
-    });
+    logAdminSecurityEvent(
+      session.user.id,
+      SECURITY_ACTIONS.ADMIN_USERS_CSV_EXPORT,
+      null,
+      { rowCount: rows.length, format: "csv" },
+      { ip, path: new URL(req.url).pathname },
+    );
 
     return new NextResponse(csv, {
       status: 200,

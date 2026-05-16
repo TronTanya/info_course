@@ -1,11 +1,11 @@
-import { existsSync, mkdirSync, readdirSync, unlinkSync } from "node:fs";
-import { writeFile } from "node:fs/promises";
-import path from "node:path";
 import { assertSafeUploadFilename, safeFileExtension } from "@/lib/practice-files";
+import { getStorageService, namespaceDir } from "@/lib/storage";
 
 const MAX_BYTES = 2 * 1024 * 1024;
 /** Пользовательские SVG не принимаем (нет санитизации). Только растровые форматы. */
 const ALLOWED = new Set(["png", "jpg", "jpeg", "webp"]);
+
+const AVATAR_NS = "avatars" as const;
 
 function bufStartsWith(buf: Buffer, prefix: number[]): boolean {
   if (buf.length < prefix.length) return false;
@@ -64,50 +64,40 @@ export function validateAvatarImage(buffer: Buffer, originalName: string): Avata
 }
 
 export function avatarUploadDir(): string {
-  return path.join(process.cwd(), "uploads", "avatars");
+  return namespaceDir(AVATAR_NS);
+}
+
+export function avatarFileKey(userId: string, ext: AvatarStoredExt): string {
+  return `${userId}.${ext}`;
 }
 
 export function avatarFileDiskPath(userId: string, ext: AvatarStoredExt): string {
-  return path.join(avatarUploadDir(), `${userId}.${ext}`);
+  return getStorageService().objectPath(AVATAR_NS, avatarFileKey(userId, ext));
 }
 
 export async function ensureAvatarUploadDir(): Promise<void> {
-  const dir = avatarUploadDir();
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true });
-  }
+  await getStorageService().ensureNamespace(AVATAR_NS);
 }
 
 export async function saveUserAvatarFile(userId: string, ext: AvatarStoredExt, buffer: Buffer): Promise<void> {
-  await ensureAvatarUploadDir();
   await deleteUserAvatarFiles(userId);
-  const p = avatarFileDiskPath(userId, ext);
-  await writeFile(p, buffer);
+  const storage = getStorageService();
+  await storage.write(AVATAR_NS, avatarFileKey(userId, ext), buffer);
 }
 
-export function deleteUserAvatarFiles(userId: string): void {
-  const dir = avatarUploadDir();
-  if (!existsSync(dir)) return;
-  for (const name of readdirSync(dir)) {
-    if (name.startsWith(`${userId}.`)) {
-      try {
-        unlinkSync(path.join(dir, name));
-      } catch {
-        /* ignore */
-      }
-    }
-  }
+export async function deleteUserAvatarFiles(userId: string): Promise<void> {
+  await getStorageService().deleteByPrefix(AVATAR_NS, `${userId}.`);
 }
 
 export async function findUserAvatarFile(
   userId: string,
 ): Promise<{ fullPath: string; ext: string } | null> {
-  const dir = avatarUploadDir();
-  if (!existsSync(dir)) return null;
-  const hit = readdirSync(dir).find((e) => e.startsWith(`${userId}.`));
+  const storage = getStorageService();
+  const keys = await storage.listKeys(AVATAR_NS, `${userId}.`);
+  const hit = keys[0];
   if (!hit) return null;
   const ext = hit.slice(userId.length + 1);
-  return { fullPath: path.join(dir, hit), ext };
+  return { fullPath: storage.objectPath(AVATAR_NS, hit), ext };
 }
 
 export function mimeForAvatarExt(ext: string): string {

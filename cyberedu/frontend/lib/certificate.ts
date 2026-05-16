@@ -1,29 +1,29 @@
 import { randomBytes } from "node:crypto";
-import { existsSync, mkdirSync } from "node:fs";
-import { readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { createElement } from "react";
 import QRCode from "qrcode";
 import { prisma } from "@/lib/db";
 import type { CertificatePdfPayload } from "@/lib/certificate-pdf";
 import { reconcileUserAchievements } from "@/lib/achievements";
-import { securityLog } from "@/lib/security-log";
+import { getStorageService, namespaceDir } from "@/lib/storage";
+import { SECURITY_ACTIONS } from "@/lib/security/audit-actions";
+import { logSecurityEvent } from "@/lib/security/audit";
 
-const CERT_UPLOAD_SUBDIR = path.join("uploads", "certificates");
+const CERT_NS = "certificates" as const;
 
 export function certificateUploadDir(): string {
-  return path.join(process.cwd(), CERT_UPLOAD_SUBDIR);
+  return namespaceDir(CERT_NS);
+}
+
+export function certificateFileKey(certificateId: string): string {
+  return `${certificateId}.pdf`;
 }
 
 export function certificateDiskPath(certificateId: string): string {
-  return path.join(certificateUploadDir(), `${certificateId}.pdf`);
+  return getStorageService().objectPath(CERT_NS, certificateFileKey(certificateId));
 }
 
 export async function ensureCertificateUploadDir(): Promise<void> {
-  const dir = certificateUploadDir();
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true });
-  }
+  await getStorageService().ensureNamespace(CERT_NS);
 }
 
 export function publicAppBaseUrl(): string {
@@ -296,17 +296,11 @@ export async function generateCertificatePdf(userId: string, courseId: string): 
 }
 
 export async function writeCertificatePdfFile(certificateId: string, buffer: Buffer): Promise<void> {
-  await ensureCertificateUploadDir();
-  await writeFile(certificateDiskPath(certificateId), buffer);
+  await getStorageService().write(CERT_NS, certificateFileKey(certificateId), buffer);
 }
 
 export async function readCertificatePdfFile(certificateId: string): Promise<Buffer | null> {
-  const p = certificateDiskPath(certificateId);
-  try {
-    return await readFile(p);
-  } catch {
-    return null;
-  }
+  return getStorageService().read(CERT_NS, certificateFileKey(certificateId));
 }
 
 /**
@@ -348,11 +342,11 @@ export async function issueCertificate(userId: string, courseId: string) {
       data: { pdfUrl },
     });
     const issued = await prisma.certificate.findUniqueOrThrow({ where: { id: cert.id } });
-    securityLog("certificate.issued", {
+    logSecurityEvent({
       userId,
-      courseId,
-      certificateId: issued.id,
-      certificateNumber: issued.certificateNumber,
+      action: SECURITY_ACTIONS.CERTIFICATE_GENERATE,
+      targetId: issued.id,
+      metadata: { courseId },
     });
     await reconcileUserAchievements(userId);
     return issued;

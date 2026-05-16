@@ -13,9 +13,9 @@ from models.enums import CheckType, PracticalTaskType, SubmissionStatus
 from models.mixins import TimestampMixin, UUIDPrimaryKeyMixin
 
 if TYPE_CHECKING:
-    from models.ai import AiMessage
-    from models.course import Module
-    from models.user import User
+    from models._legacy.ai import AiMessage
+    from models._legacy.course import Module
+    from models._legacy.user import User
 
 
 class PracticalTask(UUIDPrimaryKeyMixin, TimestampMixin, Base):

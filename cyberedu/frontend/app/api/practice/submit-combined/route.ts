@@ -1,14 +1,13 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { UPLOAD_API_GUARD } from "@/lib/api/guard-presets";
 import { prisma } from "@/lib/db";
 import { recalculateAfterSubmission } from "@/lib/practice-access";
 import { resolveCombinedSubmission } from "@/lib/practice-progress-engine";
 import { savePracticeFile, validatePracticeUpload } from "@/lib/practice-files";
 import { practiceUploadLimitsFromTask } from "@/lib/practice-file-constants";
 import { guardPracticeSubmission } from "@/lib/practice-submit-guard";
-import { consumeRateLimit } from "@/lib/rate-limit";
-import { clientIpFromRequest } from "@/lib/request-ip";
+import { withApiGuard } from "@/lib/security/api-guard";
 import { securityLog } from "@/lib/security-log";
 
 function revalidatePractice(moduleId: string) {
@@ -17,8 +16,7 @@ function revalidatePractice(moduleId: string) {
   revalidatePath("/dashboard/course");
 }
 
-export async function POST(req: Request) {
-  const session = await auth();
+export const POST = withApiGuard(UPLOAD_API_GUARD, async ({ userId, req }) => {
   let form: FormData;
   try {
     form = await req.formData();
@@ -38,20 +36,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Прикрепите файл." }, { status: 400 });
   }
 
-  const g = await guardPracticeSubmission(session?.user?.id, moduleId, taskId, ["COMBINED"]);
+  const g = await guardPracticeSubmission(userId, moduleId, taskId, ["COMBINED"]);
   if (!g.ok) {
     return NextResponse.json({ error: g.message }, { status: g.status });
   }
 
-  const ip = clientIpFromRequest(req);
-  if (
-    !consumeRateLimit(`practice:combined:ip:${ip}`, 50, 60 * 60 * 1000) ||
-    !consumeRateLimit(`practice:combined:user:${g.userId}`, 30, 60 * 60 * 1000)
-  ) {
-    return NextResponse.json({ error: "Слишком много отправок. Подождите час или попробуйте позже." }, { status: 429 });
-  }
-
-  const body = text.trim();
+  const textAnswer = text.trim();
   const task = await prisma.practicalTask.findFirst({
     where: { id: taskId, moduleId },
     select: {
@@ -69,17 +59,17 @@ export async function POST(req: Request) {
   }
 
   const minLen = Math.min(50_000, Math.max(1, task.minLength ?? 10));
-  if (body.length < minLen) {
+  if (textAnswer.length < minLen) {
     return NextResponse.json(
       { error: `Текстовая часть слишком короткая (минимум ${minLen} символов).` },
       { status: 400 },
     );
   }
-  if (body.length > 50_000) {
+  if (textAnswer.length > 50_000) {
     return NextResponse.json({ error: "Текст слишком длинный." }, { status: 400 });
   }
 
-  const plan = resolveCombinedSubmission(task.checkType, body, task.maxScore ?? 0, task.expectedAnswerPattern);
+  const plan = resolveCombinedSubmission(task.checkType, textAnswer, task.maxScore ?? 0, task.expectedAnswerPattern);
   if (plan.kind === "reject") {
     return NextResponse.json({ error: plan.error }, { status: 400 });
   }
@@ -98,7 +88,7 @@ export async function POST(req: Request) {
     data: {
       userId: g.userId,
       practicalTaskId: taskId,
-      textAnswer: body,
+      textAnswer,
       status: "DRAFT",
     },
   });
@@ -132,4 +122,4 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json({ ok: true, submissionId: draft.id });
-}
+});

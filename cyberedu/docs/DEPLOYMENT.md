@@ -88,9 +88,10 @@ Deploy from GHCR: set image tags in compose override or pull by digest.
 
 ## Migrations
 
-- **Production:** `frontend-migrate` runs `prisma migrate deploy` before app start
-- **Never** run `prisma db seed` on prod (`RUN_SEED=0`). Seed отклоняет `NODE_ENV=production` и не перезаписывает `passwordHash` существующих пользователей.
-- **Alembic:** `docker compose exec backend alembic upgrade head` when backend schema changes
+- **Production:** `frontend-migrate` runs `prisma migrate deploy` before app start (единственный источник DDL)
+- **Never** run `prisma db seed` on prod (`RUN_SEED=0`, `docker-entrypoint.prod.sh`). Seed отклоняет `ENVIRONMENT=production` и не перезаписывает `passwordHash` существующих пользователей.
+- **Alembic:** опционально `alembic upgrade head` (no-op ревизии); схему не меняет — см. [DATABASE.md](./DATABASE.md)
+- **Schema contract:** `cd backend && DATABASE_URL=... pytest tests/test_db_schema_contract.py`
 
 ## Backups
 

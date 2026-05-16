@@ -12,7 +12,7 @@ from models.enums import QuestionType
 from models.mixins import CreatedAtMixin, TimestampMixin, UUIDPrimaryKeyMixin
 
 if TYPE_CHECKING:
-    from models.course import Module
+    from models._legacy.course import Module
 
 
 class Test(UUIDPrimaryKeyMixin, TimestampMixin, Base):

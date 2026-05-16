@@ -8,7 +8,7 @@ const DELIMITER_ATTACKS = [
   /```\s*system/i,
   /<\s*\/?\s*system\s*>/i,
   /\[\[?\s*INST\s*\]?\]/i,
-  /###\s*новые\s+инструкции/i,
+  /###\s*(system|instructions|новые\s+инструкции)\b/i,
   /переопредели\s+роль/i,
 ];
 

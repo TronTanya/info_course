@@ -42,7 +42,6 @@ export function PracticeSocraticHintPanel({ moduleId, practicalTaskId, className
     if (!text || loading) return;
     setError(null);
     setLoading(true);
-    const history = messages.map((m) => ({ role: m.role, content: m.content }));
     try {
       const res = await fetch("/api/ai/chat", {
         method: "POST",
@@ -52,7 +51,6 @@ export function PracticeSocraticHintPanel({ moduleId, practicalTaskId, className
           module_id: moduleId,
           practical_task_id: practicalTaskId,
           practice_socratic_hints: true,
-          history,
         }),
       });
       const data = (await res.json()) as { reply?: string; error?: string };

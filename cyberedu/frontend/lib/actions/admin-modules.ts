@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/permissions";
+import { SECURITY_ACTIONS } from "@/lib/security/audit-actions";
+import { logAdminSecurityEvent } from "@/lib/security/audit";
 
 const TEMP_ORDER = 2_000_000;
 
@@ -162,13 +164,20 @@ export async function moveModuleAction(
 }
 
 export async function toggleModuleActiveAction(moduleId: string) {
-  await requireAdmin();
+  const session = await requireAdmin();
   const m = await prisma.module.findUnique({ where: { id: moduleId } });
   if (!m) return;
+  const nextActive = !m.isActive;
   await prisma.module.update({
     where: { id: moduleId },
-    data: { isActive: !m.isActive },
+    data: { isActive: nextActive },
   });
+  logAdminSecurityEvent(
+    session.user.id,
+    nextActive ? SECURITY_ACTIONS.ADMIN_CONTENT_PUBLISH : SECURITY_ACTIONS.ADMIN_CONTENT_UNPUBLISH,
+    moduleId,
+    { resource: "module", isActive: nextActive },
+  );
   revalidateAdminAndDashboard();
 }
 

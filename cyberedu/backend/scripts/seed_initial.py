@@ -1,5 +1,7 @@
 """
-Начальное наполнение БД: пользователи, профиль, курс, модули, лекции, блоки, тесты, практика.
+DEPRECATED: используйте Prisma seed (`frontend/prisma/seed.ts`, RUN_SEED=1).
+
+Старый seed для snake_case SQLAlchemy-схемы (users/courses/…). Не запускайте на production.
 
 Запуск из каталога backend (нужен DATABASE_URL; зависимости из requirements.txt, включая psycopg):
 
@@ -27,8 +29,8 @@ from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from core.database import SessionLocal
-from models.assessment import Answer, Question, Test
-from models.course import Course, Lesson, LessonBlock, Module
+from models._legacy.assessment import Answer, Question, Test
+from models._legacy.course import Course, Lesson, LessonBlock, Module
 from models.enums import (
     CheckType,
     LessonBlockType,
@@ -37,8 +39,8 @@ from models.enums import (
     QuestionType,
     UserRole,
 )
-from models.practice import PracticalTask
-from models.user import Profile, User
+from models._legacy.practice import PracticalTask
+from models._legacy.user import Profile, User
 
 from scripts.seed_content import COURSE_SEED, MODULES_SEED
 

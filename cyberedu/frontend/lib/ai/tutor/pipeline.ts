@@ -4,9 +4,10 @@ import { securityAudit } from "@/lib/security/audit";
 import { buildLearnerMemory, formatMemoryBlock } from "@/lib/ai/tutor/context/memory";
 import { buildDialogBlock, buildPageContextBlock } from "@/lib/ai/tutor/context/page-context";
 import { temperatureForDifficulty } from "@/lib/ai/tutor/difficulty/adaptive";
-import { fallbackTutorReply } from "@/lib/ai/tutor/fallbacks";
+import { auditTutorModerationRefusal, auditTutorOutputBlocked } from "@/lib/ai/tutor/moderation/audit";
 import { runPostLlmModeration, runPreLlmModeration } from "@/lib/ai/tutor/moderation/pipeline";
 import { refusalFooterHint } from "@/lib/ai/tutor/moderation/refusals";
+import { getRefusalTemplate, shouldPersistRefusalInHistory } from "@/lib/ai/tutor/moderation/refusal-templates";
 import { buildTutorSystemPrompt } from "@/lib/ai/tutor/prompts/system";
 import {
   appendRecommendationsBlock,
@@ -39,10 +40,15 @@ function buildMessages(params: {
   ];
 }
 
+export type RunTutorPipelineOptions = TutorPipelineInput & {
+  /** После ответа — сохранить пару реплик в server history. */
+  persistHistory?: (userMessage: string, assistantReply: string) => Promise<void>;
+};
+
 /**
  * Production pipeline AI-наставника: moderation → memory → prompt → LLM → moderation → recommendations.
  */
-export async function runTutorPipeline(input: TutorPipelineInput): Promise<TutorPipelineResult> {
+export async function runTutorPipeline(input: RunTutorPipelineOptions): Promise<TutorPipelineResult> {
   const pre = runPreLlmModeration({
     userMessage: input.userMessage,
     history: input.history,
@@ -50,12 +56,17 @@ export async function runTutorPipeline(input: TutorPipelineInput): Promise<Tutor
   });
 
   if (!pre.allow) {
-    securityAudit({
-      event: "ai.tutor.refused",
-      severity: "warn",
-      actorId: input.userId,
-      meta: { code: pre.refusalCode, topic: pre.topic, notes: pre.notes },
+    auditTutorModerationRefusal(input.userId, {
+      stage: pre.refusalCode === "prompt_injection" ? "injection" : "topic",
+      code: pre.refusalCode,
+      topic: pre.topic,
+      notes: pre.notes,
     });
+
+    if (input.persistHistory && shouldPersistRefusalInHistory(pre.refusalCode)) {
+      await input.persistHistory(input.userMessage, pre.refusalReply);
+    }
+
     return {
       reply: pre.refusalReply,
       meta: {
@@ -102,28 +113,29 @@ export async function runTutorPipeline(input: TutorPipelineInput): Promise<Tutor
       event: "ai.tutor.provider_error",
       severity: "warn",
       actorId: input.userId,
-      meta: { topic },
+      meta: { topic, stage: "llm" },
     });
     throw new AiProviderError();
   }
 
   const post = runPostLlmModeration(raw);
   if (!post.ok) {
-    securityAudit({
-      event: "ai.tutor.output_blocked",
-      severity: "warn",
-      actorId: input.userId,
-      meta: { reason: post.reason, topic },
-    });
+    auditTutorOutputBlocked(input.userId, topic, post.category ?? "moderation");
+    const safeReply = getRefusalTemplate("output_blocked");
+
+    if (input.persistHistory) {
+      await input.persistHistory(input.userMessage, safeReply);
+    }
+
     return {
-      reply: fallbackTutorReply({ reason: "output_blocked", topic }),
+      reply: safeReply,
       meta: {
         topic,
         difficulty,
         recommendations,
         refused: false,
         refusalCode: "output_blocked",
-        moderationNotes: [...pre.notes, post.reason],
+        moderationNotes: [...pre.notes, post.category ?? post.reason],
       },
     };
   }
@@ -133,11 +145,15 @@ export async function runTutorPipeline(input: TutorPipelineInput): Promise<Tutor
   if (footer) reply = `${reply}\n\n${footer}`;
   reply = appendRecommendationsBlock(reply, recommendations);
 
+  if (input.persistHistory) {
+    await input.persistHistory(pre.sanitizedMessage, reply);
+  }
+
   securityAudit({
     event: "ai.tutor.success",
     severity: "info",
     actorId: input.userId,
-    meta: { topic, difficulty },
+    meta: { topic, difficulty, stage: "complete" },
   });
 
   return {

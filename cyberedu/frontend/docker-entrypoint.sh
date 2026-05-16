@@ -5,12 +5,15 @@ echo "[cyberedu] prisma migrate deploy..."
 ./node_modules/.bin/prisma migrate deploy
 cd /app
 
-# Seed только при RUN_SEED=1. В production (NODE_ENV=production) — никогда.
+# Seed только при RUN_SEED=1. Production использует docker-entrypoint.prod.sh (без seed).
+# ENVIRONMENT=production — дополнительная защита, если по ошибке вызван dev-entrypoint.
 _run_seed() {
-  if [ "${NODE_ENV:-}" = "production" ]; then
-    echo "[cyberedu] seed blocked: NODE_ENV=production (use RUN_SEED=0)"
-    return 1
-  fi
+  case "${ENVIRONMENT:-development}" in
+    production|prod|PRODUCTION|PROD)
+      echo "[cyberedu] seed blocked: ENVIRONMENT=production (set RUN_SEED=0; use docker-entrypoint.prod.sh)" >&2
+      return 1
+      ;;
+  esac
   echo "[cyberedu] seed (RUN_SEED=1)..."
   NODE_PATH=/tools/node_modules /tools/node_modules/.bin/tsx prisma/seed.ts
 }

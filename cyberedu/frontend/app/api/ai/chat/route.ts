@@ -1,17 +1,22 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import type { CheckType, PracticalTaskType } from "@prisma/client";
-import { auth } from "@/lib/auth";
 import { AiNotConfiguredError, AiProviderError } from "@/lib/ai-config";
 import { checkModuleAccessForApi, checkPracticeEntry } from "@/lib/course-progress-guards";
 import { prisma } from "@/lib/db";
 import { formatInterestsDisplay, parseProfileInterests } from "@/lib/profile-interests";
 import { toPracticalContext } from "@/lib/ai/tutor";
+import {
+  appendTrustedChatTurns,
+  buildTutorScopeKey,
+  loadTrustedChatHistory,
+} from "@/lib/ai/tutor/context/chat-history-store";
+import { validateUntrustedClientHistory } from "@/lib/ai/tutor/moderation/history";
+import { auditUntrustedClientHistory } from "@/lib/ai/tutor/moderation/audit";
 import { runTutorPipeline } from "@/lib/ai/tutor/pipeline";
 import type { TutorPageContext } from "@/lib/ai/tutor/types";
 import { securityAudit } from "@/lib/security/audit";
-import { consumeCompositeRateLimit } from "@/lib/security/rate-limit";
-import { clientIpFromRequest } from "@/lib/security/request-ip";
+import { withAuthApiRoute } from "@/lib/security/api-guard";
 
 function normalizeChatBodyJson(raw: unknown): unknown {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
@@ -30,64 +35,44 @@ const idOrNull = z
   .optional()
   .transform((v) => (v == null ? undefined : v));
 
-const bodySchema = z.object({
-  message: z.string().min(1).max(8000),
-  moduleId: idOrNull,
-  lessonId: idOrNull,
-  practicalTaskId: idOrNull,
-  practiceSocraticHints: z.boolean().optional(),
-  history: z
-    .array(
-      z.object({
-        role: z.enum(["user", "assistant"]),
-        content: z.string().max(12000),
-      }),
-    )
-    .max(24)
-    .optional()
-    .default([]),
-});
+const chatBodySchema = z.preprocess(
+  normalizeChatBodyJson,
+  z.object({
+    message: z.string().min(1).max(8000),
+    moduleId: idOrNull,
+    lessonId: idOrNull,
+    practicalTaskId: idOrNull,
+    practiceSocraticHints: z.boolean().optional(),
+    /** Игнорируется для LLM; история на сервере. */
+    history: z.array(z.unknown()).max(8).optional().default([]),
+  }),
+);
 
-export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Требуется авторизация." }, { status: 401 });
-  }
+type ChatBody = z.infer<typeof chatBodySchema>;
 
-  const userId = session.user.id;
-  const ip = clientIpFromRequest(req);
-
-  const rl = await consumeCompositeRateLimit({
-    ipKey: `ai:chat:ip:${ip}`,
-    userKey: `ai:chat:user:${userId}`,
-    ipMax: 120,
-    userMax: 60,
-    windowMs: 60 * 60 * 1000,
-  });
-  if (!rl.allowed) {
-    return NextResponse.json({ error: "Превышен лимит запросов к AI. Попробуйте позже." }, { status: 429 });
-  }
-
-  let json: unknown;
-  try {
-    json = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Некорректный JSON." }, { status: 400 });
-  }
-
-  const parsed = bodySchema.safeParse(normalizeChatBodyJson(json));
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Некорректное тело запроса.", details: parsed.error.flatten() }, { status: 400 });
-  }
-
+export const POST = withAuthApiRoute(
+  { rateLimit: "aiChat", bodySchema: chatBodySchema },
+  async ({ userId, ip, body }) => {
   const {
     message,
     moduleId: bodyModuleId,
     lessonId,
     practicalTaskId,
     practiceSocraticHints,
-    history,
-  } = parsed.data;
+    history: clientHistoryRaw,
+  } = body;
+
+  const clientHistoryCheck = validateUntrustedClientHistory(clientHistoryRaw);
+  if (clientHistoryCheck.droppedAssistant > 0 || clientHistoryCheck.issues.length > 0) {
+    auditUntrustedClientHistory(userId, clientHistoryCheck.droppedAssistant, clientHistoryCheck.issues);
+  }
+
+  const scopeKey = buildTutorScopeKey({
+    moduleId: bodyModuleId,
+    lessonId,
+    practicalTaskId,
+  });
+  const trustedHistory = await loadTrustedChatHistory(userId, scopeKey);
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -177,10 +162,12 @@ export async function POST(req: Request) {
       userId,
       userMessage: message,
       pageContext,
-      history,
+      history: trustedHistory,
       practiceSocraticHints,
       lessonId,
       practicalTaskId,
+      persistHistory: (userMsg, assistantReply) =>
+        appendTrustedChatTurns(userId, scopeKey, userMsg, assistantReply),
     });
 
     return NextResponse.json({
@@ -204,4 +191,5 @@ export async function POST(req: Request) {
     });
     return NextResponse.json({ error: "Не удалось получить ответ наставника. Попробуйте позже." }, { status: 500 });
   }
-}
+  },
+);

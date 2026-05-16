@@ -108,6 +108,7 @@ services:
     entrypoint: ["/app/docker-entrypoint.prod.sh"]
     environment:
       NODE_ENV: production
+      ENVIRONMENT: production
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
       AUTH_SECRET: ${AUTH_SECRET}
       AUTH_URL: ${AUTH_URL}
@@ -124,6 +125,7 @@ services:
       RUN_SEED: "0"
       AUTH_SESSION_MAX_AGE: ${AUTH_SESSION_MAX_AGE:-172800}
       SECURITY_AUDIT_DB: ${SECURITY_AUDIT_DB:-1}
+      UPLOADS_DIR: /app/uploads
     volumes:
       - frontend_uploads:/app/uploads
     networks: [internal]

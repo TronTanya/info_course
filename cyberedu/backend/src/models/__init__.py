@@ -1,58 +1,14 @@
-"""ORM-модели: импортируйте пакет `models` до вызова Alembic / create_all, чтобы metadata была полной."""
+"""
+ORM backend: только таблицы, не принадлежащие полной Prisma-схеме.
 
-from models.ai import AiAdaptation, AiMessage
-from models.assessment import Answer, Question, Test, TestAttempt, TestAttemptAnswer
+- ``CourseProgress`` — отчётная таблица (чтение/запись FastAPI и скриптов).
+- ``PrismaUser`` — read-only отражение ``"User"`` (Prisma DDL).
+
+Устаревшие snake_case модели — ``models/_legacy/`` (не в Alembic metadata).
+"""
+
 from models.base import Base
-from models.certificate import Certificate
-from models.course import Course, Lesson, LessonBlock, Module
 from models.course_progress import CourseProgress
-from models.enums import (
-    AiAdaptationMode,
-    AiMessageRole,
-    CheckType,
-    LessonBlockType,
-    ModuleDifficulty,
-    PracticalTaskType,
-    QuestionType,
-    SubmissionStatus,
-    UserRole,
-)
-from models.glossary import Achievement, GlossaryTerm
-from models.practice import PracticalTask, Submission
-from models.progress import Progress
-from models.review import Review
-from models.user import Profile, User
+from models.prisma_reflect import PrismaUser
 
-__all__ = [
-    "Base",
-    "User",
-    "Profile",
-    "Course",
-    "Module",
-    "Lesson",
-    "LessonBlock",
-    "Test",
-    "Question",
-    "Answer",
-    "TestAttempt",
-    "TestAttemptAnswer",
-    "PracticalTask",
-    "Submission",
-    "Progress",
-    "AiAdaptation",
-    "AiMessage",
-    "Certificate",
-    "Review",
-    "Achievement",
-    "GlossaryTerm",
-    "CourseProgress",
-    "UserRole",
-    "ModuleDifficulty",
-    "LessonBlockType",
-    "QuestionType",
-    "PracticalTaskType",
-    "CheckType",
-    "SubmissionStatus",
-    "AiAdaptationMode",
-    "AiMessageRole",
-]
+__all__ = ["Base", "CourseProgress", "PrismaUser"]

@@ -12,12 +12,12 @@ from models.enums import LessonBlockType, ModuleDifficulty
 from models.mixins import TimestampMixin, UUIDPrimaryKeyMixin
 
 if TYPE_CHECKING:
-    from models.ai import AiAdaptation, AiMessage
-    from models.assessment import Test
-    from models.certificate import Certificate
-    from models.glossary import GlossaryTerm
-    from models.practice import PracticalTask
-    from models.progress import Progress
+    from models._legacy.ai import AiAdaptation, AiMessage
+    from models._legacy.assessment import Test
+    from models._legacy.certificate import Certificate
+    from models._legacy.glossary import GlossaryTerm
+    from models._legacy.practice import PracticalTask
+    from models._legacy.progress import Progress
 
 
 class Course(UUIDPrimaryKeyMixin, TimestampMixin, Base):

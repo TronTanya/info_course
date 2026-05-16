@@ -38,12 +38,13 @@ model User {
   reviews       Review[]
   aiAdaptations AiAdaptation[]
   achievements  UserAchievement[]
+  tutorChatThreads TutorChatThread[]
 
-  /// Строки отчёта `course_progress` (бэкенд / Alembic), привязанные к учётной записи.
+  /// Строки отчёта `course_progress` (запись через FastAPI / скрипты; DDL — Prisma Migrate).
   courseProgressRows CourseProgress[]
 }
 
-/// Отчётное прохождение курса (таблица `course_progress` в PostgreSQL; DDL — Alembic backend).
+/// Отчётное прохождение курса (таблица `course_progress`; DDL — Prisma Migrate).
 model CourseProgress {
   id          Int       @id @default(autoincrement())
   userId      String?   @map("user_id")
@@ -451,20 +452,57 @@ model Review {
   @@index([rating])
 }
 
+// --- AI tutor chat (server-side history, не доверять клиенту) ---
+
+model TutorChatThread {
+  id        String   @id @default(cuid())
+  userId    String
+  /// Ключ контекста: module + lesson + practice (без ПДн).
+  scopeKey  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages TutorChatMessage[]
+
+  @@unique([userId, scopeKey])
+  @@index([userId])
+  @@map("tutor_chat_thread")
+}
+
+model TutorChatMessage {
+  id        String   @id @default(cuid())
+  threadId  String
+  role      String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  thread TutorChatThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, createdAt])
+  @@map("tutor_chat_message")
+}
+
 // --- Security audit (SIEM / forensics) ---
 
 model SecurityAuditLog {
   id        String   @id @default(cuid())
+  /// Канонический ключ действия (дублирует event для совместимости).
+  action    String
   event     String
   severity  String   @default("info")
+  /// actor userId
   actorId   String?
+  targetId  String?
   ip        String?
   path      String?
   meta      Json?
   createdAt DateTime @default(now())
 
+  @@index([action])
   @@index([event])
   @@index([actorId])
+  @@index([targetId])
   @@index([createdAt])
   @@index([severity])
   @@map("security_audit_log")

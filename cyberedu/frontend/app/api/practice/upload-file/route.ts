@@ -1,13 +1,12 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { UPLOAD_API_GUARD } from "@/lib/api/guard-presets";
 import { prisma } from "@/lib/db";
 import { recalculateAfterSubmission } from "@/lib/practice-access";
 import { savePracticeFile, validatePracticeUpload } from "@/lib/practice-files";
 import { practiceUploadLimitsFromTask } from "@/lib/practice-file-constants";
 import { guardPracticeSubmission } from "@/lib/practice-submit-guard";
-import { consumeRateLimit } from "@/lib/rate-limit";
-import { clientIpFromRequest } from "@/lib/request-ip";
+import { withApiGuard } from "@/lib/security/api-guard";
 import { securityLog } from "@/lib/security-log";
 
 function revalidatePractice(moduleId: string) {
@@ -16,8 +15,7 @@ function revalidatePractice(moduleId: string) {
   revalidatePath("/dashboard/course");
 }
 
-export async function POST(req: Request) {
-  const session = await auth();
+export const POST = withApiGuard(UPLOAD_API_GUARD, async ({ userId, req }) => {
   let form: FormData;
   try {
     form = await req.formData();
@@ -36,17 +34,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Прикрепите файл." }, { status: 400 });
   }
 
-  const g = await guardPracticeSubmission(session?.user?.id, moduleId, taskId, ["FILE_UPLOAD"]);
+  const g = await guardPracticeSubmission(userId, moduleId, taskId, ["FILE_UPLOAD"]);
   if (!g.ok) {
     return NextResponse.json({ error: g.message }, { status: g.status });
-  }
-
-  const ip = clientIpFromRequest(req);
-  if (
-    !consumeRateLimit(`practice:upload:ip:${ip}`, 50, 60 * 60 * 1000) ||
-    !consumeRateLimit(`practice:upload:user:${g.userId}`, 30, 60 * 60 * 1000)
-  ) {
-    return NextResponse.json({ error: "Слишком много загрузок файлов. Подождите час или попробуйте позже." }, { status: 429 });
   }
 
   const task = await prisma.practicalTask.findFirst({
@@ -99,4 +89,4 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json({ ok: true, submissionId: draft.id });
-}
+});

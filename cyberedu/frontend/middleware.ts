@@ -3,8 +3,6 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { applySecurityHeaders } from "@/lib/security/headers";
 import { verifyApiCsrf } from "@/lib/security/csrf";
-import { consumeRateLimit } from "@/lib/security/rate-limit";
-import { clientIpFromRequest } from "@/lib/security/request-ip";
 
 function withSecurityHeaders(res: NextResponse): NextResponse {
   return applySecurityHeaders(res);
@@ -12,7 +10,8 @@ function withSecurityHeaders(res: NextResponse): NextResponse {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const ip = clientIpFromRequest(request);
+
+  // Rate limits (login, register, AI, cert verify, uploads) — в Node handlers / Server Actions (Redis).
 
   // --- CSRF для mutating API (дополнение к Server Actions) ---
   if (pathname.startsWith("/api/") && !pathname.startsWith("/api/auth/")) {
@@ -20,43 +19,6 @@ export async function middleware(request: NextRequest) {
     if (!csrf.ok) {
       return withSecurityHeaders(
         NextResponse.json({ error: "Запрос отклонён (CSRF)." }, { status: 403 }),
-      );
-    }
-  }
-
-  // --- Brute force: callback credentials ---
-  if (request.method === "POST" && pathname === "/api/auth/callback/credentials") {
-    if (!consumeRateLimit(`auth:credentials:${ip}`, 20, 15 * 60 * 1000)) {
-      return withSecurityHeaders(
-        NextResponse.json(
-          { error: "Слишком много попыток входа. Подождите несколько минут." },
-          { status: 429 },
-        ),
-      );
-    }
-  }
-
-  // --- Перебор кодов сертификата ---
-  if (pathname.startsWith("/certificate/verify")) {
-    if (!consumeRateLimit(`cert:verify:ip:${ip}`, 40, 15 * 60 * 1000)) {
-      return withSecurityHeaders(new NextResponse("Слишком много запросов.", { status: 429 }));
-    }
-  }
-
-  // --- Admin API: ранний rate limit ---
-  if (pathname.startsWith("/api/admin/")) {
-    if (!consumeRateLimit(`api:admin:ip:${ip}`, 60, 60 * 60 * 1000)) {
-      return withSecurityHeaders(
-        NextResponse.json({ error: "Слишком много запросов." }, { status: 429 }),
-      );
-    }
-  }
-
-  // --- AI coarse limit (детальный — в route handlers) ---
-  if (pathname.startsWith("/api/ai/") && request.method === "POST") {
-    if (!consumeRateLimit(`mw:ai:post:ip:${ip}`, 120, 60 * 60 * 1000)) {
-      return withSecurityHeaders(
-        NextResponse.json({ error: "Слишком много запросов к AI. Попробуйте позже." }, { status: 429 }),
       );
     }
   }

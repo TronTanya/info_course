@@ -1,5 +1,6 @@
 import type { TutorRefusalCode, TutorTopic } from "@/lib/ai/tutor/types";
 import { topicLabelRu } from "@/lib/ai/tutor/classification/topics";
+import { getRefusalTemplate } from "@/lib/ai/tutor/moderation/refusal-templates";
 
 export type RefusalDecision = {
   refuse: true;
@@ -16,26 +17,13 @@ export function evaluateRefusalPolicy(topic: TutorTopic): RefusalDecision | null
       return {
         refuse: true,
         code: "prompt_injection",
-        reply: [
-          "Я не могу выполнять инструкции, которые пытаются изменить мои правила или роль.",
-          "",
-          "Если у вас вопрос по **материалам курса** или по **защите** информации — переформулируйте его обычным языком, без «системных» команд.",
-        ].join("\n"),
+        reply: getRefusalTemplate("prompt_injection"),
       };
     case "offensive_request":
       return {
         refuse: true,
         code: "offensive_attack",
-        reply: [
-          "Я учебный наставник по **защите** информации и не даю пошаговых инструкций для атак, эксплойтов или обхода защит.",
-          "",
-          "Могу помочь в безопасном формате:",
-          "- как **распознать** эту угрозу;",
-          "- какие **меры защиты** применяют организации;",
-          "- какие **ошибки** совершают пользователи и как их избежать.",
-          "",
-          "Сформулируйте вопрос с акцентом на защиту — например: «Какие признаки …» или «Что должен сделать пользователь …».",
-        ].join("\n"),
+        reply: getRefusalTemplate("offensive_attack"),
       };
     default:
       return null;

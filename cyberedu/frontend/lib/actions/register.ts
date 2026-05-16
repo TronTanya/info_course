@@ -4,8 +4,8 @@ import bcrypt from "bcryptjs";
 import { headers } from "next/headers";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { consumeRateLimit } from "@/lib/rate-limit";
-import { clientIpFromHeaders } from "@/lib/request-ip";
+import { enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/security/rate-limit";
+import { clientIpFromHeaders } from "@/lib/security/request-ip";
 import { securityLog } from "@/lib/security-log";
 import { serializeProfileInterests } from "@/lib/profile-interests";
 import { registerSchema } from "@/lib/validation";
@@ -40,7 +40,14 @@ function formDataToInput(fd: FormData) {
 export async function registerAction(_prev: RegisterActionState, formData: FormData): Promise<RegisterActionState> {
   const h = await headers();
   const ip = clientIpFromHeaders(h);
-  if (!consumeRateLimit(`register:ip:${ip}`, 8, 60 * 60 * 1000)) {
+  const regIp = RATE_LIMIT_POLICIES.registerIp;
+  const ipRl = await enforceRateLimit({
+    scope: regIp.scope,
+    clientIp: ip,
+    max: regIp.max,
+    windowMs: regIp.windowMs,
+  });
+  if (!ipRl.allowed) {
     return { errors: { _form: ["Слишком много попыток регистрации с этого адреса. Попробуйте позже."] } };
   }
 
@@ -60,7 +67,15 @@ export async function registerAction(_prev: RegisterActionState, formData: FormD
   const { email, password } = parsed.data;
   const normalizedEmail = email.trim().toLowerCase();
 
-  if (!consumeRateLimit(`register:email:${normalizedEmail}`, 5, 24 * 60 * 60 * 1000)) {
+  const regEmail = RATE_LIMIT_POLICIES.registerEmail;
+  const emailRl = await enforceRateLimit({
+    scope: regEmail.scope,
+    clientIp: ip,
+    max: regEmail.max,
+    windowMs: regEmail.windowMs,
+    subjectOverride: `email:${normalizedEmail}`,
+  });
+  if (!emailRl.allowed) {
     return { errors: { _form: ["Слишком много попыток для этого адреса. Попробуйте позже."] } };
   }
 

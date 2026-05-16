@@ -1,6 +1,3 @@
-import { existsSync, mkdirSync, readdirSync } from "node:fs";
-import { writeFile } from "node:fs/promises";
-import path from "node:path";
 import {
   type PracticeStoredExt,
   type PracticeUploadLimits,
@@ -11,6 +8,7 @@ import {
   assertSafeUploadFilename,
   safeFileExtension,
 } from "@/lib/security/upload-sandbox";
+import { getStorageService, namespaceDir } from "@/lib/storage";
 
 export { assertSafeUploadFilename, safeFileExtension } from "@/lib/security/upload-sandbox";
 
@@ -54,45 +52,47 @@ export function validatePracticeUpload(
 /** Алиас для единообразия с требованиями к тестам (`validateFileUpload`). */
 export const validateFileUpload = validatePracticeUpload;
 
+const PRACTICE_NS = "practice" as const;
+
 export function practiceUploadDir(): string {
-  return path.join(process.cwd(), "uploads", "practice");
+  return namespaceDir(PRACTICE_NS);
+}
+
+export function practiceFileKey(submissionId: string, ext: PracticeStoredExt): string {
+  return `${submissionId}.${ext}`;
 }
 
 export function practiceFileDiskPath(submissionId: string, ext: PracticeStoredExt): string {
-  return path.join(practiceUploadDir(), `${submissionId}.${ext}`);
+  return getStorageService().objectPath(PRACTICE_NS, practiceFileKey(submissionId, ext));
 }
 
 export async function ensurePracticeUploadDir(): Promise<void> {
-  const dir = practiceUploadDir();
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true });
-  }
+  await getStorageService().ensureNamespace(PRACTICE_NS);
 }
 
 export async function findStoredPracticeFile(
   submissionId: string,
 ): Promise<{ fullPath: string; ext: string } | null> {
-  const dir = practiceUploadDir();
-  if (!existsSync(dir)) return null;
-  const { readdir } = await import("node:fs/promises");
-  const entries = await readdir(dir);
-  const hit = entries.find((e) => e.startsWith(`${submissionId}.`));
+  const storage = getStorageService();
+  const keys = await storage.listKeys(PRACTICE_NS, `${submissionId}.`);
+  const hit = keys[0];
   if (!hit) return null;
   const ext = hit.slice(submissionId.length + 1);
-  return { fullPath: path.join(dir, hit), ext };
+  return { fullPath: storage.objectPath(PRACTICE_NS, hit), ext };
 }
 
 export async function savePracticeFile(submissionId: string, ext: PracticeStoredExt, buffer: Buffer): Promise<void> {
-  await ensurePracticeUploadDir();
-  const p = practiceFileDiskPath(submissionId, ext);
-  await writeFile(p, buffer);
+  const storage = getStorageService();
+  await storage.write(PRACTICE_NS, practiceFileKey(submissionId, ext), buffer);
 }
 
-export function practiceDownloadExists(submissionId: string): boolean {
-  const dir = practiceUploadDir();
-  if (!existsSync(dir)) return false;
-  const entries = readdirSync(dir);
-  return entries.some((e) => e.startsWith(`${submissionId}.`));
+export async function deletePracticeFile(submissionId: string): Promise<number> {
+  return getStorageService().deleteByPrefix(PRACTICE_NS, `${submissionId}.`);
+}
+
+export async function practiceDownloadExists(submissionId: string): Promise<boolean> {
+  const keys = await getStorageService().listKeys(PRACTICE_NS, `${submissionId}.`);
+  return keys.length > 0;
 }
 
 export function mimeForPracticeExt(ext: string): string {
@@ -114,4 +114,3 @@ export function mimeForPracticeExt(ext: string): string {
       return "application/octet-stream";
   }
 }
-

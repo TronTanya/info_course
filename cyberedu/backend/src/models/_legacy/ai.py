@@ -12,9 +12,9 @@ from models.enums import AiAdaptationMode, AiMessageRole
 from models.mixins import CreatedAtMixin, UUIDPrimaryKeyMixin
 
 if TYPE_CHECKING:
-    from models.course import Lesson, Module
-    from models.practice import PracticalTask
-    from models.user import User
+    from models._legacy.course import Lesson, Module
+    from models._legacy.practice import PracticalTask
+    from models._legacy.user import User
 
 
 class AiAdaptation(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):

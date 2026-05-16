@@ -11,7 +11,7 @@ from models.base import Base
 from models.mixins import CreatedAtMixin, UUIDPrimaryKeyMixin
 
 if TYPE_CHECKING:
-    from models.user import User
+    from models._legacy.user import User
 
 
 class Review(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):

@@ -14,10 +14,10 @@ export function existingUserSeedUpdateFields(params: { role: Role; createdAt: Da
 
 export function assertSeedAllowed(): void {
   const environment = (process.env.ENVIRONMENT ?? "").trim().toLowerCase();
-  const nodeEnv = (process.env.NODE_ENV ?? "").trim().toLowerCase();
-  if (environment === "production" || nodeEnv === "production") {
+  // NODE_ENV=production в Docker dev-образе Next.js — не использовать как признак prod.
+  if (environment === "production" || environment === "prod") {
     throw new Error(
-      "Prisma seed запрещён в production. Демо-учётки (admin@cyberedu.local и др.) недопустимы. Установите RUN_SEED=0.",
+      "Prisma seed запрещён в production. Демо-учётки (admin@cyberedu.local и др.) недопустимы. Установите RUN_SEED=0 и ENVIRONMENT=production.",
     );
   }
 }
