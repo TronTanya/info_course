@@ -1,0 +1,871 @@
+@import "tailwindcss";
+
+/* Дизайн-система v2: прохладные нейтрали, глубже сланец, акцент изумруд + циан */
+:root {
+  --background: #c8d4e6;
+  --foreground: #0a1224;
+  --card: #ffffff;
+  --card-foreground: #0a1224;
+  --primary: #059669;
+  --primary-foreground: #ecfdf5;
+  --secondary: #122338;
+  --secondary-foreground: #e8f4fc;
+  --muted: #d9e3f0;
+  --muted-foreground: #516173;
+  --border: #c4d0e3;
+  --ring: #14b8a6;
+  --success: #0d9488;
+  --success-foreground: #022c22;
+  --warning: #ea580c;
+  --warning-foreground: #431407;
+  --danger: #dc2626;
+  --danger-foreground: #fef2f2;
+  --cyan: #0f766e;
+  --cyan-foreground: #ecfeff;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-cyan: var(--cyan);
+  --color-cyan-foreground: var(--cyan-foreground);
+  --shadow-card:
+    0 1px 0 0 color-mix(in oklab, #fff 58%, transparent) inset,
+    0 1px 2px rgb(8 20 40 / 0.035),
+    0 6px 16px -6px rgb(8 20 40 / 0.08),
+    0 20px 44px -22px rgb(8 20 40 / 0.09);
+  --shadow-card-hover:
+    0 1px 0 0 color-mix(in oklab, #fff 52%, transparent) inset,
+    0 4px 10px -4px rgb(8 20 40 / 0.07),
+    0 16px 36px -14px rgb(8 20 40 / 0.11),
+    0 32px 64px -28px color-mix(in oklab, var(--primary) 20%, transparent);
+  --shadow-glow:
+    0 0 0 1px color-mix(in oklab, var(--primary) 14%, transparent),
+    0 1px 0 0 color-mix(in oklab, #fff 58%, transparent) inset,
+    0 28px 72px -32px color-mix(in oklab, var(--cyan) 26%, transparent);
+  --radius-lg: 1rem;
+  --radius-xl: 1.1875rem;
+  --radius-2xl: 1.75rem;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  color-scheme: light;
+  overflow-x: clip;
+}
+
+::selection {
+  background-color: color-mix(in oklab, var(--primary) 28%, transparent);
+  color: var(--foreground);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Responsive layout utilities (CyberEdu): контейнеры, сетка дашборда, практика */
+/* -------------------------------------------------------------------------- */
+@layer components {
+  /**
+   * Публичные страницы: выравнивание с шапкой/подвалом, отступы 16 / 24px.
+   * Desktop ~1440px max; на 2K/4K плавно расширяется.
+   */
+  .container-page {
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    min-width: 0;
+    max-width: min(100vw - 1rem, 118rem);
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  @media (min-width: 768px) {
+    .container-page {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .container-page {
+      padding-left: 1.25rem;
+      padding-right: 1.25rem;
+    }
+  }
+  @media (min-width: 1920px) {
+    .container-page {
+      max-width: min(100vw - 2rem, 124rem);
+    }
+  }
+  @media (min-width: 2560px) {
+    .container-page {
+      max-width: min(100vw - 3rem, 128rem);
+    }
+  }
+
+  /**
+   * Студенческий и админский дашборд: основная колонка контента (навигация в шапке).
+   */
+  .dashboard-grid {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.25rem;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: min(100vw - 1rem, 118rem);
+    padding: 1.25rem 0.75rem;
+  }
+  @media (min-width: 768px) {
+    .dashboard-grid {
+      gap: 1.5rem;
+      padding: 1.5rem 1rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .dashboard-grid {
+      gap: 1.75rem;
+      padding: 1.75rem 1.25rem;
+    }
+  }
+  @media (min-width: 1920px) {
+    .dashboard-grid {
+      max-width: min(100vw - 2rem, 124rem);
+    }
+  }
+  @media (min-width: 2560px) {
+    .dashboard-grid {
+      max-width: min(100vw - 3rem, 128rem);
+    }
+  }
+
+  .dashboard-grid--wide {
+    max-width: min(100vw - 1rem, 128rem);
+  }
+  @media (min-width: 1920px) {
+    .dashboard-grid--wide {
+      max-width: min(100vw - 2rem, 132rem);
+    }
+  }
+  @media (min-width: 2560px) {
+    .dashboard-grid--wide {
+      max-width: min(100vw - 3rem, 140rem);
+    }
+  }
+
+  .dashboard-content {
+    min-width: 0;
+    flex: 1 1 0%;
+    max-width: 100%;
+  }
+
+  /**
+   * Личный кабинет: единая «стеклянная» панель контента (все страницы с DashboardShell).
+   */
+  .ce-app-main-panel {
+    border-radius: var(--radius-2xl);
+    border: 2px solid color-mix(in oklab, var(--primary) 22%, var(--border));
+    background: linear-gradient(
+      165deg,
+      #ffffff 0%,
+      color-mix(in oklab, var(--card) 96%, var(--cyan)) 42%,
+      color-mix(in oklab, var(--card) 88%, var(--primary)) 100%
+    );
+    box-shadow:
+      inset 4px 0 0 0 color-mix(in oklab, var(--primary) 88%, #000),
+      0 1px 0 0 color-mix(in oklab, #fff 70%, transparent) inset,
+      0 4px 6px -2px rgb(8 20 40 / 0.06),
+      0 24px 48px -18px rgb(8 20 40 / 0.14),
+      0 0 0 1px color-mix(in oklab, var(--primary) 8%, transparent),
+      0 40px 80px -36px color-mix(in oklab, var(--cyan) 32%, transparent);
+    backdrop-filter: blur(14px);
+  }
+
+  /** Шапка и подвал: единый «продуктовый» стиль на всех маршрутах */
+  .ce-app-header {
+    border-bottom: 1px solid color-mix(in oklab, var(--border) 82%, var(--primary) 18%);
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, #fff 82%, var(--card)) 0%,
+      color-mix(in oklab, var(--card) 88%, transparent) 100%
+    );
+    background-color: color-mix(in oklab, var(--card) 68%, transparent);
+    backdrop-filter: blur(18px) saturate(1.12);
+    box-shadow:
+      0 1px 0 0 color-mix(in oklab, #fff 65%, transparent),
+      0 14px 36px -28px color-mix(in oklab, var(--secondary) 22%, transparent);
+  }
+
+  .ce-app-footer {
+    border-top: 1px solid color-mix(in oklab, var(--border) 88%, var(--cyan) 12%);
+    background: linear-gradient(
+      0deg,
+      color-mix(in oklab, var(--muted) 32%, var(--card)) 0%,
+      var(--card) 55%,
+      color-mix(in oklab, var(--cyan) 5%, var(--card)) 100%
+    );
+    box-shadow: 0 -18px 48px -36px color-mix(in oklab, var(--secondary) 16%, transparent);
+  }
+
+  /** Страницы входа / регистрации: мягкий акцент за формой */
+  .ce-app-auth-main {
+    position: relative;
+    isolation: isolate;
+    background:
+      radial-gradient(ellipse 70% 55% at 15% 20%, color-mix(in oklab, var(--cyan) 12%, transparent), transparent 58%),
+      radial-gradient(ellipse 60% 50% at 90% 75%, color-mix(in oklab, var(--primary) 10%, transparent), transparent 55%);
+  }
+
+  /** Публичные страницы в container-page: лёгкая верхняя подсветка */
+  .ce-app-marketing-main {
+    position: relative;
+    isolation: isolate;
+  }
+  .ce-app-marketing-main::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: -0.5rem;
+    z-index: -1;
+    height: min(42vh, 22rem);
+    width: min(96%, 72rem);
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(
+      ellipse at center,
+      color-mix(in oklab, var(--cyan) 9%, transparent) 0%,
+      color-mix(in oklab, var(--primary) 5%, transparent) 38%,
+      transparent 70%
+    );
+    filter: blur(2px);
+    pointer-events: none;
+    opacity: 0.95;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ce-app-marketing-main::before {
+      opacity: 0.55;
+      filter: none;
+    }
+  }
+
+  /**
+   * Практика: 8+4 от lg; на очень широких экранах 9+3.
+   */
+  .practice-layout {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .practice-layout-main,
+  .practice-layout-aside {
+    min-width: 0;
+  }
+  @media (min-width: 1024px) {
+    .practice-layout {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 2rem;
+    }
+    .practice-layout-main {
+      grid-column: span 8 / span 8;
+    }
+    .practice-layout-aside {
+      grid-column: span 4 / span 4;
+    }
+  }
+  @media (min-width: 1920px) {
+    .practice-layout-main {
+      grid-column: span 9 / span 9;
+    }
+    .practice-layout-aside {
+      grid-column: span 3 / span 3;
+    }
+  }
+
+  /**
+   * Лекция: основная колонка + AI справа от xl; на мобильных — одна колонка.
+   */
+  .lesson-layout {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+  @media (min-width: 1280px) {
+    .lesson-layout {
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 22rem);
+    }
+  }
+
+  /** Текст лекции: не растягивать строку на всю ширину монитора */
+  .lesson-prose {
+    width: 100%;
+    max-width: 52rem;
+  }
+  @media (max-width: 1279px) {
+    .lesson-prose {
+      margin-left: auto;
+      margin-right: auto;
+      font-size: 1.0625rem;
+      line-height: 1.65;
+    }
+  }
+
+  /**
+   * Карточки курса / каталоги: 1 → 2 (tablet+) → 3 (2K+).
+   */
+  .responsive-card-grid {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  @media (min-width: 768px) {
+    .responsive-card-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.5rem;
+    }
+  }
+  @media (min-width: 1280px) {
+    .responsive-card-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.5rem;
+    }
+  }
+  @media (min-width: 1920px) {
+    .responsive-card-grid {
+      gap: 1.75rem;
+    }
+  }
+
+  /** Горизонтальный скролл только у таблицы, не у всей страницы */
+  .admin-table-scroll {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  /* --- Типографика (единая шкала) --- */
+  .typo-eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  .typo-h1 {
+    font-size: clamp(1.5rem, 1.35rem + 0.5vw, 1.875rem);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    color: var(--foreground);
+  }
+  .typo-h2 {
+    font-size: clamp(1.25rem, 1.1rem + 0.35vw, 1.5rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    color: var(--foreground);
+  }
+  .typo-h3 {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.3;
+    color: var(--foreground);
+  }
+  .typo-body {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--foreground);
+  }
+  .typo-body-muted {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--muted-foreground);
+  }
+  .typo-caption {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--muted-foreground);
+  }
+  .typo-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  /** Оболочка учебной лаборатории (практика): не «форма», а рабочая станция */
+  .lab-shell {
+    border-radius: var(--radius-2xl);
+    border: 1px solid color-mix(in oklab, var(--secondary) 18%, var(--border));
+    background-color: var(--card);
+    box-shadow:
+      var(--shadow-card),
+      0 0 0 1px color-mix(in oklab, var(--secondary) 8%, transparent);
+  }
+  .lab-shell-header {
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(
+      120deg,
+      color-mix(in oklab, var(--secondary) 6%, var(--card)) 0%,
+      var(--card) 45%,
+      color-mix(in oklab, var(--cyan) 5%, var(--card)) 100%
+    );
+  }
+  .lab-main-surface {
+    background: color-mix(in oklab, var(--muted) 45%, var(--card));
+  }
+
+  /* --- Админ: страница профиля (фоновые блобы, лёгкий шиммер, появление блоков) --- */
+  @keyframes ce-admin-profile-blob-a {
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+    50% {
+      transform: translate(6%, -8%) scale(1.12);
+    }
+  }
+  @keyframes ce-admin-profile-blob-b {
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+    50% {
+      transform: translate(-8%, 6%) scale(1.08);
+    }
+  }
+  @keyframes ce-admin-profile-blob-c {
+    0%,
+    100% {
+      transform: translate(0, 0) rotate(0deg);
+    }
+    33% {
+      transform: translate(4%, 5%) rotate(8deg);
+    }
+    66% {
+      transform: translate(-3%, -4%) rotate(-6deg);
+    }
+  }
+  @keyframes ce-admin-profile-shimmer {
+    0% {
+      background-position: 0% 50%;
+    }
+    100% {
+      background-position: 200% 50%;
+    }
+  }
+  @keyframes ce-admin-profile-rise {
+    from {
+      opacity: 0;
+      transform: translateY(1.1rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes ce-admin-profile-scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.92);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes ce-admin-profile-pulse-dot {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.55;
+      transform: scale(0.92);
+    }
+  }
+
+  @keyframes ce-admin-profile-border-flow {
+    0% {
+      background-position: 0% 50%;
+    }
+    100% {
+      background-position: 200% 50%;
+    }
+  }
+
+  /** Оболочка контента админки: стекло, внутренний блик, глубже тень */
+  .ce-admin-shell {
+    border-radius: 1.75rem;
+    border: 1px solid color-mix(in oklab, #fff 42%, var(--border));
+    background: linear-gradient(
+      168deg,
+      color-mix(in oklab, #fff 88%, var(--card)) 0%,
+      var(--card) 38%,
+      color-mix(in oklab, var(--cyan) 5.5%, var(--card)) 72%,
+      color-mix(in oklab, var(--primary) 4%, var(--card)) 100%
+    );
+    box-shadow:
+      0 1px 0 0 color-mix(in oklab, #fff 52%, transparent) inset,
+      var(--shadow-glow),
+      0 36px 72px -36px color-mix(in oklab, var(--secondary) 22%, transparent);
+    backdrop-filter: blur(14px);
+  }
+
+  /** Герой обзора админки (/admin): полосы + лёгкий акцент */
+  .ce-admin-dash-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-2xl);
+    border: 1px solid color-mix(in oklab, var(--secondary) 14%, var(--border));
+    background: linear-gradient(
+      128deg,
+      color-mix(in oklab, var(--cyan) 9%, var(--card)) 0%,
+      var(--card) 42%,
+      color-mix(in oklab, var(--primary) 7%, var(--card)) 100%
+    );
+    box-shadow: var(--shadow-card), 0 0 0 1px color-mix(in oklab, var(--primary) 10%, transparent);
+  }
+  .ce-admin-dash-hero::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: repeating-linear-gradient(
+      -12deg,
+      transparent 0 20px,
+      color-mix(in oklab, var(--secondary) 4.5%, transparent) 20px 21px
+    );
+    opacity: 0.4;
+    pointer-events: none;
+    mask-image: linear-gradient(to bottom, #000 0%, transparent 78%);
+  }
+  .ce-admin-dash-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(ellipse 90% 55% at 100% 0%, color-mix(in oklab, var(--cyan) 14%, transparent), transparent 58%);
+    pointer-events: none;
+  }
+
+  .ce-admin-profile-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border-radius: var(--radius-2xl);
+    border: 1px solid color-mix(in oklab, var(--primary) 18%, var(--border));
+    background:
+      radial-gradient(ellipse 120% 80% at 10% -20%, color-mix(in oklab, var(--cyan) 22%, transparent), transparent 55%),
+      radial-gradient(ellipse 90% 70% at 100% 0%, color-mix(in oklab, var(--primary) 18%, transparent), transparent 50%),
+      linear-gradient(155deg, var(--card) 0%, color-mix(in oklab, var(--secondary) 5%, var(--card)) 48%, var(--card) 100%);
+    box-shadow: var(--shadow-glow), 0 24px 48px -28px color-mix(in oklab, var(--secondary) 22%, transparent);
+  }
+
+  .ce-admin-profile-hero-grid {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    background-image:
+      linear-gradient(color-mix(in oklab, var(--secondary) 6%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in oklab, var(--secondary) 6%, transparent) 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: 0.22;
+    mask-image: radial-gradient(ellipse 85% 70% at 50% 40%, #000 12%, transparent 72%);
+    pointer-events: none;
+  }
+
+  .ce-admin-profile-hero-vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: inherit;
+    box-shadow: inset 0 0 100px color-mix(in oklab, var(--secondary) 12%, transparent);
+    pointer-events: none;
+  }
+
+  .ce-admin-profile-hero-topline {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    z-index: 3;
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--primary) 0%, transparent),
+      color-mix(in oklab, var(--cyan) 85%, transparent),
+      color-mix(in oklab, var(--primary) 0%, transparent)
+    );
+    background-size: 200% 100%;
+    animation: ce-admin-profile-border-flow 10s ease-in-out infinite;
+    opacity: 0.85;
+    pointer-events: none;
+  }
+
+  /** Общее кольцо аватара (ЛК студента, админ-профиль) */
+  .ce-profile-avatar-ring {
+    position: relative;
+    padding: 2px;
+    border-radius: 1.35rem;
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--cyan) 55%, transparent),
+      color-mix(in oklab, var(--primary) 70%, transparent),
+      color-mix(in oklab, var(--secondary) 45%, transparent),
+      color-mix(in oklab, var(--cyan) 50%, transparent)
+    );
+    background-size: 240% 240%;
+    animation: ce-admin-profile-border-flow 14s ease-in-out infinite alternate;
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--foreground) 6%, transparent),
+      0 20px 48px -14px color-mix(in oklab, var(--primary) 35%, transparent);
+  }
+
+  /** Герой профиля в личном кабинете */
+  .ce-user-profile-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border-radius: var(--radius-2xl);
+    border: 2px solid color-mix(in oklab, var(--primary) 28%, var(--border));
+    background: linear-gradient(
+      145deg,
+      #ffffff 0%,
+      color-mix(in oklab, var(--cyan) 10%, var(--card)) 38%,
+      color-mix(in oklab, var(--primary) 8%, var(--card)) 100%
+    );
+    box-shadow:
+      inset 5px 0 0 0 var(--primary),
+      0 1px 0 0 color-mix(in oklab, #fff 65%, transparent) inset,
+      0 8px 24px -8px rgb(8 20 40 / 0.12),
+      0 28px 56px -24px color-mix(in oklab, var(--primary) 25%, transparent);
+  }
+  .ce-user-profile-hero-blob {
+    position: absolute;
+    right: -12%;
+    top: -35%;
+    z-index: 0;
+    width: min(48vw, 20rem);
+    height: min(48vw, 20rem);
+    border-radius: 50%;
+    background: color-mix(in oklab, var(--primary) 35%, var(--cyan));
+    filter: blur(52px);
+    opacity: 0.55;
+    pointer-events: none;
+    animation: ce-admin-profile-blob-a 20s ease-in-out infinite;
+  }
+  .ce-user-profile-hero-grid {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    background-image:
+      linear-gradient(color-mix(in oklab, var(--secondary) 5.5%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in oklab, var(--secondary) 5.5%, transparent) 1px, transparent 1px);
+    background-size: 24px 24px;
+    opacity: 0.28;
+    mask-image: radial-gradient(ellipse 95% 80% at 25% 20%, #000 0%, transparent 72%);
+    pointer-events: none;
+  }
+  .ce-user-profile-hero-vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: inherit;
+    box-shadow: inset 0 0 80px color-mix(in oklab, var(--secondary) 10%, transparent);
+    pointer-events: none;
+  }
+
+  .ce-admin-profile-live-dot {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: color-mix(in oklab, var(--success) 92%, #fff);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--success) 28%, transparent);
+    animation: ce-admin-profile-pulse-dot 2.4s ease-in-out infinite;
+  }
+
+  .ce-admin-profile-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(48px);
+    pointer-events: none;
+    z-index: 0;
+    will-change: transform;
+  }
+  .ce-admin-profile-blob--a {
+    right: -18%;
+    top: -22%;
+    width: min(52vw, 28rem);
+    height: min(52vw, 28rem);
+    background: color-mix(in oklab, var(--cyan) 38%, transparent);
+    opacity: 0.45;
+    animation: ce-admin-profile-blob-a 18s ease-in-out infinite;
+  }
+  .ce-admin-profile-blob--b {
+    left: -12%;
+    bottom: -28%;
+    width: min(48vw, 24rem);
+    height: min(48vw, 24rem);
+    background: color-mix(in oklab, var(--primary) 35%, transparent);
+    opacity: 0.4;
+    animation: ce-admin-profile-blob-b 22s ease-in-out infinite;
+  }
+  .ce-admin-profile-blob--c {
+    right: 18%;
+    bottom: -8%;
+    width: min(36vw, 14rem);
+    height: min(36vw, 14rem);
+    background: color-mix(in oklab, var(--secondary) 28%, transparent);
+    opacity: 0.28;
+    animation: ce-admin-profile-blob-c 26s ease-in-out infinite;
+  }
+
+  .ce-admin-profile-shimmer {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    background: linear-gradient(
+      105deg,
+      transparent 0%,
+      color-mix(in oklab, #fff 16%, transparent) 42%,
+      transparent 64%
+    );
+    background-size: 200% 100%;
+    opacity: 0.35;
+    mix-blend-mode: overlay;
+    animation: ce-admin-profile-shimmer 9s linear infinite;
+    pointer-events: none;
+  }
+
+  .ce-admin-profile-rise {
+    opacity: 0;
+    animation: ce-admin-profile-rise 0.72s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .ce-admin-profile-rise--delay-1 {
+    animation-delay: 0.08s;
+  }
+  .ce-admin-profile-rise--delay-2 {
+    animation-delay: 0.16s;
+  }
+  .ce-admin-profile-rise--delay-3 {
+    animation-delay: 0.24s;
+  }
+  .ce-admin-profile-rise--delay-4 {
+    animation-delay: 0.32s;
+  }
+  .ce-admin-profile-rise--delay-5 {
+    animation-delay: 0.4s;
+  }
+
+  .ce-admin-profile-avatar {
+    opacity: 0;
+    animation: ce-admin-profile-scale-in 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) 0.12s forwards;
+  }
+
+  .ce-admin-profile-action {
+    transition:
+      transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.35s ease,
+      border-color 0.25s ease;
+  }
+  .ce-admin-profile-action:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-card-hover);
+    border-color: color-mix(in oklab, var(--primary) 22%, var(--border));
+  }
+  .ce-admin-profile-action:active {
+    transform: translateY(-1px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ce-admin-profile-hero-topline,
+    .ce-profile-avatar-ring,
+    .ce-admin-profile-live-dot {
+      animation: none !important;
+    }
+    .ce-profile-avatar-ring {
+      background-position: 50% 50%;
+    }
+    .ce-user-profile-hero-blob {
+      animation: none !important;
+      transform: none !important;
+    }
+    .ce-admin-profile-live-dot {
+      opacity: 1;
+      transform: none;
+    }
+    .ce-admin-profile-blob--a,
+    .ce-admin-profile-blob--b,
+    .ce-admin-profile-blob--c,
+    .ce-admin-profile-shimmer {
+      animation: none !important;
+      transform: none !important;
+    }
+    .ce-admin-profile-rise,
+    .ce-admin-profile-avatar {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+    .ce-admin-profile-action:hover,
+    .ce-admin-profile-action:active {
+      transform: none;
+    }
+  }
+}
+
+body {
+  overflow-x: clip;
+  min-height: 100vh;
+  background-color: var(--background);
+  background-image:
+    radial-gradient(ellipse 110% 75% at 50% -32%, color-mix(in oklab, var(--secondary) 16%, transparent), transparent 60%),
+    radial-gradient(ellipse 58% 48% at 100% 0%, color-mix(in oklab, var(--cyan) 12%, transparent), transparent 46%),
+    radial-gradient(ellipse 52% 42% at 0% 100%, color-mix(in oklab, var(--primary) 12%, transparent), transparent 50%),
+    radial-gradient(ellipse 80% 45% at 50% 100%, color-mix(in oklab, var(--secondary) 6%, transparent), transparent 62%),
+    radial-gradient(
+      circle at 1px 1px,
+      color-mix(in oklab, var(--secondary) 8%, transparent) 1px,
+      transparent 0
+    );
+  background-size: auto, auto, auto, auto, 20px 20px;
+  background-attachment: fixed;
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}

@@ -1,0 +1,119 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cyberedu
+      POSTGRES_PASSWORD: cyberedu_password
+      POSTGRES_DB: cyberedu
+    ports:
+      # Свободный порт на хосте (избегаем конфликта с локальным Postgres)
+      - "15432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cyberedu -d cyberedu"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  pgadmin:
+    image: dpage/pgadmin4:8.14
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: pgadmin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      # 5050 иногда занят — pgAdmin: http://localhost:15050
+      - "15050:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      # Если 8000 на хосте занят — API снаружи: http://localhost:18000
+      - "18000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://cyberedu:cyberedu_password@postgres:5432/cyberedu
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-secret-change-me-in-production-min-32}
+      CORS_ORIGINS: http://localhost:3100,http://127.0.0.1:3100
+      # Подключите Redis с профилем cache и раскомментируйте при использовании:
+      # REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health').read()",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-node:20-bookworm-slim}
+        DATABASE_URL: postgresql://cyberedu:cyberedu_password@postgres:5432/cyberedu?schema=public
+        AUTH_SECRET: ${AUTH_SECRET:-dev-secret-change-me-in-production-min-32-chars}
+    restart: unless-stopped
+    ports:
+      # Сайт с хоста: http://localhost:3100 → контейнер слушает 3000 (см. frontend/Dockerfile).
+      - "3100:3000"
+    environment:
+      DATABASE_URL: postgresql://cyberedu:cyberedu_password@postgres:5432/cyberedu?schema=public
+      AUTH_SECRET: ${AUTH_SECRET:-dev-secret-change-me-in-production-min-32-chars}
+      AUTH_URL: ${AUTH_URL:-http://localhost:3100}
+      # Совместимость с клиентом next-auth/react (база URL для сессии)
+      NEXTAUTH_URL: ${AUTH_URL:-http://localhost:3100}
+      # NextAuth v5 использует отдельный ключ для подписи/шифрования JWT-сессий.
+      # Равняем его на AUTH_SECRET, чтобы не получить JWTSessionError: no matching decryption secret.
+      NEXTAUTH_SECRET: ${AUTH_SECRET:-dev-secret-change-me-in-production-min-32-chars}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3100}
+      NEXT_PUBLIC_API_URL: http://localhost:18000
+      # AI: из cyberedu/.env (не коммитить). DeepSeek — OpenAI-совместимый API.
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_API_BASE_URL: ${OPENAI_API_BASE_URL:-https://api.openai.com/v1}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      # Подсказка с демо-логином на /auth/login (0 — скрыть на публичном стенде)
+      SHOW_SEED_LOGIN_HINT: ${SHOW_SEED_LOGIN_HINT:-1}
+    volumes:
+      - frontend_cert_pdfs:/app/uploads/certificates
+    depends_on:
+      postgres:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+
+  # Опционально: rate limit, кэш AI-ответов. Запуск: docker compose --profile cache up --build
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    profiles:
+      - cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+  redis_data:
+  frontend_cert_pdfs:

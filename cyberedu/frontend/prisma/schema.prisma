@@ -1,0 +1,452 @@
+// Образовательная платформа: курс по информационной безопасности
+// NextAuth: модели Account / Session / VerificationToken сохранены для интеграции auth.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- Auth & пользователь ---
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String?
+  role          Role      @default(USER)
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+
+  profile       Profile?
+  testAttempts  TestAttempt[]
+  submissions   Submission[]
+  progress      Progress[]
+  certificates  Certificate[]
+  reviews       Review[]
+  aiAdaptations AiAdaptation[]
+  achievements  UserAchievement[]
+
+  /// Строки отчёта `course_progress` (бэкенд / Alembic), привязанные к учётной записи.
+  courseProgressRows CourseProgress[]
+}
+
+/// Отчётное прохождение курса (таблица `course_progress` в PostgreSQL; DDL — Alembic backend).
+model CourseProgress {
+  id          Int       @id @default(autoincrement())
+  userId      String?   @map("user_id")
+  fullName    String    @map("full_name")
+  groupName   String    @map("group_name")
+  college     String
+  course      String
+  year        Int
+  completedAt DateTime  @map("completed_at") @db.Timestamptz(6)
+  errors      String?   @db.Text
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@map("course_progress")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Profile {
+  id                     String   @id @default(cuid())
+  userId                 String   @unique
+  lastName               String
+  firstName              String
+  middleName             String?
+  birthDate              DateTime @db.Date
+  educationalInstitution String   @db.Text
+  city                   String
+  specialty              String   @db.Text
+  interests              String   @db.Text
+  /** Публичный URL аватара (пресеты `/avatars/…`, загрузка `/api/profile/avatar/image`, внешний https). */
+  avatarUrl              String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// --- Курс и контент ---
+
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  hours       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  modules      Module[]
+  certificates Certificate[]
+
+  @@index([title])
+}
+
+model Module {
+  id          String   @id @default(cuid())
+  courseId    String
+  title       String
+  description String?  @db.Text
+  orderNumber Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  course         Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons        Lesson[]
+  tests          Test[]
+  practicalTasks PracticalTask[]
+  progress       Progress[]
+
+  @@unique([courseId, orderNumber])
+  @@index([courseId])
+}
+
+model Lesson {
+  id                String   @id @default(cuid())
+  moduleId          String
+  title             String
+  content           String   @db.Text
+  videoUrl          String?
+  allowAiAdaptation Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  module        Module         @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  aiAdaptations AiAdaptation[]
+
+  @@index([moduleId])
+}
+
+model AiAdaptation {
+  id              String   @id @default(cuid())
+  userId          String
+  lessonId        String
+  originalContent String   @db.Text
+  adaptedContent  String   @db.Text
+  interestsUsed   String   @db.Text
+  createdAt       DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([lessonId])
+  @@index([userId, lessonId])
+}
+
+// --- Тесты ---
+
+model Test {
+  id        String   @id @default(cuid())
+  moduleId  String
+  title     String
+  minScore  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  module    Module        @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  questions Question[]
+  attempts  TestAttempt[]
+
+  @@index([moduleId])
+}
+
+enum QuestionType {
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  TEXT
+  SITUATION
+  MATCHING
+}
+
+model Question {
+  id           String       @id @default(cuid())
+  testId       String
+  questionText String       @db.Text
+  questionType QuestionType
+  points       Int          @default(1)
+  orderNumber  Int
+  /** Короткое обучающее пояснение после попытки (без дословного раскрытия ответа). */
+  explanation        String? @db.Text
+  /** Пример ответа для авто-проверки TEXT; на клиент теста не отдаётся. */
+  textExpectedAnswer String? @db.Text
+  /** Если true — баллы за вопрос не входят в авто-итог (ручная проверка позже). */
+  textManualGrading  Boolean @default(false)
+
+  test           Test                @relation(fields: [testId], references: [id], onDelete: Cascade)
+  answers        Answer[]
+  attemptAnswers TestAttemptAnswer[]
+
+  @@index([testId])
+}
+
+model Answer {
+  id         String  @id @default(cuid())
+  questionId String
+  answerText String  @db.Text
+  isCorrect  Boolean
+
+  question       Question            @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  attemptAnswers TestAttemptAnswer[]
+
+  @@index([questionId])
+}
+
+model TestAttempt {
+  id        String   @id @default(cuid())
+  userId    String
+  testId    String
+  score     Int      @default(0)
+  maxScore  Int      @default(0)
+  passed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  test    Test                @relation(fields: [testId], references: [id], onDelete: Cascade)
+  answers TestAttemptAnswer[]
+
+  @@index([userId])
+  @@index([testId])
+  @@index([userId, testId])
+}
+
+model TestAttemptAnswer {
+  id           String   @id @default(cuid())
+  attemptId    String
+  questionId   String
+  answerId     String?
+  textAnswer   String?  @db.Text
+  isCorrect    Boolean?
+  pointsEarned Int      @default(0)
+
+  attempt  TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answer   Answer?     @relation(fields: [answerId], references: [id], onDelete: SetNull)
+
+  @@index([attemptId])
+  @@index([questionId])
+}
+
+// --- Практика ---
+
+enum PracticalTaskType {
+  INTERACTIVE
+  FILE_UPLOAD
+  TEXT_ANSWER
+  COMBINED
+  SITUATION_CHOICE
+  PASSWORD_ANALYSIS
+  PHISHING_ANALYSIS
+  CHECKLIST
+  URL_ANALYSIS
+  TRAINING_CONSOLE
+  CRYPTO_TASK
+  LOG_ANALYSIS
+}
+
+enum CheckType {
+  AUTO
+  MANUAL
+  MIXED
+}
+
+enum SubmissionStatus {
+  DRAFT
+  SUBMITTED
+  CHECKING
+  ACCEPTED
+  REJECTED
+  NEEDS_REVISION
+}
+
+model PracticalTask {
+  id                        String            @id @default(cuid())
+  moduleId                  String
+  title                     String
+  description               String            @db.Text
+  taskType                  PracticalTaskType
+  checkType                 CheckType         @default(MANUAL)
+  maxScore                  Int               @default(0)
+  /** Нормализованный эталон для учебной автопроверки (INTERACTIVE), без исполняемого кода */
+  interactiveExpectedAnswer String?         @db.Text
+  /** Ожидаемая учебная команда из симулятора консоли (например ping example.com) */
+  expectedCommand           String?         @db.Text
+  /** Regex-шаблон для проверки текстового объяснения (флаги i по умолчанию на сервере) */
+  expectedAnswerPattern     String?         @db.Text
+  /** Сценарий / подсказки для учебной консоли (показывается студенту) */
+  consoleScenario           String?         @db.Text
+  /** Разрешённые расширения через запятую (pdf, docx, …); пусто — дефолтный белый список */
+  allowedFileTypes          String?         @db.Text
+  /** Максимальный размер файла в МБ; null — как в глобальной константе (10) */
+  maxFileSizeMb             Int?
+  /** Минимальная длина текстового ответа (TEXT_ANSWER и текстовая часть COMBINED) */
+  minLength                 Int             @default(10)
+  /** Дополнительные инструкции к текстовой части */
+  instruction             String?         @db.Text
+  /** Учебный сценарий (ситуации, чек-листы, фишинг и т.д.) — только безопасные демо-данные */
+  scenarioData              Json?
+  createdAt                 DateTime          @default(now())
+  updatedAt                 DateTime          @updatedAt
+
+  module      Module       @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  submissions Submission[]
+
+  @@index([moduleId])
+}
+
+model Submission {
+  id              String           @id @default(cuid())
+  userId          String
+  practicalTaskId String
+  textAnswer      String?          @db.Text
+  fileUrl         String?
+  score           Int?
+  status          SubmissionStatus @default(DRAFT)
+  adminComment    String?          @db.Text
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  checkedAt       DateTime?
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  practicalTask PracticalTask @relation(fields: [practicalTaskId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([practicalTaskId])
+  @@index([status])
+  @@index([userId, practicalTaskId])
+}
+
+// --- Прогресс и сертификат ---
+
+model Progress {
+  id                String   @id @default(cuid())
+  userId            String
+  moduleId          String
+  lessonCompleted   Boolean  @default(false)
+  videoCompleted    Boolean  @default(false)
+  testCompleted     Boolean  @default(false)
+  practiceCompleted Boolean  @default(false)
+  moduleCompleted   Boolean  @default(false)
+  score             Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, moduleId])
+  @@index([userId])
+  @@index([moduleId])
+}
+
+model Certificate {
+  id                String   @id @default(cuid())
+  userId            String
+  courseId          String
+  certificateNumber String   @unique
+  pdfUrl            String?
+  issuedAt          DateTime @default(now())
+  verificationCode  String   @unique
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+}
+
+/** Игровые достижения (бейджи) за ключевые шаги курса. */
+enum AchievementKind {
+  FIRST_MODULE_COMPLETE
+  PHISHING_PRACTICE_PASSED
+  PASSWORD_MODULE_COMPLETE
+  LOG_INVESTIGATION_PASSED
+  CERTIFICATE_EARNED
+}
+
+model UserAchievement {
+  id         String          @id @default(cuid())
+  userId     String
+  kind       AchievementKind
+  unlockedAt DateTime        @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kind])
+  @@index([userId])
+}
+
+// --- Отзывы ---
+
+model Review {
+  id                     String   @id @default(cuid())
+  userId                 String?  @unique
+  name                   String
+  educationalInstitution String
+  rating                 Int
+  text                   String   @db.Text
+  isPublished            Boolean  @default(false)
+  createdAt              DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([isPublished])
+  @@index([rating])
+}

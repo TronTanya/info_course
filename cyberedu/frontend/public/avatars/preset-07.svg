@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" aria-hidden="true">
+  <defs>
+    <linearGradient id="lap-bg" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="1" stop-color="#E2E8F0"/>
+    </linearGradient>
+    <linearGradient id="lap-screen" x1="36" y1="40" x2="92" y2="78" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0EA5E9"/>
+      <stop offset="1" stop-color="#0369A1"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="36" fill="url(#lap-bg)"/>
+  <rect x="30" y="36" width="68" height="46" rx="6" fill="#64748B" stroke="#475569" stroke-width="2"/>
+  <rect x="36" y="42" width="56" height="34" rx="3" fill="url(#lap-screen)"/>
+  <path d="M44 58h18M44 66h28" stroke="#7DD3FC" stroke-width="2" stroke-linecap="round" opacity=".9"/>
+  <path d="M72 52l-8 14h16l-8-14Z" fill="#4ADE80" stroke="#166534" stroke-width="1.5"/>
+  <path d="M24 90h80l-6 10H30l-6-10Z" fill="#94A3B8" stroke="#475569" stroke-width="2" stroke-linejoin="round"/>
+  <rect x="22" y="88" width="84" height="5" rx="2" fill="#CBD5E1"/>
+</svg>
