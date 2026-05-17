@@ -3,9 +3,9 @@ import { defineConfig, devices } from "@playwright/test";
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3100";
 
 export default defineConfig({
-  testDir: "./e2e",
-  /** prod-smoke.spec.ts тоже содержит подстроку smoke.spec.ts — исключаем из dev smoke. */
-  testIgnore: [/prod-smoke\.spec\.ts/],
+  testDir: ".",
+  testMatch: ["tests/e2e/**/*.spec.ts"],
+  testIgnore: ["tests/prod-smoke/**/*.spec.ts", "**/*.prod.spec.ts"],
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
@@ -28,7 +28,7 @@ export default defineConfig({
   projects: [
     {
       name: "desktop",
-      testMatch: /smoke\.spec\.ts/,
+      testMatch: ["tests/e2e/**/*.spec.ts"],
       use: {
         viewport: { width: 1280, height: 720 },
       },

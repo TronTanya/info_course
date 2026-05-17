@@ -5,13 +5,13 @@ import {
   loginAs,
   logout,
   resetAuthStorage,
-} from "./helpers/auth";
+} from "../../e2e/helpers/auth";
 import {
   openFirstPracticePage,
   openFirstTestPage,
   submitModuleTest,
   submitPracticeTextIfPresent,
-} from "./helpers/course-flow";
+} from "../../e2e/helpers/course-flow";
 
 test.describe.configure({ mode: "serial" });
 

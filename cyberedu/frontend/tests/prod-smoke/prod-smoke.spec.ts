@@ -1,15 +1,15 @@
 import { expect, test } from "@playwright/test";
-import { loginAs } from "./helpers/auth";
+import { loginAs } from "../../e2e/helpers/auth";
 import {
   openFirstPracticePage,
   openFirstTestPage,
   submitModuleTest,
   submitPracticeTextIfPresent,
-} from "./helpers/course-flow";
+} from "../../e2e/helpers/course-flow";
 import {
   expectPracticeSubmissionPersistedForStudent,
   expectTestAttemptPersistedForStudent,
-} from "./helpers/persistence";
+} from "../../e2e/helpers/persistence";
 
 const RATE_LIMIT_ERROR = /слишком много отправок|слишком много проверок/i;
 
