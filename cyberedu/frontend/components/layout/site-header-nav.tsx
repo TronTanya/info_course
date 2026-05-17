@@ -73,31 +73,48 @@ function CloseIcon() {
   );
 }
 
+function LogoutButton({ className }: { className?: string }) {
+  return (
+    <form action={logoutAction} className={className}>
+      <button
+        type="submit"
+        className={cn(
+          "rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground transition-colors",
+          "hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        )}
+      >
+        Выйти
+      </button>
+    </form>
+  );
+}
+
 export function SiteHeaderNav({ variant }: { variant: NavVariant }) {
   const pathname = usePathname() ?? "";
   const [open, setOpen] = React.useState(false);
-  const links = variant === "guest" ? guestLinks : variant === "admin" ? adminLinks : userLinks;
+  const isGuest = variant === "guest";
+  const links = isGuest ? guestLinks : variant === "admin" ? adminLinks : userLinks;
 
   const close = () => setOpen(false);
 
   return (
     <>
-      <nav className="hidden flex-wrap items-center justify-end gap-1 xl:flex" aria-label="Основная навигация">
-        {links.map((item) => (
-          <Link key={item.href} href={item.href} className={navLinkClass(false, isNavHrefActive(pathname, item.href))}>
-            {item.label}
-          </Link>
-        ))}
-        {variant !== "guest" ? (
-          <form action={logoutAction} className="inline">
-            <button type="submit" className={navLinkClass(false)}>
-              Выйти
-            </button>
-          </form>
-        ) : null}
-      </nav>
+      {/* Гость: горизонтальные ссылки на md+ */}
+      {isGuest ? (
+        <nav className="hidden flex-wrap items-center justify-end gap-1 md:flex" aria-label="Основная навигация">
+          {links.map((item) => (
+            <Link key={item.href} href={item.href} className={navLinkClass(false, isNavHrefActive(pathname, item.href))}>
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      ) : null}
 
-      <div className="flex items-center gap-2 xl:hidden">
+      {/* Авторизован: выход в шапке на lg+ (навигация — в sidebar) */}
+      {!isGuest ? <LogoutButton className="hidden lg:block" /> : null}
+
+      {/* Drawer: гость <md, кабинет/админка <lg */}
+      <div className={cn("flex items-center gap-2", isGuest ? "md:hidden" : "lg:hidden")}>
         <Dialog.Root open={open} onOpenChange={setOpen}>
           <Dialog.Trigger asChild>
             <Button type="button" variant="outline" size="icon" className="shrink-0" aria-label="Открыть меню">
@@ -147,10 +164,10 @@ export function SiteHeaderNav({ variant }: { variant: NavVariant }) {
                     </Link>
                   </Dialog.Close>
                 ))}
-                {variant !== "guest" ? (
+                {!isGuest ? (
                   <form action={logoutAction} className="mt-2">
                     <Dialog.Close asChild>
-                      <button type="submit" className={cn(navLinkClass(true), "text-left text-danger")} onClick={close}>
+                      <button type="submit" className={cn(navLinkClass(true), "w-full text-left text-danger")} onClick={close}>
                         Выйти
                       </button>
                     </Dialog.Close>

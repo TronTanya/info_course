@@ -26,7 +26,7 @@ export function PublicReviewsGrid({ reviews }: { reviews: PublicReviewItem[] }) 
           viewport={{ once: true, margin: "-40px" }}
           transition={{ delay: (index % 6) * 0.05, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         >
-          <Card className="ce-learn-panel h-full border-border/90 bg-card/95 shadow-card transition-shadow hover:shadow-card-hover">
+          <Card interactive className="ce-learn-panel ce-glass h-full shadow-card">
             <CardHeader className="space-y-3 pb-2">
               <ReviewStars value={r.rating} />
               <div>

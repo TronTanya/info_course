@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { AuthCard } from "@/components/auth/auth-card";
 import { Button } from "@/components/ui/button";
+import { FormMessage } from "@/components/ui/form-message";
 import { Input } from "@/components/ui/input";
 import type { RegisterActionState } from "@/lib/actions/register";
 import { registerAction } from "@/lib/actions/register";
@@ -50,9 +51,7 @@ export function RegisterForm() {
   return (
     <AuthCard title="Регистрация" description="Создайте учётную запись и заполните профиль в кабинете.">
       <form onSubmit={onSubmit} className="space-y-4">
-        {state.errors?._form ? (
-          <p className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{state.errors._form[0]}</p>
-        ) : null}
+        {state.errors?._form ? <FormMessage>{state.errors._form[0]}</FormMessage> : null}
         <Input
           autoComplete="email"
           label="Email"

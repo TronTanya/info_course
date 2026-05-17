@@ -2,12 +2,12 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const variants = {
-  default: "border-border bg-card shadow-card hover:shadow-card-hover",
+  default: "ce-glass border-border shadow-card hover:shadow-card-hover",
   muted: "border-border/80 bg-muted/25 shadow-sm hover:border-border hover:bg-muted/35",
   accent:
-    "border-primary/20 bg-linear-to-br from-primary/[0.04] via-card to-cyan/[0.05] shadow-card ring-1 ring-inset ring-primary/10 hover:shadow-card-hover",
+    "border-primary/25 bg-linear-to-br from-primary/[0.06] via-card to-accent/[0.06] shadow-card ring-1 ring-inset ring-primary/12 hover:shadow-card-hover",
   workspace:
-    "border-cyan/25 bg-card shadow-inner ring-1 ring-inset ring-cyan/10 hover:border-cyan/35",
+    "border-primary/25 ce-glass shadow-inner ring-1 ring-inset ring-primary/10 hover:border-primary/35",
 } as const;
 
 export type SectionCardProps = {

@@ -4,6 +4,7 @@ import { CertificatePanel } from "@/components/certificate/certificate-panel";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { LearnPageHeader } from "@/components/learn/learn-chrome";
 import { LearnPageWrap } from "@/components/learn/learn-page-wrap";
+import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { SectionCard } from "@/components/ui/section-card";
 import { getCertificateDashboardState } from "@/lib/certificate";
@@ -41,13 +42,9 @@ export default async function CertificatePage() {
             >
               <div className="mb-4 flex flex-wrap items-center gap-2">
                 {state.courseCompleted ? (
-                  <span className="w-fit rounded-full border border-success/30 bg-success/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-success">
-                    Курс завершён
-                  </span>
+                  <Badge variant="success">Курс завершён</Badge>
                 ) : (
-                  <span className="w-fit rounded-full border border-cyan/30 bg-cyan/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-cyan">
-                    В процессе
-                  </span>
+                  <Badge variant="primary">В процессе</Badge>
                 )}
               </div>
               <div className="max-w-md">

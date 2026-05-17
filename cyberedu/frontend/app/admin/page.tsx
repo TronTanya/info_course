@@ -6,7 +6,6 @@ import { getAdminDashboardChartsData } from "@/lib/admin-dashboard-charts";
 import { getAdminDashboardStats } from "@/lib/admin-dashboard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
 export const metadata: Metadata = {
   title: "Админка · Обзор",
 };
@@ -26,10 +25,10 @@ export default async function AdminHomePage() {
   return (
     <AdminShell>
       <div className="space-y-6">
-        <div className="ce-admin-dash-hero isolate p-6 sm:p-8">
+        <div className="ce-admin-dash-hero hero-glow isolate p-6 sm:p-8">
           <div className="relative z-10">
             <p className="typo-eyebrow text-primary">CyberEdu · админ</p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Панель администратора</h1>
+            <h1 className="typo-h1 mt-2 sm:text-3xl">Панель администратора</h1>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
               Доступ только для роли ADMIN: проверка в middleware и в layout. Поле{" "}
               <code className="rounded-md border border-border/60 bg-background/80 px-1.5 py-0.5 font-mono text-xs text-foreground/90">
@@ -40,7 +39,7 @@ export default async function AdminHomePage() {
           </div>
         </div>
 
-        <Card className="border-border/70 shadow-sm ring-1 ring-secondary/10">
+        <Card interactive className="border-border/70 shadow-sm ring-1 ring-primary/10">
           <CardHeader className="pb-2 sm:flex sm:flex-row sm:items-start sm:justify-between sm:gap-4">
             <div>
               <CardTitle className="text-lg">Отчёты</CardTitle>
@@ -70,9 +69,10 @@ export default async function AdminHomePage() {
           {tiles.map((t) => (
             <Card
               key={t.title}
-              className="group relative overflow-hidden border-border/70 pt-0 shadow-(--shadow-glow) ring-1 ring-secondary/10 transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-card-hover motion-reduce:hover:translate-y-0"
+              interactive
+              className="group relative overflow-hidden border-border/70 pt-0 shadow-(--shadow-glow) ring-1 ring-primary/10 motion-reduce:hover:translate-y-0"
             >
-              <div className="h-1 w-full bg-linear-to-r from-primary/80 via-cyan/65 to-secondary/55 transition-opacity group-hover:opacity-100" aria-hidden />
+              <div className="h-1 w-full bg-linear-to-r from-primary/80 via-accent/60 to-primary/40 transition-opacity group-hover:opacity-100" aria-hidden />
               <CardHeader className="pb-2 pt-5">
                 <CardTitle className="text-lg font-semibold tracking-tight">{t.title}</CardTitle>
                 <CardDescription className="text-xs leading-relaxed">{t.hint}</CardDescription>

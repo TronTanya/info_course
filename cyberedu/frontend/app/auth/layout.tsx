@@ -7,7 +7,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   return (
     <div className="flex min-h-screen min-w-0 flex-col">
       <SiteHeader />
-      <main className="ce-app-auth-main flex w-full min-w-0 flex-1 items-center justify-center px-4 py-12 sm:px-5">
+      <main className="ce-app-auth-main hero-glow relative flex w-full min-w-0 flex-1 items-center justify-center px-4 py-12 sm:px-5">
         <div className="flex w-full max-w-lg min-w-0 flex-col items-center gap-6">
           <Link href="/" className="block w-full max-w-sm transition-opacity hover:opacity-90">
             <BrandLogoFullImg className="mx-auto" />

@@ -1,4 +1,5 @@
 import { Award, ClipboardList, GraduationCap, PenLine, TestTube2, UserPlus } from "lucide-react";
+import { SectionHeader } from "@/components/ui/section-header";
 
 const steps = [
   { n: 1, title: "Зарегистрируйтесь", description: "Создайте аккаунт и подтвердите email — доступ к первому модулю откроется сразу.", icon: UserPlus },
@@ -12,23 +13,23 @@ const steps = [
 export function LandingHowItWorks() {
   return (
     <section className="space-y-10" aria-labelledby="journey-heading">
-      <div className="mx-auto max-w-3xl text-center">
-        <p className="text-xs font-semibold uppercase tracking-widest text-primary">Процесс</p>
-        <h2 id="journey-heading" className="mt-3 text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-          Как проходит обучение
-        </h2>
-        <p className="mt-4 text-pretty text-base text-muted-foreground sm:text-lg">
-          Понятный маршрут от регистрации до сертификата — без хаоса в материалах и сроках.
-        </p>
-      </div>
+      <SectionHeader
+        className="mx-auto max-w-3xl flex-col items-center text-center"
+        eyebrow="Процесс"
+        title="Как проходит обучение"
+        description="Понятный маршрут от регистрации до сертификата — без хаоса в материалах и сроках."
+      />
+      <h2 id="journey-heading" className="sr-only">
+        Как проходит обучение
+      </h2>
 
       <ol className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {steps.map((s) => (
           <li
             key={s.n}
-            className="relative flex gap-4 rounded-2xl border border-border/80 bg-card/95 p-5 shadow-card transition-all duration-300 hover:border-primary/20 hover:shadow-[var(--shadow-card-hover)]"
+            className="ce-glass relative flex gap-4 rounded-2xl p-5 transition-[border-color,box-shadow] duration-200 hover:border-primary/25 hover:shadow-[var(--shadow-card-hover)]"
           >
-            <div className="flex size-12 shrink-0 flex-col items-center justify-center rounded-xl border border-primary/20 bg-linear-to-br from-primary/12 to-cyan/8 font-mono text-sm font-bold text-primary shadow-sm">
+            <div className="flex size-12 shrink-0 flex-col items-center justify-center rounded-xl border border-primary/25 bg-linear-to-br from-primary/12 to-accent/10 font-mono text-sm font-bold text-primary shadow-sm">
               {s.n}
             </div>
             <div className="min-w-0 pt-0.5">

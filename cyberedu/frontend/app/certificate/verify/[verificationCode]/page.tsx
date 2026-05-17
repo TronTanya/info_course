@@ -48,7 +48,7 @@ export default async function VerifyCertificatePage({ params }: Props) {
     return (
       <div className="ce-app-auth-main flex min-h-screen items-center justify-center px-4 py-16">
           <div className="mx-auto max-w-lg">
-          <Card className="border-border/80">
+          <Card interactive className="ce-glass border-border/80">
             <CardHeader>
               <CardTitle className="text-xl">Проверка сертификата</CardTitle>
               <p className="text-sm text-muted-foreground">Слишком много запросов. Попробуйте позже.</p>
@@ -89,7 +89,7 @@ export default async function VerifyCertificatePage({ params }: Props) {
     return (
       <div className="ce-app-auth-main flex min-h-screen items-center justify-center px-4 py-16">
         <div className="mx-auto max-w-lg">
-          <Card className="border-border/80">
+          <Card interactive className="ce-glass border-border/80">
             <CardHeader>
               <CardTitle className="text-xl">Проверка сертификата</CardTitle>
               <p className="text-sm text-muted-foreground">Запись с таким кодом не найдена.</p>
@@ -112,7 +112,7 @@ export default async function VerifyCertificatePage({ params }: Props) {
   return (
     <div className="ce-app-auth-main flex min-h-screen items-center justify-center px-4 py-16">
       <div className="mx-auto max-w-lg">
-        <Card className="border-border/80">
+        <Card interactive className="ce-glass border-border/80">
           <CardHeader>
             <CardTitle className="text-xl">Проверка сертификата</CardTitle>
             <p className="text-sm text-muted-foreground">Запись найдена в реестре выданных сертификатов.</p>

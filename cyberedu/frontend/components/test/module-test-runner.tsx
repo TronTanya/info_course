@@ -217,7 +217,7 @@ export function ModuleTestRunner({ moduleId, testId, title, minScore, questions,
 
   return (
     <LearnEnter>
-    <Card className="ce-quiz-shell ce-border-beam overflow-hidden">
+    <Card interactive className="ce-quiz-shell ce-border-beam overflow-hidden">
       <CardHeader
         className={cn(
           "space-y-2 border-b border-border/60 bg-linear-to-r from-card via-muted/20 to-card",
@@ -239,7 +239,11 @@ export function ModuleTestRunner({ moduleId, testId, title, minScore, questions,
         <ProgressBar label={`Вопрос ${idx + 1} из ${total}`} value={idx + 1} max={total} />
       </CardHeader>
       <CardContent className="space-y-6">
-        {error ? <p className="rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p> : null}
+        {error ? (
+          <p role="alert" className="rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+            {error}
+          </p>
+        ) : null}
 
         <div>
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Вопрос {idx + 1}</p>

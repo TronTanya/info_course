@@ -31,7 +31,7 @@ export default async function DashboardReviewsPage() {
         />
 
         {!eligible ? (
-          <Card className="ce-learn-panel border-dashed border-border/80 bg-muted/20">
+          <Card className="ce-learn-panel ce-glass border-dashed border-border/80">
             <CardContent className="p-5 text-sm text-muted-foreground">
               Когда завершите первый модуль, здесь появится форма отзыва. Перейдите к{" "}
               <Link href="/dashboard/course" className="font-medium text-primary underline-offset-4 hover:underline">
@@ -41,7 +41,7 @@ export default async function DashboardReviewsPage() {
             </CardContent>
           </Card>
         ) : existing ? (
-          <Card className="ce-learn-panel ce-border-beam space-y-3 border-border/70 p-6 shadow-card">
+          <Card interactive className="ce-learn-panel ce-border-beam ce-glass space-y-3 p-6 shadow-card">
             <p className="text-sm text-muted-foreground">Вы уже отправили отзыв.</p>
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant={existing.isPublished ? "success" : "warning"}>
@@ -54,7 +54,7 @@ export default async function DashboardReviewsPage() {
             <blockquote className="border-l-2 border-primary/30 pl-4 text-sm text-muted-foreground">{existing.text}</blockquote>
           </Card>
         ) : (
-          <Card className="ce-learn-panel ce-border-beam border-border/70 p-6 shadow-card">
+          <Card className="ce-learn-panel ce-border-beam ce-glass p-6 shadow-card">
             <DashboardReviewForm />
           </Card>
         )}

@@ -36,7 +36,7 @@ function statusBadgeVariant(
 ): "default" | "secondary" | "success" | "warning" | "danger" | "cyan" | "outline" | "primary" {
   if (s === "ACCEPTED") return "success";
   if (s === "REJECTED") return "danger";
-  if (s === "CHECKING" || s === "SUBMITTED") return "cyan";
+  if (s === "CHECKING" || s === "SUBMITTED") return "primary";
   if (s === "NEEDS_REVISION") return "warning";
   if (s === "DRAFT") return "secondary";
   return "outline";
@@ -57,8 +57,9 @@ export function MyAssignmentsList({ items }: { items: AssignmentListItem[] }) {
             transition={{ delay: index * 0.05, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
           >
             <Card
+              interactive
               className={cn(
-                "ce-learn-panel overflow-hidden border-border/70 shadow-sm ring-1 ring-secondary/10 transition-shadow hover:shadow-card-hover",
+                "ce-learn-panel ce-glass overflow-hidden shadow-sm ring-1 ring-primary/10",
                 s.status === "NEEDS_REVISION" && "ring-warning/25",
                 s.status === "ACCEPTED" && "ring-success/20",
               )}

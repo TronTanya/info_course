@@ -28,7 +28,7 @@ const config: Record<UiStatus, { label: string; className: string }> = {
   },
   in_progress: {
     label: "В процессе",
-    className: "border-cyan/35 bg-cyan/10 text-cyan",
+    className: "border-primary/35 bg-primary/10 text-primary",
   },
   pending: {
     label: "Ожидание",

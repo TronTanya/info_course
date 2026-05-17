@@ -5,18 +5,20 @@ import { Slot } from "@radix-ui/react-slot";
 import { cn } from "@/lib/utils";
 
 const base =
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold tracking-tight transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98]";
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-sm font-semibold tracking-tight transition-[color,background,box-shadow,transform,border-color] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 aria-busy:opacity-80 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98]";
 
 const variants = {
   primary:
-    "bg-primary text-primary-foreground shadow-card ring-1 ring-primary/15 hover:shadow-[var(--shadow-card-hover)] hover:bg-[color-mix(in_oklab,var(--primary)_90%,#000)] hover:ring-primary/25",
+    "bg-primary text-primary-foreground shadow-card ring-1 ring-primary/20 hover:shadow-[var(--shadow-card-hover)] hover:bg-[color-mix(in_oklab,var(--primary)_88%,#000)] hover:ring-primary/35",
   secondary:
-    "bg-secondary text-secondary-foreground shadow-sm ring-1 ring-secondary/20 hover:bg-[color-mix(in_oklab,var(--secondary)_88%,#fff)] hover:shadow-md hover:ring-secondary/30",
+    "bg-secondary text-secondary-foreground shadow-sm ring-1 ring-secondary/25 hover:bg-[color-mix(in_oklab,var(--secondary)_90%,#fff)] hover:shadow-md hover:ring-secondary/35",
+  accent:
+    "bg-accent text-accent-foreground shadow-sm ring-1 ring-accent/25 hover:bg-[color-mix(in_oklab,var(--accent)_88%,#000)] hover:shadow-md hover:ring-accent/40",
   outline:
-    "border border-border/90 bg-card/95 text-card-foreground shadow-sm ring-1 ring-transparent hover:border-primary/35 hover:bg-muted/70 hover:text-primary hover:ring-primary/10",
-  ghost: "text-foreground hover:bg-muted/90",
+    "border border-border/90 bg-card/90 text-card-foreground shadow-sm hover:border-primary/40 hover:bg-muted/60 hover:text-primary hover:ring-1 hover:ring-primary/15",
+  ghost: "text-foreground hover:bg-muted/80",
   danger:
-    "bg-danger text-danger-foreground shadow-sm hover:bg-[color-mix(in_oklab,var(--danger)_88%,#000)] hover:shadow-md",
+    "bg-danger text-danger-foreground shadow-sm ring-1 ring-danger/20 hover:bg-[color-mix(in_oklab,var(--danger)_88%,#000)] hover:shadow-md",
 } as const;
 
 const sizes = {
@@ -44,6 +46,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         type={asChild && !loading ? undefined : type}
         disabled={asChild ? undefined : isDisabled}
+        aria-busy={loading || undefined}
         {...props}
       >
         {loading && !asChild ? (

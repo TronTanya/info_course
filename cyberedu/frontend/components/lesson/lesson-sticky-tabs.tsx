@@ -82,13 +82,13 @@ export function LessonStickyTabs({
           </TabsList>
         </div>
 
-        <TabsContent value="original" className={cn("ce-learn-panel mt-3 space-y-6 rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6")}>
+        <TabsContent value="original" className={cn("ce-learn-panel ce-glass mt-3 space-y-6 rounded-2xl p-5 shadow-sm sm:p-6")}>
           {original}
         </TabsContent>
-        <TabsContent value="ai" className="ce-learn-panel mt-3 space-y-5 rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6">
+        <TabsContent value="ai" className="ce-learn-panel mt-3 space-y-5 rounded-2xl ce-glass p-5 shadow-sm sm:p-6">
           {ai}
         </TabsContent>
-        <TabsContent value="summary" className="ce-learn-panel mt-3 space-y-5 rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6">
+        <TabsContent value="summary" className="ce-learn-panel mt-3 space-y-5 rounded-2xl ce-glass p-5 shadow-sm sm:p-6">
           {summary}
         </TabsContent>
       </Tabs>

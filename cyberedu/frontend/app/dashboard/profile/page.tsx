@@ -35,7 +35,7 @@ function MetaTile({
   value: ReactNode;
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-border/65 bg-linear-to-br from-background/80 to-card/90 p-4 shadow-sm ring-1 ring-secondary/4 backdrop-blur-sm transition-[border-color,box-shadow] duration-200 hover:border-primary/25 hover:shadow-(--shadow-card)">
+    <div className="ce-glass group relative overflow-hidden rounded-xl p-4 transition-[border-color,box-shadow] duration-200 hover:border-primary/25 hover:shadow-(--shadow-card)">
       <div className="flex items-start gap-3">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/15 transition-transform duration-200 group-hover:scale-105">
           <Icon className="size-5" aria-hidden />
@@ -93,7 +93,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
           </Alert>
         ) : null}
 
-        <header className="ce-user-profile-hero p-6 sm:p-8 lg:p-10">
+        <header className="ce-user-profile-hero hero-glow p-6 sm:p-8 lg:p-10">
           <div className="ce-user-profile-hero-blob" aria-hidden />
           <div className="ce-user-profile-hero-grid" aria-hidden />
           <div className="ce-user-profile-hero-vignette" aria-hidden />
@@ -103,7 +103,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
               <div className="relative shrink-0">
                 <div className="ce-profile-avatar-ring">
                   <div className="overflow-hidden rounded-[1.22rem] bg-linear-to-br from-muted/90 to-card ring-1 ring-border/50">
-                    <div className="relative flex size-28 items-center justify-center bg-linear-to-br from-primary/10 via-card to-cyan/8 text-2xl font-bold tracking-tight text-primary sm:size-35 sm:text-3xl">
+                    <div className="relative flex size-28 items-center justify-center bg-linear-to-br from-primary/10 via-card to-accent/10 text-2xl font-bold tracking-tight text-primary sm:size-35 sm:text-3xl">
                       {p.avatarUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element -- внешние URL аватаров
                         <img src={p.avatarUrl} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
@@ -114,7 +114,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                   </div>
                 </div>
                 <span
-                  className="pointer-events-none absolute -inset-3 -z-10 rounded-4xl bg-linear-to-br from-cyan/18 via-transparent to-primary/12 opacity-90 blur-2xl"
+                  className="pointer-events-none absolute -inset-3 -z-10 rounded-4xl bg-linear-to-br from-accent/18 via-transparent to-primary/12 opacity-90 blur-2xl"
                   aria-hidden
                 />
               </div>
@@ -129,7 +129,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                     <span className="typo-caption tabular-nums text-muted-foreground">С нами с {memberSince}</span>
                   </div>
                   <p className="typo-eyebrow text-primary">Личный профиль</p>
-                  <h1 className="text-balance text-3xl font-semibold tracking-tighter text-foreground sm:text-4xl">{fullName}</h1>
+                  <h1 className="typo-h1 text-balance sm:text-4xl">{fullName}</h1>
                   <p className="inline-flex max-w-full items-center justify-center rounded-xl border border-border/65 bg-background/55 px-3 py-2 font-mono text-xs leading-snug text-muted-foreground shadow-inner backdrop-blur-sm sm:justify-start">
                     {user.email}
                   </p>
@@ -163,7 +163,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
         </header>
 
         {!stats ? (
-          <div className="rounded-2xl border border-border/70 bg-card/90 p-8 text-sm leading-relaxed text-muted-foreground shadow-(--shadow-card) ring-1 ring-secondary/5">
+          <div className="ce-glass rounded-2xl p-8 text-sm leading-relaxed text-muted-foreground shadow-(--shadow-card)">
             Курс в системе пока не настроен. Когда администратор подключит программу, здесь появится прогресс и сертификат.
           </div>
         ) : (

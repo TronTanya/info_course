@@ -19,7 +19,7 @@ export function DashboardAchievementsPreview({ rows }: { rows: AchievementRow[] 
 
   return (
     <motion.section
-      className="ce-learn-panel ce-border-beam rounded-2xl border border-border/70 bg-card/90 p-5 shadow-card sm:p-6"
+      className="ce-learn-panel ce-border-beam ce-glass rounded-2xl p-5 shadow-card sm:p-6"
       initial={reduce ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}

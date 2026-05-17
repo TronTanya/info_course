@@ -7,40 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MetricCard } from "@/components/ui/metric-card";
 import { ProgressBar } from "@/components/ui/progress-bar";
+import { ProgressRing } from "@/components/ui/progress-ring";
 import { cn } from "@/lib/utils";
 
-/** Кольцевой индикатор общего прогресса курса. */
-function CourseProgressRing({ percent }: { percent: number }) {
-  const r = 46;
-  const c = 2 * Math.PI * r;
-  const clamped = Math.min(100, Math.max(0, percent));
-  const offset = c - (clamped / 100) * c;
-  return (
-    <div className="relative flex size-30 shrink-0 items-center justify-center" aria-hidden>
-      <svg viewBox="0 0 112 112" className="size-full -rotate-90 text-primary">
-        <circle cx="56" cy="56" r={r} fill="none" stroke="currentColor" className="text-muted/25" strokeWidth="10" />
-        <circle
-          cx="56"
-          cy="56"
-          r={r}
-          fill="none"
-          stroke="currentColor"
-          className="text-primary drop-shadow-sm"
-          strokeWidth="10"
-          strokeLinecap="round"
-          strokeDasharray={c}
-          strokeDashoffset={offset}
-        />
-      </svg>
-      <span className="absolute text-center">
-        <span className="block text-2xl font-bold tabular-nums text-foreground">{clamped}%</span>
-      </span>
-    </div>
-  );
-}
-
-const cardShell =
-  "relative overflow-hidden rounded-2xl border border-border/70 bg-card/95 p-6 shadow-(--shadow-card) ring-1 ring-secondary/5 sm:p-8";
+const cardShell = "ce-glass relative overflow-hidden rounded-2xl p-6 shadow-(--shadow-card) sm:p-8";
 
 export type ProfileProgressOverviewProps = {
   stats: ProfileCourseStats;
@@ -86,12 +56,8 @@ export function ProfileProgressOverview({
 
   return (
     <div className="space-y-6">
-      <section
-        className={cn(
-          "relative overflow-hidden rounded-2xl border border-border/70 bg-linear-to-br from-primary/6 via-card to-cyan/6 p-6 shadow-(--shadow-card) ring-1 ring-secondary/5 sm:p-8",
-        )}
-      >
-        <div className="pointer-events-none absolute -right-20 top-0 h-48 w-48 rounded-full bg-cyan/10 blur-3xl" aria-hidden />
+      <section className="hero-glow ce-glass relative overflow-hidden rounded-2xl p-6 shadow-(--shadow-card) sm:p-8">
+        <div className="pointer-events-none absolute -right-20 top-0 h-48 w-48 rounded-full bg-accent/12 blur-3xl" aria-hidden />
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <p className="typo-eyebrow text-primary">Ваш курс</p>
@@ -110,7 +76,7 @@ export function ProfileProgressOverview({
         <h3 className="typo-h3">Прогресс</h3>
         <p className="typo-body-muted mt-1">Общая доля пройденного материала и зачёт по модулям.</p>
         <div className="mt-6 flex flex-col items-stretch gap-6 sm:flex-row sm:items-center">
-          <CourseProgressRing percent={stats.progressPercent} />
+          <ProgressRing value={stats.progressPercent} size={120} strokeWidth={10} tone={progressTone} label="Прогресс курса" />
           <div className="min-w-0 flex-1">
             <p className="typo-h3 text-foreground">
               Завершено модулей{" "}
@@ -169,8 +135,8 @@ export function ProfileProgressOverview({
         </div>
       </section>
 
-      <section className="relative overflow-hidden rounded-2xl border border-primary/20 bg-linear-to-br from-primary/6 via-card to-cyan/5 p-6 shadow-(--shadow-card) ring-1 ring-primary/15 sm:p-8">
-        <div className="pointer-events-none absolute -right-16 -top-12 h-32 w-32 rounded-full bg-cyan/15 blur-2xl" aria-hidden />
+      <section className="ce-glass relative overflow-hidden rounded-2xl border border-primary/25 p-6 shadow-(--shadow-card) sm:p-8">
+        <div className="pointer-events-none absolute -right-16 -top-12 h-32 w-32 rounded-full bg-accent/15 blur-2xl" aria-hidden />
         <div className="relative">
           <div className="flex items-start gap-3">
             <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary ring-1 ring-primary/25">

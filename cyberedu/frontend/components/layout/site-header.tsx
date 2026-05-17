@@ -16,9 +16,11 @@ export async function SiteHeader() {
       <div className="container-page flex min-w-0 items-center justify-between gap-2 py-3.5 sm:gap-4 sm:py-4">
         <div className="min-w-0 flex-1">
           <BrandLogoHeaderLink className="max-w-full" />
-          <p className="mt-1 font-mono text-[10px] leading-none text-muted-foreground/80" title="Метка из docker build; local = не Docker">
-            {DOCKER_IMAGE_BUILD_STAMP}
-          </p>
+          {process.env.NODE_ENV === "development" ? (
+            <p className="mt-1 font-mono text-[10px] leading-none text-muted-foreground/80" title="Метка сборки (только dev)">
+              {DOCKER_IMAGE_BUILD_STAMP}
+            </p>
+          ) : null}
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {variant === "admin" ? (

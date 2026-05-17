@@ -10,13 +10,14 @@ export type CircularProgressProps = {
   /** Подпись для a11y */
   label?: string;
   /** Тон обводки прогресса */
-  tone?: "default" | "success" | "cyan";
+  tone?: "default" | "success" | "cyan" | "accent";
 };
 
 const toneClass: Record<NonNullable<CircularProgressProps["tone"]>, string> = {
   default: "text-primary",
   success: "text-success",
   cyan: "text-cyan",
+  accent: "text-accent",
 };
 
 /**
@@ -68,7 +69,7 @@ export function CircularProgress({
         />
       </svg>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-        <span className="text-2xl font-bold tabular-nums leading-none text-foreground">{Math.round(pct)}%</span>
+        <span className="font-display text-2xl font-bold tabular-nums leading-none text-foreground">{Math.round(pct)}%</span>
         <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">курс</span>
       </div>
     </div>

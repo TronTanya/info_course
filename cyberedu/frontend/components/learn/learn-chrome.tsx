@@ -55,7 +55,7 @@ export function LearnPanel({
   return (
     <div
       className={cn(
-        "ce-learn-panel rounded-2xl border border-border/70 bg-card/95 shadow-card backdrop-blur-sm",
+        "ce-learn-panel ce-glass card-gradient rounded-2xl shadow-card",
         beam && "ce-border-beam",
         className,
       )}
@@ -89,7 +89,7 @@ export function LearnPageHeader({
   return (
     <motion.header
       className={cn(
-        "ce-learn-header ce-border-beam flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/90 p-4 shadow-card sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-5",
+        "hero-glow ce-learn-header ce-border-beam flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/90 p-4 shadow-card sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-5",
         className,
       )}
       initial={reduce ? false : { opacity: 0, y: 16 }}
@@ -99,13 +99,13 @@ export function LearnPageHeader({
       <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start">
         <Link
           href={backHref}
-          className="inline-flex h-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card px-3 text-sm font-medium text-foreground transition hover:border-cyan/30 hover:bg-cyan/5"
+          className="inline-flex h-9 shrink-0 items-center justify-center rounded-xl border border-border bg-card px-3 text-sm font-medium text-foreground transition-colors duration-200 hover:border-primary/35 hover:bg-primary/8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           {backLabel}
         </Link>
         <div className="min-w-0 space-y-1">
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-cyan/90">{eyebrow}</p>
-          <h1 className="text-balance text-xl font-semibold tracking-tight text-foreground sm:text-2xl">{title}</h1>
+          <p className="typo-eyebrow text-primary">{eyebrow}</p>
+          <h1 className="typo-h2 text-balance sm:text-2xl">{title}</h1>
           {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}
         </div>
       </div>

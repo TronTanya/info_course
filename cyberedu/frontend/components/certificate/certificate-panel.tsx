@@ -62,7 +62,7 @@ export function CertificatePanel({
 
     return (
       <div className="ce-cert-card relative overflow-hidden p-6 ring-1 ring-inset ring-white/10 dark:ring-white/5">
-        <div className="pointer-events-none absolute -right-16 top-0 h-40 w-40 rounded-full bg-cyan/12 blur-3xl" aria-hidden />
+        <div className="pointer-events-none absolute -right-16 top-0 h-40 w-40 rounded-full bg-accent/12 blur-3xl" aria-hidden />
         <div className="relative space-y-5">
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full border border-success/30 bg-success/10 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-success">
@@ -98,7 +98,7 @@ export function CertificatePanel({
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-dashed border-border/80 bg-muted/20 p-5 ring-1 ring-inset ring-white/30 sm:p-6">
+    <div className="ce-glass space-y-4 rounded-2xl border border-dashed border-border/80 p-5 sm:p-6">
       {error ? (
         <p className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>
       ) : null}

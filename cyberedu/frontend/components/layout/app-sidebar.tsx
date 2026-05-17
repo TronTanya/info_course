@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, LogOut } from "lucide-react";
+import { logoutAction } from "@/lib/actions/logout";
 import { adminNav, studentNav, type NavItem } from "@/lib/design-system/nav-config";
 import { motionPresets } from "@/lib/design-system/motion";
 import { isNavHrefActive } from "@/lib/nav-active";
@@ -59,7 +60,7 @@ export function AppSidebar({ variant }: { variant: AppSidebarVariant }) {
         <p className="px-3 pb-2 typo-eyebrow text-muted-foreground">
           {variant === "admin" ? "Администрирование" : "Обучение"}
         </p>
-        <nav className="flex flex-col gap-0.5">
+        <nav className="flex flex-1 flex-col gap-0.5">
           {items.map((item) => (
             <NavLink key={item.href} item={item} active={isNavHrefActive(pathname, item.href)} />
           ))}
@@ -70,6 +71,15 @@ export function AppSidebar({ variant }: { variant: AppSidebarVariant }) {
             <p className="mt-1 leading-relaxed">Доступен на страницах лекции и практики — кнопка внизу справа.</p>
           </div>
         ) : null}
+        <form action={logoutAction} className="mt-auto border-t border-border/60 pt-3">
+          <button
+            type="submit"
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <LogOut className="size-4 shrink-0" aria-hidden />
+            Выйти
+          </button>
+        </form>
       </div>
     </motion.aside>
   );

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { getSession, signIn } from "next-auth/react";
 import { AuthCard } from "@/components/auth/auth-card";
 import { Button } from "@/components/ui/button";
+import { FormMessage } from "@/components/ui/form-message";
 import { Input } from "@/components/ui/input";
 
 function safeCallbackUrl(raw: string | null): string | null {
@@ -60,14 +61,10 @@ export function LoginForm() {
   return (
     <AuthCard title="Вход" description="Введите email и пароль учётной записи.">
       {registered ? (
-        <p className="rounded-lg border border-primary/25 bg-primary/5 px-3 py-2 text-sm text-foreground">
-          Регистрация прошла успешно. Войдите с теми же данными.
-        </p>
+        <FormMessage variant="success">Регистрация прошла успешно. Войдите с теми же данными.</FormMessage>
       ) : null}
       <form onSubmit={onSubmit} className="space-y-3" noValidate>
-        {error ? (
-          <p className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>
-        ) : null}
+        {error ? <FormMessage>{error}</FormMessage> : null}
         <Input autoComplete="email" label="Email" name="email" type="email" placeholder="you@example.com" required disabled={pending} />
         <Input autoComplete="current-password" label="Пароль" name="password" type="password" required disabled={pending} />
         <Button className="w-full" type="submit" loading={pending}>

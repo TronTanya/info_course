@@ -15,8 +15,8 @@ export function EmptyState({ className, icon, title, description, action }: Empt
     <div
       role="status"
       className={cn(
-        "ce-animate-in flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 bg-card/50 px-6 py-14 text-center shadow-sm backdrop-blur-sm",
-        "transition-colors duration-300 hover:border-primary/30 hover:bg-card/80",
+        "ce-animate-in ce-glass flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 px-6 py-14 text-center",
+        "transition-[border-color,box-shadow] duration-200 hover:border-primary/35 hover:shadow-[0_0_32px_-12px_color-mix(in_oklab,var(--primary)_25%,transparent)]",
         className,
       )}
     >

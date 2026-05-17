@@ -149,7 +149,7 @@ export function CommandPalette() {
       <button
         type="button"
         data-testid="command-palette-trigger"
-        className="hidden items-center gap-2 rounded-xl border border-border/70 bg-card/80 px-3 py-2 text-sm text-muted-foreground shadow-sm transition-colors hover:border-primary/25 hover:text-foreground md:inline-flex"
+        className="inline-flex size-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-border/70 bg-card/80 text-muted-foreground shadow-sm transition-colors hover:border-primary/25 hover:text-foreground md:h-auto md:min-h-0 md:w-auto md:px-3 md:py-2 md:text-sm"
         aria-label="Командная палитра (Ctrl+K)"
         aria-haspopup="dialog"
         aria-expanded={open}

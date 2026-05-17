@@ -1,16 +1,25 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Manrope } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
 const inter = Inter({
-  variable: "--font-geist-sans",
+  variable: "--font-inter",
   subsets: ["latin", "cyrillic"],
+  display: "swap",
+});
+
+const manrope = Manrope({
+  variable: "--font-display",
+  subsets: ["latin", "cyrillic"],
+  weight: ["500", "600", "700", "800"],
+  display: "swap",
 });
 
 const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-geist-mono",
+  variable: "--font-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3100";
@@ -51,13 +60,13 @@ export default function RootLayout({
   return (
     <html
       lang="ru"
-      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${manrope.variable} ${jetbrainsMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="min-h-full">
+      <body className="min-h-full font-sans">
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-xl focus:bg-card focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:shadow-card focus:ring-2 focus:ring-ring"

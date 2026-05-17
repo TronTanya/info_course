@@ -99,9 +99,10 @@ export function CourseModuleCard({ row, index = 0 }: { row: CourseProgressModule
       whileHover={reduce ? undefined : { y: -4 }}
       className="h-full"
     >
-      <Card
-        className={cn(
-          "ce-card-glow ce-learn-panel relative flex h-full w-full min-w-0 max-w-full flex-col overflow-hidden shadow-card transition-shadow duration-300",
+              <Card
+                interactive
+                className={cn(
+                  "ce-card-glow ce-learn-panel relative flex h-full w-full min-w-0 max-w-full flex-col overflow-hidden shadow-card",
           status === "locked" && "border-muted-foreground/30 bg-muted/40 opacity-[0.97]",
           status === "available" && "border-success/35 bg-linear-to-br from-card via-emerald-500/[0.04] to-card ring-1 ring-inset ring-success/10",
           status === "in_progress" && "border-sky-500/40 bg-linear-to-br from-card via-sky-500/[0.06] to-card ring-1 ring-inset ring-sky-500/15",

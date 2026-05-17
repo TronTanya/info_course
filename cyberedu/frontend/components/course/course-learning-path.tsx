@@ -5,7 +5,8 @@ import type { CourseProgressModuleRow, UserCourseProgressResult } from "@/lib/pr
 import { getModuleAction } from "@/lib/course-path-ui";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CircularProgress } from "@/components/ui/circular-progress";
+import { ProgressRing } from "@/components/ui/progress-ring";
+import { SectionHeader } from "@/components/ui/section-header";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { ResponsiveGrid } from "@/components/ui/responsive-grid";
 import { cn } from "@/lib/utils";
@@ -47,7 +48,7 @@ function SkillsFromCompleted({ modules }: { modules: CourseProgressModuleRow[] }
   if (done.length === 0) return null;
 
   return (
-    <section className="rounded-2xl border-2 border-primary/20 bg-linear-to-br from-primary/6 via-card to-cyan/5 p-6 shadow-(--shadow-card) ring-1 ring-secondary/5 sm:p-8">
+    <section className="ce-glass rounded-2xl border border-primary/25 p-6 shadow-(--shadow-card) sm:p-8">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <Badge variant="primary" className="mb-2 uppercase tracking-wider">
@@ -98,7 +99,7 @@ function NextStepBlock({ data }: { data: UserCourseProgressResult }) {
   }
 
   return (
-    <section className="ce-learn-panel ce-border-beam ce-card-glow rounded-2xl border-2 border-border/80 bg-linear-to-br from-secondary/6 via-card to-muted/25 p-6 shadow-(--shadow-card) ring-1 ring-secondary/8 sm:p-8">
+    <section className="ce-learn-panel ce-border-beam ce-card-glow hero-glow rounded-2xl border border-border/80 p-6 shadow-(--shadow-card) sm:p-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           <h2 className="text-lg font-semibold text-foreground sm:text-xl">{title}</h2>
@@ -128,7 +129,7 @@ export function CourseLearningPath({ data }: { data: UserCourseProgressResult })
   const modules = data.modules;
   const doneCount = modules.filter((m) => m.moduleCompleted).length;
   const totalCount = modules.length;
-  const ringTone = data.overallProgressPercent >= 100 ? "success" : doneCount > 0 ? "cyan" : "default";
+  const ringTone = data.overallProgressPercent >= 100 ? "success" : doneCount > 0 ? "accent" : "default";
   const focus = currentFocusModule(data);
   const cta = continueLearningCta(data);
   const allDone = totalCount > 0 && doneCount === totalCount;
@@ -136,7 +137,7 @@ export function CourseLearningPath({ data }: { data: UserCourseProgressResult })
   return (
     <div className="space-y-7 lg:space-y-9">
       {/* Герой курса — тот же визуальный язык, что и профиль (рамка, сетка, акцент слева) */}
-      <section className="ce-user-profile-hero p-5 sm:p-7 lg:p-8">
+      <section className="ce-user-profile-hero hero-glow p-5 sm:p-7 lg:p-8">
         <div className="ce-user-profile-hero-blob" aria-hidden />
         <div className="ce-user-profile-hero-grid" aria-hidden />
         <div className="ce-user-profile-hero-vignette" aria-hidden />
@@ -146,7 +147,7 @@ export function CourseLearningPath({ data }: { data: UserCourseProgressResult })
             <Badge variant="primary" className="w-fit uppercase tracking-wider shadow-sm">
               Ваш курс
             </Badge>
-            <h1 className="text-balance text-2xl font-semibold tracking-tighter text-foreground sm:text-3xl lg:text-[2rem] lg:leading-tight">
+            <h1 className="typo-h1 text-balance sm:text-3xl lg:text-[2rem]">
               {data.course.title}
             </h1>
             {data.course.description ? (
@@ -155,7 +156,7 @@ export function CourseLearningPath({ data }: { data: UserCourseProgressResult })
               <p className="text-sm text-muted-foreground">Описание курса появится позже.</p>
             )}
 
-            <div className="rounded-2xl border-2 border-border/70 bg-card/90 p-4 shadow-(--shadow-card) backdrop-blur-sm sm:p-4">
+            <div className="ce-glass rounded-2xl p-4 shadow-(--shadow-card) sm:p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Текущий модуль</p>
               {focus ? (
                 <>
@@ -184,13 +185,13 @@ export function CourseLearningPath({ data }: { data: UserCourseProgressResult })
             <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">{cta.hint}</p>
           </div>
 
-          <aside className="flex min-w-0 flex-col justify-between gap-4 rounded-2xl border-2 border-primary/20 bg-linear-to-br from-card via-card to-primary/5 p-5 shadow-(--shadow-card) backdrop-blur-sm">
+          <aside className="ce-glass flex min-w-0 flex-col justify-between gap-4 rounded-2xl border border-primary/25 p-5 shadow-(--shadow-card)">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Общий прогресс</p>
                 <p className="mt-0.5 text-3xl font-bold tabular-nums text-foreground sm:text-4xl">{data.overallProgressPercent}%</p>
               </div>
-              <CircularProgress value={data.overallProgressPercent} tone={ringTone} size={88} strokeWidth={8} label="Доля завершённых модулей" />
+              <ProgressRing value={data.overallProgressPercent} tone={ringTone} size={88} strokeWidth={8} label="Доля завершённых модулей" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-xl border border-border/70 bg-background/60 px-3 py-2.5 shadow-inner">
@@ -222,24 +223,20 @@ export function CourseLearningPath({ data }: { data: UserCourseProgressResult })
 
       {/* Траектория */}
       <section className="space-y-4">
-        <div>
-          <Badge variant="outline" className="mb-2 uppercase tracking-wider">
-            Learning path
-          </Badge>
-          <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">Траектория модулей</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            Идите по порядку: каждый следующий модуль открывается после завершения предыдущего. Иконки показывают статус блока.
-          </p>
-        </div>
+        <SectionHeader
+          eyebrow="Learning path"
+          title="Траектория модулей"
+          description="Идите по порядку: каждый следующий модуль открывается после завершения предыдущего. Иконки показывают статус блока."
+        />
         <CourseTrajectoryAnimated modules={modules} />
       </section>
 
       {/* Карточки */}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">Все модули</h2>
-        <p className="max-w-2xl text-sm text-muted-foreground">
-          В каждой карточке — описание, оценка объёма по шагам, статусы лекции, теста и практики, баллы и действие.
-        </p>
+        <SectionHeader
+          title="Все модули"
+          description="В каждой карточке — описание, оценка объёма по шагам, статусы лекции, теста и практики, баллы и действие."
+        />
         <ResponsiveGrid>
           {modules.map((row, index) => (
             <CourseModuleCard key={row.module.id} row={row} index={index} />

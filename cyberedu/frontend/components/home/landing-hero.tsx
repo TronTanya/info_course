@@ -40,9 +40,9 @@ function IconAi({ className }: { className?: string }) {
 function LearningPathStrip() {
   const steps = ["Введение", "Угрозы", "Защита", "Практика", "Итог"];
   return (
-    <div className="rounded-2xl border border-border/80 bg-linear-to-r from-card via-muted/30 to-card p-4 shadow-sm ring-1 ring-inset ring-white/50 dark:ring-cyan/10">
+    <div className="ce-glass card-gradient rounded-2xl p-4 ring-1 ring-primary/10">
       <p className="mb-3 text-center font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan/90">
-        Learning path
+        Маршрут обучения
       </p>
       <div className="flex items-center justify-between gap-1 sm:gap-2">
         {steps.map((label, i) => (
@@ -106,7 +106,7 @@ function VisualShell({
       transition={{ duration: 0.45, delay, ease: [0.22, 1, 0.36, 1] }}
       whileHover={reduce ? undefined : { y: -4, transition: { duration: 0.2 } }}
       className={cn(
-        "group/v ce-card-glow relative overflow-hidden rounded-2xl border border-border/70 bg-card/95 shadow-card backdrop-blur-sm",
+        "group/v ce-card-glow card-gradient relative overflow-hidden rounded-2xl border border-border/70 bg-card/95 shadow-card backdrop-blur-sm",
         className,
       )}
     >
@@ -141,7 +141,7 @@ export function LandingHero() {
 
   return (
     <motion.section
-      className="ce-border-beam relative overflow-hidden rounded-3xl border border-border/70 bg-card/98 shadow-(--shadow-glow) ring-1 ring-secondary/7 backdrop-blur-md dark:ring-primary/10"
+      className="hero-glow ce-border-beam relative overflow-hidden rounded-3xl border border-border/70 bg-card/98 shadow-(--shadow-glow) ring-1 ring-primary/10 backdrop-blur-md"
       {...motionPresets.fadeIn}
     >
       <div className="pointer-events-none absolute -right-20 -top-24 h-80 w-80 rounded-full bg-cyan/18 blur-3xl ce-orb-a" />
@@ -160,13 +160,13 @@ export function LandingHero() {
             <Badge variant="primary" className="shadow-sm">
               Информационная безопасность
             </Badge>
-            <Badge variant="cyan" className="shadow-sm">
+            <Badge variant="accent" className="shadow-sm">
               2026 · SOC-ready
             </Badge>
           </div>
 
           <div className="space-y-4">
-            <h1 className="flex flex-wrap items-center gap-3 text-balance text-4xl font-bold tracking-tight sm:gap-4 sm:text-5xl sm:leading-[1.08]">
+            <h1 className="typo-h1 flex flex-wrap items-center gap-3 sm:gap-4 sm:text-5xl">
               <BrandLogoMark className="h-12 w-12 shrink-0 sm:h-14 sm:w-14" size={56} />
               <span className="ce-text-shimmer">CyberEdu</span>
             </h1>

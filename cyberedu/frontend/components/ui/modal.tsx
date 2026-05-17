@@ -18,17 +18,17 @@ export function Modal({ open, onOpenChange, title, description, children, footer
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-background/70 backdrop-blur-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <Dialog.Content
           className={cn(
-            "fixed left-1/2 top-1/2 z-50 w-[min(100%-2rem,520px)] max-h-[min(90vh,720px)] overflow-y-auto rounded-2xl border border-border bg-popover p-6 text-popover-foreground shadow-card-hover outline-none",
+            "fixed left-1/2 top-1/2 z-50 w-[min(100%-2rem,520px)] max-h-[min(90vh,720px)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl border border-border/80 bg-popover p-6 text-popover-foreground shadow-[var(--shadow-card-hover)] outline-none ring-1 ring-primary/10",
             "data-[state=open]:animate-[ce-modal-in_0.3s_var(--ease-out-expo)_forwards] data-[state=closed]:opacity-0",
           )}
           onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => e.preventDefault()}
         >
           <div className="flex flex-col gap-2">
-            <Dialog.Title className="text-lg font-semibold text-foreground">{title}</Dialog.Title>
+            <Dialog.Title className="font-display text-lg font-semibold text-foreground">{title}</Dialog.Title>
             {description ? (
               <Dialog.Description className="text-sm text-muted-foreground">{description}</Dialog.Description>
             ) : null}

@@ -17,9 +17,9 @@ export default async function ReviewsPage() {
   return (
     <div className="space-y-10">
       <ScrollReveal>
-        <div className="ce-learn-header ce-border-beam rounded-2xl border border-border/70 bg-card/90 p-6 sm:p-8">
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-cyan">CyberEdu</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">Отзывы</h1>
+        <div className="hero-glow ce-learn-header ce-border-beam rounded-2xl p-6 sm:p-8">
+          <p className="typo-eyebrow text-primary">CyberEdu</p>
+          <h1 className="typo-h1 mt-2">Отзывы</h1>
           <p className="mt-3 max-w-2xl text-muted-foreground">
             Здесь собраны отзывы выпускников и слушателей курса, прошедшие модерацию.{" "}
             <Link href="/auth/register" className="font-medium text-primary underline-offset-4 hover:underline">

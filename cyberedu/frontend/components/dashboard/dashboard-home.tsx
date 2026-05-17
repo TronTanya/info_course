@@ -10,7 +10,8 @@ import type { ProfileCourseStats } from "@/lib/profile-course-stats";
 import { motionPresets } from "@/lib/design-system/motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CircularProgress } from "@/components/ui/circular-progress";
+import { ProgressRing } from "@/components/ui/progress-ring";
+import { SectionHeader } from "@/components/ui/section-header";
 import { MetricCard } from "@/components/ui/metric-card";
 import { PageHeader } from "@/components/ui/page-header";
 import { ProgressBar } from "@/components/ui/progress-bar";
@@ -38,7 +39,7 @@ const QUICK_LINKS: QuickLink[] = [
     title: "Профиль",
     description: "ФИО, интересы для AI, аватар",
     icon: User,
-    accent: "from-cyan/12 to-card",
+    accent: "from-accent/12 to-card",
   },
   {
     href: "/dashboard/my-assignments",
@@ -79,12 +80,12 @@ export function DashboardHome({
   return (
     <motion.div className="space-y-8" {...motionPresets.fadeIn}>
       <PageHeader
-        eyebrow="CyberEdu · Security LMS"
+        eyebrow="Личный кабинет"
         title={`Здравствуйте, ${displayName}`}
         description="Продолжайте курс, отслеживайте прогресс и используйте AI-наставника в контексте урока."
       />
 
-      <section className="ce-dashboard-hero ce-border-beam grid gap-6 lg:grid-cols-[1fr_auto]">
+      <section className="ce-dashboard-hero hero-glow ce-border-beam grid gap-6 lg:grid-cols-[1fr_auto]">
         <motion.div className="space-y-4" {...motionPresets.slideUp}>
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status="in_progress" label="Активное обучение" />
@@ -127,7 +128,7 @@ export function DashboardHome({
           </div>
         </motion.div>
         {stats ? (
-          <CircularProgress value={stats.progressPercent} size={128} tone="cyan" label="Прогресс курса" />
+          <ProgressRing value={stats.progressPercent} size={128} tone="default" label="Прогресс курса" />
         ) : null}
       </section>
 
@@ -142,6 +143,8 @@ export function DashboardHome({
         </div>
       ) : null}
 
+      <SectionHeader title="Быстрый доступ" description="Основные разделы личного кабинета" />
+
       <div className="responsive-card-grid">
         {QUICK_LINKS.map((item, i) => {
           const Icon = item.icon;
@@ -153,9 +156,10 @@ export function DashboardHome({
               transition={{ delay: i * motionPresets.stagger, duration: 0.25 }}
             >
               <Card
+                interactive
                 className={cn(
-                  "group relative h-full overflow-hidden border-border/70 transition-all duration-300",
-                  "hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-card-hover motion-reduce:hover:translate-y-0",
+                  "group relative h-full overflow-hidden border-border/70",
+                  "motion-reduce:hover:translate-y-0",
                 )}
               >
                 <div
