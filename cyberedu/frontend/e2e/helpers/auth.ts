@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import type { BrowserContext, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { getE2eCredentials, type E2eRole } from "../test-credentials";
 
@@ -23,66 +23,92 @@ export async function loginAs(page: Page, role: E2eRole): Promise<void> {
   const dest = role === "admin" ? "/admin" : "/dashboard/profile";
   await page.goto(dest);
   await expect(page).toHaveURL(role === "admin" ? /\/admin/ : /\/dashboard/, { timeout: 15_000 });
+  await expect(sidebarLogoutButton(page)).toBeVisible();
+}
+
+/** Изоляция storage между student/admin logout (serial suite, один worker). */
+export async function resetAuthStorage(context: BrowserContext): Promise<void> {
+  await context.clearCookies();
+  for (const p of context.pages()) {
+    await p.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+    });
+  }
 }
 
 async function getSessionEmail(page: Page): Promise<string> {
-  const res = await page.request.get("/api/auth/session");
-  const session = (await res.json()) as { user?: { email?: string } } | null;
-  return session?.user?.email ?? "";
+  return page.evaluate(async () => {
+    const res = await fetch("/api/auth/session", { credentials: "include" });
+    const session = (await res.json()) as { user?: { email?: string } } | null;
+    return session?.user?.email ?? "";
+  });
 }
 
 async function waitForEmptySession(page: Page): Promise<void> {
+  await page.waitForLoadState("domcontentloaded");
   await expect.poll(() => getSessionEmail(page), { timeout: 15_000 }).toBe("");
 }
 
-async function signOutViaApi(page: Page): Promise<void> {
-  const csrfRes = await page.request.get("/api/auth/csrf");
-  expect(csrfRes.ok()).toBeTruthy();
-  const { csrfToken } = (await csrfRes.json()) as { csrfToken: string };
-
-  const signOutRes = await page.request.post("/api/auth/signout", {
-    form: { csrfToken },
-    maxRedirects: 10,
-  });
-  const status = signOutRes.status();
-  expect(status >= 200 && status < 400, `signout HTTP ${status}`).toBe(true);
+export function sidebarLogoutButton(page: Page) {
+  return page
+    .getByRole("complementary", { name: /навигация (кабинета|админки)/i })
+    .getByRole("button", { name: /^выйти$/i });
 }
 
-/** Server Action logout — тот же путь, что у пользователя; sidebar виден на desktop (lg+). */
-async function signOutViaSidebar(page: Page): Promise<void> {
-  const logoutBtn = page.getByRole("button", { name: "Выйти" });
-  await expect(logoutBtn).toBeVisible({ timeout: 15_000 });
-  await logoutBtn.click();
-  await page.waitForURL((url) => !/\/dashboard|\/admin/.test(url.pathname), { timeout: 15_000 });
+function drawerLogoutFlow(page: Page) {
+  const menuTrigger = page.getByRole("button", { name: /открыть меню/i });
+  const dialog = page.getByRole("dialog", { name: /^меню$/i });
+  const drawerLogout = dialog.getByRole("button", { name: /^выйти$/i });
+  return { menuTrigger, dialog, drawerLogout };
+}
+
+/**
+ * Выход через UI (server action `logoutAction`), как у пользователя.
+ * Desktop (lg+, project `desktop`): sidebar «Выйти».
+ * <lg: drawer «Открыть меню» → «Выйти».
+ */
+export async function logout(page: Page): Promise<void> {
+  const sidebarLogout = sidebarLogoutButton(page);
+  const { menuTrigger, dialog, drawerLogout } = drawerLogoutFlow(page);
+
+  const postLogoutUrl = (url: URL) => {
+    const path = url.pathname;
+    return path === "/" || path.startsWith("/auth/");
+  };
+
+  if (await sidebarLogout.isVisible()) {
+    await expect(sidebarLogout).toBeVisible();
+    await expect(sidebarLogout).toBeEnabled();
+    await sidebarLogout.click();
+  } else {
+    await expect(menuTrigger).toBeVisible();
+    await menuTrigger.click();
+    await expect(dialog).toBeVisible();
+    await expect(drawerLogout).toBeVisible();
+    await expect(drawerLogout).toBeEnabled();
+    await drawerLogout.click();
+  }
+
+  await expect(page).toHaveURL(postLogoutUrl);
+  await waitForEmptySession(page);
+}
+
+/** @deprecated Используйте `logout`. */
+export async function logoutFromApp(page: Page): Promise<void> {
+  await logout(page);
 }
 
 /** Проверка, что кабинет недоступен без сессии. */
 export async function assertLoggedOut(page: Page): Promise<void> {
-  await page.goto("/dashboard");
-  await expect(page).toHaveURL(/\/auth\/login/, { timeout: 15_000 });
+  await expect(async () => {
+    await page.goto("/dashboard");
+    await expect(page).toHaveURL(/\/auth\/login/);
+  }).toPass({ timeout: 15_000 });
 }
 
 /** Админ-зона недоступна без роли ADMIN. */
 export async function assertAdminRouteBlocked(page: Page): Promise<void> {
   await page.goto("/admin/users");
   await expect(page).toHaveURL(/\/auth\/login/, { timeout: 15_000 });
-}
-
-/**
- * Выход: NextAuth API, при необходимости — кнопка «Выйти» в desktop-sidebar.
- * Не используем mobile drawer («Открыть меню») — он flaky на desktop после admin flow.
- */
-export async function logoutFromApp(page: Page): Promise<void> {
-  await signOutViaApi(page);
-  if ((await getSessionEmail(page)) !== "") {
-    await signOutViaSidebar(page);
-  }
-
-  await waitForEmptySession(page);
-
-  await page.goto("/auth/login");
-  await expect(page).toHaveURL(/\/auth\/login/, { timeout: 15_000 });
-
-  await assertLoggedOut(page);
-  await expect(page.getByRole("link", { name: "Войти" })).toBeVisible({ timeout: 15_000 });
 }

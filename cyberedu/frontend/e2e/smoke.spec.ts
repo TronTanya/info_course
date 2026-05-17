@@ -1,5 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { assertAdminRouteBlocked, loginAs, logoutFromApp } from "./helpers/auth";
+import {
+  assertAdminRouteBlocked,
+  assertLoggedOut,
+  loginAs,
+  logout,
+  resetAuthStorage,
+} from "./helpers/auth";
 import {
   openFirstPracticePage,
   openFirstTestPage,
@@ -11,7 +17,7 @@ test.describe.configure({ mode: "serial" });
 
 test.describe("CyberEdu smoke", () => {
   test.beforeEach(async ({ context }) => {
-    await context.clearCookies();
+    await resetAuthStorage(context);
   });
 
   test("1. student login", async ({ page }) => {
@@ -56,19 +62,26 @@ test.describe("CyberEdu smoke", () => {
     await submitPracticeTextIfPresent(page);
   });
 
-  test("5b. student logout (API)", async ({ page }) => {
-    await loginAs(page, "student");
-    await logoutFromApp(page);
-  });
+  test.describe("logout (desktop)", () => {
+    test.beforeEach(async ({ context }) => {
+      await resetAuthStorage(context);
+    });
 
-  test("6. admin login, users page, logout (desktop)", async ({ page }) => {
-    await loginAs(page, "admin");
-    await page.goto("/admin/users");
-    await expect(page.getByRole("heading", { name: "Пользователи" })).toBeVisible();
-    await page.getByPlaceholder(/ФИО, email/i).fill("admin@cyberedu.local");
-    await expect(page.getByRole("row", { name: /admin@cyberedu\.local/i })).toBeVisible();
-    await logoutFromApp(page);
-    await assertAdminRouteBlocked(page);
+    test("5b. student logout", async ({ page }) => {
+      await loginAs(page, "student");
+      await logout(page);
+      await assertLoggedOut(page);
+    });
+
+    test("6. admin logout after users page", async ({ page }) => {
+      await loginAs(page, "admin");
+      await page.goto("/admin/users");
+      await expect(page.getByRole("heading", { name: "Пользователи" })).toBeVisible();
+      await page.getByPlaceholder(/ФИО, email/i).fill("admin@cyberedu.local");
+      await expect(page.getByRole("row", { name: /admin@cyberedu\.local/i })).toBeVisible();
+      await logout(page);
+      await assertAdminRouteBlocked(page);
+    });
   });
 
   test("7. certificate verify page (public)", async ({ page }) => {
@@ -99,7 +112,6 @@ test.describe("CyberEdu smoke", () => {
     };
     expect(body.status).toBe("ok");
     expect(body.checks?.database).toBe("ok");
-    // E2E runs with ENVIRONMENT=test — Redis check skipped; prod/staging must report redis ok
     if (body.checks?.redis !== undefined) {
       expect(["ok", "skipped"]).toContain(body.checks.redis);
     }

@@ -27,8 +27,11 @@ export default defineConfig({
   snapshotPathTemplate: "e2e-results/snapshots/{testFilePath}/{arg}{ext}",
   projects: [
     {
-      name: "smoke",
+      name: "desktop",
       testMatch: /smoke\.spec\.ts/,
+      use: {
+        viewport: { width: 1280, height: 720 },
+      },
     },
   ],
 });
