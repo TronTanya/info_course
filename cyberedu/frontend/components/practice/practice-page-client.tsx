@@ -14,6 +14,7 @@ import { ScenarioPracticeBlock } from "@/components/practice/scenario-practice-f
 import { PracticeSocraticHintPanel } from "@/components/practice/practice-socratic-hint";
 import { TrainingConsole } from "@/components/practice/TrainingConsole";
 import { submitPracticeTextAction, verifyPracticeInteractiveAction } from "@/lib/actions/practice";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/ui/progress-bar";
@@ -21,6 +22,7 @@ import { SectionCard } from "@/components/ui/section-card";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { formatRuDateTimeFullUtc } from "@/lib/datetime-stable";
+import { useFormDraft } from "@/lib/hooks/use-form-draft";
 
 export type ClientSubmission = {
   id: string;
@@ -335,21 +337,13 @@ function PracticeLabSession({
   const { moduleProgress } = labContext;
 
   const breadcrumb = (
-    <nav className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium" aria-label="Навигация по курсу">
-      <Link href="/dashboard/course" className="text-primary hover:underline">
-        Курс
-      </Link>
-      <span aria-hidden className="text-muted-foreground/40">
-        /
-      </span>
-      <Link href={`/dashboard/course/${moduleId}`} className="text-primary hover:underline">
-        Модуль {labContext.moduleOrderNumber}
-      </Link>
-      <span aria-hidden className="text-muted-foreground/40">
-        /
-      </span>
-      <span className="text-foreground">Практика</span>
-    </nav>
+    <Breadcrumbs
+      items={[
+        { href: "/dashboard/course", label: "Курс" },
+        { href: `/dashboard/course/${moduleId}`, label: `Модуль ${labContext.moduleOrderNumber}` },
+        { label: "Практика" },
+      ]}
+    />
   );
 
   const header = (
@@ -640,6 +634,14 @@ function TextAnswerForm({
   onMessage: (err: string | null, ok: string | null) => void;
 }) {
   const [text, setText] = useState("");
+  const isDirty = text.trim().length > 0;
+  const { clearDraft } = useFormDraft({
+    storageKey: `ce-practice-text:${moduleId}:${taskId}`,
+    value: text,
+    onRestore: setText,
+    isDirty,
+    enabled: !submitBlocked,
+  });
   const okLen = text.trim().length >= minLength;
   if (submitBlocked) {
     return (
@@ -662,13 +664,16 @@ function TextAnswerForm({
         type="button"
         className="w-full sm:w-auto"
         loading={pending}
-        disabled={!okLen}
+        disabled={!okLen || pending}
         onClick={() => {
           onMessage(null, null);
           startTransition(async () => {
             const res = await submitPracticeTextAction({ moduleId, practicalTaskId: taskId, text });
             if (res.error) onMessage(res.error, null);
-            else onMessage(null, "Работа отправлена на проверку.");
+            else {
+              clearDraft();
+              onMessage(null, "Работа отправлена на проверку.");
+            }
           });
         }}
       >

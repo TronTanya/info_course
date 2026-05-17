@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminDualTable } from "@/components/admin/admin-dual-table";
-import { AdminShell } from "@/components/layout/admin-shell";
 import { AdminModuleMoveButtons } from "@/components/admin/admin-module-move-buttons";
-import { PageHeader } from "@/components/ui/page-header";
+import { AdminBreadcrumbs, adminBreadcrumbItems } from "@/components/admin/admin-breadcrumbs";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminTable, AdminTableBody, AdminTableHead } from "@/components/admin/admin-table";
+import { AdminTableCard } from "@/components/admin/admin-table-card";
+import { AdminShell } from "@/components/layout/admin-shell";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { prisma } from "@/lib/db";
 import { toggleModuleActiveAction } from "@/lib/actions/admin-modules";
 
@@ -21,7 +26,12 @@ export default async function AdminModulesPage() {
   if (!course) {
     return (
       <AdminShell>
-        <PageHeader title="Модули курса" description="Сначала создайте курс в базе данных." />
+        <AdminPageHeader
+          breadcrumb={<AdminBreadcrumbs items={adminBreadcrumbItems("Модули")} />}
+          title="Модули курса"
+          description="Сначала создайте курс в базе данных."
+        />
+        <EmptyState className="mt-6" title="Курс не найден" description="Добавьте курс в Prisma seed или админ-инструменты БД." />
       </AdminShell>
     );
   }
@@ -40,105 +50,112 @@ export default async function AdminModulesPage() {
 
   return (
     <AdminShell>
-      <PageHeader
-        title="Модули курса"
-        description={`Курс: ${course.title}. Порядок модулей задаёт цепочку доступа в личном кабинете (после завершения предыдущего активного модуля).`}
-        actions={
-          <Button asChild>
-            <Link href="/admin/modules/new">Новый модуль</Link>
-          </Button>
-        }
-      />
+      <div className="space-y-6">
+        <AdminPageHeader
+          breadcrumb={<AdminBreadcrumbs items={adminBreadcrumbItems("Модули")} />}
+          title="Модули курса"
+          description={`Курс: ${course.title}. Порядок модулей задаёт цепочку доступа в личном кабинете.`}
+          actions={
+            <Button asChild variant="primary">
+              <Link href="/admin/modules/new">Новый модуль</Link>
+            </Button>
+          }
+        />
 
-      <div className="mt-8 overflow-hidden rounded-2xl border border-border bg-card shadow-card">
-        {modules.length === 0 ? (
-          <p className="p-6 text-center text-sm text-muted-foreground">Модулей пока нет — создайте первый.</p>
-        ) : (
-          <AdminDualTable
-            mobile={
-              <div className="divide-y divide-border">
-                {modules.map((m, idx) => (
-                  <div key={m.id} className="space-y-3 p-4">
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="text-xs tabular-nums text-muted-foreground">№ {m.orderNumber}</p>
-                        <Link href={`/admin/modules/${m.id}/edit`} className="font-medium text-foreground hover:underline">
-                          {m.title}
-                        </Link>
-                      </div>
-                      <span className={m.isActive ? "text-sm text-success" : "text-sm text-muted-foreground"}>
-                        {m.isActive ? "Активен" : "Выключен"}
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">Записей прогресса: {m._count.progress}</p>
-                    <AdminModuleMoveButtons moduleId={m.id} canUp={idx > 0} canDown={idx < modules.length - 1} />
-                    <div className="flex flex-col gap-2 sm:flex-row">
-                      <form action={toggleModuleActiveAction.bind(null, m.id)} className="flex-1">
-                        <Button type="submit" variant="outline" size="sm" className="w-full">
-                          {m.isActive ? "Отключить" : "Включить"}
-                        </Button>
-                      </form>
-                      <Button variant="secondary" size="sm" asChild className="flex-1">
-                        <Link href={`/admin/modules/${m.id}/edit`}>Изменить</Link>
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            }
-            desktop={
-              <table className="w-full min-w-[640px] text-left text-sm">
-                <thead className="border-b border-border bg-muted/50 text-xs uppercase text-muted-foreground">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">№</th>
-                    <th className="px-4 py-3 font-medium">Название</th>
-                    <th className="px-4 py-3 font-medium">Статус</th>
-                    <th className="px-4 py-3 font-medium">Прогресс</th>
-                    <th className="px-4 py-3 font-medium">Порядок</th>
-                    <th className="px-4 py-3 text-right font-medium">Действия</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
+        <AdminTableCard
+          title="Все модули"
+          description={modules.length === 0 ? "Создайте первый модуль" : `${modules.length} в курсе`}
+        >
+          {modules.length === 0 ? (
+            <EmptyState
+              className="m-6"
+              title="Модулей пока нет"
+              description="Создайте первый модуль — к нему можно привязать лекцию, тест и практику."
+              action={
+                <Button asChild variant="primary">
+                  <Link href="/admin/modules/new">Создать модуль</Link>
+                </Button>
+              }
+            />
+          ) : (
+            <AdminDualTable
+              mobile={
+                <div className="space-y-4 p-4 sm:p-5">
                   {modules.map((m, idx) => (
-                    <tr key={m.id} className="hover:bg-muted/30">
-                      <td className="px-4 py-3 tabular-nums text-muted-foreground">{m.orderNumber}</td>
-                      <td className="px-4 py-3 font-medium text-foreground">
-                        <Link href={`/admin/modules/${m.id}/edit`} className="hover:underline">
-                          {m.title}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={m.isActive ? "text-success" : "text-muted-foreground"}>
-                          {m.isActive ? "Активен" : "Выключен"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 tabular-nums text-muted-foreground">{m._count.progress}</td>
-                      <td className="px-4 py-3">
-                        <AdminModuleMoveButtons
-                          moduleId={m.id}
-                          canUp={idx > 0}
-                          canDown={idx < modules.length - 1}
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex flex-wrap items-center justify-end gap-2">
-                          <form action={toggleModuleActiveAction.bind(null, m.id)}>
-                            <Button type="submit" variant="outline" size="sm">
-                              {m.isActive ? "Отключить" : "Включить"}
-                            </Button>
-                          </form>
-                          <Button variant="secondary" size="sm" asChild>
-                            <Link href={`/admin/modules/${m.id}/edit`}>Изменить</Link>
-                          </Button>
+                    <div key={m.id} className="ce-admin-mobile-card space-y-3 rounded-2xl border border-border/60 bg-card/80 p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-xs tabular-nums text-muted-foreground">№ {m.orderNumber}</p>
+                          <Link href={`/admin/modules/${m.id}/edit`} className="font-medium text-foreground hover:underline">
+                            {m.title}
+                          </Link>
                         </div>
-                      </td>
-                    </tr>
+                        <Badge variant={m.isActive ? "success" : "outline"}>{m.isActive ? "Активен" : "Выключен"}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">Записей прогресса: {m._count.progress}</p>
+                      <AdminModuleMoveButtons moduleId={m.id} canUp={idx > 0} canDown={idx < modules.length - 1} />
+                      <div className="flex flex-col gap-2 sm:flex-row">
+                        <form action={toggleModuleActiveAction.bind(null, m.id)} className="flex-1">
+                          <Button type="submit" variant="outline" size="sm" className="w-full">
+                            {m.isActive ? "Отключить" : "Включить"}
+                          </Button>
+                        </form>
+                        <Button variant="secondary" size="sm" asChild className="flex-1">
+                          <Link href={`/admin/modules/${m.id}/edit`}>Изменить</Link>
+                        </Button>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            }
-          />
-        )}
+                </div>
+              }
+              desktop={
+                <AdminTable minWidth="720px">
+                  <AdminTableHead>
+                    <tr>
+                      <th>№</th>
+                      <th>Название</th>
+                      <th>Статус</th>
+                      <th>Прогресс</th>
+                      <th>Порядок</th>
+                      <th className="text-right">Действия</th>
+                    </tr>
+                  </AdminTableHead>
+                  <AdminTableBody>
+                    {modules.map((m, idx) => (
+                      <tr key={m.id}>
+                        <td className="tabular-nums text-muted-foreground">{m.orderNumber}</td>
+                        <td className="font-medium">
+                          <Link href={`/admin/modules/${m.id}/edit`} className="hover:text-primary hover:underline">
+                            {m.title}
+                          </Link>
+                        </td>
+                        <td>
+                          <Badge variant={m.isActive ? "success" : "outline"}>{m.isActive ? "Активен" : "Выключен"}</Badge>
+                        </td>
+                        <td className="tabular-nums text-muted-foreground">{m._count.progress}</td>
+                        <td>
+                          <AdminModuleMoveButtons moduleId={m.id} canUp={idx > 0} canDown={idx < modules.length - 1} />
+                        </td>
+                        <td>
+                          <div className="flex flex-wrap items-center justify-end gap-2">
+                            <form action={toggleModuleActiveAction.bind(null, m.id)}>
+                              <Button type="submit" variant="outline" size="sm">
+                                {m.isActive ? "Отключить" : "Включить"}
+                              </Button>
+                            </form>
+                            <Button variant="secondary" size="sm" asChild>
+                              <Link href={`/admin/modules/${m.id}/edit`}>Изменить</Link>
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </AdminTableBody>
+                </AdminTable>
+              }
+            />
+          )}
+        </AdminTableCard>
       </div>
     </AdminShell>
   );

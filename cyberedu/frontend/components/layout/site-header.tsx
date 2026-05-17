@@ -25,7 +25,11 @@ export async function SiteHeader() {
         <div className="flex shrink-0 items-center gap-2">
           {variant === "admin" ? (
             <Button asChild variant="primary" size="sm" className="shrink-0 shadow-sm">
-              <a href="/api/admin/users/export" title="Список пользователей в CSV (Excel, UTF-8)">
+              <a
+                href="/api/admin/users/export"
+                title="Список пользователей в CSV (Excel, UTF-8)"
+                aria-label="Выгрузить список пользователей в CSV"
+              >
                 <span className="sm:hidden">CSV</span>
                 <span className="hidden sm:inline">Выгрузка CSV</span>
               </a>

@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { ScrollReveal } from "@/components/effects/scroll-reveal";
 import { LandingAiFeatures } from "@/components/home/landing-ai-features";
-import { LandingCourseInside } from "@/components/home/landing-course-inside";
+import { LandingAudience } from "@/components/home/landing-audience";
+import { LandingCertificates } from "@/components/home/landing-certificates";
 import { LandingCta } from "@/components/home/landing-cta";
+import { LandingFaq } from "@/components/home/landing-faq";
 import { LandingHero } from "@/components/home/landing-hero";
 import { LandingHowItWorks } from "@/components/home/landing-how-it-works";
 import { LandingPracticeShowcase } from "@/components/home/landing-practice-showcase";
-import { LandingProblem } from "@/components/home/landing-problem";
-import { LandingReviews } from "@/components/home/landing-reviews";
-import { LandingStats } from "@/components/home/landing-stats";
+import { LandingWhy } from "@/components/home/landing-why";
 import { MarketingShell } from "@/components/layout/marketing-shell";
 import { buildPublicMetadata } from "@/lib/seo/build-page-metadata";
 import { JsonLd, homePageJsonLd } from "@/components/seo/json-ld";
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   ...buildPublicMetadata({
     title: "CyberEdu — курс по информационной безопасности",
     description:
-      "Интерактивный курс по ИБ: лекции, практика, AI-наставник и сертификат.",
+      "Интерактивный курс по ИБ: лекции, практика, AI-наставник и сертификат с проверкой подлинности.",
     path: "/",
   }),
   title: {
@@ -36,26 +36,28 @@ export default function HomePage() {
       <JsonLd data={homePageJsonLd(appUrl)} />
       <div className="flex flex-col gap-16 md:gap-24">
         <LandingHero />
+        <ScrollReveal>
+          <LandingWhy />
+        </ScrollReveal>
         <ScrollReveal delay={0.05}>
-          <LandingProblem />
-        </ScrollReveal>
-        <ScrollReveal delay={0.08}>
-          <LandingCourseInside />
-        </ScrollReveal>
-        <ScrollReveal delay={0.06}>
           <LandingHowItWorks />
         </ScrollReveal>
-        <ScrollReveal delay={0.1}>
+        <ScrollReveal delay={0.06}>
           <LandingPracticeShowcase />
         </ScrollReveal>
-        <ScrollReveal delay={0.06}>
+        <ScrollReveal delay={0.05}>
           <LandingAiFeatures />
         </ScrollReveal>
-        <LandingStats />
-        <ScrollReveal delay={0.05}>
-          <LandingReviews />
+        <ScrollReveal delay={0.06}>
+          <LandingCertificates />
         </ScrollReveal>
-        <ScrollReveal delay={0.08}>
+        <ScrollReveal delay={0.05}>
+          <LandingAudience />
+        </ScrollReveal>
+        <ScrollReveal delay={0.04}>
+          <LandingFaq />
+        </ScrollReveal>
+        <ScrollReveal delay={0.06}>
           <LandingCta />
         </ScrollReveal>
       </div>

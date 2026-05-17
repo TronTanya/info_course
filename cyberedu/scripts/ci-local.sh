@@ -19,21 +19,47 @@ step() {
 
 step "Compose config (dev + prod)"
 (
-  cd "$ROOT"
-  docker compose -f docker-compose.yml config --quiet
-  cp -n .env.production.example .env.production 2>/dev/null || true
-  docker compose -f docker-compose.prod.yml --env-file .env.production.example config --quiet
+  cd "$ROOT/.."
+  docker compose -f cyberedu/docker-compose.yml config --quiet
+  docker compose \
+    -f cyberedu/docker-compose.prod.yml \
+    --env-file cyberedu/.env.production.example \
+    config --quiet
 )
 green "compose OK"
 
-step "Frontend: lint, typecheck, unit tests"
+step "Frontend: rate limit production guard"
+bash "$ROOT/scripts/check-rate-limit-production.sh"
+green "rate-limit guard OK"
+
+step "Frontend: prisma validate, lint, typecheck, unit tests, audit"
 (
   cd "$ROOT/frontend"
+  npm run db:validate
   npm run lint
   npm run typecheck
   npm run test
+  npm audit --audit-level=high
 )
 green "frontend OK"
+
+if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+  step "Rate limit: Redis integration (optional)"
+  if docker run --rm -d --name cyberedu-ci-redis -p 6379:6379 redis:7-alpine >/dev/null 2>&1; then
+    trap 'docker rm -f cyberedu-ci-redis >/dev/null 2>&1 || true' EXIT
+    sleep 2
+    (
+      cd "$ROOT/frontend"
+      REDIS_URL=redis://127.0.0.1:6379 ENVIRONMENT=production \
+        npx vitest run tests/rate-limit-redis.integration.test.ts
+    )
+    green "redis rate-limit OK"
+  else
+    red "SKIP: could not start redis container for integration tests"
+  fi
+else
+  red "SKIP: docker not available for Redis integration tests"
+fi
 
 step "Backend: pytest (Python 3.12)"
 "$ROOT/scripts/test-backend.sh" "$@"

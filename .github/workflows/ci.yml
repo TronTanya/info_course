@@ -1,4 +1,4 @@
-# Lint, typecheck, tests, Docker build smoke — на каждый PR и push в main.
+# Lint, typecheck, tests, Prisma, Compose, audits, E2E (incl. production + Redis).
 name: CI
 
 on:
@@ -16,9 +16,26 @@ env:
   SKIP_DB_LIFESPAN_CHECK: "1"
 
 jobs:
-  frontend-lint-typecheck-test:
-    name: Frontend (lint, typecheck, test)
+  workflow-validate:
+    name: Validate workflow YAML
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Parse CI workflow
+        run: |
+          python3 - <<'PY'
+          import yaml
+          from pathlib import Path
+          p = Path(".github/workflows/ci.yml")
+          yaml.safe_load(p.read_text())
+          print("CI YAML OK")
+          PY
+
+  frontend:
+    name: Frontend (lint, typecheck, test, audit)
+    runs-on: ubuntu-latest
+    needs: [workflow-validate]
     defaults:
       run:
         working-directory: cyberedu/frontend
@@ -31,8 +48,11 @@ jobs:
           cache: npm
           cache-dependency-path: cyberedu/frontend/package-lock.json
 
-      - name: Install dependencies
+      - name: npm ci
         run: npm ci
+
+      - name: Prisma validate
+        run: npx prisma validate
 
       - name: Prisma generate
         run: npx prisma generate
@@ -49,13 +69,72 @@ jobs:
           AUTH_SECRET: ci-auth-secret-minimum-32-characters-long-ok
           OPENAI_API_KEY: ""
 
-      - name: npm audit (high severity)
+      - name: Rate limit production guard
+        run: bash ../scripts/check-rate-limit-production.sh
+
+      # postcss <8.5.10 was a transitive dep of next — pinned via package.json overrides (GHSA-qx2v-qp2m-jg93).
+      - name: npm audit (high and critical)
         run: npm audit --audit-level=high
-        continue-on-error: true
+
+  compose-config:
+    name: Docker Compose config
+    runs-on: ubuntu-latest
+    needs: [workflow-validate]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dev compose config
+        run: docker compose -f cyberedu/docker-compose.yml config --quiet
+
+      - name: Production compose config
+        run: |
+          docker compose \
+            -f cyberedu/docker-compose.prod.yml \
+            --env-file cyberedu/.env.production.example \
+            config --quiet
+
+  rate-limit-redis:
+    name: Rate limit (Redis integration)
+    runs-on: ubuntu-latest
+    needs: [frontend]
+    defaults:
+      run:
+        working-directory: cyberedu/frontend
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      REDIS_URL: redis://127.0.0.1:6379
+      ENVIRONMENT: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: cyberedu/frontend/package-lock.json
+
+      - name: npm ci
+        run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Redis rate limit integration tests
+        run: npx vitest run tests/rate-limit-redis.integration.test.ts
 
   backend-test:
     name: Backend (pytest)
     runs-on: ubuntu-latest
+    needs: [workflow-validate]
     defaults:
       run:
         working-directory: cyberedu/backend
@@ -79,29 +158,17 @@ jobs:
           SKIP_DB_LIFESPAN_CHECK: ${{ env.SKIP_DB_LIFESPAN_CHECK }}
           ENVIRONMENT: development
 
-  compose-config:
-    name: Validate Compose configs
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+      - name: Install pip-audit
+        run: pip install pip-audit
 
-      - name: Dev compose config
-        working-directory: cyberedu
-        run: docker compose -f docker-compose.yml config --quiet
-
-      - name: Production compose config
-        working-directory: cyberedu
-        run: |
-          cp .env.production.example .env.production
-          docker compose \
-            -f docker-compose.prod.yml \
-            --env-file .env.production \
-            config --quiet
+      - name: pip-audit (dependencies)
+        run: pip-audit -r requirements.txt
+        continue-on-error: true
 
   e2e-smoke:
     name: Playwright smoke
     runs-on: ubuntu-latest
-    needs: [frontend-lint-typecheck-test]
+    needs: [frontend, compose-config]
     defaults:
       run:
         working-directory: cyberedu/frontend
@@ -141,7 +208,7 @@ jobs:
           cache: npm
           cache-dependency-path: cyberedu/frontend/package-lock.json
 
-      - name: Install dependencies
+      - name: npm ci
         run: npm ci
 
       - name: Prisma generate
@@ -181,10 +248,102 @@ jobs:
             cyberedu/frontend/e2e-results
           retention-days: 7
 
+  e2e-prod-smoke:
+    name: Playwright prod smoke (Redis)
+    runs-on: ubuntu-latest
+    needs: [frontend, compose-config]
+    defaults:
+      run:
+        working-directory: cyberedu/frontend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: cyberedu
+          POSTGRES_PASSWORD: cyberedu_ci_e2e_prod
+          POSTGRES_DB: cyberedu
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cyberedu -d cyberedu"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      ENVIRONMENT: production
+      E2E_PRODUCTION_SMOKE: "1"
+      DATABASE_URL: postgresql://cyberedu:cyberedu_ci_e2e_prod@127.0.0.1:5432/cyberedu?schema=public
+      REDIS_URL: redis://127.0.0.1:6379
+      AUTH_SECRET: ci-e2e-prod-auth-secret-minimum-32-characters
+      AUTH_URL: http://127.0.0.1:3100
+      NEXTAUTH_URL: http://127.0.0.1:3100
+      NEXTAUTH_SECRET: ci-e2e-prod-auth-secret-minimum-32-characters
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3100
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:18000
+      PLAYWRIGHT_BASE_URL: http://127.0.0.1:3100
+      OPENAI_API_KEY: ""
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: cyberedu/frontend/package-lock.json
+
+      - name: npm ci
+        run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Migrate and seed (isolated CI DB)
+        run: |
+          npx prisma migrate deploy
+          npm run db:seed
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Build Next.js (production)
+        run: npm run build
+
+      - name: Run production-like smoke
+        run: |
+          npm run start &
+          for i in $(seq 1 90); do
+            if curl -sf http://127.0.0.1:3100/api/health | grep -q '"redis":"ok"'; then
+              echo "App ready (production + Redis)"
+              break
+            fi
+            sleep 2
+          done
+          curl -sf http://127.0.0.1:3100/api/health
+          npm run test:e2e:prod
+
+      - name: Upload Playwright prod report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-prod
+          path: |
+            cyberedu/frontend/playwright-report-prod
+            cyberedu/frontend/e2e-results-prod
+          retention-days: 7
+
   docker-build:
     name: Docker build (smoke)
     runs-on: ubuntu-latest
-    needs: [frontend-lint-typecheck-test, backend-test, e2e-smoke]
+    needs: [frontend, compose-config, backend-test, rate-limit-redis, e2e-smoke, e2e-prod-smoke]
     steps:
       - uses: actions/checkout@v4
 

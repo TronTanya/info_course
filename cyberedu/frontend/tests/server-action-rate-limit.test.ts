@@ -78,4 +78,14 @@ describe("enforceServerActionRateLimit", () => {
     expect(text).toEqual({ allowed: true });
     expect(structured).toEqual({ allowed: true });
   });
+
+  it("does not return unavailable when Redis is up and under limit (no false deny)", async () => {
+    const results = await Promise.all([
+      enforceServerActionRateLimit("testSubmit", "user-no-false-deny"),
+      enforceServerActionRateLimit("practiceText", "user-no-false-deny"),
+    ]);
+    for (const r of results) {
+      expect(r.allowed).toBe(true);
+    }
+  });
 });

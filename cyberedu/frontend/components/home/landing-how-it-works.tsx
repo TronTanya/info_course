@@ -1,47 +1,82 @@
-import { Award, ClipboardList, GraduationCap, PenLine, TestTube2, UserPlus } from "lucide-react";
-import { SectionHeader } from "@/components/ui/section-header";
+import { Award, ClipboardList, FlaskConical, GraduationCap, UserPlus } from "lucide-react";
+import { LandingSection } from "@/components/home/landing-section";
+import { cn } from "@/lib/utils";
 
 const steps = [
-  { n: 1, title: "Зарегистрируйтесь", description: "Создайте аккаунт и подтвердите email — доступ к первому модулю откроется сразу.", icon: UserPlus },
-  { n: 2, title: "Заполните интересы", description: "В профиле укажите сферу и увлечения — AI подстроит примеры под вас.", icon: PenLine },
-  { n: 3, title: "Изучайте модули", description: "Лекции и материалы открываются по мере прогресса, шаг за шагом.", icon: GraduationCap },
-  { n: 4, title: "Проходите тесты", description: "Закрепляйте блоки короткими проверками с обратной связью.", icon: ClipboardList },
-  { n: 5, title: "Выполняйте практику", description: "Лаборатории с ручной или автоматической проверкой — как в реальной работе.", icon: TestTube2 },
-  { n: 6, title: "Получите сертификат", description: "После завершения траектории — документ с номером и проверкой подлинности.", icon: Award },
-];
+  {
+    n: 1,
+    title: "Регистрация",
+    description: "Создайте аккаунт — первый модуль откроется сразу. Укажите интересы для персонализации примеров.",
+    icon: UserPlus,
+  },
+  {
+    n: 2,
+    title: "Уроки",
+    description: "Лекции и материалы по модулям: теория человеческим языком, без перегруза терминами.",
+    icon: GraduationCap,
+  },
+  {
+    n: 3,
+    title: "Тесты",
+    description: "Короткие проверки после блоков — закрепляете знания и видите результат сразу.",
+    icon: ClipboardList,
+  },
+  {
+    n: 4,
+    title: "Практика",
+    description: "Лаборатории с реальными кейсами: часть проверяется автоматически, часть — преподавателем.",
+    icon: FlaskConical,
+  },
+  {
+    n: 5,
+    title: "Сертификат",
+    description: "После всех модулей — PDF с номером, QR и публичной проверкой подлинности.",
+    icon: Award,
+  },
+] as const;
+
+const staggerClass = ["ce-stagger-1", "ce-stagger-2", "ce-stagger-3", "ce-stagger-4", "ce-stagger-5"] as const;
 
 export function LandingHowItWorks() {
   return (
-    <section className="space-y-10" aria-labelledby="journey-heading">
-      <SectionHeader
-        className="mx-auto max-w-3xl flex-col items-center text-center"
-        eyebrow="Процесс"
-        title="Как проходит обучение"
-        description="Понятный маршрут от регистрации до сертификата — без хаоса в материалах и сроках."
-      />
-      <h2 id="journey-heading" className="sr-only">
-        Как проходит обучение
-      </h2>
-
-      <ol className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {steps.map((s) => (
-          <li
-            key={s.n}
-            className="ce-glass relative flex gap-4 rounded-2xl p-5 transition-[border-color,box-shadow] duration-200 hover:border-primary/25 hover:shadow-[var(--shadow-card-hover)]"
-          >
-            <div className="flex size-12 shrink-0 flex-col items-center justify-center rounded-xl border border-primary/25 bg-linear-to-br from-primary/12 to-accent/10 font-mono text-sm font-bold text-primary shadow-sm">
-              {s.n}
-            </div>
-            <div className="min-w-0 pt-0.5">
-              <div className="mb-2 flex items-center gap-2">
-                <s.icon className="size-4 text-cyan" strokeWidth={1.75} aria-hidden />
-                <h3 className="font-semibold text-foreground">{s.title}</h3>
-              </div>
-              <p className="text-sm leading-relaxed text-muted-foreground">{s.description}</p>
-            </div>
-          </li>
-        ))}
-      </ol>
-    </section>
+    <LandingSection
+      id="program"
+      eyebrow="Как проходит обучение"
+      title="Понятный путь от старта до диплома"
+      description="Пять шагов — без хаоса в сроках и материалах. Каждый следующий модуль открывается после предыдущего."
+    >
+      <div className="relative mx-auto max-w-5xl">
+        <div
+          className="pointer-events-none absolute left-[8%] right-[8%] top-8 hidden h-px bg-linear-to-r from-transparent via-primary/40 to-transparent lg:block"
+          aria-hidden
+        />
+        <ol className="grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-5 lg:gap-3">
+          {steps.map((s, index) => {
+            const Icon = s.icon;
+            return (
+              <li
+                key={s.n}
+                className={cn(
+                  "ce-animate-in ce-glass ce-card-glow flex h-full flex-col gap-3 rounded-2xl p-5",
+                  "transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-[var(--shadow-card-hover)] motion-reduce:hover:translate-y-0",
+                  staggerClass[index],
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-primary/30 bg-linear-to-br from-primary/15 to-accent/10 font-mono text-sm font-bold text-primary shadow-sm">
+                    {s.n}
+                  </span>
+                  <Icon className="size-5 text-primary" strokeWidth={1.75} aria-hidden />
+                </div>
+                <div>
+                  <h3 className="font-display font-semibold text-foreground">{s.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.description}</p>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+    </LandingSection>
   );
 }

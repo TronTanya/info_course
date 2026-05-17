@@ -25,6 +25,10 @@ jobs:
           echo "$body"
           echo "$body" | grep -q '"status":"ok"'
           echo "$body" | grep -q '"database":"ok"'
+          echo "$body" | grep -q '"redis":"error"' && {
+            echo "FAIL: redis unreachable in production (rate limit fail-closed)"
+            exit 1
+          } || true
 
       - name: Public pages
         env:

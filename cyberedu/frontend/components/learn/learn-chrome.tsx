@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import type { ReactNode } from "react";
 import { ScrollReveal } from "@/components/effects/scroll-reveal";
+import { Breadcrumbs, type BreadcrumbItem } from "@/components/ui/breadcrumbs";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { motionPresets } from "@/lib/design-system/motion";
 import { cn } from "@/lib/utils";
@@ -68,6 +69,7 @@ export function LearnPanel({
 export function LearnPageHeader({
   backHref,
   backLabel = "← Назад",
+  breadcrumbItems,
   eyebrow,
   title,
   subtitle,
@@ -77,6 +79,7 @@ export function LearnPageHeader({
 }: {
   backHref: string;
   backLabel?: string;
+  breadcrumbItems?: BreadcrumbItem[];
   eyebrow: string;
   title: string;
   subtitle?: string;
@@ -103,7 +106,8 @@ export function LearnPageHeader({
         >
           {backLabel}
         </Link>
-        <div className="min-w-0 space-y-1">
+        <div className="min-w-0 space-y-2">
+          {breadcrumbItems?.length ? <Breadcrumbs items={breadcrumbItems} /> : null}
           <p className="typo-eyebrow text-primary">{eyebrow}</p>
           <h1 className="typo-h2 text-balance sm:text-2xl">{title}</h1>
           {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}

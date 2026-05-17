@@ -54,7 +54,7 @@
 ## 6. SEO (публичная часть)
 
 - [ ] `metadata` title/description на `/`, `/reviews`, auth pages
-- [ ] `robots.txt` и `sitemap.xml` (если нужна индексация) — *сейчас отсутствуют*
+- [ ] `robots.txt` и `sitemap.xml` — `app/robots.ts`, `app/sitemap.ts` (проверить disallow/noindex для dashboard/admin)
 - [ ] Favicon и brand assets отдаются с кэшем
 - [ ] Страницы `/dashboard/*`, `/admin/*` не индексируются (`noindex` — рекомендуется)
 

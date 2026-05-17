@@ -5,6 +5,7 @@ import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { prisma } from "@/lib/db";
 import { getLessonAiSnapshots, getLessonForModulePage } from "@/lib/lesson-ai-service";
 import { assertModuleAccess } from "@/lib/course-progress-guards";
+import { buildLearningPageContext } from "@/lib/learning-context";
 import { getModuleProgress, recalculateModuleProgress } from "@/lib/progress";
 import { requireAuth } from "@/lib/permissions";
 
@@ -67,7 +68,7 @@ export default async function LessonPage({ params }: Props) {
     getModuleProgress(session.user.id, moduleId),
     prisma.module.findUnique({
       where: { id: moduleId },
-      select: { title: true },
+      select: { title: true, orderNumber: true },
     }),
     getLessonAiSnapshots(session.user.id, lesson.id),
   ]);
@@ -75,14 +76,23 @@ export default async function LessonPage({ params }: Props) {
   if (!mp) notFound();
 
   const moduleSteps = moduleStepsLabel(mp.requirements, mp.progress);
+  const learning = await buildLearningPageContext(
+    session.user.id,
+    moduleId,
+    `/dashboard/course/${moduleId}/lesson`,
+    mp.requirements,
+    mp.progress,
+  );
 
   return (
-    <DashboardShell>
+    <DashboardShell wide>
       <LessonPageClient
         moduleId={moduleId}
+        moduleOrderNumber={mod?.orderNumber ?? 0}
         moduleTitle={mod?.title ?? "Модуль"}
         moduleProgressPercent={mp.progressPercent}
         moduleStepsLabel={moduleSteps}
+        learning={learning}
         lesson={{
           id: lesson.id,
           title: lesson.title,

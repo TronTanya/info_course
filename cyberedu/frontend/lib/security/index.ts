@@ -17,7 +17,6 @@ export {
   escapeIlikePattern,
 } from "@/lib/security/sanitize";
 export {
-  consumeRateLimit,
   consumeRateLimitAsync,
   type RateLimitDenyReason,
   consumeCompositeRateLimit,

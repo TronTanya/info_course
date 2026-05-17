@@ -9,6 +9,7 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { SectionCard } from "@/components/ui/section-card";
 import { getCertificateDashboardState } from "@/lib/certificate";
 import { requireAuth } from "@/lib/permissions";
+import { dashboardSectionBreadcrumbs } from "@/lib/student-nav";
 
 export const metadata: Metadata = {
   title: "Сертификат",
@@ -24,6 +25,7 @@ export default async function CertificatePage() {
         <LearnPageHeader
           backHref="/dashboard"
           backLabel="← Кабинет"
+          breadcrumbItems={dashboardSectionBreadcrumbs("Сертификат")}
           eyebrow="Реестр"
           title="Сертификат"
           subtitle="Электронный сертификат с QR-кодом и кодом проверки выдаётся после полного прохождения курса."

@@ -88,9 +88,16 @@ test.describe("CyberEdu smoke", () => {
   test("10. api health", async ({ request }) => {
     const res = await request.get("/api/health");
     expect(res.ok()).toBeTruthy();
-    const body = (await res.json()) as { status: string; checks?: { database: string } };
+    const body = (await res.json()) as {
+      status: string;
+      checks?: { database: string; redis?: string };
+    };
     expect(body.status).toBe("ok");
     expect(body.checks?.database).toBe("ok");
+    // E2E runs with ENVIRONMENT=test — Redis check skipped; prod/staging must report redis ok
+    if (body.checks?.redis !== undefined) {
+      expect(["ok", "skipped"]).toContain(body.checks.redis);
+    }
   });
 
   test("12. public reviews page", async ({ page }) => {

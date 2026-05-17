@@ -1,55 +1,62 @@
-import { Card, CardContent } from "@/components/ui/card";
+"use client";
+
+import { Brain, MessageCircle, ShieldAlert } from "lucide-react";
+import { StaggerItem, StaggerReveal } from "@/components/effects/scroll-reveal";
+import { LandingFeatureCard } from "@/components/home/landing-feature-card";
+import { Alert } from "@/components/ui/alert";
 
 const features = [
   {
-    title: "Объяснить проще",
-    body: "Сложный абзац превращается в короткую версию с аналогиями — когда терминология мешает сфокусироваться.",
+    icon: MessageCircle,
+    title: "Объясняет проще",
+    body: "Сложный абзац — в короткую версию с аналогиями, когда термины мешают сфокусироваться.",
   },
   {
-    title: "Объяснить через мои интересы",
-    body: "Примеры подстраиваются под ваш профиль: медицина, бизнес, геймдев — чтобы связь с темой была наглядной.",
+    icon: Brain,
+    title: "Примеры под вас",
+    body: "С учётом интересов из профиля: медицина, бизнес, разработка — связь с темой нагляднее.",
   },
   {
-    title: "Наставник вместо готовых ответов",
-    body: "Вопросы и подсказки в духе сократического диалога: вы думаете, AI направляет — без «списать решение в один клик».",
+    icon: ShieldAlert,
+    title: "Не решает за вас",
+    body: "На практике и тестах — только подсказки и вопросы. Самостоятельное решение остаётся вашей работой.",
   },
-];
+] as const;
 
 export function LandingAiFeatures() {
   return (
     <section
-      className="relative overflow-hidden rounded-3xl border border-border/80 bg-linear-to-br from-card via-muted/20 to-cyan/[0.04] px-6 py-14 shadow-card sm:px-10 sm:py-16"
+      id="ai"
+      className="scroll-mt-24 hero-glow relative overflow-hidden rounded-3xl border border-primary/20 p-6 sm:p-10"
       aria-labelledby="ai-heading"
     >
-      <div className="pointer-events-none absolute -right-24 top-0 h-64 w-64 rounded-full bg-cyan/10 blur-3xl" aria-hidden />
-      <div className="pointer-events-none absolute -bottom-20 -left-16 h-56 w-56 rounded-full bg-primary/8 blur-3xl" aria-hidden />
+      <div className="pointer-events-none absolute -right-20 top-0 h-56 w-56 rounded-full bg-accent/12 blur-3xl" aria-hidden />
+      <div className="pointer-events-none absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl" aria-hidden />
 
       <div className="relative mx-auto max-w-3xl text-center">
-        <p className="text-xs font-semibold uppercase tracking-widest text-cyan">Искусственный интеллект</p>
-        <h2 id="ai-heading" className="mt-3 text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-          AI-функции в сервисе обучения, а не вместо него
+        <p className="typo-eyebrow text-primary">AI-наставник</p>
+        <h2 id="ai-heading" className="typo-h2 mt-2 text-balance">
+          Помогает учиться, а не подменяет обучение
         </h2>
-        <p className="mt-4 text-pretty text-base text-muted-foreground sm:text-lg">
-          Помощник встроен в лекции и практику: ускоряет понимание, но не подменяет вашу работу на заданиях.
+        <p className="typo-body-muted mx-auto mt-3 max-w-2xl text-pretty">
+          Встроен в лекции: ускоряет понимание, но не выдаёт готовые ответы на задания и не обходит проверки.
         </p>
       </div>
 
-      <div className="relative mt-10 grid gap-5 md:grid-cols-3">
-        {features.map((f) => (
-          <Card
-            key={f.title}
-            className="border-border/80 bg-card/90 shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-primary/20 hover:shadow-[var(--shadow-card-hover)]"
-          >
-            <CardContent className="space-y-3 p-6">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-linear-to-br from-primary/15 to-cyan/10 font-mono text-xs font-bold text-primary">
-                AI
-              </div>
-              <h3 className="text-lg font-semibold text-foreground">{f.title}</h3>
-              <p className="text-sm leading-relaxed text-muted-foreground">{f.body}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <StaggerReveal className="relative mt-10 grid gap-4 md:grid-cols-3">
+        {features.map((f) => {
+          const Icon = f.icon;
+          return (
+            <StaggerItem key={f.title}>
+              <LandingFeatureCard icon={<Icon className="size-5" strokeWidth={1.75} aria-hidden />} title={f.title} description={f.body} />
+            </StaggerItem>
+          );
+        })}
+      </StaggerReveal>
+
+      <Alert variant="info" className="relative mx-auto mt-8 max-w-2xl" title="Политика честного обучения">
+        AI не принимает практические работы и не подсказывает ключи к тестам. Это защищает ценность вашего сертификата.
+      </Alert>
     </section>
   );
 }

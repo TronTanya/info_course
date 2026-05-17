@@ -1,4 +1,7 @@
 import type { ReactNode } from "react";
+import { LearningCallout } from "@/components/learn/learning-callout";
+import { LearningChecklist, type ChecklistItem } from "@/components/learn/learning-checklist";
+import { LearningCodeBlock } from "@/components/learn/learning-code-block";
 import { cn } from "@/lib/utils";
 
 export type GlossaryEntry = { term: string; description: string };
@@ -19,7 +22,12 @@ type Segment =
   | { type: "outro"; title: string; body: string }
   | { type: "terms"; title: string; items: GlossaryEntry[] }
   | { type: "quote"; lines: string[] }
-  | { type: "ul"; items: string[] };
+  | { type: "ul"; items: string[] }
+  | { type: "code"; language: string; body: string }
+  | { type: "checklist"; items: ChecklistItem[] }
+  | { type: "info"; title: string; body: string }
+  | { type: "success"; title: string; body: string }
+  | { type: "danger"; title: string; body: string };
 
 const FENCE_NAMES = [
   "definition",
@@ -33,6 +41,9 @@ const FENCE_NAMES = [
   "remember",
   "terms",
   "outro",
+  "info",
+  "success",
+  "danger",
 ] as const;
 
 type FenceName = (typeof FENCE_NAMES)[number];
@@ -92,6 +103,12 @@ function fenceToSegment(kind: FenceName, title: string, body: string): Segment |
       const parsed = parseTermsBody(first, "Термины");
       return { type: "terms", title: parsed.title, items: parsed.items };
     }
+    case "info":
+      return { type: "info", title: title || "Информация", body: body || title };
+    case "success":
+      return { type: "success", title: title || "Важно", body: body || title };
+    case "danger":
+      return { type: "danger", title: title || "Осторожно", body: body || title };
     default:
       return null;
   }
@@ -139,6 +156,26 @@ function parsePlainBlocks(text: string, out: Segment[]) {
         type: "ul",
         items: nonEmpty.map((l) => l.replace(/^[-*]\s+/, "").trim()),
       });
+      continue;
+    }
+
+    if (nonEmpty.length > 0 && nonEmpty.every((l) => /^- \[[ xX]\]\s+/.test(l))) {
+      out.push({
+        type: "checklist",
+        items: nonEmpty.map((l) => {
+          const m = /^- \[([ xX])\]\s+(.+)$/.exec(l);
+          return { checked: m?.[1]?.toLowerCase() === "x", text: m?.[2]?.trim() ?? l };
+        }),
+      });
+      continue;
+    }
+
+    if (b.startsWith("```")) {
+      const lines = b.split("\n");
+      const lang = lines[0]?.slice(3).trim() ?? "";
+      const end = lines[lines.length - 1]?.trim() === "```" ? lines.length - 1 : lines.length;
+      const codeBody = lines.slice(1, end).join("\n");
+      out.push({ type: "code", language: lang, body: codeBody });
       continue;
     }
 
@@ -235,7 +272,7 @@ export function extractLessonGlossary(source: string): GlossaryEntry[] {
   return list;
 }
 
-const prose = "text-[17px] leading-[1.75] tracking-[-0.01em] text-foreground/95";
+const prose = "text-[17px] leading-[1.8] tracking-[-0.01em] text-foreground/95";
 
 function BlockShell({
   className,
@@ -270,7 +307,7 @@ export function LessonStructuredText({ source, className }: { source: string; cl
   const segments = parseLessonStructure(source);
 
   return (
-    <article className={cn("max-w-none space-y-5 text-pretty", prose, className)}>
+    <article className={cn("lesson-reading space-y-6 text-pretty", prose, className)}>
       {segments.map((seg, i) => {
         switch (seg.type) {
           case "h2":
@@ -353,16 +390,32 @@ export function LessonStructuredText({ source, className }: { source: string; cl
             );
           case "warning":
             return (
-              <BlockShell
-                key={i}
-                className="border border-amber-500/35 bg-amber-500/[0.08] ring-1 ring-inset ring-amber-500/20"
-                label="Ошибка новичка"
-                labelClass="text-amber-800 dark:text-amber-400"
-                title={seg.title}
-              >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90">{seg.body}</p>
-              </BlockShell>
+              <LearningCallout key={i} variant="warning" title={seg.title} label="Ошибка новичка">
+                <p className="whitespace-pre-wrap">{seg.body}</p>
+              </LearningCallout>
             );
+          case "info":
+            return (
+              <LearningCallout key={i} variant="info" title={seg.title}>
+                <p className="whitespace-pre-wrap">{seg.body}</p>
+              </LearningCallout>
+            );
+          case "success":
+            return (
+              <LearningCallout key={i} variant="success" title={seg.title}>
+                <p className="whitespace-pre-wrap">{seg.body}</p>
+              </LearningCallout>
+            );
+          case "danger":
+            return (
+              <LearningCallout key={i} variant="danger" title={seg.title}>
+                <p className="whitespace-pre-wrap">{seg.body}</p>
+              </LearningCallout>
+            );
+          case "code":
+            return <LearningCodeBlock key={i} language={seg.language || undefined} code={seg.body} />;
+          case "checklist":
+            return <LearningChecklist key={i} items={seg.items} />;
           case "how":
             return (
               <BlockShell

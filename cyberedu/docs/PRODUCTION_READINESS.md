@@ -35,9 +35,9 @@
 ## Высокий приоритет (P1)
 
 1. ~~Мигрировать Route Handlers на `withApiGuard`~~ — сделано.
-2. E2E smoke: login → course → **submit test** → **submit practice** (Playwright `e2e/smoke.spec.ts`).
+2. ~~E2E smoke: login → course → submit test → submit practice~~ — Playwright `e2e/smoke.spec.ts` + unit tests для `learning-nav` / `dashboard-ui` (2026-05-17).
 3. **Staging smoke (обязательно перед go-live):** на VPS/staging с `ENVIRONMENT=production` + `REDIS_URL` — пройти тест и TEXT-практику; убедиться, что нет ложного «Слишком много отправок».
-4. CI: job `npm audit` / `pip audit` (опционально fail on critical).
+4. ~~CI: job `npm audit` / `pip audit`~~ — `npm audit` critical fail; `pip-audit` в backend job (2026-05-17).
 5. Structured logging (JSON) + внешний uptime на `/api/health`.
 6. Backup runbook PostgreSQL (pg_dump cron, restore test).
 

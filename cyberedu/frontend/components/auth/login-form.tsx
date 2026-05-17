@@ -35,7 +35,7 @@ export function LoginForm() {
       });
       // Auth.js при redirect:false может положить `error` из query в `url`; надёжнее смотреть `ok` (HTTP + факт входа).
       if (!res || res.ok !== true) {
-        setError("Неверный email или пароль.");
+        setError("Не удалось войти. Проверьте email и пароль или зарегистрируйте новый аккаунт.");
         return;
       }
       const session = await getSession();
@@ -65,7 +65,7 @@ export function LoginForm() {
       ) : null}
       <form onSubmit={onSubmit} className="space-y-3" noValidate>
         {error ? <FormMessage>{error}</FormMessage> : null}
-        <Input autoComplete="email" label="Email" name="email" type="email" placeholder="you@example.com" required disabled={pending} />
+        <Input autoComplete="email" label="Email" name="email" type="email" placeholder="name@example.ru" required disabled={pending} />
         <Input autoComplete="current-password" label="Пароль" name="password" type="password" required disabled={pending} />
         <Button className="w-full" type="submit" loading={pending}>
           Войти

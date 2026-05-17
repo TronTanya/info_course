@@ -21,7 +21,12 @@ const SEED_DEFAULTS = {
   },
 } as const;
 
+function isProductionSmokeE2E(): boolean {
+  return process.env.E2E_PRODUCTION_SMOKE === "1";
+}
+
 function seedCredentialsAllowed(): boolean {
+  if (isProductionSmokeE2E()) return true;
   if (process.env.E2E_USE_SEED_CREDENTIALS === "1") return true;
   if (process.env.ENVIRONMENT === "test" || process.env.ENVIRONMENT === "e2e") return true;
   if (process.env.CI === "true") return true;
@@ -31,7 +36,10 @@ function seedCredentialsAllowed(): boolean {
 function assertSafeEnvironment(): void {
   const env = (process.env.ENVIRONMENT ?? "").trim().toLowerCase();
   if (env === "production" || env === "prod") {
-    throw new Error("E2E: запрещено в ENVIRONMENT=production");
+    if (isProductionSmokeE2E()) return;
+    throw new Error(
+      "E2E: запрещено в ENVIRONMENT=production. Для CI/staging smoke: E2E_PRODUCTION_SMOKE=1 + изолированная БД.",
+    );
   }
 }
 

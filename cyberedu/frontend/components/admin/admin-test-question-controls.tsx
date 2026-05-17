@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import { AdminConfirmDialog } from "@/components/admin/admin-confirm-dialog";
 import { moveQuestionAction, deleteQuestionAction } from "@/lib/actions/admin-tests";
 import { Button } from "@/components/ui/button";
 
@@ -62,24 +64,35 @@ export function AdminTestDeleteQuestionButton({
   questionId: string;
 }) {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
   return (
-    <Button
-      type="button"
-      variant="danger"
-      size="sm"
-      disabled={pending}
-      loading={pending}
-      onClick={() => {
-        if (!window.confirm("Удалить вопрос и все варианты ответов?")) return;
-        startTransition(async () => {
-          await deleteQuestionAction(questionId, testId);
-          router.refresh();
-        });
-      }}
-    >
-      Удалить вопрос
-    </Button>
+    <>
+      <Button
+        type="button"
+        variant="danger"
+        size="sm"
+        disabled={pending}
+        onClick={() => setOpen(true)}
+      >
+        Удалить вопрос
+      </Button>
+      <AdminConfirmDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Удалить вопрос?"
+        description="Будут удалены вопрос и все варианты ответов. Действие необратимо."
+        confirmLabel="Удалить"
+        loading={pending}
+        onConfirm={() => {
+          startTransition(async () => {
+            await deleteQuestionAction(questionId, testId);
+            setOpen(false);
+            router.refresh();
+          });
+        }}
+      />
+    </>
   );
 }

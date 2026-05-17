@@ -2,191 +2,102 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import type { LucideIcon } from "lucide-react";
-import { ArrowRight, Award, BookOpen, ClipboardList, Settings, User } from "lucide-react";
 import { DashboardAchievementsPreview } from "@/components/dashboard/dashboard-achievements-preview";
+import { DashboardCertificateProgress } from "@/components/dashboard/dashboard-certificate-progress";
+import { DashboardContinueLearning } from "@/components/dashboard/dashboard-continue-learning";
+import { DashboardEmpty } from "@/components/dashboard/dashboard-empty";
+import { DashboardProgressOverview } from "@/components/dashboard/dashboard-progress-overview";
+import { DashboardRecentActivity } from "@/components/dashboard/dashboard-recent-activity";
+import { DashboardRoadmap } from "@/components/dashboard/dashboard-roadmap";
+import { DashboardUpcomingTasks } from "@/components/dashboard/dashboard-upcoming-tasks";
+import { DashboardWelcome } from "@/components/dashboard/dashboard-welcome";
 import type { AchievementRow } from "@/lib/achievements";
-import type { ProfileCourseStats } from "@/lib/profile-course-stats";
+import {
+  buildRecentActivities,
+  buildUpcomingTasks,
+} from "@/lib/dashboard-ui";
 import { motionPresets } from "@/lib/design-system/motion";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ProgressRing } from "@/components/ui/progress-ring";
-import { SectionHeader } from "@/components/ui/section-header";
-import { MetricCard } from "@/components/ui/metric-card";
-import { PageHeader } from "@/components/ui/page-header";
-import { ProgressBar } from "@/components/ui/progress-bar";
-import { StatusBadge } from "@/components/ui/status-badge";
+import type { ProfileCourseStats } from "@/lib/profile-course-stats";
+import type { CourseProgressModuleRow } from "@/lib/progress";
 import { cn } from "@/lib/utils";
 
-type QuickLink = {
-  href: string;
-  title: string;
-  description: string;
-  icon: LucideIcon;
-  accent: string;
-};
-
-const QUICK_LINKS: QuickLink[] = [
-  {
-    href: "/dashboard/course",
-    title: "Курс",
-    description: "Модули, лекции, тесты и практика",
-    icon: BookOpen,
-    accent: "from-primary/15 to-cyan/5",
-  },
-  {
-    href: "/dashboard/profile",
-    title: "Профиль",
-    description: "ФИО, интересы для AI, аватар",
-    icon: User,
-    accent: "from-accent/12 to-card",
-  },
-  {
-    href: "/dashboard/my-assignments",
-    title: "Мои задания",
-    description: "Статусы практических работ",
-    icon: ClipboardList,
-    accent: "from-secondary/10 to-card",
-  },
-  {
-    href: "/dashboard/certificate",
-    title: "Сертификат",
-    description: "PDF после завершения курса",
-    icon: Award,
-    accent: "from-warning/10 to-card",
-  },
-  {
-    href: "/dashboard/settings",
-    title: "Настройки",
-    description: "Безопасность и уведомления",
-    icon: Settings,
-    accent: "from-muted/80 to-card",
-  },
-];
+const SECONDARY_LINKS = [
+  { href: "/dashboard/course", label: "Карта курса" },
+  { href: "/dashboard/profile", label: "Профиль" },
+  { href: "/dashboard/my-assignments", label: "Задания" },
+  { href: "/dashboard/certificate", label: "Сертификат" },
+  { href: "/dashboard/settings", label: "Настройки" },
+] as const;
 
 export function DashboardHome({
   stats,
   displayName,
   achievements,
+  modules,
 }: {
   stats: ProfileCourseStats | null;
   displayName: string;
   achievements: AchievementRow[];
+  modules: CourseProgressModuleRow[];
 }) {
-  const continueHref = stats?.currentModuleId
-    ? `/dashboard/course/${stats.currentModuleId}/lesson`
-    : "/dashboard/course";
+  if (!stats) {
+    return (
+      <motion.div className="space-y-8" {...motionPresets.fadeIn}>
+        <DashboardEmpty />
+      </motion.div>
+    );
+  }
+
+  const recent = buildRecentActivities(stats);
+  const upcoming = buildUpcomingTasks(modules);
+  const achievementsUnlocked = achievements.filter((a) => a.unlocked).length;
 
   return (
-    <motion.div className="space-y-8" {...motionPresets.fadeIn}>
-      <PageHeader
-        eyebrow="Личный кабинет"
-        title={`Здравствуйте, ${displayName}`}
-        description="Продолжайте курс, отслеживайте прогресс и используйте AI-наставника в контексте урока."
+    <motion.div
+      className="space-y-10 overflow-x-hidden pb-4"
+      {...motionPresets.fadeIn}
+    >
+      <DashboardWelcome displayName={displayName} stats={stats} modules={modules} />
+
+      <DashboardContinueLearning stats={stats} modules={modules} />
+
+      <DashboardProgressOverview
+        stats={stats}
+        modules={modules}
+        achievementsUnlocked={achievementsUnlocked}
+        achievementsTotal={achievements.length}
       />
 
-      <section className="ce-dashboard-hero hero-glow ce-border-beam grid gap-6 lg:grid-cols-[1fr_auto]">
-        <motion.div className="space-y-4" {...motionPresets.slideUp}>
-          <div className="flex flex-wrap items-center gap-2">
-            <StatusBadge status="in_progress" label="Активное обучение" />
-            {stats?.allModulesComplete ? (
-              <StatusBadge status="completed" label="Курс завершён" />
-            ) : (
-              <StatusBadge
-                status="pending"
-                label={`${stats?.completedModules ?? 0} / ${stats?.totalModules ?? 0} модулей`}
-              />
-            )}
-          </div>
-          {stats ? (
-            <>
-              <ProgressBar
-                label="Прогресс курса"
-                value={stats.progressPercent}
-                max={100}
-                tone={stats.progressPercent >= 100 ? "success" : "default"}
-              />
-              <p className="typo-body-muted max-w-prose">
-                {stats.currentModuleTitle
-                  ? `Текущий модуль: ${stats.currentModuleTitle}`
-                  : "Откройте карту курса, чтобы выбрать модуль."}
-              </p>
-            </>
-          ) : (
-            <p className="typo-body-muted">Курс ещё не настроен — обратитесь к администратору.</p>
-          )}
-          <div className="flex flex-wrap gap-3">
-            <Button asChild variant="primary">
-              <Link href={continueHref}>
-                Продолжить обучение
-                <ArrowRight className="size-4" aria-hidden />
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href="/dashboard/course">Карта курса</Link>
-            </Button>
-          </div>
-        </motion.div>
-        {stats ? (
-          <ProgressRing value={stats.progressPercent} size={128} tone="default" label="Прогресс курса" />
-        ) : null}
-      </section>
+      {modules.length > 0 ? (
+        <DashboardRoadmap modules={modules} currentModuleId={stats.currentModuleId} />
+      ) : null}
+
+      <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
+        <DashboardRecentActivity items={recent} />
+        <DashboardUpcomingTasks tasks={upcoming} />
+      </div>
+
+      <DashboardCertificateProgress stats={stats} />
 
       {achievements.length > 0 ? <DashboardAchievementsPreview rows={achievements} /> : null}
 
-      {stats ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <MetricCard label="Баллы" value={stats.totalPoints} hint={`из ${stats.maxPossiblePoints} возможных`} />
-          <MetricCard label="Успешность" value={`${stats.scoreSuccessPercent}%`} hint="Авто-оценка" />
-          <MetricCard label="Модули" value={`${stats.completedModules}/${stats.totalModules}`} hint="Завершено" />
-          <MetricCard label="Достижения" value={`${achievements.filter((a) => a.unlocked).length}/${achievements.length}`} hint="Бейджи в профиле" />
-        </div>
-      ) : null}
-
-      <SectionHeader title="Быстрый доступ" description="Основные разделы личного кабинета" />
-
-      <div className="responsive-card-grid">
-        {QUICK_LINKS.map((item, i) => {
-          const Icon = item.icon;
-          return (
-            <motion.div
-              key={item.href}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * motionPresets.stagger, duration: 0.25 }}
-            >
-              <Card
-                interactive
-                className={cn(
-                  "group relative h-full overflow-hidden border-border/70",
-                  "motion-reduce:hover:translate-y-0",
-                )}
-              >
-                <div
-                  className={cn("pointer-events-none absolute inset-0 bg-linear-to-br opacity-70", item.accent)}
-                  aria-hidden
-                />
-                <CardHeader className="relative">
-                  <div className="mb-3 flex size-11 items-center justify-center rounded-xl bg-card/90 text-primary ring-1 ring-border">
-                    <Icon className="size-5" aria-hidden />
-                  </div>
-                  <CardTitle>{item.title}</CardTitle>
-                  <CardDescription>{item.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="relative">
-                  <Link
-                    className="inline-flex items-center gap-1 text-sm font-semibold text-primary underline-offset-4 hover:underline"
-                    href={item.href}
-                  >
-                    Открыть
-                    <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
-                  </Link>
-                </CardContent>
-              </Card>
-            </motion.div>
-          );
-        })}
-      </div>
+      <nav
+        className="ce-glass flex flex-wrap justify-center gap-x-4 gap-y-2 rounded-2xl border border-border/60 px-4 py-3 sm:justify-start"
+        aria-label="Разделы кабинета"
+      >
+        {SECONDARY_LINKS.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              "text-sm font-medium text-muted-foreground transition-colors hover:text-primary",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md px-1",
+            )}
+          >
+            {item.label}
+          </Link>
+        ))}
+      </nav>
     </motion.div>
   );
 }

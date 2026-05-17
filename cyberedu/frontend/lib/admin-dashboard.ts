@@ -13,6 +13,30 @@ export type AdminDashboardStats = {
   publishedReviewsCount: number;
 };
 
+export type AdminContentOverview = {
+  courseTitle: string | null;
+  modulesTotal: number;
+  modulesActive: number;
+  lessonsTotal: number;
+  testsTotal: number;
+  practicalTasksTotal: number;
+};
+
+export type AdminRecentActivityItem = {
+  id: string;
+  kind: "submission" | "user";
+  title: string;
+  subtitle: string;
+  at: string;
+  href: string;
+};
+
+export type AdminDashboardExtended = {
+  content: AdminContentOverview;
+  recent: AdminRecentActivityItem[];
+  systemOk: boolean;
+};
+
 /**
  * Число студентов USER, у которых по всем активным модулям курса progress.moduleCompleted = true.
  */
@@ -104,5 +128,95 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
     pendingWorkCount,
     certificatesIssuedTotal,
     publishedReviewsCount,
+  };
+}
+
+export async function getAdminDashboardExtended(): Promise<AdminDashboardExtended> {
+  const course = await prisma.course.findFirst({
+    orderBy: { createdAt: "asc" },
+    select: { id: true, title: true },
+  });
+
+  if (!course) {
+    return {
+      content: {
+        courseTitle: null,
+        modulesTotal: 0,
+        modulesActive: 0,
+        lessonsTotal: 0,
+        testsTotal: 0,
+        practicalTasksTotal: 0,
+      },
+      recent: [],
+      systemOk: false,
+    };
+  }
+
+  const [
+    modulesTotal,
+    modulesActive,
+    lessonsTotal,
+    testsTotal,
+    practicalTasksTotal,
+    recentSubmissions,
+    recentUsers,
+  ] = await Promise.all([
+    prisma.module.count({ where: { courseId: course.id } }),
+    prisma.module.count({ where: { courseId: course.id, isActive: true } }),
+    prisma.lesson.count({ where: { module: { courseId: course.id } } }),
+    prisma.test.count({ where: { module: { courseId: course.id } } }),
+    prisma.practicalTask.count({ where: { module: { courseId: course.id } } }),
+    prisma.submission.findMany({
+      where: { status: { not: "DRAFT" } },
+      orderBy: { updatedAt: "desc" },
+      take: 6,
+      select: {
+        id: true,
+        status: true,
+        updatedAt: true,
+        user: { select: { email: true } },
+        practicalTask: { select: { title: true } },
+      },
+    }),
+    prisma.user.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 4,
+      select: { id: true, email: true, role: true, createdAt: true },
+    }),
+  ]);
+
+  const submissionItems: AdminRecentActivityItem[] = recentSubmissions.map((s) => ({
+    id: `sub-${s.id}`,
+    kind: "submission",
+    title: s.practicalTask.title,
+    subtitle: `${s.user.email} · ${s.status}`,
+    at: s.updatedAt.toISOString(),
+    href: `/admin/submissions/${s.id}`,
+  }));
+
+  const userItems: AdminRecentActivityItem[] = recentUsers.map((u) => ({
+    id: `user-${u.id}`,
+    kind: "user",
+    title: u.email,
+    subtitle: u.role === "ADMIN" ? "Новый администратор" : "Новый студент",
+    at: u.createdAt.toISOString(),
+    href: `/admin/users/${u.id}`,
+  }));
+
+  const recent = [...submissionItems, ...userItems]
+    .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
+    .slice(0, 8);
+
+  return {
+    content: {
+      courseTitle: course.title,
+      modulesTotal,
+      modulesActive,
+      lessonsTotal,
+      testsTotal,
+      practicalTasksTotal,
+    },
+    recent,
+    systemOk: true,
   };
 }

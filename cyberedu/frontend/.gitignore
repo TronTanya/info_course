@@ -1,5 +1,7 @@
 # Playwright
 /e2e-results/
+/e2e-results-prod/
 /playwright-report/
+/playwright-report-prod/
 /blob-report/
 /playwright/.cache/

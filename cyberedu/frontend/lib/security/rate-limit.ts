@@ -4,7 +4,6 @@
 
 import {
   consumeRateLimitKey,
-  consumeRateLimitSyncDevOnly,
   enforceRateLimit,
   getMemoryRateLimitResetAt,
   type RateLimitResult,
@@ -16,11 +15,6 @@ export {
   rateLimitSubject,
   RATE_LIMIT_POLICIES,
 } from "@/lib/security/rate-limit-service";
-
-/** @deprecated Используйте `enforceRateLimit`. Sync path — только dev in-memory. */
-export function consumeRateLimit(key: string, max: number, windowMs: number): boolean {
-  return consumeRateLimitSyncDevOnly(key, max, windowMs);
-}
 
 export async function consumeRateLimitAsync(
   key: string,

@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Alert } from "@/components/ui/alert";
+import { classifyFormFeedback } from "@/lib/form-feedback";
 
 export function PracticeFeedbackBanner({
   error,
@@ -29,9 +30,16 @@ export function PracticeFeedbackBanner({
       ) : null}
       {error ? (
         <motion.div key="err" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}>
-          <Alert variant="danger" title="Ошибка">
-            {error}
-          </Alert>
+          {(() => {
+            const fb = classifyFormFeedback(error);
+            const variant =
+              fb.kind === "rate_limit" || fb.kind === "unavailable" ? "warning" : "danger";
+            return (
+              <Alert variant={variant} title={fb.title}>
+                {fb.description}
+              </Alert>
+            );
+          })()}
         </motion.div>
       ) : null}
       {info ? (

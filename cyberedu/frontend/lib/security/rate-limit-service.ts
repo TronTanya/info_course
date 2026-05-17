@@ -195,10 +195,17 @@ export function getMemoryRateLimitResetAt(key: string): number | null {
 }
 
 /**
- * Синхронный in-memory limiter — только dev; в production всегда deny.
- * @deprecated Предпочитайте `enforceRateLimit`.
+ * Синхронный in-memory limiter — **только development**.
+ * В production всегда deny-all (fail-closed).
+ *
+ * @deprecated Не использовать в Server Actions, Route Handlers и middleware.
+ * Используйте `enforceRateLimit` / `enforceServerActionRateLimit` (Redis async).
  */
-export function consumeRateLimitSyncDevOnly(key: string, max: number, windowMs: number): boolean {
+export function consumeRateLimitSyncDevOnly_DEPRECATED_DO_NOT_USE_IN_SERVER_ACTIONS(
+  key: string,
+  max: number,
+  windowMs: number,
+): boolean {
   const normalized = key.startsWith("rl:") ? key : `rl:${key}`;
   if (!isDevMemoryFallbackAllowed()) {
     console.error("[rate-limit] sync limiter refused in production (use enforceRateLimit + Redis)");

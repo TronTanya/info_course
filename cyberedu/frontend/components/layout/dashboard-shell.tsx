@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { AppSidebar } from "@/components/layout/app-sidebar";
+import { DashboardMobileNav } from "@/components/layout/dashboard-mobile-nav";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 
 export function DashboardShell({
@@ -24,7 +25,8 @@ export function DashboardShell({
       )}
     >
       <AppSidebar variant="student" />
-      <section className="dashboard-content ce-app-main-panel overflow-x-clip p-5 sm:p-7 lg:p-9">
+      <section className="dashboard-content ce-app-main-panel min-w-0 overflow-x-clip p-4 sm:p-7 lg:p-9">
+        <DashboardMobileNav />
         <DashboardLayout stack={stack}>{children}</DashboardLayout>
       </section>
     </div>

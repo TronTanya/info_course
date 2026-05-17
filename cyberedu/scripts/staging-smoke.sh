@@ -13,6 +13,8 @@ BASE_URL="${BASE_URL:-http://127.0.0.1:3100}"
 BASE_URL="${BASE_URL%/}"
 RUN_E2E="${RUN_E2E:-0}"
 CHECK_NGINX="${CHECK_NGINX:-0}"
+# Prod/staging: убедиться, что /api/health reports redis ok (rate limit backend)
+CHECK_REDIS="${CHECK_REDIS:-0}"
 # Локально без Postgres: ALLOW_DEGRADED=1 — проверить публичные страницы, health только warn
 ALLOW_DEGRADED="${ALLOW_DEGRADED:-0}"
 
@@ -41,7 +43,12 @@ health_code="$(http_code "$BASE_URL/api/health")"
 health_body="$(curl -s "$BASE_URL/api/health" || fail "GET /api/health unreachable")"
 echo "$health_body (HTTP $health_code)"
 if echo "$health_body" | grep -q '"status":"ok"' && echo "$health_body" | grep -q '"database":"ok"'; then
-  ok "/api/health"
+  if [[ "$CHECK_REDIS" == "1" ]]; then
+    echo "$health_body" | grep -q '"redis":"ok"' || fail 'health redis != ok (set REDIS_URL in prod compose)'
+    ok "/api/health (database + redis)"
+  else
+    ok "/api/health"
+  fi
 elif [[ "$ALLOW_DEGRADED" == "1" ]]; then
   red "WARN: health degraded (set up Postgres or Docker for strict check)"
 else

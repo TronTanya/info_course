@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { CourseEmpty } from "@/components/course/course-empty";
 import { CourseLearningPath } from "@/components/course/course-learning-path";
 import { CoursePageShell } from "@/components/course/course-page-shell";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
@@ -19,7 +20,7 @@ export default async function CoursePage({ searchParams }: Props) {
   if (!course) {
     return (
       <DashboardShell wide>
-        <p className="text-sm text-muted-foreground">Курс ещё не добавлен в систему.</p>
+        <CourseEmpty />
       </DashboardShell>
     );
   }

@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { AdminModuleDeleteButton } from "@/components/admin/admin-module-delete-button";
 import { AdminModuleEditForm } from "@/components/admin/admin-module-edit-form";
-import { PageHeader } from "@/components/ui/page-header";
+import { AdminBreadcrumbs, adminBreadcrumbItems } from "@/components/admin/admin-breadcrumbs";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/db";
 import { createLessonForModuleAction } from "@/lib/actions/admin-modules";
@@ -43,13 +45,21 @@ export default async function AdminEditModulePage({ params }: Props) {
 
   return (
     <AdminShell>
-      <PageHeader
-        title="Редактирование модуля"
-        description="Поля модуля и список лекций. Удаление доступно, только если нет записей прогресса пользователей по этому модулю."
+      <AdminPageHeader
+        title={moduleRow.title}
+        description="Поля модуля и список лекций. Удаление доступно только без прогресса студентов."
         breadcrumb={
-          <Link href="/admin/modules" className="hover:text-foreground">
-            ← Модули
-          </Link>
+          <AdminBreadcrumbs
+            items={adminBreadcrumbItems("Редактирование", { href: "/admin/modules", label: "Модули" })}
+          />
+        }
+        meta={
+          <>
+            <Badge variant={moduleRow.isActive ? "success" : "outline"}>
+              {moduleRow.isActive ? "Активен" : "Выключен"}
+            </Badge>
+            <Badge variant="secondary">Прогресс: {progressCount}</Badge>
+          </>
         }
         actions={
           <div className="flex flex-wrap gap-2">

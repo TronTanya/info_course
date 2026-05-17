@@ -73,22 +73,6 @@ function CloseIcon() {
   );
 }
 
-function LogoutButton({ className }: { className?: string }) {
-  return (
-    <form action={logoutAction} className={className}>
-      <button
-        type="submit"
-        className={cn(
-          "rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground transition-colors",
-          "hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        )}
-      >
-        Выйти
-      </button>
-    </form>
-  );
-}
-
 export function SiteHeaderNav({ variant }: { variant: NavVariant }) {
   const pathname = usePathname() ?? "";
   const [open, setOpen] = React.useState(false);
@@ -110,8 +94,7 @@ export function SiteHeaderNav({ variant }: { variant: NavVariant }) {
         </nav>
       ) : null}
 
-      {/* Авторизован: выход в шапке на lg+ (навигация — в sidebar) */}
-      {!isGuest ? <LogoutButton className="hidden lg:block" /> : null}
+      {/* Авторизован: выход только в sidebar (lg+) или в drawer (<lg) — без дубля в шапке */}
 
       {/* Drawer: гость <md, кабинет/админка <lg */}
       <div className={cn("flex items-center gap-2", isGuest ? "md:hidden" : "lg:hidden")}>

@@ -54,7 +54,14 @@ describe("assertSeedAllowed", () => {
   it("throws when ENVIRONMENT=production (even if NODE_ENV=production in Docker)", () => {
     vi.stubEnv("NODE_ENV", "production");
     process.env.ENVIRONMENT = "production";
+    delete process.env.E2E_PRODUCTION_SMOKE;
     expect(() => assertSeedAllowed()).toThrow(/запрещён в production/i);
+  });
+
+  it("allows seed when E2E_PRODUCTION_SMOKE=1 (isolated CI DB only)", () => {
+    process.env.ENVIRONMENT = "production";
+    process.env.E2E_PRODUCTION_SMOKE = "1";
+    expect(() => assertSeedAllowed()).not.toThrow();
   });
 
   it("allows seed when ENVIRONMENT=development and NODE_ENV=production", () => {

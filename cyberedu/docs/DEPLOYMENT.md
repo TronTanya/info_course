@@ -69,6 +69,21 @@ curl -fsS http://127.0.0.1/api/health
 
 Script: `deploy/scripts/vps-deploy.sh`
 
+Post-deploy smoke (с Redis на production):
+
+```bash
+BASE_URL=https://your-domain CHECK_REDIS=1 ./scripts/staging-smoke.sh
+# Полный submit-flow (тест + практика): RUN_E2E=1 BASE_URL=... ./scripts/staging-smoke.sh
+```
+
+Production-like E2E в CI / локально (PostgreSQL + Redis + `ENVIRONMENT=production`, без mock Redis):
+
+```bash
+cd cyberedu/frontend
+npm run test:e2e:prod          # приложение уже запущено с REDIS_URL + ENVIRONMENT=production
+npm run test:e2e:prod:local    # migrate, seed (E2E_PRODUCTION_SMOKE), build, start, playwright
+```
+
 ## SSL (Let's Encrypt)
 
 1. DNS → VPS IP
@@ -130,7 +145,7 @@ External uptime: monitor `https://<domain>/api/health` and `/nginx-health`.
 | pgAdmin | yes | no |
 | Seed | only `RUN_SEED=1` | `RUN_SEED=0` |
 | Nginx | no | yes |
-| Redis | profile `cache` | required (internal) |
+| Redis | yes (`127.0.0.1:6379`) | required (internal) |
 | Secrets in build | no | no |
 
 ## Troubleshooting

@@ -16,6 +16,9 @@ export function assertSeedAllowed(): void {
   const environment = (process.env.ENVIRONMENT ?? "").trim().toLowerCase();
   // NODE_ENV=production в Docker dev-образе Next.js — не использовать как признак prod.
   if (environment === "production" || environment === "prod") {
+    if (process.env.E2E_PRODUCTION_SMOKE === "1") {
+      return;
+    }
     throw new Error(
       "Prisma seed запрещён в production. Демо-учётки (admin@cyberedu.local и др.) недопустимы. Установите RUN_SEED=0 и ENVIRONMENT=production.",
     );

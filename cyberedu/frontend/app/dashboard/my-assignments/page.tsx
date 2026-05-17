@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/permissions";
+import { dashboardSectionBreadcrumbs } from "@/lib/student-nav";
 
 export const metadata: Metadata = {
   title: "Мои задания",
@@ -50,6 +51,7 @@ export default async function MyAssignmentsPage() {
         <LearnPageHeader
           backHref="/dashboard"
           backLabel="← Кабинет"
+          breadcrumbItems={dashboardSectionBreadcrumbs("Мои задания")}
           eyebrow="Практика"
           title="Мои задания"
           subtitle="Практические работы по курсу: статус проверки и быстрый переход к заданию."

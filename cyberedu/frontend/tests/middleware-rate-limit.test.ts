@@ -71,9 +71,10 @@ describe("middleware rate limit (async Redis)", () => {
     expect(await applyMiddlewareRateLimit(aiReq)).toBeNull();
   });
 
-  it("middleware.ts does not import sync consumeRateLimit", () => {
+  it("middleware.ts does not import sync rate limit helpers", () => {
     const src = readFileSync(join(process.cwd(), "middleware.ts"), "utf8");
-    expect(src).not.toMatch(/consumeRateLimit/);
+    expect(src).not.toMatch(/consumeRateLimit\(/);
+    expect(src).not.toMatch(/consumeRateLimitSyncDevOnly/);
     expect(src).toMatch(/applyMiddlewareRateLimit/);
   });
 });

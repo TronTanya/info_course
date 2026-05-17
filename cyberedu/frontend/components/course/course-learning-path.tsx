@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { CourseModuleCard } from "@/components/course/course-module-card";
+import { CoursePathNav } from "@/components/course/course-path-nav";
 import { CourseTrajectoryAnimated } from "@/components/course/course-trajectory-animated";
+import { findFocusModule, getContinueFromModules } from "@/lib/dashboard-ui";
 import type { CourseProgressModuleRow, UserCourseProgressResult } from "@/lib/progress";
-import { getModuleAction } from "@/lib/course-path-ui";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ProgressRing } from "@/components/ui/progress-ring";
@@ -10,30 +11,6 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { ResponsiveGrid } from "@/components/ui/responsive-grid";
 import { cn } from "@/lib/utils";
-
-function currentFocusModule(data: UserCourseProgressResult): CourseProgressModuleRow | null {
-  return data.modules.find((m) => m.unlocked && !m.moduleCompleted) ?? null;
-}
-
-function continueLearningCta(data: UserCourseProgressResult): { href: string; hint: string } {
-  const allDone =
-    data.modules.length > 0 && data.modules.every((m) => m.moduleCompleted);
-  if (allDone) {
-    return {
-      href: "/dashboard/certificate",
-      hint: "Все модули пройдены — оформите сертификат.",
-    };
-  }
-  const focus = currentFocusModule(data);
-  if (!focus) {
-    return { href: "/dashboard/course", hint: "Выберите доступный модуль в траектории ниже." };
-  }
-  const a = getModuleAction(focus);
-  return {
-    href: a.disabled ? `/dashboard/course/${focus.module.id}` : a.href,
-    hint: `Модуль ${focus.module.orderNumber}: «${focus.module.title}».`,
-  };
-}
 
 function CheckIcon({ className }: { className?: string }) {
   return (
@@ -83,12 +60,16 @@ function SkillsFromCompleted({ modules }: { modules: CourseProgressModuleRow[] }
   );
 }
 
-function NextStepBlock({ data }: { data: UserCourseProgressResult }) {
-  const focus = currentFocusModule(data);
+function NextStepBlock({
+  data,
+  cta,
+}: {
+  data: UserCourseProgressResult;
+  cta: ReturnType<typeof getContinueFromModules>;
+}) {
+  const focus = findFocusModule(data.modules);
   const allDone = data.modules.length > 0 && data.modules.every((m) => m.moduleCompleted);
-  const cta = continueLearningCta(data);
 
-  const title = "Следующий шаг";
   let body: string;
   if (allDone) {
     body = "Оформите сертификат и при желании пройдите материалы модулей ещё раз для повторения.";
@@ -102,24 +83,16 @@ function NextStepBlock({ data }: { data: UserCourseProgressResult }) {
     <section className="ce-learn-panel ce-border-beam ce-card-glow hero-glow rounded-2xl border border-border/80 p-6 shadow-(--shadow-card) sm:p-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
-          <h2 className="text-lg font-semibold text-foreground sm:text-xl">{title}</h2>
+          <h2 className="text-lg font-semibold text-foreground sm:text-xl">Следующий шаг</h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">{body}</p>
-          {!allDone && focus ? <p className="mt-2 text-xs font-medium text-foreground/90">{cta.hint}</p> : null}
+          <p className="mt-2 text-xs font-medium text-foreground/90">{cta.hint}</p>
         </div>
-        <div className="flex shrink-0 flex-col gap-2 sm:flex-row lg:flex-col">
-          <Button variant="primary" className="w-full sm:w-auto lg:min-w-[220px]" asChild>
-            <Link href={cta.href}>Продолжить обучение</Link>
-          </Button>
-          {allDone ? (
-            <Button variant="outline" className="w-full sm:w-auto" asChild>
-              <Link href="/dashboard/profile">Профиль и достижения</Link>
-            </Button>
-          ) : (
-            <Button variant="outline" className="w-full sm:w-auto" asChild>
-              <Link href="/dashboard/certificate">Сертификат</Link>
-            </Button>
-          )}
-        </div>
+        <Link
+          href={cta.href}
+          className="inline-flex shrink-0 items-center text-sm font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+        >
+          {allDone ? "Открыть сертификат" : "Перейти к шагу"}
+        </Link>
       </div>
     </section>
   );
@@ -130,13 +103,14 @@ export function CourseLearningPath({ data }: { data: UserCourseProgressResult })
   const doneCount = modules.filter((m) => m.moduleCompleted).length;
   const totalCount = modules.length;
   const ringTone = data.overallProgressPercent >= 100 ? "success" : doneCount > 0 ? "accent" : "default";
-  const focus = currentFocusModule(data);
-  const cta = continueLearningCta(data);
+  const focus = findFocusModule(modules);
+  const cta = getContinueFromModules(modules, data.course.title);
   const allDone = totalCount > 0 && doneCount === totalCount;
 
   return (
-    <div className="space-y-7 lg:space-y-9">
-      {/* Герой курса — тот же визуальный язык, что и профиль (рамка, сетка, акцент слева) */}
+    <div className="space-y-7 overflow-x-hidden lg:space-y-9">
+      <CoursePathNav />
+
       <section className="ce-user-profile-hero hero-glow p-5 sm:p-7 lg:p-8">
         <div className="ce-user-profile-hero-blob" aria-hidden />
         <div className="ce-user-profile-hero-grid" aria-hidden />
@@ -147,11 +121,11 @@ export function CourseLearningPath({ data }: { data: UserCourseProgressResult })
             <Badge variant="primary" className="w-fit uppercase tracking-wider shadow-sm">
               Ваш курс
             </Badge>
-            <h1 className="typo-h1 text-balance sm:text-3xl lg:text-[2rem]">
-              {data.course.title}
-            </h1>
+            <h1 className="typo-h1 text-balance sm:text-3xl lg:text-[2rem]">{data.course.title}</h1>
             {data.course.description ? (
-              <p className="line-clamp-3 text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">{data.course.description}</p>
+              <p className="line-clamp-3 text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
+                {data.course.description}
+              </p>
             ) : (
               <p className="text-sm text-muted-foreground">Описание курса появится позже.</p>
             )}
@@ -164,7 +138,8 @@ export function CourseLearningPath({ data }: { data: UserCourseProgressResult })
                     {focus.module.orderNumber}. {focus.module.title}
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Прогресс по шагам: <span className="font-semibold tabular-nums text-foreground">{focus.progressPercent}%</span>
+                    Прогресс по шагам:{" "}
+                    <span className="font-semibold tabular-nums text-foreground">{focus.progressPercent}%</span>
                   </p>
                 </>
               ) : allDone ? (
@@ -176,10 +151,10 @@ export function CourseLearningPath({ data }: { data: UserCourseProgressResult })
 
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
               <Button variant="primary" className="w-full shadow-md sm:w-auto sm:min-w-[200px]" asChild>
-                <Link href={cta.href}>Продолжить обучение</Link>
+                <Link href={cta.href}>{cta.label}</Link>
               </Button>
               <Button variant="outline" className="w-full border-primary/30 bg-card/90 backdrop-blur-sm sm:w-auto" asChild>
-                <Link href="/dashboard/profile">Профиль</Link>
+                <Link href="/dashboard">Кабинет</Link>
               </Button>
             </div>
             <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">{cta.hint}</p>
@@ -221,17 +196,15 @@ export function CourseLearningPath({ data }: { data: UserCourseProgressResult })
         </div>
       </section>
 
-      {/* Траектория */}
       <section className="space-y-4">
         <SectionHeader
-          eyebrow="Learning path"
-          title="Траектория модулей"
-          description="Идите по порядку: каждый следующий модуль открывается после завершения предыдущего. Иконки показывают статус блока."
+          eyebrow="Траектория"
+          title="Модули по порядку"
+          description="Каждый следующий модуль открывается после завершения предыдущего. Иконки показывают статус блока."
         />
         <CourseTrajectoryAnimated modules={modules} />
       </section>
 
-      {/* Карточки */}
       <section className="space-y-4">
         <SectionHeader
           title="Все модули"
@@ -246,7 +219,7 @@ export function CourseLearningPath({ data }: { data: UserCourseProgressResult })
 
       <SkillsFromCompleted modules={modules} />
 
-      <NextStepBlock data={data} />
+      <NextStepBlock data={data} cta={cta} />
     </div>
   );
 }

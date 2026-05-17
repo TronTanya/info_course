@@ -29,12 +29,12 @@ export const studentNav: NavItem[] = [
 ];
 
 export const adminNav: NavItem[] = [
-  { href: "/admin", label: "Обзор", icon: LayoutDashboard },
-  { href: "/admin/users", label: "Пользователи", icon: Users },
-  { href: "/admin/modules", label: "Модули", icon: BookOpen },
-  { href: "/admin/submissions", label: "Проверка", icon: ClipboardList },
-  { href: "/admin/certificates", label: "Сертификаты", icon: Award },
-  { href: "/admin/reviews", label: "Отзывы", icon: MessageSquare },
+  { href: "/admin", label: "Обзор", icon: LayoutDashboard, description: "KPI и активность" },
+  { href: "/admin/users", label: "Пользователи", icon: Users, description: "Аккаунты и прогресс" },
+  { href: "/admin/modules", label: "Модули", icon: BookOpen, description: "Структура курса" },
+  { href: "/admin/submissions", label: "Проверка", icon: ClipboardList, description: "Практические работы" },
+  { href: "/admin/certificates", label: "Сертификаты", icon: Award, description: "Реестр выдачи" },
+  { href: "/admin/reviews", label: "Отзывы", icon: MessageSquare, description: "Модерация" },
 ];
 
 export const commandPaletteActions: NavItem[] = [

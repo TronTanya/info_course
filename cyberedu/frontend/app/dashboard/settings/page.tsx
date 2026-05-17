@@ -7,6 +7,7 @@ import { Alert } from "@/components/ui/alert";
 import { toDateInputValue } from "@/lib/profile-dates";
 import { parseProfileInterests } from "@/lib/profile-interests";
 import { getCurrentUser } from "@/lib/permissions";
+import { dashboardSectionBreadcrumbs } from "@/lib/student-nav";
 
 export const metadata: Metadata = {
   title: "Настройки",
@@ -39,6 +40,7 @@ export default async function DashboardSettingsPage({
         <LearnPageHeader
           backHref="/dashboard/profile"
           backLabel="← Профиль"
+          breadcrumbItems={dashboardSectionBreadcrumbs("Настройки")}
           eyebrow="Аккаунт"
           title="Настройки"
           subtitle="Личные данные, аватар, интересы для AI и сведения об аккаунте."

@@ -26,9 +26,16 @@ export async function loginAs(page: Page, role: E2eRole): Promise<void> {
 }
 
 export async function logoutFromApp(page: Page): Promise<void> {
-  const logout = page.getByRole("button", { name: "Выйти" });
-  await expect(logout).toBeVisible({ timeout: 15_000 });
-  await logout.click();
+  const sidebarLogout = page.getByRole("complementary").getByRole("button", { name: "Выйти" });
+  const drawerLogout = page.getByRole("dialog", { name: "Меню" }).getByRole("button", { name: "Выйти" });
+
+  if (await sidebarLogout.isVisible().catch(() => false)) {
+    await sidebarLogout.click();
+  } else {
+    await page.getByRole("button", { name: "Открыть меню" }).click();
+    await expect(drawerLogout).toBeVisible({ timeout: 15_000 });
+    await drawerLogout.click();
+  }
   await page.waitForURL((url) => {
     const path = url.pathname;
     return path === "/" || path.startsWith("/auth/");

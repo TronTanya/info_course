@@ -1,5 +1,6 @@
 # Development stack (docker compose up --build)
-# - Postgres / pgAdmin / API / site — только 127.0.0.1 на хосте
+# - Postgres / Redis / pgAdmin / API / site — только 127.0.0.1 на хосте
+# - Redis включён по умолчанию (rate limit как в production)
 # - Секреты только runtime (environment / .env), не build-args
 # - Seed: RUN_SEED=1 docker compose up --build  (по умолчанию RUN_SEED=0)
 #
@@ -73,6 +74,20 @@ services:
       retries: 5
       start_period: 15s
 
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   frontend:
     build:
       context: ./frontend
@@ -95,7 +110,7 @@ services:
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
       SHOW_SEED_LOGIN_HINT: ${SHOW_SEED_LOGIN_HINT:-1}
       TRUSTED_PROXY: ${TRUSTED_PROXY:-0}
-      REDIS_URL: ${REDIS_URL:-}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       ENVIRONMENT: ${ENVIRONMENT:-development}
       # Seed только при явном RUN_SEED=1 (не сбрасывает admin при каждом restart)
       RUN_SEED: ${RUN_SEED:-0}
@@ -105,6 +120,8 @@ services:
       - frontend_uploads:/app/uploads
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       backend:
         condition: service_healthy
@@ -120,22 +137,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 60s
-
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    profiles:
-      - cache
-    ports:
-      - "127.0.0.1:6379:6379"
-    volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
 volumes:
   postgres_data:

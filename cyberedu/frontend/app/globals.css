@@ -187,6 +187,14 @@ html.dark {
   html {
     scroll-behavior: auto;
   }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 ::selection {
@@ -208,8 +216,21 @@ html.dark {
     width: 100%;
     min-width: 0;
     max-width: min(100vw - 1rem, 118rem);
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
+    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+  }
+
+  .ce-dashboard-mobile-nav,
+  .ce-admin-mobile-nav {
+    scrollbar-width: thin;
+    overscroll-behavior-x: contain;
+  }
+
+  /* Горизонтальный скролл только внутри контейнера таблицы */
+  .admin-table-scroll,
+  .ce-admin-table-scroll {
+    max-width: 100%;
+    overscroll-behavior-x: contain;
   }
   @media (min-width: 768px) {
     .container-page {
@@ -531,12 +552,55 @@ html.dark {
     width: 100%;
     max-width: 52rem;
   }
+  .lesson-reading {
+    width: 100%;
+    max-width: 42rem;
+  }
   @media (max-width: 1279px) {
     .lesson-prose {
       margin-left: auto;
       margin-right: auto;
       font-size: 1.0625rem;
       line-height: 1.65;
+    }
+  }
+
+  /**
+   * Обучение: сайдбар (desktop) + контент + опциональная правая колонка (AI).
+   */
+  .learning-grid {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .learning-grid-main {
+    max-width: 42rem;
+  }
+  @media (min-width: 1024px) {
+    .learning-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(240px, 18rem);
+    }
+    .learning-grid-main {
+      max-width: 48rem;
+    }
+  }
+  @media (min-width: 1280px) {
+    .learning-grid {
+      grid-template-columns: minmax(220px, 16rem) minmax(0, 1fr) minmax(260px, 20rem);
+    }
+    .learning-grid-main {
+      grid-column: 2;
+      max-width: 42rem;
+    }
+    .learning-grid-aside {
+      grid-column: 3;
+    }
+    .learning-sidebar-slot {
+      grid-column: 1;
+      grid-row: 1 / span 2;
     }
   }
 
@@ -933,6 +997,15 @@ html.dark {
   }
 
   /** Герой обзора админки (/admin): полосы + лёгкий акцент */
+  .ce-admin-page-hero {
+    border-radius: var(--radius-2xl);
+    background: color-mix(in oklab, var(--card) 92%, var(--primary) 4%);
+  }
+
+  .ce-admin-mobile-nav {
+    scrollbar-width: thin;
+  }
+
   .ce-admin-dash-hero {
     position: relative;
     overflow: hidden;
@@ -1521,6 +1594,13 @@ html.dark {
       transform: none;
     }
   }
+}
+
+img,
+video,
+svg {
+  max-width: 100%;
+  height: auto;
 }
 
 body {

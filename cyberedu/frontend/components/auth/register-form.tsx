@@ -57,7 +57,7 @@ export function RegisterForm() {
           label="Email"
           name="email"
           type="email"
-          placeholder="you@example.com"
+          placeholder="name@example.ru"
           required
           error={state.errors?.email?.[0]}
           disabled={pending}
