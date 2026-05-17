@@ -249,7 +249,7 @@ jobs:
           retention-days: 7
 
   e2e-prod-smoke:
-    name: Playwright prod smoke (Redis)
+    name: Staging smoke (Postgres + Redis + Playwright)
     runs-on: ubuntu-latest
     needs: [frontend, compose-config]
     defaults:
@@ -311,24 +311,36 @@ jobs:
           npx prisma migrate deploy
           npm run db:seed
 
+      - name: Verify Redis service (PING)
+        run: |
+          echo "REDIS_URL=$REDIS_URL"
+          npm run redis:ping
+
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
       - name: Build Next.js (production)
         run: npm run build
 
-      - name: Run production-like smoke
+      - name: Run staging smoke (production ENV + real Redis)
         run: |
           npm run start &
           for i in $(seq 1 90); do
             if curl -sf http://127.0.0.1:3100/api/health | grep -q '"redis":"ok"'; then
-              echo "App ready (production + Redis)"
+              echo "App ready (ENVIRONMENT=production, Redis ok)"
               break
             fi
             sleep 2
           done
-          curl -sf http://127.0.0.1:3100/api/health
-          npm run test:e2e:prod
+          health="$(curl -sf http://127.0.0.1:3100/api/health)"
+          echo "$health"
+          echo "$health" | grep -q '"redis":"ok"' || {
+            echo "::error::/api/health redis check failed — REDIS_URL must point to live Redis"
+            exit 1
+          }
+          echo "::notice title=Redis::Staging smoke — Redis PONG ok; app health reports checks.redis=ok ($REDIS_URL)"
+          npm run redis:ping
+          npm run test:e2e:staging
 
       - name: Upload Playwright prod report
         if: failure()

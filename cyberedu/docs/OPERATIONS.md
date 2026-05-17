@@ -138,14 +138,17 @@ docker compose up --build
 RUN_SEED=1 docker compose up --build
 ```
 
-**Production-like E2E локально** (migrate + seed для e2e + Playwright):
+**Staging smoke локально** (Postgres + **реальный Redis**, migrate + seed + Playwright prod specs):
 
 ```bash
 cd cyberedu/frontend
-npm run test:e2e:prod:local
+# REDIS_URL=redis://127.0.0.1:6379 DATABASE_URL=... npm run smoke:staging:local
+npm run smoke:staging:local
 ```
 
-Скрипт: [`../scripts/e2e-prod-local.sh`](../scripts/e2e-prod-local.sh).
+Скрипт: [`../scripts/e2e-prod-local.sh`](../scripts/e2e-prod-local.sh) — перед стартом вызывает `npm run redis:ping` (без mock Redis).
+
+**CI job `e2e-prod-smoke`:** services `postgres` + `redis:7-alpine`, `REDIS_URL=redis://127.0.0.1:6379`, шаги `npm run redis:ping` → build → health с `checks.redis: ok` → `npm run test:e2e:staging`.
 
 ### Healthcheck
 
@@ -166,12 +169,14 @@ docker compose -f docker-compose.prod.yml --env-file .env.production ps
 # STATE должен быть healthy для postgres, redis, frontend, backend, nginx
 ```
 
-Staging smoke (submit test + practice, Redis):
+Staging smoke (HTTP + optional E2E с Redis):
 
 ```bash
 cd cyberedu
 CHECK_REDIS=1 BASE_URL=https://your-domain ./scripts/staging-smoke.sh
-RUN_E2E=1 BASE_URL=https://your-domain ./scripts/staging-smoke.sh
+# E2E prod specs (нужны REDIS_URL + seed app):
+REDIS_URL=redis://127.0.0.1:6379 ENVIRONMENT=production \
+  RUN_E2E=1 RUN_E2E_MODE=staging BASE_URL=http://127.0.0.1:3100 ./scripts/staging-smoke.sh
 ```
 
 ### Backup notes
@@ -202,7 +207,8 @@ docker compose -f docker-compose.prod.yml --env-file .env.production exec -T pos
 
 - [ ] GitHub Actions **CI green** на `main`: lint, typecheck, Vitest, pytest, `prisma validate`, `npm audit --audit-level=high`
 - [ ] Job **rate-limit-redis** (интеграция Redis) зелёный или осознанно skipped только локально
-- [ ] **Production e2e green**: job `e2e-prod-smoke` (`ENVIRONMENT=production` + Postgres + Redis) или локально `npm run test:e2e:prod:local`
+- [ ] **Staging / production e2e green**: job `e2e-prod-smoke` (Postgres + **Redis service** + `REDIS_URL` + `npm run test:e2e:staging`) или локально `npm run smoke:staging:local`
+- [ ] В логе CI видно `redis-ping: PONG ok` и `checks.redis: "ok"` в `/api/health`
 - [ ] Playwright **smoke** (`test:e2e`): login → course → test submit → practice submit → admin
 
 ### Инфраструктура

@@ -3,8 +3,9 @@
 #
 # Usage:
 #   BASE_URL=https://learn.example.com ./scripts/staging-smoke.sh
-#   BASE_URL=https://learn.example.com RUN_E2E=1 ./scripts/staging-smoke.sh
-#   BASE_URL=https://learn.example.com CHECK_NGINX=1 ./scripts/staging-smoke.sh
+#   BASE_URL=https://learn.example.com CHECK_REDIS=1 ./scripts/staging-smoke.sh
+#   BASE_URL=http://127.0.0.1:3100 RUN_E2E=1 RUN_E2E_MODE=staging ./scripts/staging-smoke.sh
+#   REDIS_URL=redis://127.0.0.1:6379 ENVIRONMENT=production RUN_E2E=1 RUN_E2E_MODE=staging ./scripts/staging-smoke.sh
 #
 set -euo pipefail
 
@@ -12,9 +13,13 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BASE_URL="${BASE_URL:-http://127.0.0.1:3100}"
 BASE_URL="${BASE_URL%/}"
 RUN_E2E="${RUN_E2E:-0}"
+RUN_E2E_MODE="${RUN_E2E_MODE:-dev}"
 CHECK_NGINX="${CHECK_NGINX:-0}"
 # Prod/staging: убедиться, что /api/health reports redis ok (rate limit backend)
 CHECK_REDIS="${CHECK_REDIS:-0}"
+if [[ "${ENVIRONMENT:-}" == "production" ]] || [[ "$RUN_E2E_MODE" == "staging" ]]; then
+  CHECK_REDIS="${CHECK_REDIS:-1}"
+fi
 # Локально без Postgres: ALLOW_DEGRADED=1 — проверить публичные страницы, health только warn
 ALLOW_DEGRADED="${ALLOW_DEGRADED:-0}"
 
@@ -36,7 +41,18 @@ http_code() {
 
 echo "=== CyberEdu staging smoke ==="
 echo "BASE_URL=$BASE_URL"
+echo "CHECK_REDIS=$CHECK_REDIS RUN_E2E=$RUN_E2E RUN_E2E_MODE=$RUN_E2E_MODE"
 echo ""
+
+if [[ "$CHECK_REDIS" == "1" ]] && [[ -n "${REDIS_URL:-}" ]]; then
+  echo "[0] Redis PING (direct)"
+  (
+    cd "$ROOT/frontend"
+    npm run redis:ping
+  )
+  ok "Redis PING ($REDIS_URL)"
+  echo ""
+fi
 
 echo "[1/4] API health"
 health_code="$(http_code "$BASE_URL/api/health")"
@@ -90,12 +106,21 @@ if [[ "$RUN_E2E" == "1" ]]; then
   (
     cd "$ROOT/frontend"
     export PLAYWRIGHT_BASE_URL="$BASE_URL"
-    export E2E_USE_SEED_CREDENTIALS="${E2E_USE_SEED_CREDENTIALS:-1}"
-    npm run test:e2e
+    if [[ "$RUN_E2E_MODE" == "staging" ]]; then
+      [[ -n "${REDIS_URL:-}" ]] || fail "RUN_E2E_MODE=staging requires REDIS_URL (real Redis, no mock)"
+      export ENVIRONMENT="${ENVIRONMENT:-production}"
+      export E2E_PRODUCTION_SMOKE=1
+      npm run redis:ping
+      npm run test:e2e:staging
+    else
+      export E2E_USE_SEED_CREDENTIALS="${E2E_USE_SEED_CREDENTIALS:-1}"
+      export ENVIRONMENT="${ENVIRONMENT:-test}"
+      npm run test:e2e
+    fi
   )
-  ok "Playwright smoke"
+  ok "Playwright smoke ($RUN_E2E_MODE)"
 else
-  echo "[4/4] Playwright E2E — skip (set RUN_E2E=1 to run login/course/submit flows)"
+  echo "[4/4] Playwright E2E — skip (RUN_E2E=1; staging: RUN_E2E_MODE=staging + REDIS_URL)"
 fi
 
 echo ""

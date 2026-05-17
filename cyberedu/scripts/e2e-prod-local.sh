@@ -26,6 +26,9 @@ export NEXT_PUBLIC_APP_URL="${NEXT_PUBLIC_APP_URL:-http://127.0.0.1:3100}"
 export PLAYWRIGHT_BASE_URL="${PLAYWRIGHT_BASE_URL:-http://127.0.0.1:3100}"
 export OPENAI_API_KEY="${OPENAI_API_KEY:-}"
 
+echo "=== Redis PING ($REDIS_URL) ==="
+npm run redis:ping
+
 echo "=== migrate + seed (E2E_PRODUCTION_SMOKE) ==="
 npx prisma migrate deploy
 npm run db:seed
@@ -47,4 +50,4 @@ done
 curl -sf "$PLAYWRIGHT_BASE_URL/api/health" | head -c 500
 echo ""
 
-npm run test:e2e:prod
+npm run test:e2e:staging
