@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { loginAs, logoutFromApp } from "./helpers/auth";
+import { assertAdminRouteBlocked, loginAs, logoutFromApp } from "./helpers/auth";
 import {
   openFirstPracticePage,
   openFirstTestPage,
@@ -10,6 +10,10 @@ import {
 test.describe.configure({ mode: "serial" });
 
 test.describe("CyberEdu smoke", () => {
+  test.beforeEach(async ({ context }) => {
+    await context.clearCookies();
+  });
+
   test("1. student login", async ({ page }) => {
     await loginAs(page, "student");
     await expect(page).toHaveURL(/\/dashboard/);
@@ -52,12 +56,19 @@ test.describe("CyberEdu smoke", () => {
     await submitPracticeTextIfPresent(page);
   });
 
-  test("6. admin login and users page", async ({ page }) => {
+  test("5b. student logout (API)", async ({ page }) => {
+    await loginAs(page, "student");
+    await logoutFromApp(page);
+  });
+
+  test("6. admin login, users page, logout (desktop)", async ({ page }) => {
     await loginAs(page, "admin");
     await page.goto("/admin/users");
     await expect(page.getByRole("heading", { name: "Пользователи" })).toBeVisible();
     await page.getByPlaceholder(/ФИО, email/i).fill("admin@cyberedu.local");
     await expect(page.getByRole("row", { name: /admin@cyberedu\.local/i })).toBeVisible();
+    await logoutFromApp(page);
+    await assertAdminRouteBlocked(page);
   });
 
   test("7. certificate verify page (public)", async ({ page }) => {
@@ -70,11 +81,6 @@ test.describe("CyberEdu smoke", () => {
     } else {
       await expect(page.getByText(/не найдена/i)).toBeVisible();
     }
-  });
-
-  test("8. logout", async ({ page }) => {
-    await loginAs(page, "student");
-    await logoutFromApp(page);
   });
 
   test("9. dashboard achievements block", async ({ page }) => {
