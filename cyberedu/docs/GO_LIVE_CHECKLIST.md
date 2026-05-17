@@ -15,7 +15,7 @@
 - [ ] `cd cyberedu/frontend && npm test`
 - [ ] `cd cyberedu/frontend && npx prisma validate`
 - [ ] `cd cyberedu/frontend && npm run test:e2e` (dev smoke; app на `:3100` + seed)
-- [ ] `cd cyberedu/frontend && npm run test:e2e:prod` (alias staging: prod specs + **real Redis**)
+- [ ] `cd cyberedu/frontend && npm run test:e2e:prod:local` **или** prod specs при сервере с `ENVIRONMENT=production` ([DEFENSE_READINESS.md § фаза 3](./DEFENSE_READINESS.md#фаза-3--production-like-e2e))
 - [ ] `cd cyberedu/frontend && npm run test:e2e:staging` или `npm run smoke:staging:local` (то же для CI/локального smoke)
 - [ ] Compose config без warnings:
   ```bash
