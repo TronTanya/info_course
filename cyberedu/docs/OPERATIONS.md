@@ -228,7 +228,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.production exec -T pos
 
 ### Файлы и наблюдаемость
 
-- [ ] **Uploads volume / S3 strategy**: prod — volume `frontend_uploads` → `/app/uploads`; для multi-node — план `STORAGE_DRIVER=s3` ([UPLOADS_VOLUME.md](./migrations/UPLOADS_VOLUME.md))
+- [ ] **Uploads single-replica**: `UPLOAD_STORAGE_DRIVER=local` + volume `frontend_uploads`; multi-replica без S3 **не поддерживается** ([STORAGE.md](./STORAGE.md))
 - [ ] **Logs monitored**: `docker compose logs`, ротация json-file; алерт на 5xx и disk >80%
 - [ ] Uptime на `/api/health` и `/nginx-health`
 - [ ] `AUTH_URL` / `NEXT_PUBLIC_APP_URL` = фактический HTTPS origin

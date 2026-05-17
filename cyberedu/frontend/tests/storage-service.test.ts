@@ -15,7 +15,12 @@ import {
   saveUserAvatarFile,
 } from "@/lib/avatar-upload";
 import { certificateFileKey, readCertificatePdfFile, writeCertificatePdfFile } from "@/lib/certificate";
-import { getStorageService, resetStorageServiceForTests, uploadsBaseDir } from "@/lib/storage";
+import {
+  getStorageService,
+  missingS3EnvVars,
+  resetStorageServiceForTests,
+  uploadsBaseDir,
+} from "@/lib/storage";
 
 let tempRoot = "";
 
@@ -96,11 +101,61 @@ describe("storage/local — certificates", () => {
 });
 
 describe("storage driver", () => {
-  it("отклоняет S3 до реализации", () => {
-    process.env.STORAGE_DRIVER = "s3";
-    resetStorageServiceForTests();
-    expect(() => getStorageService()).toThrow(/не реализован/i);
+  const s3EnvBackup: Record<string, string | undefined> = {};
+
+  afterEach(() => {
+    for (const [k, v] of Object.entries(s3EnvBackup)) {
+      if (v === undefined) delete process.env[k];
+      else process.env[k] = v;
+    }
+    delete process.env.UPLOAD_STORAGE_DRIVER;
     delete process.env.STORAGE_DRIVER;
     resetStorageServiceForTests();
+  });
+
+  function setS3Env(partial: Record<string, string>) {
+    for (const key of [
+      "UPLOAD_STORAGE_DRIVER",
+      "STORAGE_DRIVER",
+      "S3_ENDPOINT",
+      "S3_BUCKET",
+      "S3_ACCESS_KEY_ID",
+      "S3_SECRET_ACCESS_KEY",
+      "S3_REGION",
+    ] as const) {
+      if (!(key in s3EnvBackup)) s3EnvBackup[key] = process.env[key];
+    }
+    Object.assign(process.env, partial);
+    resetStorageServiceForTests();
+  }
+
+  it("отклоняет S3 до реализации (STORAGE_DRIVER alias)", () => {
+    setS3Env({
+      STORAGE_DRIVER: "s3",
+      S3_ENDPOINT: "https://s3.example.com",
+      S3_BUCKET: "cyberedu",
+      S3_ACCESS_KEY_ID: "key",
+      S3_SECRET_ACCESS_KEY: "secret",
+      S3_REGION: "us-east-1",
+    });
+    expect(() => getStorageService()).toThrow(/not implemented/i);
+  });
+
+  it("отклоняет S3 при полном env (UPLOAD_STORAGE_DRIVER)", () => {
+    setS3Env({
+      UPLOAD_STORAGE_DRIVER: "s3",
+      S3_ENDPOINT: "https://minio.example:9000",
+      S3_BUCKET: "uploads",
+      S3_ACCESS_KEY_ID: "minio",
+      S3_SECRET_ACCESS_KEY: "minio123",
+      S3_REGION: "us-east-1",
+    });
+    expect(() => getStorageService()).toThrow(/not implemented/i);
+  });
+
+  it("требует S3 env при driver=s3", () => {
+    setS3Env({ UPLOAD_STORAGE_DRIVER: "s3" });
+    expect(missingS3EnvVars().length).toBeGreaterThan(0);
+    expect(() => getStorageService()).toThrow(/S3_ENDPOINT/);
   });
 });

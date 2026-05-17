@@ -96,3 +96,5 @@ npm run test:e2e          # Playwright (нужен running app + seed)
 ## Скриншоты для защиты
 
 Каталог: [`docs/screenshots/`](./docs/screenshots/) — PNG для README (генерация: `cd frontend && npm run screenshots`). См. [`docs/screenshots/README.md`](./docs/screenshots/README.md).
+
+Upload storage (local volume / S3 roadmap): [`docs/STORAGE.md`](./docs/STORAGE.md).

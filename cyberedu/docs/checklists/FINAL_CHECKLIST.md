@@ -37,6 +37,7 @@
 - [ ] Alembic (backend) — схема совместима или миграции применены осознанно
 - [ ] Резервная копия БД настроена (см. DEPLOYMENT.md)
 - [ ] Volumes: `postgres_data`, `frontend_uploads` на persistent disk
+- [ ] **Uploads single-replica**: `UPLOAD_STORAGE_DRIVER=local`; не масштабировать frontend >1 без S3 ([STORAGE.md](../STORAGE.md))
 
 ## 4. DX и качество кода
 

@@ -160,8 +160,10 @@ cd frontend && npm run test -- tests/security-headers.test.ts
 
 ## Файлы и uploads
 
-- Хранение: volume `/app/uploads` (practice, avatars)
+- Хранение: `StorageService` local → volume `/app/uploads` (**single replica**); см. [STORAGE.md](./STORAGE.md)
+- Доступ: только через auth API (не public static dir)
 - Validation: extension allowlist, size cap, magic bytes (`upload-sandbox.ts`)
+- `UPLOAD_STORAGE_DRIVER=s3` — **не реализован** (skeleton only)
 - Download: ownership check + rate limit
 - PDF certificates: server-side generation, no user HTML in PDF path
 

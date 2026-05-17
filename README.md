@@ -152,7 +152,7 @@ info_course/
 | **CSRF** | Origin/Referer + double-submit для mutating `/api/*` |
 | **Rate limiting** | Redis (prod) / in-memory (dev): login, AI, upload, cert verify, admin export |
 | **HTTP headers** | CSP (report-only → enforce), HSTS, X-Frame-Options, Referrer-Policy, Permissions-Policy |
-| **Uploads** | Allowlist расширений, magic bytes, sandbox; volume `/app/uploads` |
+| **Uploads** | Local volume `/app/uploads` (**single replica**); S3 — planned ([`docs/STORAGE.md`](./cyberedu/docs/STORAGE.md)) |
 | **Backend API** | `X-API-Key` (fail closed без ключа) |
 | **Audit** | `SecurityAuditLog`: login, admin export, role change, practice review, AI refusal и др. |
 | **Secrets** | Только runtime env; не в Docker build-args |
@@ -344,7 +344,7 @@ npm run screenshots
 
 | Ограничение | Комментарий |
 |-------------|-------------|
-| **Single-node uploads** | Файлы на local volume; для кластера нужен object storage |
+| **Single-node uploads** | `UPLOAD_STORAGE_DRIVER=local` + volume `frontend_uploads`; multi-replica → S3 ([`docs/STORAGE.md`](./cyberedu/docs/STORAGE.md)) |
 | **JWT sessions** | Без shared store — несколько реплик Next требуют sticky sessions |
 | **AI зависит от внешнего API** | Нужен ключ и сеть; есть graceful degradation при отсутствии ключа |
 | **Доменная логика в Next** | FastAPI пока узкий; не все операции вынесены на backend |
