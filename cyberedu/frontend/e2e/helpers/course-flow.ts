@@ -106,6 +106,42 @@ export async function submitModuleTest(page: Page): Promise<boolean> {
   return true;
 }
 
+/** Первая доступная лекция на карте курса (seed). */
+export async function openFirstLessonPage(page: Page): Promise<void> {
+  await page.goto("/dashboard/course");
+
+  const lessonUrls = await page.evaluate(() =>
+    Array.from(document.querySelectorAll<HTMLAnchorElement>("a[href]"))
+      .map((a) => a.getAttribute("href"))
+      .filter((h): h is string => Boolean(h?.match(/^\/dashboard\/course\/[^/]+\/lesson/))),
+  );
+  if (lessonUrls[0]) {
+    await page.goto(lessonUrls[0]);
+    await expect(page).toHaveURL(/\/dashboard\/course\/[^/]+\/lesson/);
+    return;
+  }
+
+  const continueHref = await page
+    .getByRole("link", { name: /Продолжить обучение/i })
+    .first()
+    .getAttribute("href");
+  const moduleRoot =
+    continueHref?.match(/^(\/dashboard\/course\/[^/]+)/)?.[1] ??
+    (await page.evaluate(() => {
+      const href = Array.from(document.querySelectorAll<HTMLAnchorElement>("a[href]"))
+        .map((a) => a.getAttribute("href"))
+        .find((h) => h?.match(/^\/dashboard\/course\/[^/]+$/));
+      return href ?? null;
+    }));
+
+  if (!moduleRoot) {
+    throw new Error("Lesson: module id not found on course map — check seed");
+  }
+
+  await page.goto(`${moduleRoot}/lesson`);
+  await expect(page).toHaveURL(/\/dashboard\/course\/[^/]+\/lesson/);
+}
+
 export async function openFirstPracticePage(page: Page): Promise<void> {
   await page.goto("/dashboard/course");
   const practiceLink = page.locator('a[href^="/dashboard/course/"][href$="/practice"]').first();

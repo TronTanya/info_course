@@ -1,42 +1,51 @@
-# UX screenshots — placeholder
+# UX screenshots
 
-В этом каталоге **нет готовых изображений** (намеренно: не добавляем фейковые скриншоты в git).
+Реальные снимки интерфейса CyberEdu для README, защиты проекта и онбординга.
 
-## Зачем
+## Автоматическая генерация (рекомендуется)
 
-Снимки для защиты проекта, README и онбординга: показать цельный student flow и админку.
+1. Поднять приложение с seed-данными:
 
-## Требования
+   ```bash
+   cd cyberedu
+   RUN_SEED=1 docker compose up -d postgres
+   cd frontend && npm run db:seed   # при первом запуске
+   npm run build && npm run start
+   ```
 
-- Формат: **PNG** или **WebP**
-- Ширина: **1280–1920 px**
-- Тема: светлая или тёмная — по желанию, но единообразно в наборе
-- **Без** реальных ПДн, email студентов, API-ключей, токенов в URL
+2. Сгенерировать PNG (1280×720, Playwright):
 
-## Какие экраны добавить
+   ```bash
+   cd cyberedu/frontend
+   npm run screenshots
+   ```
 
-| Файл | Экран | Подсказка |
-|------|--------|-----------|
-| `01-landing.png` | **Landing / home** (`/`) | Hero, блоки «как это работает», CTA регистрации |
-| `02-dashboard.png` | **Student dashboard** (`/dashboard`) | Welcome, continue learning, прогресс, сертификат |
-| `03-course.png` | **Course map** (`/dashboard/course`) | Модули, % курса, «следующий шаг» |
-| `04-lesson.png` | **Lesson** (`/dashboard/course/.../lesson`) | Текст лекции, боковая навигация шагов, progress strip |
-| `05-test.png` | **Test** (`/dashboard/course/.../test`) | Вопрос, индикатор «N из M», кнопки навигации |
-| `06-practice.png` | *(опционально)* **Practice** | Лаборатория / форма отправки |
-| `07-admin.png` | **Admin dashboard** (`/admin`) | KPI, быстрые ссылки, статус системы |
+Скрипт: [`e2e/screenshots.spec.ts`](../../frontend/e2e/screenshots.spec.ts) · конфиг: `playwright.screenshots.config.ts`.
 
-Дополнительно (по желанию): `08-certificate.png` (страница сертификата), `09-auth.png` (login).
+Учётные записи — seed/E2E (`E2E_USE_SEED_CREDENTIALS=1`), без production-секретов. Переопределение: `E2E_STUDENT_EMAIL`, `E2E_STUDENT_PASSWORD`, `E2E_ADMIN_*`.
 
-## Как снять
+## Файлы
 
-1. Поднять dev: `cd cyberedu && RUN_SEED=1 docker compose up` (или staging).
-2. Войти как `student@cyberedu.local` / admin — пароль из локального `.env` (не коммитить).
-3. Пройти до нужного экрана; скрыть чувствительные поля в профиле при публикации.
-4. Сохранить файлы в **этот каталог** с именами из таблицы.
-5. В корневом [README.md](../../../README.md) § «Скриншоты» раскомментировать или добавить вставки:
+| Файл | Экран |
+|------|--------|
+| `01-landing.png` | Landing (`/`) |
+| `09-login.png` | Вход (`/auth/login`) |
+| `02-dashboard.png` | Кабинет студента (`/dashboard`) |
+| `03-course.png` | Карта курса (`/dashboard/course`) |
+| `04-lesson.png` | Лекция (`/dashboard/course/…/lesson`) |
+| `05-test.png` | Тест модуля (`/dashboard/course/…/test`) |
+| `07-admin.png` | Админ-панель (`/admin`) |
 
-```markdown
-![Student dashboard](./cyberedu/docs/screenshots/02-dashboard.png)
-```
+Опционально вручную: `06-practice.png`, `08-certificate.png`.
 
-Полное operations-руководство: [../OPERATIONS.md](../OPERATIONS.md#ux-screenshots-placeholder).
+## Требования к публикации
+
+- Формат PNG или WebP, ширина 1280–1920 px
+- Без реальных ПДн, API-ключей и секретов в URL
+- Единая тема (светлая/тёмная) в наборе
+
+## Ручная съёмка
+
+Если Playwright недоступен: войдите как `student@cyberedu.local` / `admin@cyberedu.local` (пароль из локального `.env`, не коммитить), пройдите экраны из таблицы и сохраните файлы с теми же именами.
+
+Подробнее: [../OPERATIONS.md](../OPERATIONS.md#ux-screenshots).

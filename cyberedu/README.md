@@ -95,4 +95,4 @@ npm run test:e2e          # Playwright (нужен running app + seed)
 
 ## Скриншоты для защиты
 
-Каталог: [`docs/screenshots/`](./docs/screenshots/) — **placeholder** (файлов пока нет). Какие экраны снять: landing, dashboard, course, lesson, test, admin — см. [`docs/screenshots/README.md`](./docs/screenshots/README.md).
+Каталог: [`docs/screenshots/`](./docs/screenshots/) — PNG для README (генерация: `cd frontend && npm run screenshots`). См. [`docs/screenshots/README.md`](./docs/screenshots/README.md).

@@ -4,7 +4,7 @@
 
 | Документ | Содержание |
 |----------|------------|
-| **[OPERATIONS.md](./OPERATIONS.md)** | Production checklist, go-live, troubleshooting, UX screenshots placeholder |
+| **[OPERATIONS.md](./OPERATIONS.md)** | Production checklist, go-live, troubleshooting, UX screenshots |
 | [checklists/DEPLOYMENT_CHECKLIST.md](./checklists/DEPLOYMENT_CHECKLIST.md) | Краткий чеклист деплоя |
 | [checklists/FINAL_CHECKLIST.md](./checklists/FINAL_CHECKLIST.md) | Полный pre-production |
 

@@ -270,7 +270,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.production up -d --bui
 | Production checklist | Env vars, PostgreSQL, Redis, migrations, seed policy, Docker Compose, healthcheck, backups |
 | Go-live checklist | CI green, prod e2e, Redis, rate limit, admin user, secrets, uploads, logs |
 | Troubleshooting | Redis, Prisma, login/session, rate limit, uploads, AI |
-| UX screenshots | Placeholder — какие экраны снять (без фейковых файлов) |
+| UX screenshots | `npm run screenshots` → `cyberedu/docs/screenshots/` |
 
 Дополнительно: [`cyberedu/docs/checklists/FINAL_CHECKLIST.md`](./cyberedu/docs/checklists/FINAL_CHECKLIST.md)
 
@@ -286,28 +286,39 @@ npm run test:e2e:prod:local   # migrate, seed (e2e only), playwright
 
 ---
 
-## 11. Скриншоты (placeholder)
+## 11. Скриншоты
 
-**Готовых изображений в git нет** — не добавляйте фейковые скриншоты.
+Каталог: [`cyberedu/docs/screenshots/`](./cyberedu/docs/screenshots/) — PNG генерируются Playwright из seed-учёток (без production-секретов).
 
-Снимите реальные экраны и положите в [`cyberedu/docs/screenshots/`](./cyberedu/docs/screenshots/):
+```bash
+cd cyberedu/frontend
+# приложение на :3100 + seed
+npm run screenshots
+```
 
 | Файл | Экран |
 |------|--------|
-| `01-landing.png` | Landing / home |
+| `01-landing.png` | Landing |
+| `09-login.png` | Login |
 | `02-dashboard.png` | Student dashboard |
 | `03-course.png` | Course map |
 | `04-lesson.png` | Lesson |
 | `05-test.png` | Module test |
 | `07-admin.png` | Admin dashboard |
 
-Инструкция: [`cyberedu/docs/screenshots/README.md`](./cyberedu/docs/screenshots/README.md) · [`cyberedu/docs/OPERATIONS.md`](./cyberedu/docs/OPERATIONS.md#ux-screenshots-placeholder)
+![Landing](./cyberedu/docs/screenshots/01-landing.png)
 
-Пример вставки после добавления файла:
-
-```markdown
 ![Student dashboard](./cyberedu/docs/screenshots/02-dashboard.png)
-```
+
+![Course map](./cyberedu/docs/screenshots/03-course.png)
+
+![Lesson](./cyberedu/docs/screenshots/04-lesson.png)
+
+![Module test](./cyberedu/docs/screenshots/05-test.png)
+
+![Admin dashboard](./cyberedu/docs/screenshots/07-admin.png)
+
+Инструкция: [`cyberedu/docs/screenshots/README.md`](./cyberedu/docs/screenshots/README.md) · [`cyberedu/docs/OPERATIONS.md`](./cyberedu/docs/OPERATIONS.md#ux-screenshots)
 
 Бренд-активы (SVG): [`cyberedu/frontend/public/brand/`](./cyberedu/frontend/public/brand/)
 

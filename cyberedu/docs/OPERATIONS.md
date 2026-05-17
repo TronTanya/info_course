@@ -306,33 +306,33 @@ Server Actions должны идти через `enforceServerActionRateLimit` (
 
 ---
 
-## UX screenshots (placeholder)
+## UX screenshots
 
-Реальные скриншоты в репозиторий **не включены** — не используйте фейковые изображения.
+Каталог: [`screenshots/`](./screenshots/). Файлы в git — PNG 1280×720, **без PII** и секретов.
 
-### Куда класть файлы
+### Автогенерация
 
-Каталог: [`screenshots/`](./screenshots/). Формат: PNG или WebP, ширина 1280–1920 px, **без PII** и секретов.
-
-### Какие экраны снять
-
-| Файл (пример) | Экран | Что должно быть видно |
-|---------------|--------|------------------------|
-| `01-landing.png` | **Landing / home** | Hero, CTA «Начать», навигация |
-| `02-dashboard.png` | **Student dashboard** | Приветствие, «Продолжить обучение», прогресс, ближайшие задания |
-| `03-course.png` | **Course map** | Траектория модулей, % курса, CTA к текущему модулю |
-| `04-lesson.png` | **Lesson** | Контент лекции, sidebar/steps, прогресс модуля |
-| `05-test.png` | **Test** | Вопрос, progress bar, навигация по вопросам |
-| `06-practice.png` | *(опционально)* | Практика / SOC lab |
-| `07-admin.png` | **Admin dashboard** | KPI, быстрые действия, статус системы |
-
-### Вставка в README после съёмки
-
-```markdown
-![Student dashboard](./cyberedu/docs/screenshots/02-dashboard.png)
+```bash
+cd cyberedu/frontend
+npm run build && npm run start    # :3100, seed
+npm run screenshots
 ```
 
-Инструкция для авторов: [screenshots/README.md](./screenshots/README.md).
+Playwright: `e2e/screenshots.spec.ts`, учётки `E2E_USE_SEED_CREDENTIALS` / seed defaults.
+
+### Набор файлов
+
+| Файл | Экран |
+|------|--------|
+| `01-landing.png` | Landing / home |
+| `09-login.png` | Login |
+| `02-dashboard.png` | Student dashboard |
+| `03-course.png` | Course map |
+| `04-lesson.png` | Lesson |
+| `05-test.png` | Module test |
+| `07-admin.png` | Admin dashboard |
+
+Ручная съёмка и опциональные кадры: [screenshots/README.md](./screenshots/README.md).
 
 ---
 
