@@ -51,8 +51,8 @@
 
 | Зона | Лимит (ориентир) | Реализация |
 |------|------------------|------------|
-| Login (authorize) | 25 / 15 min / IP | `checkLoginRateLimit` в `lib/auth.ts` → Redis |
-| Credentials callback | 20 / 15 min / IP | `middleware.ts` → `applyMiddlewareRateLimit` → Redis |
+| Login (authorize) | 25 / 15 min / IP | `checkLoginRateLimit` + `checkCredentialsCallbackRateLimit` в `lib/auth.ts` → Redis |
+| Credentials callback | 20 / 15 min / IP | Тот же путь в `authorize()` (Node.js + Redis; не Edge middleware) |
 | Register | 8 / IP·час, 5 / email·сутки | `registerAction` → Redis |
 | AI chat / lesson adapt | 60 / 40 per hour / user | **`withApiGuard` only** (без дубля в middleware) |
 | Certificate verify | 40 / 15 min / IP | page + Redis |
@@ -218,6 +218,24 @@ cd frontend && npm run test -- tests/security-headers.test.ts
 | **C1** | Публичный `GET /api/v1/course-progress` (ПДн) | `deps_auth.require_internal_api_key`: **всегда** `X-API-Key`; иначе 401. `/api/v1/health` без ключа. |
 | **C2** | Порты БД/API/pgAdmin на всех интерфейсах | Dev compose: `127.0.0.1:*`. Prod: internal network, наружу только Nginx 80/443. |
 | **C3** | Seed при каждом старте frontend | `RUN_SEED=1` только явно; prod — `docker-entrypoint.prod.sh` без seed. |
+
+## Автоматические тесты (Vitest)
+
+Перед релизом: `cd cyberedu/frontend && npm test` (или `npm run test:security` для security-фокуса).
+
+| Область | Файлы |
+|---------|--------|
+| CSRF negative (Origin/Referer, middleware 403) | `tests/security-csrf.test.ts`, `tests/security-suite.test.ts` |
+| RBAC: USER не в `/admin`, unauthenticated → login | `tests/security-rbac.test.ts` |
+| Upload validation (sandbox + practice API) | `tests/security-upload.test.ts`, `tests/practice-files.test.ts` |
+| Rate limit (prod fail-closed, Server Actions) | `tests/rate-limit-service.test.ts`, `tests/server-action-rate-limit.test.ts`, `tests/submit-actions-rate-limit.test.ts`, `tests/security-submit-production.test.ts` |
+| Certificate verify rate limit + safe copy | `tests/security-certificate-verify.test.ts` |
+| AI safety (без готовых ответов теста/практики) | `tests/security-ai-tutor.test.ts`, `tests/tutor-prompt-injection.test.ts` |
+| Контракты в коде (regression) | `tests/security-suite.test.ts` |
+
+Интеграция Redis (опционально, нужен живой Redis): `npm run test:rate-limit:redis`.
+
+E2E (Playwright, не Vitest): `npm run test:e2e`, production-like — `npm run test:e2e:prod` ([OPERATIONS.md](./OPERATIONS.md)).
 
 ## Известные риски
 

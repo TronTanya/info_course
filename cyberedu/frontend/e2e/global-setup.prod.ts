@@ -1,5 +1,21 @@
+import { execSync } from "node:child_process";
+import { config as loadEnv } from "dotenv";
 import { request } from "@playwright/test";
 import { getE2eCredentials } from "./test-credentials";
+
+/** DATABASE_URL и прочее из `frontend/.env` (нужно для persistence-check в prod-smoke). */
+loadEnv({ path: ".env", quiet: true });
+
+const frontendRoot = process.cwd();
+
+/** Сброс rate-limit перед prod-smoke (повторные прогоны). Только для изолированного Redis (CI / локальный e2e). */
+function clearRateLimitKeys(redisUrl: string): void {
+  execSync("node scripts/redis-flush-e2e.mjs", {
+    cwd: frontendRoot,
+    env: { ...process.env, REDIS_URL: redisUrl },
+    stdio: "inherit",
+  });
+}
 
 async function globalSetup(): Promise<void> {
   if (process.env.E2E_PRODUCTION_SMOKE !== "1") {
@@ -41,6 +57,9 @@ async function globalSetup(): Promise<void> {
       `prod E2E: redis check=${body.checks?.redis} (ожидался ok — rate limit fail-closed без Redis)`,
     );
   }
+
+  const redisUrl = process.env.REDIS_URL!.trim();
+  clearRateLimitKeys(redisUrl);
 
   getE2eCredentials("student");
 

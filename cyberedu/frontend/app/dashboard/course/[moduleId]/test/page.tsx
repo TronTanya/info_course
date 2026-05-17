@@ -7,10 +7,10 @@ import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { StudentPageHeader } from "@/components/layout/student-page-header";
 import { LearnPageShell } from "@/components/learn/learn-chrome";
 import { ModuleTestRunner } from "@/components/test/module-test-runner";
+import { AppPageShell } from "@/components/ui/page-shell";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { moduleStepBreadcrumbs } from "@/lib/student-nav";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
 type Props = { params: Promise<{ moduleId: string }> };
 
 /** Перемешивание вариантов на сервере (без isCorrect — порядок из БД не подсказывает «правильный» индекс). */
@@ -51,22 +51,27 @@ export default async function TestPage({ params }: Props) {
     const isCourseLevel = gate.code === "MODULE_INACTIVE" || gate.code === "MODULE_LOCKED";
     return (
       <DashboardShell>
-        <div className="mx-auto max-w-lg space-y-4">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Тест · {mod?.title ?? "модуль"}</h1>
-          <Card>
-            <CardHeader>
-              <CardTitle>Шаг недоступен</CardTitle>
-              <CardDescription>{gate.message}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild variant="primary">
-                <Link href={isCourseLevel ? courseHref : lessonHref}>
-                  {isCourseLevel ? "К списку модулей" : "Перейти к лекции"}
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+        <LearnPageShell>
+          <AppPageShell width="narrow">
+            <StudentPageHeader
+              eyebrow="Assessment"
+              title={`Тест · ${mod?.title ?? "модуль"}`}
+              backHref={isCourseLevel ? courseHref : lessonHref}
+              backLabel={isCourseLevel ? "← К курсу" : "← К лекции"}
+            />
+            <EmptyState
+              title="Шаг недоступен"
+              description={gate.message}
+              action={
+                <Button asChild variant="primary">
+                  <Link href={isCourseLevel ? courseHref : lessonHref}>
+                    {isCourseLevel ? "К списку модулей" : "Перейти к лекции"}
+                  </Link>
+                </Button>
+              }
+            />
+          </AppPageShell>
+        </LearnPageShell>
       </DashboardShell>
     );
   }
@@ -107,12 +112,30 @@ export default async function TestPage({ params }: Props) {
   if (tests.length === 0) {
     return (
       <DashboardShell>
-        <div className="space-y-4">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Тест · {mod?.title ?? "модуль"}</h1>
-          <Card>
-            <CardContent className="py-8 text-sm text-muted-foreground">Для этого модуля пока не добавлен контрольный тест.</CardContent>
-          </Card>
-        </div>
+        <LearnPageShell>
+          <AppPageShell>
+            <StudentPageHeader
+              breadcrumbItems={
+                mod?.orderNumber != null
+                  ? moduleStepBreadcrumbs(moduleId, mod.orderNumber, "Тест")
+                  : undefined
+              }
+              eyebrow="Assessment"
+              title={`Тест · ${mod?.title ?? "модуль"}`}
+              backHref={`/dashboard/course/${moduleId}`}
+              backLabel="← К модулю"
+            />
+            <EmptyState
+              title="Тест ещё не готов"
+              description="Для этого модуля пока не добавлен контрольный тест. Вернитесь к карте курса или к лекции."
+              action={
+                <Button asChild variant="outline">
+                  <Link href={`/dashboard/course/${moduleId}`}>К модулю</Link>
+                </Button>
+              }
+            />
+          </AppPageShell>
+        </LearnPageShell>
       </DashboardShell>
     );
   }

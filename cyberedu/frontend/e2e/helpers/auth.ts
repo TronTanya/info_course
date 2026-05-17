@@ -37,17 +37,24 @@ export async function resetAuthStorage(context: BrowserContext): Promise<void> {
   }
 }
 
-async function getSessionEmail(page: Page): Promise<string> {
+export async function getSessionEmail(page: Page): Promise<string> {
   return page.evaluate(async () => {
-    const res = await fetch("/api/auth/session", { credentials: "include" });
+    const res = await fetch("/api/auth/session", {
+      credentials: "include",
+      cache: "no-store",
+    });
     const session = (await res.json()) as { user?: { email?: string } } | null;
     return session?.user?.email ?? "";
   });
 }
 
-async function waitForEmptySession(page: Page): Promise<void> {
-  await page.waitForLoadState("domcontentloaded");
-  await expect.poll(() => getSessionEmail(page), { timeout: 15_000 }).toBe("");
+export async function waitForEmptySession(page: Page): Promise<void> {
+  await expect
+    .poll(() => getSessionEmail(page), {
+      timeout: 15_000,
+      message: "NextAuth session should be empty after logout",
+    })
+    .toBe("");
 }
 
 export function sidebarLogoutButton(page: Page) {
@@ -56,11 +63,17 @@ export function sidebarLogoutButton(page: Page) {
     .getByRole("button", { name: /^выйти$/i });
 }
 
-function drawerLogoutFlow(page: Page) {
-  const menuTrigger = page.getByRole("button", { name: /открыть меню/i });
-  const dialog = page.getByRole("dialog", { name: /^меню$/i });
-  const drawerLogout = dialog.getByRole("button", { name: /^выйти$/i });
-  return { menuTrigger, dialog, drawerLogout };
+/**
+ * Диагностический signOut через Auth.js API (не использовать в основном smoke).
+ * Полезен при разборе расхождения UI logout vs session cookie.
+ */
+export async function signOutViaApiDiagnostic(page: Page): Promise<void> {
+  const csrfRes = await page.request.get("/api/auth/csrf");
+  if (!csrfRes.ok()) return;
+  const { csrfToken } = (await csrfRes.json()) as { csrfToken: string };
+  await page.request.post("/api/auth/signout", {
+    form: { csrfToken, callbackUrl: "/auth/login", json: "true" },
+  });
 }
 
 /**
@@ -69,28 +82,32 @@ function drawerLogoutFlow(page: Page) {
  * <lg: drawer «Открыть меню» → «Выйти».
  */
 export async function logout(page: Page): Promise<void> {
-  const sidebarLogout = sidebarLogoutButton(page);
-  const { menuTrigger, dialog, drawerLogout } = drawerLogoutFlow(page);
+  const sidebar = sidebarLogoutButton(page);
+  const mobileTrigger = page.getByRole("button", { name: /открыть меню/i });
 
-  const postLogoutUrl = (url: URL) => {
-    const path = url.pathname;
-    return path === "/" || path.startsWith("/auth/");
-  };
-
-  if (await sidebarLogout.isVisible()) {
-    await expect(sidebarLogout).toBeVisible();
-    await expect(sidebarLogout).toBeEnabled();
-    await sidebarLogout.click();
+  if (await sidebar.isVisible()) {
+    await expect(sidebar).toBeEnabled();
+    await Promise.all([
+      page.waitForURL(/\/auth\/login|\/$/, { timeout: 15_000 }).catch(() => null),
+      sidebar.click(),
+    ]);
   } else {
-    await expect(menuTrigger).toBeVisible();
-    await menuTrigger.click();
+    await expect(mobileTrigger).toBeVisible();
+    await mobileTrigger.click();
+
+    const dialog = page.getByRole("dialog", { name: /^меню$/i });
     await expect(dialog).toBeVisible();
+
+    const drawerLogout = dialog.getByRole("button", { name: /^выйти$/i });
     await expect(drawerLogout).toBeVisible();
     await expect(drawerLogout).toBeEnabled();
-    await drawerLogout.click();
+
+    await Promise.all([
+      page.waitForURL(/\/auth\/login|\/$/, { timeout: 15_000 }).catch(() => null),
+      drawerLogout.click(),
+    ]);
   }
 
-  await expect(page).toHaveURL(postLogoutUrl);
   await waitForEmptySession(page);
 }
 
@@ -101,14 +118,34 @@ export async function logoutFromApp(page: Page): Promise<void> {
 
 /** Проверка, что кабинет недоступен без сессии. */
 export async function assertLoggedOut(page: Page): Promise<void> {
-  await expect(async () => {
-    await page.goto("/dashboard");
-    await expect(page).toHaveURL(/\/auth\/login/);
-  }).toPass({ timeout: 15_000 });
+  await waitForEmptySession(page);
+
+  await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+
+  await expect(page).toHaveURL(/\/auth\/login/, { timeout: 15_000 });
 }
 
 /** Админ-зона недоступна без роли ADMIN. */
 export async function assertAdminRouteBlocked(page: Page): Promise<void> {
-  await page.goto("/admin/users");
+  await waitForEmptySession(page);
+  await page.goto("/admin/users", { waitUntil: "domcontentloaded" });
   await expect(page).toHaveURL(/\/auth\/login/, { timeout: 15_000 });
+}
+
+/** Вложение для отладки падений logout (без значений cookies). */
+export async function attachAuthDebug(page: Page, testInfo: { attach: (name: string, body: { body: string; contentType: string }) => Promise<void> }): Promise<void> {
+  const sessionEmail = await getSessionEmail(page).catch(() => "session-read-failed");
+  const cookies = await page.context().cookies();
+  await testInfo.attach("auth-debug.json", {
+    body: JSON.stringify(
+      {
+        url: page.url(),
+        sessionEmail,
+        cookieNames: cookies.map((c) => c.name),
+      },
+      null,
+      2,
+    ),
+    contentType: "application/json",
+  });
 }

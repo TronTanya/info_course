@@ -67,11 +67,11 @@ export function LandingHero() {
           <div className="space-y-4">
             <h1 id="hero-heading" className="typo-h1 flex flex-wrap items-center gap-3 text-balance sm:text-5xl">
               <BrandLogoMark className="size-12 shrink-0 sm:size-14" size={56} />
-              <span className="ce-text-shimmer">Учитесь защищать данные — шаг за шагом</span>
+              <span className="ce-text-shimmer">Платформа для обучения информационной безопасности</span>
             </h1>
             <p className="max-w-xl text-pretty text-lg font-medium leading-relaxed text-foreground sm:text-xl">
-              CyberEdu — интерактивная платформа: модули, тесты, практические лаборатории и сертификат с проверкой
-              подлинности.
+              CyberEdu — интерактивный курс: модули и лекции, тесты, практические лаборатории, AI-наставник и сертификат с
+              проверкой подлинности.
             </p>
             <p className="max-w-lg text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
               Без хаоса в материалах и без «хакерского» шума: структура, прогресс и поддержка AI там, где вы учитесь.
@@ -83,6 +83,9 @@ export function LandingHero() {
               <Link href="/auth/register">Начать обучение</Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="w-full border-primary/30 bg-card/85 sm:w-auto">
+              <Link href="/auth/login">Войти</Link>
+            </Button>
+            <Button asChild size="lg" variant="ghost" className="w-full sm:w-auto">
               <Link href="/#program">Смотреть программу</Link>
             </Button>
           </div>

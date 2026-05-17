@@ -7,10 +7,12 @@ import type { ClientTestQuestion, SubmittedAnswerPayload } from "@/lib/test-grad
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormFeedback } from "@/components/ui/form-feedback";
+import { PendingBanner } from "@/components/ui/pending-banner";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { useToast } from "@/components/ui/toast";
 import { LearnEnter } from "@/components/learn/learn-chrome";
 import { useFormDraft } from "@/lib/hooks/use-form-draft";
+import { formatUserFacingError } from "@/lib/ux/format-user-error";
 import { cn } from "@/lib/utils";
 import type { QuestionType } from "@prisma/client";
 
@@ -137,7 +139,7 @@ export function ModuleTestRunner({ moduleId, testId, title, minScore, questions,
     startTransition(async () => {
       const res = await submitTestAttemptAction({ moduleId, testId, answers: payload });
       if (!res.ok) {
-        setError(res.error);
+        setError(formatUserFacingError(res.error));
         return;
       }
       clearDraft();
@@ -279,7 +281,14 @@ export function ModuleTestRunner({ moduleId, testId, title, minScore, questions,
         <ProgressBar label={`Вопрос ${idx + 1} из ${total}`} value={idx + 1} max={total} />
       </CardHeader>
       <CardContent className="space-y-6">
-        <FormFeedback message={error} />
+        {pending ? <PendingBanner label="Проверка ответов на сервере…" /> : null}
+        <fieldset disabled={pending} className="space-y-6 border-0 p-0 m-0 min-w-0">
+        <FormFeedback id="test-form-error" message={error} />
+        {isDraftDirty ? (
+          <p className="text-xs text-muted-foreground" role="note">
+            Черновик сохраняется автоматически. При уходе со страницы браузер может запросить подтверждение.
+          </p>
+        ) : null}
 
         <div>
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Вопрос {idx + 1}</p>
@@ -287,9 +296,10 @@ export function ModuleTestRunner({ moduleId, testId, title, minScore, questions,
         </div>
 
         {q.questionType === "TEXT" ? (
-          <label className="block space-y-2 text-sm">
+          <label className="block space-y-2 text-sm" htmlFor={`test-answer-${q.id}`}>
             <span className="font-medium text-foreground">Ваш ответ</span>
             <textarea
+              id={`test-answer-${q.id}`}
               className={cn(
                 "min-h-[120px] w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-card-foreground shadow-sm",
                 "placeholder:text-muted-foreground/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -298,6 +308,8 @@ export function ModuleTestRunner({ moduleId, testId, title, minScore, questions,
               onChange={(e) => setLocal((p) => ({ ...p, text: { ...p.text, [q.id]: e.target.value } }))}
               rows={5}
               maxLength={8000}
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? "test-form-error" : undefined}
             />
           </label>
         ) : q.questionType === "MULTIPLE_CHOICE" || q.questionType === "MATCHING" ? (
@@ -352,9 +364,10 @@ export function ModuleTestRunner({ moduleId, testId, title, minScore, questions,
               className="w-full min-h-11 sm:w-auto"
               loading={pending}
               disabled={!filledAll || pending}
+              aria-busy={pending}
               onClick={() => submit()}
             >
-              Завершить тест
+              {pending ? "Отправка…" : "Завершить тест"}
             </Button>
           </div>
         </div>
@@ -364,6 +377,7 @@ export function ModuleTestRunner({ moduleId, testId, title, minScore, questions,
             Прогресс по ответам: <span className="font-semibold tabular-nums text-foreground">{questions.filter((qq) => isQuestionFilled(qq, local)).length}</span> / {total}
           </p>
         </div>
+        </fieldset>
       </CardContent>
     </Card>
     </LearnEnter>

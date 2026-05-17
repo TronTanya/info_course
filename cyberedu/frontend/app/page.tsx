@@ -8,6 +8,8 @@ import { LandingFaq } from "@/components/home/landing-faq";
 import { LandingHero } from "@/components/home/landing-hero";
 import { LandingHowItWorks } from "@/components/home/landing-how-it-works";
 import { LandingPracticeShowcase } from "@/components/home/landing-practice-showcase";
+import { LandingProduction } from "@/components/home/landing-production";
+import { LandingScreenshotsPreview } from "@/components/home/landing-screenshots-preview";
 import { LandingWhy } from "@/components/home/landing-why";
 import { MarketingShell } from "@/components/layout/marketing-shell";
 import { buildPublicMetadata } from "@/lib/seo/build-page-metadata";
@@ -53,6 +55,12 @@ export default function HomePage() {
         </ScrollReveal>
         <ScrollReveal delay={0.05}>
           <LandingAudience />
+        </ScrollReveal>
+        <ScrollReveal delay={0.05}>
+          <LandingProduction />
+        </ScrollReveal>
+        <ScrollReveal delay={0.04}>
+          <LandingScreenshotsPreview />
         </ScrollReveal>
         <ScrollReveal delay={0.04}>
           <LandingFaq />

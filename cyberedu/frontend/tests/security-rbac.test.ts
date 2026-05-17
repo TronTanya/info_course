@@ -28,10 +28,6 @@ vi.mock("@/lib/auth", () => ({
   auth: vi.fn(),
 }));
 
-vi.mock("@/lib/security/middleware-rate-limit", () => ({
-  applyMiddlewareRateLimit: vi.fn().mockResolvedValue(null),
-}));
-
 vi.mock("next-auth/jwt", () => ({
   getToken: vi.fn(),
 }));

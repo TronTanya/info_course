@@ -71,10 +71,6 @@ describe("security/csrf (Origin/Referer for /api/*)", () => {
   });
 });
 
-vi.mock("@/lib/security/middleware-rate-limit", () => ({
-  applyMiddlewareRateLimit: vi.fn().mockResolvedValue(null),
-}));
-
 vi.mock("next-auth/jwt", () => ({
   getToken: vi.fn().mockResolvedValue(null),
 }));

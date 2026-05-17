@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { DashboardAiHint } from "@/components/dashboard/dashboard-ai-hint";
 import { DashboardAchievementsPreview } from "@/components/dashboard/dashboard-achievements-preview";
 import { DashboardCertificateProgress } from "@/components/dashboard/dashboard-certificate-progress";
 import { DashboardContinueLearning } from "@/components/dashboard/dashboard-continue-learning";
@@ -10,7 +11,9 @@ import { DashboardProgressOverview } from "@/components/dashboard/dashboard-prog
 import { DashboardRecentActivity } from "@/components/dashboard/dashboard-recent-activity";
 import { DashboardRoadmap } from "@/components/dashboard/dashboard-roadmap";
 import { DashboardUpcomingTasks } from "@/components/dashboard/dashboard-upcoming-tasks";
+import { LearningJourneyStrip } from "@/components/learn/learning-journey-strip";
 import { DashboardWelcome } from "@/components/dashboard/dashboard-welcome";
+import { inferLearningJourneyStep } from "@/lib/learning-journey";
 import type { AchievementRow } from "@/lib/achievements";
 import {
   buildRecentActivities,
@@ -59,7 +62,11 @@ export function DashboardHome({
     >
       <DashboardWelcome displayName={displayName} stats={stats} modules={modules} />
 
+      <LearningJourneyStrip current={inferLearningJourneyStep(stats, modules)} />
+
       <DashboardContinueLearning stats={stats} modules={modules} />
+
+      <DashboardAiHint />
 
       <DashboardProgressOverview
         stats={stats}

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { CourseModuleCard } from "@/components/course/course-module-card";
 import { CoursePathNav } from "@/components/course/course-path-nav";
+import { LearningJourneyStrip } from "@/components/learn/learning-journey-strip";
+import { inferLearningJourneyFromCourse } from "@/lib/learning-journey";
 import { CourseTrajectoryAnimated } from "@/components/course/course-trajectory-animated";
 import { findFocusModule, getContinueFromModules } from "@/lib/dashboard-ui";
 import type { CourseProgressModuleRow, UserCourseProgressResult } from "@/lib/progress";
@@ -110,6 +112,8 @@ export function CourseLearningPath({ data }: { data: UserCourseProgressResult })
   return (
     <div className="space-y-7 overflow-x-hidden lg:space-y-9">
       <CoursePathNav />
+
+      <LearningJourneyStrip current={inferLearningJourneyFromCourse(data)} compact />
 
       <section className="ce-user-profile-hero hero-glow p-5 sm:p-7 lg:p-8">
         <div className="ce-user-profile-hero-blob" aria-hidden />

@@ -354,7 +354,31 @@ npm run screenshots
 
 ---
 
-## 14. Security disclaimer
+## 14. Тесты и staging smoke
+
+```bash
+cd cyberedu/frontend
+npm run lint && npm run typecheck && npm test    # Vitest (в т.ч. security)
+npm run test:security                            # только security-фокус
+npm run test:e2e                                 # Playwright dev (app + seed)
+```
+
+**Production-like** (Redis + `ENVIRONMENT=production`):
+
+```bash
+cd cyberedu && docker compose up -d postgres redis
+cd frontend && REDIS_URL=redis://127.0.0.1:6379 npm run test:e2e:prod
+# или полный цикл:
+cd frontend && npm run smoke:staging:local
+# или:
+cd cyberedu && CHECK_REDIS=1 BASE_URL=http://127.0.0.1:3100 ./scripts/staging-smoke.sh
+```
+
+Карта security-тестов: [`cyberedu/docs/SECURITY.md`](./cyberedu/docs/SECURITY.md#автоматические-тесты-vitest).
+
+---
+
+## 15. Security disclaimer
 
 1. **CyberEdu — учебный проект.** Не используйте демо-конфигурацию, дефолтные секреты из примеров `.env.example` или seed-учётки в открытых сетях и production.
 2. **Не развёртывайте** с `RUN_SEED=1` или `ENVIRONMENT=development` на публичном VPS.

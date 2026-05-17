@@ -9,6 +9,7 @@ import { AiMentorChat } from "@/components/ai/AiMentorChat";
 import { LearningLayout } from "@/components/learn/learning-layout";
 import { LearnPageHeader } from "@/components/learn/learn-chrome";
 import { LessonCompletionPanel } from "@/components/lesson/lesson-completion-panel";
+import { LearningCallout } from "@/components/learn/learning-callout";
 import { LessonStickyTabs } from "@/components/lesson/lesson-sticky-tabs";
 import { extractLessonGlossary, LessonStructuredText } from "@/components/lesson/lesson-structured-text";
 import { Button } from "@/components/ui/button";
@@ -247,7 +248,7 @@ export function LessonPageClient({
             <div>
               <CardTitle className="typo-h3">AI</CardTitle>
               <CardDescription className="typo-caption leading-relaxed">
-                Объяснения и конспект не перезаписывают исходник лекции.
+                Объяснить тему, дать подсказку или разобрать ошибку — без готовых ответов на тесты.
               </CardDescription>
             </div>
           </div>
@@ -350,6 +351,16 @@ export function LessonPageClient({
             {error}
           </p>
         ) : null}
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <LearningCallout variant="info" title="Что вы узнаете" label="Цель">
+            Пройдите материал лекции, при необходимости упростите объяснение через AI и отметьте изучение перед тестом
+            модуля.
+          </LearningCallout>
+          <LearningCallout variant="success" title="Проверь себя" label="Дальше">
+            После лекции — модульный тест. AI-наставник не подсказывает правильные варианты, только помогает понять тему.
+          </LearningCallout>
+        </div>
 
         <div className="relative min-w-0">
           {aiBusy ? (

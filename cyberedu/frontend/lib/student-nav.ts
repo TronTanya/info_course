@@ -21,3 +21,11 @@ export function dashboardSectionBreadcrumbs(currentLabel: string): BreadcrumbIte
     { label: currentLabel },
   ];
 }
+
+/** Кабинет → курс → модуль → практика (единый стиль с уроком/тестом). */
+export function practiceStepBreadcrumbs(
+  moduleId: string,
+  moduleOrderNumber: number,
+): BreadcrumbItem[] {
+  return moduleStepBreadcrumbs(moduleId, moduleOrderNumber, "Практика");
+}

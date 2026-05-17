@@ -16,7 +16,8 @@ cd "$FRONTEND"
 
 export ENVIRONMENT="${ENVIRONMENT:-production}"
 export E2E_PRODUCTION_SMOKE=1
-export DATABASE_URL="${DATABASE_URL:-postgresql://cyberedu:cyberedu_password@127.0.0.1:5432/cyberedu?schema=public}"
+# dev compose maps Postgres to host :15432 (see docker-compose.yml)
+export DATABASE_URL="${DATABASE_URL:-postgresql://cyberedu:cyberedu_dev_password@127.0.0.1:15432/cyberedu?schema=public}"
 export REDIS_URL="${REDIS_URL:-redis://127.0.0.1:6379}"
 export AUTH_SECRET="${AUTH_SECRET:-local-e2e-prod-auth-secret-minimum-32-chars}"
 export NEXTAUTH_SECRET="${NEXTAUTH_SECRET:-$AUTH_SECRET}"

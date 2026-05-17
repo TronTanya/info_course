@@ -5,7 +5,13 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3100";
 export default defineConfig({
   testDir: ".",
   testMatch: ["tests/e2e/**/*.spec.ts"],
-  testIgnore: ["tests/prod-smoke/**/*.spec.ts", "**/*.prod.spec.ts"],
+  testIgnore: [
+    "tests/prod-smoke/**/*.spec.ts",
+    "**/*.prod.spec.ts",
+    "**/.next/**",
+    "**/node_modules/**",
+    "**/e2e-results/**",
+  ],
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
@@ -31,6 +37,14 @@ export default defineConfig({
       testMatch: ["tests/e2e/**/*.spec.ts"],
       use: {
         viewport: { width: 1280, height: 720 },
+      },
+    },
+    {
+      name: "mobile",
+      testMatch: ["tests/e2e/**/*.spec.ts"],
+      use: {
+        ...devices["iPhone 13"],
+        viewport: { width: 390, height: 844 },
       },
     },
   ],

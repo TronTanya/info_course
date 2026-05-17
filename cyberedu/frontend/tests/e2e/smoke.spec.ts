@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import {
   assertAdminRouteBlocked,
   assertLoggedOut,
+  attachAuthDebug,
   loginAs,
   logout,
   resetAuthStorage,
@@ -67,6 +68,17 @@ test.describe("CyberEdu smoke", () => {
       await resetAuthStorage(context);
     });
 
+    test.afterEach(async ({ page }, testInfo) => {
+      if (testInfo.status !== testInfo.expectedStatus) {
+        await attachAuthDebug(page, testInfo);
+        const screenshot = await page.screenshot();
+        await testInfo.attach("logout-failure.png", {
+          body: screenshot,
+          contentType: "image/png",
+        });
+      }
+    });
+
     test("5b. student logout", async ({ page }) => {
       await loginAs(page, "student");
       await logout(page);
@@ -77,7 +89,10 @@ test.describe("CyberEdu smoke", () => {
       await loginAs(page, "admin");
       await page.goto("/admin/users");
       await expect(page.getByRole("heading", { name: "Пользователи" })).toBeVisible();
-      await page.getByPlaceholder(/ФИО, email/i).fill("admin@cyberedu.local");
+      await page
+        .locator("#main-content")
+        .getByRole("searchbox", { name: /ФИО, email/i })
+        .fill("admin@cyberedu.local");
       await expect(page.getByRole("row", { name: /admin@cyberedu\.local/i })).toBeVisible();
       await logout(page);
       await assertAdminRouteBlocked(page);

@@ -1,9 +1,6 @@
 import type { S3StorageConfig } from "@/lib/storage/s3-config";
 import type { StorageNamespace, StorageService } from "@/lib/storage/types";
 
-const NOT_IMPLEMENTED =
-  "S3 StorageService is not implemented. Use UPLOAD_STORAGE_DRIVER=local (single replica + volume) until s3-storage.ts is completed.";
-
 /**
  * Skeleton S3-compatible {@link StorageService}.
  *
@@ -11,10 +8,15 @@ const NOT_IMPLEMENTED =
  * Фабрика `getStorageService()` отклоняет driver=s3 до вызова этой функции.
  * Файл существует как точка расширения и для будущих unit/integration тестов с MinIO.
  */
-export function createS3StorageService(_config: S3StorageConfig): StorageService {
-  const reject = (): never => {
-    throw new Error(NOT_IMPLEMENTED);
-  };
+export function assertS3NotImplemented(config: S3StorageConfig): never {
+  throw new Error(
+    "S3 StorageService is not implemented. Use UPLOAD_STORAGE_DRIVER=local (single replica + volume). " +
+      `Bucket configured: ${Boolean(config.bucket)}; endpoint set: ${Boolean(config.endpoint)}; region set: ${Boolean(config.region)}.`,
+  );
+}
+
+export function createS3StorageService(config: S3StorageConfig): StorageService {
+  const reject = (): never => assertS3NotImplemented(config);
 
   return {
     objectPath: reject,

@@ -60,7 +60,9 @@ docker compose --env-file .env.prod.example -f docker-compose.prod.yml config
 1. Dev stack: `docker compose up -d postgres redis` (из каталога `cyberedu/`).
 2. `cd frontend && cp .env.example .env` — задайте `DATABASE_URL`, `REDIS_URL=redis://127.0.0.1:6379/0`.
 3. Для проверки prod-поведения rate limit: `ENVIRONMENT=production npm run dev` (только на локальной БД).
-4. Полный prod-like E2E: `npm run test:e2e:prod:local`.
+4. Prod E2E (app уже на :3100 с `ENVIRONMENT=production` + `REDIS_URL`):
+   `npm run smoke:prod-e2e` или `SMOKE_MODE=prod-e2e ../scripts/staging-smoke.sh`
+5. Полный цикл (migrate, seed, build, start, e2e): `npm run smoke:staging:local`.
 
 Чеклисты и troubleshooting: **[`docs/OPERATIONS.md`](./docs/OPERATIONS.md)** · go-live: **[`docs/GO_LIVE_CHECKLIST.md`](./docs/GO_LIVE_CHECKLIST.md)** · индекс: **[`docs/README.md`](./docs/README.md)**.
 
@@ -78,22 +80,32 @@ Hot reload без пересборки образа: `./scripts/design-live.sh` 
 
 ```bash
 cd frontend
-npm run test              # Vitest
-npm run test:e2e          # Playwright (нужен running app + seed)
+npm run lint
+npm run typecheck
+npm run test                  # Vitest (unit + security)
+npm run test:security         # только security/rate-limit тесты
+npm run test:e2e              # Playwright dev smoke (app :3100 + seed)
+npm run test:e2e:prod         # production-like specs (REDIS_URL + ENVIRONMENT=production)
+npm run smoke:staging:local   # migrate, build, start, prod e2e (скрипт)
 ```
 
-## Документация
+Карта security-тестов: [`docs/SECURITY.md`](./docs/SECURITY.md#автоматические-тесты-vitest).
+
+## Документация (минимальный набор)
 
 | Файл | Тема |
 |------|------|
-| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | Архитектура |
-| [`docs/SECURITY.md`](./docs/SECURITY.md) | Безопасность |
-| [`docs/DATABASE.md`](./docs/DATABASE.md) | Prisma / миграции |
-| [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) | Деплой |
-| [`docs/README.md`](./docs/README.md) | Индекс документации |
-| [`docs/OPERATIONS.md`](./docs/OPERATIONS.md) | Production / troubleshooting |
+| [`README.md`](./README.md) | Этот файл — quick start dev/prod |
+| [`../README.md`](../README.md) | Обзор для защиты (корень репозитория) |
+| [`.env.prod.example`](./.env.prod.example) | Шаблон production env |
+| [`docs/README.md`](./docs/README.md) | **Индекс** + путеводитель по задачам |
+| [`docs/OPERATIONS.md`](./docs/OPERATIONS.md) | Production, backup, admin, staging smoke, тесты |
 | [`docs/GO_LIVE_CHECKLIST.md`](./docs/GO_LIVE_CHECKLIST.md) | Go-live checklist |
-| [`docs/checklists/`](./docs/checklists/) | Чеклисты |
+| [`docs/SECURITY.md`](./docs/SECURITY.md) | Безопасность + Vitest |
+| [`docs/STORAGE.md`](./docs/STORAGE.md) | Uploads: local only, S3 NOT IMPLEMENTED |
+| [`docs/screenshots/`](./docs/screenshots/) | UX-скриншоты |
+
+Дополнительно: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) · [`docs/DATABASE.md`](./docs/DATABASE.md) · [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) · [`docs/checklists/`](./docs/checklists/)
 
 ## Скриншоты для защиты
 

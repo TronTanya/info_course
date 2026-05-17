@@ -11,7 +11,7 @@ export default defineConfig({
   ...baseConfig,
   testDir: ".",
   testMatch: prodTestMatch,
-  testIgnore: [],
+  testIgnore: ["**/.next/**", "**/node_modules/**", "**/e2e-results/**", "**/e2e-results-prod/**"],
   globalSetup: "./e2e/global-setup.prod.ts",
   timeout: 90_000,
   expect: { timeout: 20_000 },

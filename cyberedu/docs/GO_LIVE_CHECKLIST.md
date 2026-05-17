@@ -2,16 +2,18 @@
 
 Отмечайте `[x]` на **staging**, максимально близком к production (`ENVIRONMENT=production`, Redis, TLS, те же compose-файлы).
 
-Связанные документы: [OPERATIONS.md](./OPERATIONS.md) (production setup) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [checklists/FINAL_CHECKLIST.md](./checklists/FINAL_CHECKLIST.md) · [STORAGE.md](./STORAGE.md)
+Связанные документы: [DEFENSE_READINESS.md](./DEFENSE_READINESS.md) (**защита / пилот — команды + ручной UI**) · [OPERATIONS.md](./OPERATIONS.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [checklists/FINAL_CHECKLIST.md](./checklists/FINAL_CHECKLIST.md) · [STORAGE.md](./STORAGE.md)
 
 ---
 
 ## Required checks
 
 - [ ] **CI green** на `main` ([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml))
+- [ ] `cd cyberedu/frontend && npm ci`
 - [ ] `cd cyberedu/frontend && npm run lint`
 - [ ] `cd cyberedu/frontend && npm run typecheck`
 - [ ] `cd cyberedu/frontend && npm test`
+- [ ] `cd cyberedu/frontend && npx prisma validate`
 - [ ] `cd cyberedu/frontend && npm run test:e2e` (dev smoke; app на `:3100` + seed)
 - [ ] `cd cyberedu/frontend && npm run test:e2e:prod` (alias staging: prod specs + **real Redis**)
 - [ ] `cd cyberedu/frontend && npm run test:e2e:staging` или `npm run smoke:staging:local` (то же для CI/локального smoke)
@@ -23,7 +25,7 @@
   (или `make -C cyberedu compose-prod-config-quiet`)
 - [ ] **Redis smoke passed**: `redis-ping: PONG` в CI / `npm run redis:ping`; `/api/health` → `checks.redis: "ok"`
 - [ ] **PostgreSQL migrations applied**: `frontend-migrate` exit 0; `prisma migrate deploy` на staging DB
-- [ ] **Admin account created securely** (не seed): отдельный email, сильный пароль, роль `ADMIN`
+- [ ] **Admin account created securely** (не seed): регистрация → `role = ADMIN` в БД — [OPERATIONS.md § Создание администратора](./OPERATIONS.md#создание-администратора-production)
 
 ---
 

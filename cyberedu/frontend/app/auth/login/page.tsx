@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { LoginForm } from "@/components/auth/login-form";
+import { LoadingState } from "@/components/ui/loading-state";
 import { buildPublicMetadata } from "@/lib/seo/build-page-metadata";
 
 export const metadata = buildPublicMetadata({
@@ -10,7 +11,7 @@ export const metadata = buildPublicMetadata({
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="text-sm text-muted-foreground">Загрузка…</div>}>
+    <Suspense fallback={<LoadingState size="sm" label="Загрузка формы входа…" />}>
       <LoginForm />
     </Suspense>
   );

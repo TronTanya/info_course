@@ -2,11 +2,41 @@
 
 Индекс документации репозитория `info_course` (приложение в [`../`](../)).
 
+## Минимальный набор (обязательный)
+
+| Документ | Зачем читать |
+|----------|----------------|
+| [`../README.md`](../README.md) | Quick start dev/prod, тесты, скриншоты |
+| [`../../README.md`](../../README.md) | Обзор для защиты (корень репозитория) |
+| [OPERATIONS.md](./OPERATIONS.md) | **Canonical ops**: env, PostgreSQL, Redis, migrations, **создание admin**, backup, staging smoke, тесты |
+| [DEFENSE_READINESS.md](./DEFENSE_READINESS.md) | **Защита / пилот**: автоматические команды + ручной UI |
+| [GO_LIVE_CHECKLIST.md](./GO_LIVE_CHECKLIST.md) | Чеклист перед выкладкой (CI, security tests, ops) |
+| [SECURITY.md](./SECURITY.md) | Модель безопасности + **карта Vitest-тестов** |
+| [STORAGE.md](./STORAGE.md) | Local uploads, **single replica**, S3 **NOT IMPLEMENTED** |
+| [screenshots/](./screenshots/) | PNG для README (`npm run screenshots`) |
+| [`../.env.prod.example`](../.env.prod.example) | Шаблон production env (не коммитить `.env.production`) |
+
+### Быстрый путеводитель
+
+| Задача | Куда смотреть |
+|--------|----------------|
+| Запуск **локально** (dev) | [../README.md § Быстрый старт](../README.md) · `docker compose up` + `RUN_SEED=1` |
+| Запуск **production-like** | [OPERATIONS.md](./OPERATIONS.md) · [../README.md § Production-like](../README.md) |
+| Какие **env vars** нужны | [OPERATIONS.md § Required environment variables](./OPERATIONS.md#required-environment-variables) · [`.env.prod.example`](../.env.prod.example) · [`frontend/.env.example`](../frontend/.env.example) |
+| **Создать admin** | [OPERATIONS.md § Создание администратора](./OPERATIONS.md#создание-администратора-production) |
+| **Чеклист защиты / пилота** | [DEFENSE_READINESS.md](./DEFENSE_READINESS.md) |
+| Прогнать **unit-тесты** | `cd frontend && npm test` · карта в [SECURITY.md](./SECURITY.md#автоматические-тесты-vitest) |
+| **Staging smoke** | [OPERATIONS.md](./OPERATIONS.md) · `CHECK_REDIS=1 ./scripts/staging-smoke.sh` |
+| **Backup** | [OPERATIONS.md § Backup notes](./OPERATIONS.md#backup-notes) |
+| **Ограничения** (S3, replicas, AI) | [STORAGE.md](./STORAGE.md) · [GO_LIVE_CHECKLIST § Остаточные риски](./GO_LIVE_CHECKLIST.md#остаточные-риски-честно) · [../README.md § Known limitations](../../README.md#13-known-limitations) |
+
+---
+
 ## Operations & deploy
 
 | Документ | Содержание |
 |----------|------------|
-| [OPERATIONS.md](./OPERATIONS.md) | **Canonical**: production checklist, env, PostgreSQL, Redis, migrations, seed, e2e, troubleshooting, screenshots |
+| [OPERATIONS.md](./OPERATIONS.md) | Production checklist, env, PostgreSQL, Redis, migrations, seed, e2e, troubleshooting, screenshots |
 | [GO_LIVE_CHECKLIST.md](./GO_LIVE_CHECKLIST.md) | Чеклист перед выкладкой (CI, security tests, ops) |
 | [DEPLOYMENT.md](./DEPLOYMENT.md) | VPS, Nginx, SSL, compose prod |
 | [STORAGE.md](./STORAGE.md) | Uploads: local volume, single-replica risk, S3 roadmap |
@@ -35,6 +65,7 @@
 | Документ | Содержание |
 |----------|------------|
 | [screenshots/](./screenshots/) | PNG для README (`npm run screenshots` в frontend) |
+| [screenshots/README.md](./screenshots/README.md) | Генерация и имена файлов |
 | [PRODUCTION_READINESS.md](./PRODUCTION_READINESS.md) | Оценка готовности и P0/P1 |
 
 Корневой обзор для защиты проекта: [`../../README.md`](../../README.md).

@@ -19,12 +19,12 @@ export default defineConfig({
   timeout: 120_000,
   expect: { timeout: 20_000 },
   use: {
+    ...devices["Desktop Chrome"],
     baseURL,
     trace: "off",
     screenshot: "off",
     video: "off",
     viewport: { width: 1280, height: 720 },
-    ...devices["Desktop Chrome"],
   },
   outputDir: "e2e-results/screenshots-run",
 });

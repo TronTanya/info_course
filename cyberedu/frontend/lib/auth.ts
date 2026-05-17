@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 import { SECURITY_ACTIONS } from "@/lib/security/audit-actions";
 import { logSecurityEvent } from "@/lib/security/audit";
 import {
+  checkCredentialsCallbackRateLimit,
   checkLoginRateLimit,
   clearLoginAttempts,
   isLoginLocked,
@@ -100,6 +101,18 @@ const nextAuth = NextAuth({
 
         const h = await headers();
         const ip = clientIpFromHeaders(h);
+
+        const credentialsRl = await checkCredentialsCallbackRateLimit(ip);
+        if (!credentialsRl.ok) {
+          logSecurityEvent({
+            action: SECURITY_ACTIONS.AUTH_LOGIN_RATE_LIMITED,
+            severity: "warn",
+            ip,
+            path: "/api/auth/callback/credentials",
+            metadata: { reason: "credentials_callback_rate_limit" },
+          });
+          return null;
+        }
 
         const loginRl = await checkLoginRateLimit(ip);
         if (!loginRl.ok) {

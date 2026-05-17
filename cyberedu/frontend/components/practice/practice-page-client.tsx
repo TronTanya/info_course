@@ -14,9 +14,13 @@ import { ScenarioPracticeBlock } from "@/components/practice/scenario-practice-f
 import { PracticeSocraticHintPanel } from "@/components/practice/practice-socratic-hint";
 import { TrainingConsole } from "@/components/practice/TrainingConsole";
 import { submitPracticeTextAction, verifyPracticeInteractiveAction } from "@/lib/actions/practice";
+import { Alert } from "@/components/ui/alert";
+import { BlockedState } from "@/components/ui/blocked-state";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PendingBanner } from "@/components/ui/pending-banner";
+import { practiceStepBreadcrumbs } from "@/lib/student-nav";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { SectionCard } from "@/components/ui/section-card";
 import { Textarea } from "@/components/ui/textarea";
@@ -337,13 +341,7 @@ function PracticeLabSession({
   const { moduleProgress } = labContext;
 
   const breadcrumb = (
-    <Breadcrumbs
-      items={[
-        { href: "/dashboard/course", label: "Курс" },
-        { href: `/dashboard/course/${moduleId}`, label: `Модуль ${labContext.moduleOrderNumber}` },
-        { label: "Практика" },
-      ]}
-    />
+    <Breadcrumbs items={practiceStepBreadcrumbs(moduleId, labContext.moduleOrderNumber)} />
   );
 
   const header = (
@@ -381,11 +379,15 @@ function PracticeLabSession({
         accepted={accepted}
         showIntro={!sub && !pendingReview && !accepted}
       />
+      {pendingReview ? (
+        <Alert variant="warning" title="Работа на проверке">
+          Ответ отправлен преподавателю. Новая попытка станет доступна после проверки — обычно в течение
+          нескольких рабочих дней.
+        </Alert>
+      ) : null}
       {pending ? (
         <div className="space-y-3" aria-busy="true" aria-live="polite">
-          <p className="rounded-xl border border-cyan/20 bg-cyan/5 px-4 py-3 text-center text-sm text-muted-foreground motion-safe:animate-pulse">
-            Отправка на сервер…
-          </p>
+          <PendingBanner label="Отправка на сервер…" />
           <PracticeLabSkeleton />
         </div>
       ) : null}
@@ -645,9 +647,9 @@ function TextAnswerForm({
   const okLen = text.trim().length >= minLength;
   if (submitBlocked) {
     return (
-      <div className="rounded-xl border border-cyan-100 bg-cyan-50/80 px-4 py-3 text-sm text-slate-600">
+      <BlockedState>
         Эта отправка ожидает проверки. Новая станет доступна после решения преподавателя.
-      </div>
+      </BlockedState>
     );
   }
   return (
@@ -707,9 +709,9 @@ function FileUploadForm({
   const [file, setFile] = useState<File | null>(null);
   if (submitBlocked) {
     return (
-      <div className="rounded-xl border border-cyan-100 bg-cyan-50/80 px-4 py-3 text-sm text-slate-600">
+      <BlockedState>
         Файл уже отправлен и ожидает проверки.
-      </div>
+      </BlockedState>
     );
   }
   return (
@@ -791,9 +793,9 @@ function InteractiveForm({
 
   if (submitBlocked) {
     return (
-      <div className="rounded-xl border border-cyan-100 bg-cyan-50/80 px-4 py-3 text-sm text-slate-600">
+      <BlockedState>
         Ответ отправлен и ожидает проверки преподавателем.
-      </div>
+      </BlockedState>
     );
   }
 
@@ -940,9 +942,9 @@ function CombinedForm({
   const textOk = text.trim().length >= minLength;
   if (submitBlocked) {
     return (
-      <div className="rounded-xl border border-cyan-100 bg-cyan-50/80 px-4 py-3 text-sm text-slate-600">
+      <BlockedState>
         Работа отправлена и ожидает проверки.
-      </div>
+      </BlockedState>
     );
   }
   return (

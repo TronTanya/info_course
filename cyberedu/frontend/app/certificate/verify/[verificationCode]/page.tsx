@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { Alert } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/db";
 import { SECURITY_ACTIONS } from "@/lib/security/audit-actions";
@@ -118,9 +119,9 @@ export default async function VerifyCertificatePage({ params }: Props) {
             <p className="text-sm text-muted-foreground">Запись найдена в реестре выданных сертификатов.</p>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
-            <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-emerald-800 dark:text-emerald-200">
-              Статус: действителен
-            </div>
+            <Alert variant="success" title="Статус: действителен">
+              Сертификат найден в реестре платформы CyberEdu.
+            </Alert>
             <p>
               <span className="text-muted-foreground">ФИО: </span>
               <span className="font-medium text-foreground">{fio}</span>

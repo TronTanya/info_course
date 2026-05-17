@@ -1,13 +1,17 @@
 #!/usr/bin/env node
 /**
  * Проверка доступности Redis перед staging/prod smoke (CI и локально).
- * Не использует mock — только реальный REDIS_URL.
+ * Не использует mock — только реальный Redis.
+ *
+ * Usage:
+ *   REDIS_URL=redis://127.0.0.1:6379 node scripts/redis-ping.mjs
+ *   node scripts/redis-ping.mjs redis://127.0.0.1:6379
  */
 import { createClient } from "redis";
 
-const url = process.env.REDIS_URL?.trim();
+const url = (process.argv[2] || process.env.REDIS_URL || "").trim();
 if (!url) {
-  console.error("redis-ping: REDIS_URL is not set");
+  console.error("redis-ping: REDIS_URL is not set (env or first argument)");
   process.exit(1);
 }
 

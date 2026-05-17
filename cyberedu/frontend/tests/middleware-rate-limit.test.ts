@@ -1,8 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { NextRequest } from "next/server";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { applyMiddlewareRateLimit } from "@/lib/security/middleware-rate-limit";
+import { checkCredentialsCallbackRateLimit } from "@/lib/security/login-attempts";
 import { resetRateLimitServiceForTests } from "@/lib/security/rate-limit-service";
 
 const redisCounts = new Map<string, number>();
@@ -21,15 +20,7 @@ vi.mock("redis", () => ({
   })),
 }));
 
-function credentialsPost(): NextRequest {
-  return {
-    method: "POST",
-    headers: new Headers({ "x-forwarded-for": "203.0.113.55" }),
-    nextUrl: new URL("http://localhost:3100/api/auth/callback/credentials"),
-  } as NextRequest;
-}
-
-describe("middleware rate limit (async Redis)", () => {
+describe("credentials callback rate limit (Node.js + Redis)", () => {
   const env = { ...process.env };
 
   beforeEach(() => {
@@ -45,36 +36,22 @@ describe("middleware rate limit (async Redis)", () => {
     resetRateLimitServiceForTests();
   });
 
-  it("does not block credentials callback in production when Redis is available", async () => {
-    const block = await applyMiddlewareRateLimit(credentialsPost());
-    expect(block).toBeNull();
+  it("allows credentials callback when Redis is available", async () => {
+    const rl = await checkCredentialsCallbackRateLimit("203.0.113.55");
+    expect(rl).toEqual({ ok: true });
   });
 
-  it("returns 429 when credentials callback limit exceeded", async () => {
+  it("blocks after credentials callback limit exceeded", async () => {
     for (let i = 0; i < 20; i++) {
-      const ok = await applyMiddlewareRateLimit(credentialsPost());
-      expect(ok).toBeNull();
+      expect(await checkCredentialsCallbackRateLimit("203.0.113.55")).toEqual({ ok: true });
     }
-    const block = await applyMiddlewareRateLimit(credentialsPost());
-    expect(block).toEqual({
-      status: 429,
-      body: { error: "Слишком много попыток входа. Подождите несколько минут." },
-    });
+    expect(await checkCredentialsCallbackRateLimit("203.0.113.55")).toEqual({ ok: false });
   });
 
-  it("ignores non-credentials routes (AI limits live in route handlers)", async () => {
-    const aiReq = {
-      method: "POST",
-      headers: new Headers(),
-      nextUrl: new URL("http://localhost:3100/api/ai/chat"),
-    } as NextRequest;
-    expect(await applyMiddlewareRateLimit(aiReq)).toBeNull();
-  });
-
-  it("middleware.ts does not import sync rate limit helpers", () => {
+  it("middleware.ts does not rate-limit in Edge (limits live in authorize)", () => {
     const src = readFileSync(join(process.cwd(), "middleware.ts"), "utf8");
+    expect(src).not.toMatch(/applyMiddlewareRateLimit/);
     expect(src).not.toMatch(/consumeRateLimit\(/);
     expect(src).not.toMatch(/consumeRateLimitSyncDevOnly/);
-    expect(src).toMatch(/applyMiddlewareRateLimit/);
   });
 });

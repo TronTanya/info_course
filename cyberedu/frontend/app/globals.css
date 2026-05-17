@@ -1603,6 +1603,24 @@ svg {
   height: auto;
 }
 
+/* Единые поверхности платформы */
+.ce-surface-card {
+  border-radius: 1rem;
+  border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  background: color-mix(in oklab, var(--card) 92%, transparent);
+  box-shadow: var(--shadow-card);
+}
+
+.ce-blocked-state {
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in oklab, var(--warning) 35%, transparent);
+  background: color-mix(in oklab, var(--warning) 12%, transparent);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
 body {
   overflow-x: clip;
   min-height: 100vh;

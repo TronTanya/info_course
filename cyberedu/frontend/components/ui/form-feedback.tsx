@@ -8,13 +8,21 @@ const kindStyles = {
   generic: "border-danger/30 bg-danger/10 text-danger",
 } as const;
 
-export function FormFeedback({ message, className }: { message: string | null; className?: string }) {
+export function FormFeedback({
+  message,
+  className,
+  id,
+}: {
+  message: string | null;
+  className?: string;
+  id?: string;
+}) {
   if (!message?.trim()) return null;
 
   const fb = classifyFormFeedback(message);
 
   return (
-    <div role="alert" className={cn("rounded-xl border px-3 py-2.5 text-sm", kindStyles[fb.kind], className)}>
+    <div id={id} role="alert" className={cn("rounded-xl border px-3 py-2.5 text-sm", kindStyles[fb.kind], className)}>
       <p className="font-semibold leading-snug">{fb.title}</p>
       <p
         className={cn(

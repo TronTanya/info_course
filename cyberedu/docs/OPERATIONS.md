@@ -109,9 +109,38 @@ docker compose -f docker-compose.prod.yml --env-file .env.production logs fronte
 | Пароли | Не в git; повторный seed **не перезаписывает** `passwordHash` существующих пользователей |
 | Демо-email | `admin@cyberedu.local`, `student@cyberedu.local` — **не** использовать в prod |
 
-Администратора в production создайте вручную (см. [GO_LIVE_CHECKLIST.md](./GO_LIVE_CHECKLIST.md)).
+Администратора в production создайте **вручную** (не через `RUN_SEED=1`) — см. раздел [Создание администратора](#создание-администратора-production) ниже.
 
 E2E на изолированной CI-БД: `E2E_PRODUCTION_SMOKE=1` + отдельный `DATABASE_URL` (см. `frontend/e2e/test-credentials.ts`).
+
+### Создание администратора (production)
+
+На production **не** используйте seed-учётки `admin@cyberedu.local` / `student@cyberedu.local`.
+
+1. **Зарегистрируйте** реальный email через `/auth/register` (или создайте пользователя через Prisma Studio на staging).
+2. **Назначьте роль `ADMIN`** одним из способов:
+
+**Через Prisma Studio** (на сервере или с туннелем к БД):
+
+```bash
+cd cyberedu/frontend
+DATABASE_URL='postgresql://USER:PASS@host:5432/cyberedu?schema=public' npx prisma studio
+# User → найти email → role = ADMIN
+```
+
+**Через SQL** (из контейнера Postgres):
+
+```bash
+cd cyberedu
+docker compose -f docker-compose.prod.yml --env-file .env.production exec -T postgres \
+  psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+  -c "UPDATE \"User\" SET role = 'ADMIN' WHERE email = 'admin@your-domain.example';"
+```
+
+3. Выйдите из сессии и войдите снова — JWT должен содержать `role: ADMIN`.
+4. Откройте `/admin` — доступ только при роли `ADMIN` (проверка в middleware + server actions).
+
+Смена роли существующего пользователя админом: UI «Пользователи» → карточка пользователя (аудит `admin.user.role_change`).
 
 ### Docker Compose command
 
@@ -138,15 +167,47 @@ docker compose up --build
 RUN_SEED=1 docker compose up --build
 ```
 
-**Staging smoke локально** (Postgres + **реальный Redis**, migrate + seed + Playwright prod specs):
+**Staging / prod E2E локально** (реальный Redis, `checks.redis: ok`):
+
+Dev compose порты: **Redis** `127.0.0.1:6379`, **Postgres** `127.0.0.1:15432`.
 
 ```bash
-cd cyberedu/frontend
-# REDIS_URL=redis://127.0.0.1:6379 DATABASE_URL=... npm run smoke:staging:local
-npm run smoke:staging:local
+cd cyberedu
+docker compose up -d redis postgres
 ```
 
-Скрипт: [`../scripts/e2e-prod-local.sh`](../scripts/e2e-prod-local.sh) — перед стартом вызывает `npm run redis:ping` (без mock Redis).
+**Вариант A — app уже запущен** (два терминала):
+
+```bash
+# Терминал 1
+cd cyberedu/frontend
+npm run build
+ENVIRONMENT=production \
+  REDIS_URL=redis://127.0.0.1:6379 \
+  DATABASE_URL=postgresql://cyberedu:cyberedu_dev_password@127.0.0.1:15432/cyberedu?schema=public \
+  AUTH_SECRET=local-e2e-prod-auth-secret-minimum-32-chars \
+  npm run start
+
+# Терминал 2 — HTTP smoke + prod Playwright
+cd cyberedu
+CHECK_REDIS=1 BASE_URL=http://127.0.0.1:3100 REDIS_URL=redis://127.0.0.1:6379 \
+  RUN_E2E=1 RUN_E2E_MODE=staging ./scripts/staging-smoke.sh
+
+# Только Playwright prod specs (после redis-ping):
+SMOKE_MODE=prod-e2e ./scripts/staging-smoke.sh
+# или из frontend:
+cd cyberedu/frontend && npm run smoke:prod-e2e
+```
+
+**Вариант B — всё в одном скрипте** (migrate, seed, build, start, e2e):
+
+```bash
+cd cyberedu/frontend && npm run smoke:staging:local
+```
+
+Скрипты: [`../scripts/staging-smoke.sh`](../scripts/staging-smoke.sh) · [`../scripts/e2e-prod-local.sh`](../scripts/e2e-prod-local.sh).
+
+Без Redis: `redis-ping` и `test:e2e:prod` падают с явной ошибкой (`REDIS_URL is not set` / connection refused).
 
 **CI job `e2e-prod-smoke`:** services `postgres` + `redis:7-alpine`, `REDIS_URL=redis://127.0.0.1:6379`, шаги `npm run redis:ping` → build → health с `checks.redis: ok` → `npm run test:e2e:staging`.
 
