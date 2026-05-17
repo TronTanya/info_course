@@ -4,7 +4,8 @@
 
 | Документ | Содержание |
 |----------|------------|
-| **[OPERATIONS.md](./OPERATIONS.md)** | Production checklist, go-live, troubleshooting, UX screenshots |
+| **[OPERATIONS.md](./OPERATIONS.md)** | Production checklist, env, troubleshooting, UX screenshots |
+| **[GO_LIVE_CHECKLIST.md](./GO_LIVE_CHECKLIST.md)** | Go-live: CI, security tests, ops |
 | [checklists/DEPLOYMENT_CHECKLIST.md](./checklists/DEPLOYMENT_CHECKLIST.md) | Краткий чеклист деплоя |
 | [checklists/FINAL_CHECKLIST.md](./checklists/FINAL_CHECKLIST.md) | Полный pre-production |
 

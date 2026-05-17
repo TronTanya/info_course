@@ -62,7 +62,7 @@ docker compose --env-file .env.prod.example -f docker-compose.prod.yml config
 3. Для проверки prod-поведения rate limit: `ENVIRONMENT=production npm run dev` (только на локальной БД).
 4. Полный prod-like E2E: `npm run test:e2e:prod:local`.
 
-Чеклисты и troubleshooting: **[`docs/OPERATIONS.md`](./docs/OPERATIONS.md)**.
+Чеклисты и troubleshooting: **[`docs/OPERATIONS.md`](./docs/OPERATIONS.md)** · go-live: **[`docs/GO_LIVE_CHECKLIST.md`](./docs/GO_LIVE_CHECKLIST.md)** · индекс: **[`docs/README.md`](./docs/README.md)**.
 
 ## Пересборка frontend после правок кода
 
@@ -90,7 +90,9 @@ npm run test:e2e          # Playwright (нужен running app + seed)
 | [`docs/SECURITY.md`](./docs/SECURITY.md) | Безопасность |
 | [`docs/DATABASE.md`](./docs/DATABASE.md) | Prisma / миграции |
 | [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) | Деплой |
-| [`docs/OPERATIONS.md`](./docs/OPERATIONS.md) | Production / go-live / troubleshooting |
+| [`docs/README.md`](./docs/README.md) | Индекс документации |
+| [`docs/OPERATIONS.md`](./docs/OPERATIONS.md) | Production / troubleshooting |
+| [`docs/GO_LIVE_CHECKLIST.md`](./docs/GO_LIVE_CHECKLIST.md) | Go-live checklist |
 | [`docs/checklists/`](./docs/checklists/) | Чеклисты |
 
 ## Скриншоты для защиты

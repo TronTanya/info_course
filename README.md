@@ -152,7 +152,7 @@ info_course/
 | **CSRF** | Origin/Referer + double-submit для mutating `/api/*` |
 | **Rate limiting** | Redis (prod) / in-memory (dev): login, AI, upload, cert verify, admin export |
 | **HTTP headers** | CSP (report-only → enforce), HSTS, X-Frame-Options, Referrer-Policy, Permissions-Policy |
-| **Uploads** | Local volume `/app/uploads` (**single replica**); S3 — planned ([`docs/STORAGE.md`](./cyberedu/docs/STORAGE.md)) |
+| **Uploads** | Local volume `/app/uploads` (**single replica**); S3 — planned ([`cyberedu/docs/STORAGE.md`](./cyberedu/docs/STORAGE.md)) |
 | **Backend API** | `X-API-Key` (fail closed без ключа) |
 | **Audit** | `SecurityAuditLog`: login, admin export, role change, practice review, AI refusal и др. |
 | **Secrets** | Только runtime env; не в Docker build-args |
@@ -263,16 +263,16 @@ docker compose -f docker-compose.prod.yml --env-file .env.production up -d --bui
 
 Пошагово: [`cyberedu/docs/DEPLOYMENT.md`](./cyberedu/docs/DEPLOYMENT.md)
 
-**Операционные чеклисты (canonical):** [`cyberedu/docs/OPERATIONS.md`](./cyberedu/docs/OPERATIONS.md)
+**Операционная документация (canonical):**
 
-| Раздел в OPERATIONS.md | Содержание |
-|------------------------|------------|
-| Production checklist | Env vars, PostgreSQL, Redis, migrations, seed policy, Docker Compose, healthcheck, backups |
-| Go-live checklist | CI green, prod e2e, Redis, rate limit, admin user, secrets, uploads, logs |
-| Troubleshooting | Redis, Prisma, login/session, rate limit, uploads, AI |
-| UX screenshots | `npm run screenshots` → `cyberedu/docs/screenshots/` |
+| Документ | Содержание |
+|----------|------------|
+| [`cyberedu/docs/OPERATIONS.md`](./cyberedu/docs/OPERATIONS.md) | Production checklist, env, PostgreSQL, Redis, migrations, seed, e2e, troubleshooting, screenshots |
+| [`cyberedu/docs/GO_LIVE_CHECKLIST.md`](./cyberedu/docs/GO_LIVE_CHECKLIST.md) | Go-live: CI, security tests, ops, остаточные риски |
+| [`cyberedu/docs/STORAGE.md`](./cyberedu/docs/STORAGE.md) | Uploads local volume / S3 roadmap |
+| [`cyberedu/docs/checklists/FINAL_CHECKLIST.md`](./cyberedu/docs/checklists/FINAL_CHECKLIST.md) | Полный pre-production |
 
-Дополнительно: [`cyberedu/docs/checklists/FINAL_CHECKLIST.md`](./cyberedu/docs/checklists/FINAL_CHECKLIST.md)
+Индекс: [`cyberedu/docs/README.md`](./cyberedu/docs/README.md)
 
 ### Production-like окружение локально
 
@@ -344,7 +344,7 @@ npm run screenshots
 
 | Ограничение | Комментарий |
 |-------------|-------------|
-| **Single-node uploads** | `UPLOAD_STORAGE_DRIVER=local` + volume `frontend_uploads`; multi-replica → S3 ([`docs/STORAGE.md`](./cyberedu/docs/STORAGE.md)) |
+| **Single-node uploads** | `UPLOAD_STORAGE_DRIVER=local` + volume `frontend_uploads`; multi-replica → S3 ([`cyberedu/docs/STORAGE.md`](./cyberedu/docs/STORAGE.md)) |
 | **JWT sessions** | Без shared store — несколько реплик Next требуют sticky sessions |
 | **AI зависит от внешнего API** | Нужен ключ и сеть; есть graceful degradation при отсутствии ключа |
 | **Доменная логика в Next** | FastAPI пока узкий; не все операции вынесены на backend |
@@ -372,8 +372,11 @@ npm run screenshots
 | [`cyberedu/README.md`](./cyberedu/README.md) | Операционный quick start |
 | [`cyberedu/docs/ARCHITECTURE.md`](./cyberedu/docs/ARCHITECTURE.md) | Архитектура |
 | [`cyberedu/docs/SECURITY.md`](./cyberedu/docs/SECURITY.md) | Модель безопасности |
-| [`cyberedu/docs/OPERATIONS.md`](./cyberedu/docs/OPERATIONS.md) | Production / go-live / troubleshooting |
+| [`cyberedu/docs/README.md`](./cyberedu/docs/README.md) | Индекс документации |
+| [`cyberedu/docs/OPERATIONS.md`](./cyberedu/docs/OPERATIONS.md) | Production / troubleshooting |
+| [`cyberedu/docs/GO_LIVE_CHECKLIST.md`](./cyberedu/docs/GO_LIVE_CHECKLIST.md) | Go-live checklist |
 | [`cyberedu/docs/DEPLOYMENT.md`](./cyberedu/docs/DEPLOYMENT.md) | Production deploy |
+| [`cyberedu/docs/STORAGE.md`](./cyberedu/docs/STORAGE.md) | Upload storage |
 | [`cyberedu/docs/API.md`](./cyberedu/docs/API.md) | HTTP API |
 | [`cyberedu/docs/checklists/`](./cyberedu/docs/checklists/) | Release / Security / Deploy |
 

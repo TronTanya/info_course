@@ -2,7 +2,7 @@
 
 Руководство для разработчика и on-call: поднять **production-like** окружение, пройти **go-live** и быстро диагностировать типовые сбои.
 
-Связанные документы: [DEPLOYMENT.md](./DEPLOYMENT.md) · [DATABASE.md](./DATABASE.md) · [SECURITY.md](./SECURITY.md) · [checklists/FINAL_CHECKLIST.md](./checklists/FINAL_CHECKLIST.md) · [screenshots/](./screenshots/)
+Связанные документы: [README.md](./README.md) · [GO_LIVE_CHECKLIST.md](./GO_LIVE_CHECKLIST.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [DATABASE.md](./DATABASE.md) · [SECURITY.md](./SECURITY.md) · [STORAGE.md](./STORAGE.md) · [checklists/FINAL_CHECKLIST.md](./checklists/FINAL_CHECKLIST.md) · [screenshots/](./screenshots/)
 
 ---
 
@@ -109,7 +109,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.production logs fronte
 | Пароли | Не в git; повторный seed **не перезаписывает** `passwordHash` существующих пользователей |
 | Демо-email | `admin@cyberedu.local`, `student@cyberedu.local` — **не** использовать в prod |
 
-Администратора в production создайте вручную (см. [Go-live checklist](#go-live-checklist)).
+Администратора в production создайте вручную (см. [GO_LIVE_CHECKLIST.md](./GO_LIVE_CHECKLIST.md)).
 
 E2E на изолированной CI-БД: `E2E_PRODUCTION_SMOKE=1` + отдельный `DATABASE_URL` (см. `frontend/e2e/test-credentials.ts`).
 
@@ -197,50 +197,22 @@ docker compose -f docker-compose.prod.yml --env-file .env.production exec -T pos
 
 Подробнее: [DEPLOYMENT.md § Backups](./DEPLOYMENT.md#backups), [migrations/UPLOADS_VOLUME.md](./migrations/UPLOADS_VOLUME.md).
 
+### Upload storage (local / S3 risk)
+
+| Режим | Production |
+|-------|------------|
+| `UPLOAD_STORAGE_DRIVER=local` (default) | Named volume `frontend_uploads` → `/app/uploads` — **одна реплика** frontend |
+| `s3` | **NOT IMPLEMENTED** — env зарезервирован; при выборе `s3` старт загрузки падает с явной ошибкой |
+
+Multi-replica без shared storage → файлы «теряются» между инстансами. Стратегия и roadmap: [STORAGE.md](./STORAGE.md).
+
 ---
 
 ## Go-live checklist
 
-Отмечайте `[x]` на **staging**, идентичном production (те же `ENVIRONMENT`, Redis, TLS).
+Полный чеклист перед выкладкой: **[GO_LIVE_CHECKLIST.md](./GO_LIVE_CHECKLIST.md)** (CI, security tests, Redis/Postgres, uploads, ops).
 
-### CI и тесты
-
-- [ ] GitHub Actions **CI green** на `main`: lint, typecheck, Vitest, pytest, `prisma validate`, `npm audit --audit-level=high`
-- [ ] Job **rate-limit-redis** (интеграция Redis) зелёный или осознанно skipped только локально
-- [ ] **Staging / production e2e green**: job `e2e-prod-smoke` (Postgres + **Redis service** + `REDIS_URL` + `npm run test:e2e:staging`) или локально `npm run smoke:staging:local`
-- [ ] В логе CI видно `redis-ping: PONG ok` и `checks.redis: "ok"` в `/api/health`
-- [ ] Playwright **smoke** (`test:e2e`): login → course → test submit → practice submit → admin
-
-### Инфраструктура
-
-- [ ] **Redis connected**: `/api/health` → `checks.redis: "ok"` (не `skipped`, не `error`)
-- [ ] **Rate limit tested** на staging: пройти тест и TEXT-практику без ложного «Слишком много отправок»; при превышении лимита — понятное сообщение (не 500)
-- [ ] `npm run check:rate-limit` / CI script — нет sync `consumeRateLimit` в Server Actions
-- [ ] Миграции применены; `frontend-migrate` exit 0
-- [ ] Все сервисы `healthy` в `docker compose ps`
-
-### Учётные записи и секреты
-
-- [ ] **Admin user created securely**: отдельный email, сильный пароль, роль `ADMIN` через БД или одноразовый скрипт — **не** seed
-- [ ] Демо-учётки (`*.local`) отсутствуют или отключены
-- [ ] **Secrets rotated** от dev/staging: `AUTH_SECRET`, `JWT_SECRET_KEY`, `INTERNAL_API_KEY`, `POSTGRES_PASSWORD`, `REDIS_PASSWORD`
-- [ ] `.env.production` не в git; `chmod 600`
-
-### Файлы и наблюдаемость
-
-- [ ] **Uploads single-replica**: `UPLOAD_STORAGE_DRIVER=local` + volume `frontend_uploads`; multi-replica без S3 **не поддерживается** ([STORAGE.md](./STORAGE.md))
-- [ ] **Logs monitored**: `docker compose logs`, ротация json-file; алерт на 5xx и disk >80%
-- [ ] Uptime на `/api/health` и `/nginx-health`
-- [ ] `AUTH_URL` / `NEXT_PUBLIC_APP_URL` = фактический HTTPS origin
-
-### Финальный smoke
-
-```bash
-cd cyberedu
-CHECK_REDIS=1 BASE_URL=https://your-domain ./scripts/staging-smoke.sh
-```
-
-Полный чеклист: [checklists/FINAL_CHECKLIST.md](./checklists/FINAL_CHECKLIST.md) · [checklists/DEPLOYMENT_CHECKLIST.md](./checklists/DEPLOYMENT_CHECKLIST.md).
+Кратко: CI green → `test:e2e` + `test:e2e:staging` с real Redis → compose config → staging smoke → [FINAL_CHECKLIST](./checklists/FINAL_CHECKLIST.md).
 
 ---
 
@@ -347,6 +319,9 @@ cd cyberedu/frontend && npm test
 
 # E2E smoke (app на :3100, seed dev)
 cd cyberedu/frontend && npm run test:e2e
+
+# Prod/staging specs (real Redis + E2E_PRODUCTION_SMOKE)
+cd cyberedu/frontend && npm run test:e2e:prod
 
 # Production rate-limit guard
 cd cyberedu/frontend && npm run check:rate-limit
