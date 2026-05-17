@@ -12,7 +12,8 @@ from __future__ import annotations
 import os
 
 import pytest
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine, inspect, text
+from sqlalchemy.exc import OperationalError
 
 # Таблицы Prisma (имена в PostgreSQL)
 PRISMA_OWNED_TABLES = frozenset(
@@ -75,8 +76,9 @@ def _database_url() -> str | None:
     url = os.environ.get("DATABASE_URL", "").strip()
     if not url:
         return None
-    if url.startswith("postgresql+psycopg://"):
-        return url.replace("postgresql+psycopg://", "postgresql://", 1)
+    # SQLAlchemy 2 + psycopg3 (see requirements.txt); plain postgresql:// pulls psycopg2.
+    if url.startswith("postgresql://") and "+psycopg" not in url.split("://", 1)[0]:
+        return url.replace("postgresql://", "postgresql+psycopg://", 1)
     return url
 
 
@@ -87,7 +89,11 @@ def db_inspector():
         pytest.skip("DATABASE_URL not set — schema contract test skipped")
     engine = create_engine(url, pool_pre_ping=True)
     try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
         yield inspect(engine)
+    except OperationalError as exc:
+        pytest.skip(f"Database not reachable — schema contract test skipped ({exc})")
     finally:
         engine.dispose()
 

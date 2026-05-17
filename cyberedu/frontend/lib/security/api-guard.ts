@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { securityAudit } from "@/lib/security/audit";
 import { enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/security/rate-limit";
 import { clientIpFromRequest } from "@/lib/security/request-ip";
+import { logError } from "@/lib/log/structured";
 import { sessionHasPermission, type Permission } from "@/lib/security/rbac";
 
 /** Явная метка публичного маршрута (без auth). */
@@ -93,7 +94,12 @@ export async function parseJsonBody(req: Request): Promise<unknown> {
 }
 
 function safeHandlerError(path: string, ip: string, actorId: string | null, err: unknown): Response {
-  console.error("[api-guard]", path, err);
+  logError("api_guard_unhandled", {
+    path,
+    actorId: actorId ?? undefined,
+    errorType: err instanceof Error ? err.name : "unknown",
+    errorMessage: err instanceof Error ? err.message.slice(0, 200) : undefined,
+  });
   securityAudit({
     event: "api.unhandled_error",
     severity: "high",
@@ -108,9 +114,16 @@ function safeHandlerError(path: string, ip: string, actorId: string | null, err:
 /**
  * Централизованная обёртка Route Handlers: auth, RBAC, rate limit, Zod, audit, safe errors.
  */
-export function withApiGuard<TRouteCtx = unknown, TBody = unknown>(
-  options: ApiGuardOptions,
-  handler: ApiGuardHandler<TRouteCtx, TBody>,
+type InferGuardBody<TSchema extends z.ZodTypeAny | undefined> = TSchema extends z.ZodTypeAny
+  ? z.infer<TSchema>
+  : unknown;
+
+export function withApiGuard<
+  TRouteCtx = unknown,
+  TBodySchema extends z.ZodTypeAny | undefined = undefined,
+>(
+  options: ApiGuardOptions & { bodySchema?: TBodySchema },
+  handler: ApiGuardHandler<TRouteCtx, InferGuardBody<TBodySchema>>,
 ): (req: Request, routeCtx?: TRouteCtx) => Promise<Response> {
   return async (req: Request, routeCtx?: TRouteCtx) => {
     const ip = clientIpFromRequest(req);
@@ -223,12 +236,12 @@ export function withApiGuard<TRouteCtx = unknown, TBody = unknown>(
 
     const authedSession = session as Session;
     const authedUserId = authedSession.user!.id;
-    const ctx: ApiGuardContext<TBody> = {
+    const ctx: ApiGuardContext<InferGuardBody<TBodySchema>> = {
       req,
       session: authedSession,
       userId: authedUserId,
       ip,
-      body: body as TBody,
+      body: body as InferGuardBody<TBodySchema>,
     };
 
     try {
@@ -248,9 +261,12 @@ export function withPublicApiRoute<TRouteCtx = unknown>(
 }
 
 /** Аутентифицированный маршрут (по умолчанию). */
-export function withAuthApiRoute<TRouteCtx = unknown, TBody = unknown>(
-  options: Omit<ApiGuardOptions, "public">,
-  handler: ApiGuardHandler<TRouteCtx, TBody>,
+export function withAuthApiRoute<
+  TRouteCtx = unknown,
+  TBodySchema extends z.ZodTypeAny | undefined = undefined,
+>(
+  options: Omit<ApiGuardOptions, "public"> & { bodySchema?: TBodySchema },
+  handler: ApiGuardHandler<TRouteCtx, InferGuardBody<TBodySchema>>,
 ): (req: Request, routeCtx?: TRouteCtx) => Promise<Response> {
-  return withApiGuard({ requireAuth: true, ...options }, handler);
+  return withApiGuard<TRouteCtx, TBodySchema>({ requireAuth: true, ...options }, handler);
 }

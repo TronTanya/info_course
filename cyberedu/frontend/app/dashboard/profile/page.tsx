@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { GraduationCap, MapPin, School, Sparkles } from "lucide-react";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
+import { LearnPageWrap } from "@/components/learn/learn-page-wrap";
 import { ProfileProgressOverview } from "@/components/profile/profile-progress-overview";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { formatInterestsDisplay, parseProfileInterests } from "@/lib/profile-interests";
 import { getProfileCourseStats } from "@/lib/profile-course-stats";
 import { getCurrentUser } from "@/lib/permissions";
-import { getUserAchievementRows, reconcileUserAchievements } from "@/lib/achievements";
+import { AchievementUnlockToasts } from "@/components/achievements/achievement-unlock-toasts";
+import { achievementNoticesFromKinds, getUserAchievementRows, reconcileUserAchievements } from "@/lib/achievements";
 
 export const metadata: Metadata = {
   title: "Профиль",
@@ -57,7 +59,8 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   const saved = sp.saved === "1";
 
   const p = user.profile;
-  await reconcileUserAchievements(user.id);
+  const newUnlocks = await reconcileUserAchievements(user.id);
+  const achievementUnlocks = achievementNoticesFromKinds(newUnlocks);
   const [stats, achievements] = await Promise.all([
     getProfileCourseStats(user.id),
     getUserAchievementRows(user.id),
@@ -82,7 +85,8 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
 
   return (
     <DashboardShell stack="loose">
-      <>
+      <LearnPageWrap>
+        <AchievementUnlockToasts unlocks={achievementUnlocks} />
         {saved ? (
           <Alert variant="success" title="Профиль сохранён">
             Изменения записаны. Данные учтены для сертификата и AI-адаптации лекций.
@@ -170,7 +174,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
             hasInterestsForAi={hasInterestsForAi}
           />
         )}
-      </>
+      </LearnPageWrap>
     </DashboardShell>
   );
 }

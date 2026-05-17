@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { CourseLearningPath } from "@/components/course/course-learning-path";
+import { CoursePageShell } from "@/components/course/course-page-shell";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { Alert } from "@/components/ui/alert";
 import { getDefaultCourseForDashboard, syncAndGetUserCourseProgress } from "@/lib/progress";
@@ -40,7 +41,9 @@ export default async function CoursePage({ searchParams }: Props) {
           </Alert>
         ) : null}
 
-        <CourseLearningPath data={data} />
+        <CoursePageShell>
+          <CourseLearningPath data={data} />
+        </CoursePageShell>
       </>
     </DashboardShell>
   );

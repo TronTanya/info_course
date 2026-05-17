@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CertificatePanel } from "@/components/certificate/certificate-panel";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
-import { PageHeader } from "@/components/ui/page-header";
+import { LearnPageHeader } from "@/components/learn/learn-chrome";
+import { LearnPageWrap } from "@/components/learn/learn-page-wrap";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { SectionCard } from "@/components/ui/section-card";
 import { getCertificateDashboardState } from "@/lib/certificate";
@@ -18,21 +19,14 @@ export default async function CertificatePage() {
 
   return (
     <DashboardShell>
-      <>
-        <div className="relative overflow-hidden rounded-3xl border border-border/70 bg-linear-to-br from-primary/[0.06] via-card to-cyan/[0.06] p-6 shadow-card ring-1 ring-secondary/10 sm:p-8">
-          <div
-            className="pointer-events-none absolute inset-0 opacity-30 [background:radial-gradient(600px_200px_at_80%_-20%,color-mix(in_oklab,var(--cyan)_18%,transparent),transparent)]"
-            aria-hidden
-          />
-          <div className="relative">
-            <PageHeader
-              className="border-0 pb-0"
-              eyebrow="Реестр"
-              title="Сертификат"
-              description="Электронный сертификат с QR-кодом и кодом проверки выдаётся после полного прохождения курса."
-            />
-          </div>
-        </div>
+      <LearnPageWrap>
+        <LearnPageHeader
+          backHref="/dashboard"
+          backLabel="← Кабинет"
+          eyebrow="Реестр"
+          title="Сертификат"
+          subtitle="Электронный сертификат с QR-кодом и кодом проверки выдаётся после полного прохождения курса."
+        />
 
         {!state ? (
           <SectionCard variant="muted" className="text-pretty typo-body-muted">
@@ -105,7 +99,7 @@ export default async function CertificatePage() {
             </SectionCard>
           </div>
         )}
-      </>
+      </LearnPageWrap>
     </DashboardShell>
   );
 }

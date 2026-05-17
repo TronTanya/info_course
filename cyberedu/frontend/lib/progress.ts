@@ -349,12 +349,25 @@ export async function recalculateModuleProgress(userId: string, moduleId: string
   const testsDone = await allTestsPassed(userId, testIds);
   const practiceDone = await allPracticalAccepted(userId, taskIds);
 
+  // Re-read after slow DB checks: concurrent lesson/video updates must not be overwritten via stale row.
+  const latest = await prisma.progress.findUnique({
+    where: { userId_moduleId: { userId, moduleId } },
+    select: {
+      lessonCompleted: true,
+      videoCompleted: true,
+      testCompleted: true,
+      practiceCompleted: true,
+      score: true,
+    },
+  });
+  if (!latest) return null;
+
   const merged: Pick<
     Progress,
     "lessonCompleted" | "videoCompleted" | "testCompleted" | "practiceCompleted"
   > = {
-    lessonCompleted: row.lessonCompleted,
-    videoCompleted: row.videoCompleted,
+    lessonCompleted: latest.lessonCompleted,
+    videoCompleted: latest.videoCompleted,
     testCompleted: req.testRequired ? testsDone : false,
     practiceCompleted: req.practiceRequired ? practiceDone : false,
   };
@@ -365,15 +378,15 @@ export async function recalculateModuleProgress(userId: string, moduleId: string
     ...row,
     ...merged,
     moduleCompleted,
-    score: row.score,
+    score: latest.score,
   });
   const score = await computeScoreFromSources(userId, m);
 
   const updated = await prisma.progress.update({
     where: { userId_moduleId: { userId, moduleId } },
     data: {
-      testCompleted: req.testRequired ? testsDone : row.testCompleted,
-      practiceCompleted: req.practiceRequired ? practiceDone : row.practiceCompleted,
+      testCompleted: req.testRequired ? testsDone : latest.testCompleted,
+      practiceCompleted: req.practiceRequired ? practiceDone : latest.practiceCompleted,
       moduleCompleted,
       score,
     },

@@ -52,6 +52,16 @@ function isDevMemoryFallbackAllowed(): boolean {
   return !isProductionRuntime();
 }
 
+function isAutomatedTestRuntime(): boolean {
+  // Never bypass limits in production — mis-set E2E_USE_SEED_CREDENTIALS in .env would disable all RL.
+  if (isProductionRuntime()) return false;
+  const nodeEnv = (process.env.NODE_ENV ?? "").trim().toLowerCase();
+  if (nodeEnv === "production") return false;
+
+  const env = (process.env.ENVIRONMENT ?? "").trim().toLowerCase();
+  return env === "test" || env === "e2e" || process.env.E2E_USE_SEED_CREDENTIALS === "1";
+}
+
 function warnMemoryFallback(reason: string): void {
   if (memoryFallbackWarned) return;
   memoryFallbackWarned = true;
@@ -171,6 +181,9 @@ export async function enforceRateLimit(opts: {
   /** Доп. измерение (например email при регистрации). */
   subjectOverride?: string;
 }): Promise<RateLimitResult> {
+  if (isAutomatedTestRuntime()) {
+    return { allowed: true };
+  }
   const subject = opts.subjectOverride ?? rateLimitSubject({ userId: opts.userId, clientIp: opts.clientIp });
   const key = buildRedisKey(opts.scope, subject);
   return consumeRateLimitKey(key, opts.max, opts.windowMs);

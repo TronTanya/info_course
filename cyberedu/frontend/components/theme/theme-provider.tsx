@@ -32,30 +32,34 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
-    let stored: Theme = "system";
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw === "light" || raw === "dark" || raw === "system") stored = raw;
-    } catch {
-      /* ignore */
-    }
-    setThemeState(stored);
-    const dark = resolveDark(stored);
-    applyTheme(dark);
-    setResolved(dark ? "dark" : "light");
-    setMounted(true);
+    queueMicrotask(() => {
+      let stored: Theme = "system";
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw === "light" || raw === "dark" || raw === "system") stored = raw;
+      } catch {
+        /* ignore */
+      }
+      setThemeState(stored);
+      const dark = resolveDark(stored);
+      applyTheme(dark);
+      setResolved(dark ? "dark" : "light");
+      setMounted(true);
+    });
   }, []);
 
   React.useEffect(() => {
     if (!mounted) return;
     const dark = resolveDark(theme);
     applyTheme(dark);
-    setResolved(dark ? "dark" : "light");
-    try {
-      localStorage.setItem(STORAGE_KEY, theme);
-    } catch {
-      /* ignore */
-    }
+    queueMicrotask(() => {
+      setResolved(dark ? "dark" : "light");
+      try {
+        localStorage.setItem(STORAGE_KEY, theme);
+      } catch {
+        /* ignore */
+      }
+    });
   }, [theme, mounted]);
 
   React.useEffect(() => {

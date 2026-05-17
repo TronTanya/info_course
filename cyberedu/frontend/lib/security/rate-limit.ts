@@ -7,11 +7,10 @@ import {
   consumeRateLimitSyncDevOnly,
   enforceRateLimit,
   getMemoryRateLimitResetAt,
-  rateLimitSubject,
   type RateLimitResult,
 } from "@/lib/security/rate-limit-service";
 
-export type { RateLimitResult };
+export type { RateLimitDenyReason, RateLimitResult } from "@/lib/security/rate-limit-service";
 export {
   enforceRateLimit,
   rateLimitSubject,

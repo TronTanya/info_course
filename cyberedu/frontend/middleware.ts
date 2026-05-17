@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { applySecurityHeaders } from "@/lib/security/headers";
 import { verifyApiCsrf } from "@/lib/security/csrf";
+import { applyMiddlewareRateLimit } from "@/lib/security/middleware-rate-limit";
 
 function withSecurityHeaders(res: NextResponse): NextResponse {
   return applySecurityHeaders(res);
@@ -11,7 +12,12 @@ function withSecurityHeaders(res: NextResponse): NextResponse {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Rate limits (login, register, AI, cert verify, uploads) — в Node handlers / Server Actions (Redis).
+  // Rate limits: credentials callback — ниже (Redis). AI / admin / cert / register — Route Handlers & Server Actions.
+
+  const rateLimited = await applyMiddlewareRateLimit(request);
+  if (rateLimited) {
+    return withSecurityHeaders(NextResponse.json(rateLimited.body, { status: rateLimited.status }));
+  }
 
   // --- CSRF для mutating API (дополнение к Server Actions) ---
   if (pathname.startsWith("/api/") && !pathname.startsWith("/api/auth/")) {

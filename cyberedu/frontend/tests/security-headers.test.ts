@@ -17,9 +17,12 @@ function saveEnv(): Record<string, string | undefined> {
 
 function restoreEnv(snap: Record<string, string | undefined>) {
   for (const k of ENV_KEYS) {
+    if (k === "NODE_ENV") continue;
     if (snap[k] === undefined) delete process.env[k];
     else process.env[k] = snap[k];
   }
+  vi.unstubAllEnvs();
+  if (snap.NODE_ENV !== undefined) vi.stubEnv("NODE_ENV", snap.NODE_ENV);
 }
 
 describe("security/headers", () => {
@@ -48,7 +51,7 @@ describe("security/headers", () => {
 
   it("dev defaults CSP off", () => {
     process.env.ENVIRONMENT = "development";
-    process.env.NODE_ENV = "development";
+    vi.stubEnv("NODE_ENV", "development");
     delete process.env.CSP_MODE;
     expect(resolveCspMode()).toBe("off");
     expect(securityHeadersList().some((h) => h.key.includes("Content-Security-Policy"))).toBe(false);
@@ -67,7 +70,7 @@ describe("security/headers", () => {
   it("HSTS only when production security", () => {
     process.env.CSP_MODE = "off";
     process.env.ENVIRONMENT = "development";
-    process.env.NODE_ENV = "development";
+    vi.stubEnv("NODE_ENV", "development");
     expect(securityHeadersList().some((h) => h.key === "Strict-Transport-Security")).toBe(false);
 
     process.env.ENVIRONMENT = "production";

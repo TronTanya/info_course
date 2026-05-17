@@ -12,11 +12,9 @@ export function AdminDualTable({
   className?: string;
 }) {
   return (
-    <div className={cn("w-full min-w-0", className)}>
+    <div className={cn("ce-admin-dual-table w-full min-w-0", className)}>
       <div className="md:hidden">{mobile}</div>
-      <div className="admin-table-scroll hidden md:block">
-        {desktop}
-      </div>
+      <div className="admin-table-scroll ce-admin-table-scroll hidden md:block">{desktop}</div>
     </div>
   );
 }

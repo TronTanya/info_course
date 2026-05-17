@@ -7,11 +7,13 @@ import type { CheckType, PracticalTaskType, SubmissionStatus } from "@prisma/cli
 import type { ProgressGate } from "@/lib/course-progress-guards";
 import { AiMentorChat } from "@/components/ai/AiMentorChat";
 import { PracticeLabLayout } from "@/components/layout/practice-lab-layout";
+import { PracticeFeedbackBanner } from "@/components/practice/practice-feedback-banner";
+import { PracticeLabSkeleton } from "@/components/practice/practice-lab-skeleton";
+import { useToast } from "@/components/ui/toast";
 import { ScenarioPracticeBlock } from "@/components/practice/scenario-practice-forms";
 import { PracticeSocraticHintPanel } from "@/components/practice/practice-socratic-hint";
 import { TrainingConsole } from "@/components/practice/TrainingConsole";
 import { submitPracticeTextAction, verifyPracticeInteractiveAction } from "@/lib/actions/practice";
-import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/ui/progress-bar";
@@ -243,7 +245,11 @@ export function PracticePageClient({ moduleId, moduleTitle, labContext, practice
             <Link href={cta.href}>{cta.label}</Link>
           </Button>
         ) : null}
-        <AiMentorChat moduleId={moduleId} openSignal={chatOpenSeq} />
+        <AiMentorChat
+          moduleId={moduleId}
+          openSignal={chatOpenSeq}
+          contextLabels={{ moduleTitle }}
+        />
       </SectionCard>
     );
   }
@@ -255,7 +261,11 @@ export function PracticePageClient({ moduleId, moduleTitle, labContext, practice
         <Button asChild variant="outline" className="mt-6 w-full sm:w-auto">
           <Link href={`/dashboard/course/${moduleId}`}>К модулю</Link>
         </Button>
-        <AiMentorChat moduleId={moduleId} openSignal={chatOpenSeq} />
+        <AiMentorChat
+          moduleId={moduleId}
+          openSignal={chatOpenSeq}
+          contextLabels={{ moduleTitle }}
+        />
       </SectionCard>
     );
   }
@@ -272,7 +282,15 @@ export function PracticePageClient({ moduleId, moduleTitle, labContext, practice
           onOpenAiChat={() => setChatOpenSeq((n) => n + 1)}
         />
       ))}
-      <AiMentorChat moduleId={moduleId} practicalTaskId={chatTaskId ?? undefined} openSignal={chatOpenSeq} />
+      <AiMentorChat
+        moduleId={moduleId}
+        practicalTaskId={chatTaskId ?? undefined}
+        openSignal={chatOpenSeq}
+        contextLabels={{
+          moduleTitle,
+          taskTitle: tasks.length === 1 ? tasks[0].title : undefined,
+        }}
+      />
     </div>
   );
 }
@@ -294,6 +312,7 @@ function PracticeLabSession({
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const { toast } = useToast();
 
   const sub = task.latestSubmission;
   const pendingReview = Boolean(sub && (sub.status === "SUBMITTED" || sub.status === "CHECKING"));
@@ -305,7 +324,9 @@ function PracticeLabSession({
   function onMessage(err: string | null, ok: string | null) {
     setError(err);
     setInfo(ok);
+    if (err) toast({ title: "Не удалось отправить", description: err, variant: "error" });
     if (ok && !err) {
+      toast({ title: "Отправлено", description: ok, variant: "success" });
       router.refresh();
     }
   }
@@ -334,7 +355,7 @@ function PracticeLabSession({
   const header = (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div className="min-w-0 space-y-2">
-        <p className="typo-eyebrow text-primary">Учебная лаборатория</p>
+        <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-cyan/90">SOC Lab</p>
         <h1 className="typo-h1 text-balance">{task.title}</h1>
         <p className="typo-body-muted">
           <span className="font-medium text-foreground">Модуль:</span> {moduleTitle}
@@ -358,37 +379,21 @@ function PracticeLabSession({
 
   const main = (
     <div className="space-y-6">
-      {needsRevision ? (
-        <Alert variant="warning" title="Работа на доработке">
-          {sub?.adminComment?.trim() ? (
-            <span className="text-pretty">{sub.adminComment.trim()}</span>
-          ) : (
-            <span>Учтите замечания проверяющего и отправьте работу снова.</span>
-          )}
-        </Alert>
-      ) : null}
-
-      {error ? (
-        <Alert variant="danger" title="Ошибка">
-          {error}
-        </Alert>
-      ) : null}
-      {info ? (
-        <Alert variant="success" title="Готово">
-          {info}
-        </Alert>
-      ) : null}
-
-      {!sub && !pendingReview && !accepted ? (
-        <Alert variant="info" title="Как сдать практику" hideIcon={false}>
-          Выполните задание в рабочей области ниже и отправьте ответ или файлы — в зависимости от типа задания.
-        </Alert>
-      ) : null}
-
-      {accepted ? (
-        <Alert variant="success" title="Практика принята">
-          Следующий шаг модуля доступен. Вернитесь к модулю, чтобы продолжить программу.
-        </Alert>
+      <PracticeFeedbackBanner
+        error={error}
+        info={info}
+        needsRevision={needsRevision}
+        revisionComment={sub?.adminComment}
+        accepted={accepted}
+        showIntro={!sub && !pendingReview && !accepted}
+      />
+      {pending ? (
+        <div className="space-y-3" aria-busy="true" aria-live="polite">
+          <p className="rounded-xl border border-cyan/20 bg-cyan/5 px-4 py-3 text-center text-sm text-muted-foreground motion-safe:animate-pulse">
+            Отправка на сервер…
+          </p>
+          <PracticeLabSkeleton />
+        </div>
       ) : null}
 
       <SectionCard title="Цель задания">

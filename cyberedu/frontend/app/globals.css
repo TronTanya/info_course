@@ -192,6 +192,34 @@ html.dark {
   /**
    * Студенческий и админский дашборд: основная колонка контента (навигация в шапке).
    */
+  .dashboard-grid--with-sidebar {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    flex: 1 1 auto;
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 1rem;
+  }
+  @media (min-width: 1024px) {
+    .dashboard-grid--with-sidebar {
+      grid-template-columns: min(15.5rem, 22vw) minmax(0, 1fr);
+      gap: 1.25rem;
+    }
+  }
+
+  .ce-sidebar-inner {
+    border-radius: var(--radius-xl);
+    border: 1px solid color-mix(in oklab, var(--border) 85%, var(--primary) 12%);
+    background: color-mix(in oklab, var(--card) 92%, transparent);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-card);
+  }
+
+  :root {
+    --header-height: 4.25rem;
+  }
+
   .dashboard-grid {
     display: flex;
     width: 100%;
@@ -253,21 +281,84 @@ html.dark {
    */
   .ce-app-main-panel {
     border-radius: var(--radius-2xl);
-    border: 2px solid color-mix(in oklab, var(--primary) 22%, var(--border));
+    border: 1px solid color-mix(in oklab, var(--border) 80%, var(--primary) 14%);
     background: linear-gradient(
       165deg,
-      var(--card) 0%,
-      color-mix(in oklab, var(--card) 96%, var(--cyan)) 42%,
-      color-mix(in oklab, var(--card) 88%, var(--primary)) 100%
+      color-mix(in oklab, var(--card) 98%, transparent) 0%,
+      color-mix(in oklab, var(--card) 94%, var(--cyan)) 55%,
+      var(--card) 100%
+    );
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(8px);
+  }
+  .dark .ce-app-main-panel {
+    box-shadow: var(--shadow-card);
+    border-color: color-mix(in oklab, var(--border) 70%, var(--primary) 18%);
+  }
+
+  .ce-ai-mentor-fab {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--primary) 35%, transparent),
+      0 12px 40px -8px color-mix(in oklab, var(--cyan) 45%, transparent);
+  }
+
+  .ce-ai-mentor-panel {
+    border-color: color-mix(in oklab, var(--border) 75%, var(--cyan) 20%);
+  }
+
+  .ce-mentor-soc {
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, #0a0f18 96%, var(--cyan) 4%) 0%,
+      color-mix(in oklab, #060a12 98%, transparent) 100%
     );
     box-shadow:
-      inset 4px 0 0 0 color-mix(in oklab, var(--primary) 88%, #000),
-      0 1px 0 0 color-mix(in oklab, #fff 70%, transparent) inset,
-      0 4px 6px -2px rgb(8 20 40 / 0.06),
-      0 24px 48px -18px rgb(8 20 40 / 0.14),
-      0 0 0 1px color-mix(in oklab, var(--primary) 8%, transparent),
-      0 40px 80px -36px color-mix(in oklab, var(--cyan) 32%, transparent);
-    backdrop-filter: blur(14px);
+      0 0 0 1px color-mix(in oklab, var(--cyan) 22%, transparent),
+      0 -24px 64px -12px color-mix(in oklab, var(--cyan) 35%, transparent);
+    backdrop-filter: blur(16px);
+  }
+
+  .ce-mentor-scanline {
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      color-mix(in oklab, var(--cyan) 40%, transparent) 2px,
+      color-mix(in oklab, var(--cyan) 40%, transparent) 3px
+    );
+  }
+
+  .ce-mentor-code-pre .hljs {
+    background: transparent;
+    color: color-mix(in oklab, var(--foreground) 92%, var(--cyan));
+  }
+
+  .ce-mentor-code-pre .hljs-keyword,
+  .ce-mentor-code-pre .hljs-selector-tag {
+    color: #7dd3fc;
+  }
+  .ce-mentor-code-pre .hljs-string,
+  .ce-mentor-code-pre .hljs-attr {
+    color: #86efac;
+  }
+  .ce-mentor-code-pre .hljs-number,
+  .ce-mentor-code-pre .hljs-literal {
+    color: #fcd34d;
+  }
+  .ce-mentor-code-pre .hljs-comment {
+    color: color-mix(in oklab, var(--muted-foreground) 85%, transparent);
+  }
+
+  .ce-dashboard-hero {
+    padding: var(--space-6);
+    border-radius: var(--radius-xl);
+    border: 1px solid color-mix(in oklab, var(--border) 80%, var(--primary) 12%);
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--card) 92%, var(--cyan)) 0%,
+      color-mix(in oklab, var(--card) 88%, var(--muted)) 100%
+    );
+    box-shadow: var(--shadow-card);
   }
 
   /** Шапка и подвал: единый «продуктовый» стиль на всех маршрутах */
@@ -309,6 +400,10 @@ html.dark {
   .ce-app-marketing-main {
     position: relative;
     isolation: isolate;
+  }
+  .ce-app-marketing-main > * {
+    position: relative;
+    z-index: 1;
   }
   .ce-app-marketing-main::before {
     content: "";
@@ -442,6 +537,97 @@ html.dark {
     overscroll-behavior-x: contain;
   }
 
+  .ce-admin-table-scroll {
+    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  }
+
+  .ce-admin-table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .ce-admin-table-head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: color-mix(in oklab, var(--muted) 92%, var(--card));
+    box-shadow: 0 1px 0 var(--border);
+  }
+
+  .ce-admin-table-head th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+    white-space: nowrap;
+  }
+
+  .ce-admin-table--compact .ce-admin-table-head th,
+  .ce-admin-table--compact .ce-admin-table-body td {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .ce-admin-table-body tr {
+    border-bottom: 1px solid color-mix(in oklab, var(--border) 65%, transparent);
+    transition: background-color 0.15s ease;
+  }
+
+  .ce-admin-table-body tr:nth-child(odd) {
+    background: color-mix(in oklab, var(--card) 88%, transparent);
+  }
+
+  .ce-admin-table-body tr:nth-child(even) {
+    background: color-mix(in oklab, var(--muted) 35%, transparent);
+  }
+
+  .ce-admin-table-body tr:hover {
+    background: color-mix(in oklab, var(--primary) 6%, var(--card));
+  }
+
+  .ce-admin-table-body td {
+    padding: 0.875rem 1rem;
+    vertical-align: middle;
+  }
+
+  .ce-admin-mobile-card {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .ce-admin-mobile-card:hover {
+    border-color: color-mix(in oklab, var(--primary) 25%, var(--border));
+  }
+
+  .ce-admin-filter-tabs a[aria-selected="true"] {
+    transform: translateY(-1px);
+  }
+
+  .ce-achievement-card {
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease,
+      border-color 0.25s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ce-achievement-card {
+      transition: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ce-admin-filter-tabs a[aria-selected="true"] {
+      transform: none;
+    }
+    .ce-admin-table-body tr,
+    .ce-admin-mobile-card {
+      transition: none;
+    }
+  }
+
   /* --- Типографика (единая шкала) --- */
   .typo-eyebrow {
     font-size: 0.6875rem;
@@ -502,6 +688,54 @@ html.dark {
     box-shadow:
       var(--shadow-card),
       0 0 0 1px color-mix(in oklab, var(--secondary) 8%, transparent);
+  }
+  .lab-shell.ce-learn-lab {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  .ce-learn-grid {
+    background-image:
+      linear-gradient(color-mix(in oklab, var(--cyan) 8%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in oklab, var(--cyan) 8%, transparent) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: radial-gradient(ellipse 90% 80% at 50% 30%, #000 15%, transparent 72%);
+    opacity: 0.5;
+  }
+  .ce-learn-orb {
+    background: color-mix(in oklab, var(--cyan) 35%, transparent);
+    animation: ce-orb-drift-a 28s ease-in-out infinite alternate;
+  }
+  .ce-learn-orb-b {
+    background: color-mix(in oklab, var(--primary) 28%, transparent);
+    animation: ce-orb-drift-b 32s ease-in-out infinite alternate;
+  }
+  .ce-learn-panel {
+    position: relative;
+    transition:
+      transform var(--duration-normal) var(--ease-out-expo),
+      box-shadow var(--duration-normal) ease;
+  }
+  .ce-learn-header {
+    position: relative;
+    overflow: hidden;
+  }
+  .ce-learn-header::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--cyan) 70%, transparent),
+      color-mix(in oklab, var(--primary) 60%, transparent),
+      transparent
+    );
+    opacity: 0.85;
   }
   .lab-shell-header {
     border-bottom: 1px solid var(--border);
@@ -1037,12 +1271,176 @@ html.dark {
       0 0 0 4px var(--ring);
   }
 
+  /* --- Tech ambient 2026: grid, orbs, scanline, border beam --- */
+  @keyframes ce-orb-drift-a {
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+    50% {
+      transform: translate(6%, 8%) scale(1.06);
+    }
+  }
+  @keyframes ce-orb-drift-b {
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+    50% {
+      transform: translate(-5%, 6%) scale(1.04);
+    }
+  }
+  @keyframes ce-orb-drift-c {
+    0%,
+    100% {
+      transform: translate(0, 0);
+    }
+    50% {
+      transform: translate(4%, -6%);
+    }
+  }
+  @keyframes ce-grid-shift {
+    0% {
+      background-position: 0 0, 0 0;
+    }
+    100% {
+      background-position: 40px 40px, 40px 40px;
+    }
+  }
+  @keyframes ce-scan-sweep {
+    0% {
+      transform: translateY(-100%);
+    }
+    100% {
+      transform: translateY(100vh);
+    }
+  }
+  @keyframes ce-border-beam-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes ce-text-shimmer {
+    0% {
+      background-position: 200% center;
+    }
+    100% {
+      background-position: -200% center;
+    }
+  }
+
+  .ce-tech-grid {
+    background-image:
+      linear-gradient(color-mix(in oklab, var(--cyan) 12%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in oklab, var(--cyan) 12%, transparent) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 85% 70% at 50% 40%, #000 20%, transparent 75%);
+    animation: ce-grid-shift 24s linear infinite;
+  }
+
+  .ce-orb {
+    border-radius: 9999px;
+    filter: blur(72px);
+    opacity: 0.45;
+  }
+  .dark .ce-orb {
+    opacity: 0.55;
+  }
+  .ce-orb-a {
+    background: color-mix(in oklab, var(--cyan) 55%, transparent);
+    animation: ce-orb-drift-a 22s ease-in-out infinite alternate;
+  }
+  .ce-orb-b {
+    background: color-mix(in oklab, var(--primary) 50%, transparent);
+    animation: ce-orb-drift-b 26s ease-in-out infinite alternate;
+  }
+  .ce-orb-c {
+    background: color-mix(in oklab, var(--secondary) 40%, transparent);
+    animation: ce-orb-drift-c 20s ease-in-out infinite alternate;
+  }
+
+  .ce-tech-scanline {
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      color-mix(in oklab, var(--cyan) 8%, transparent) 48%,
+      transparent 100%
+    );
+    height: 28%;
+    opacity: 0.35;
+    animation: ce-scan-sweep 14s linear infinite;
+  }
+
+  .ce-border-beam {
+    position: relative;
+    isolation: isolate;
+  }
+  .ce-border-beam::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(
+      from var(--ce-beam-angle, 0deg),
+      transparent 0deg,
+      color-mix(in oklab, var(--cyan) 70%, transparent) 60deg,
+      color-mix(in oklab, var(--primary) 65%, transparent) 120deg,
+      transparent 180deg
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: ce-border-beam-spin 8s linear infinite;
+    pointer-events: none;
+    opacity: 0.65;
+  }
+
+  .ce-text-shimmer {
+    background: linear-gradient(
+      105deg,
+      var(--foreground) 0%,
+      color-mix(in oklab, var(--cyan) 85%, var(--foreground)) 45%,
+      var(--foreground) 90%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: ce-text-shimmer 6s ease-in-out infinite;
+  }
+
+  .ce-card-glow {
+    transition:
+      transform var(--duration-normal) var(--ease-out-expo),
+      box-shadow var(--duration-normal) ease,
+      border-color var(--duration-normal) ease;
+  }
+  .ce-card-glow:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-card-hover), 0 0 40px -12px color-mix(in oklab, var(--cyan) 35%, transparent);
+    border-color: color-mix(in oklab, var(--cyan) 35%, var(--border));
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .ce-animate-in,
-    .ce-skeleton-shimmer {
+    .ce-skeleton-shimmer,
+    .ce-tech-grid,
+    .ce-orb,
+    .ce-tech-scanline,
+    .ce-border-beam::before,
+    .ce-text-shimmer {
       animation: none !important;
       opacity: 1 !important;
       transform: none !important;
+    }
+    .ce-card-glow:hover {
+      transform: none;
     }
   }
 }

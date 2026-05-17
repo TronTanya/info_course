@@ -71,7 +71,8 @@ function apiConnectOrigins(): string[] {
  * Единая политика CSP для report-only и enforce (одинаковые директивы — проще сравнить отчёты).
  * Next.js: `unsafe-inline` для runtime chunks; dev — `unsafe-eval` (React Refresh).
  */
-export function buildContentSecurityPolicy(_profile: CspPolicyProfile = "enforce"): string {
+export function buildContentSecurityPolicy(profile: CspPolicyProfile = "enforce"): string {
+  void profile;
   const prod = isProductionSecurity();
   const connect = apiConnectOrigins().join(" ");
   const scriptSrc = prod

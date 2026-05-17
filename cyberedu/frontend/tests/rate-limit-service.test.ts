@@ -96,6 +96,24 @@ describe("security/rate-limit-service", () => {
     warn.mockRestore();
   });
 
+  it("does not bypass rate limits in production when E2E_USE_SEED_CREDENTIALS=1", async () => {
+    process.env.ENVIRONMENT = "production";
+    process.env.NODE_ENV = "production";
+    process.env.E2E_USE_SEED_CREDENTIALS = "1";
+    const warn = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const denied = await enforceRateLimit({
+      scope: "test:prod:e2e-flag",
+      clientIp: "203.0.113.10",
+      max: 1,
+      windowMs: 60_000,
+    });
+    expect(denied.allowed).toBe(false);
+    if (!denied.allowed) {
+      expect(denied.reason).toBe("unavailable");
+    }
+    warn.mockRestore();
+  });
+
   it("supports subjectOverride for email dimension", async () => {
     const r = await enforceRateLimit({
       scope: "auth:register:email",

@@ -18,10 +18,13 @@ vi.mock("@/lib/security/audit", () => ({
 }));
 
 import type { Session } from "next-auth";
+import type { Mock } from "vitest";
 import { auth } from "@/lib/auth";
 import { withApiGuard, withAuthApiRoute, withPublicApiRoute } from "@/lib/security/api-guard";
 import { securityAudit } from "@/lib/security/audit";
 import { enforceRateLimit } from "@/lib/security/rate-limit";
+
+const authMock = auth as unknown as Mock<() => Promise<Session | null>>;
 
 function session(partial: Partial<Session["user"]> & { id: string }): Session {
   return {
@@ -42,7 +45,7 @@ describe("security/api-guard", () => {
   });
 
   it("withPublicApiRoute allows unauthenticated access", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    authMock.mockResolvedValue(null);
     const GET = withPublicApiRoute({}, async () => Response.json({ ok: true }));
     const res = await GET(new Request("http://localhost/api/health"));
     expect(res.status).toBe(200);
@@ -50,7 +53,7 @@ describe("security/api-guard", () => {
   });
 
   it("withAuthApiRoute returns 401 without session", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    authMock.mockResolvedValue(null);
     const POST = withAuthApiRoute({}, async () => Response.json({ ok: true }));
     const res = await POST(new Request("http://localhost/api/private", { method: "POST" }));
     expect(res.status).toBe(401);
@@ -60,7 +63,7 @@ describe("security/api-guard", () => {
   });
 
   it("requireAdmin rejects non-admin", async () => {
-    vi.mocked(auth).mockResolvedValue(session({ id: "u1", role: "USER" }));
+    authMock.mockResolvedValue(session({ id: "u1", role: "USER" }));
     const POST = withApiGuard({ requireAdmin: true }, async () => Response.json({ ok: true }));
     const res = await POST(new Request("http://localhost/api/admin/export", { method: "POST" }));
     expect(res.status).toBe(403);
@@ -70,14 +73,14 @@ describe("security/api-guard", () => {
   });
 
   it("requireAdmin allows admin", async () => {
-    vi.mocked(auth).mockResolvedValue(session({ id: "admin1", role: "ADMIN" }));
+    authMock.mockResolvedValue(session({ id: "admin1", role: "ADMIN" }));
     const POST = withApiGuard({ requireAdmin: true }, async () => Response.json({ role: "admin" }));
     const res = await POST(new Request("http://localhost/api/admin/export", { method: "POST" }));
     expect(res.status).toBe(200);
   });
 
   it("validates JSON body with zod", async () => {
-    vi.mocked(auth).mockResolvedValue(session({ id: "u1" }));
+    authMock.mockResolvedValue(session({ id: "u1" }));
     const schema = z.object({ name: z.string().min(1) });
     const POST = withAuthApiRoute({ bodySchema: schema }, async ({ body }) =>
       Response.json(body),
@@ -107,8 +110,12 @@ describe("security/api-guard", () => {
   });
 
   it("returns 429 when rate limit exceeded", async () => {
-    vi.mocked(auth).mockResolvedValue(session({ id: "u1" }));
-    vi.mocked(enforceRateLimit).mockResolvedValue({ allowed: false, retryAfterMs: 5000 });
+    authMock.mockResolvedValue(session({ id: "u1" }));
+    vi.mocked(enforceRateLimit).mockResolvedValue({
+      allowed: false,
+      retryAfterMs: 5000,
+      reason: "exceeded",
+    });
     const POST = withAuthApiRoute({ rateLimit: "aiChat" }, async () => Response.json({ ok: true }));
     const res = await POST(new Request("http://localhost/api/ai/chat", { method: "POST" }));
     expect(res.status).toBe(429);
@@ -118,7 +125,7 @@ describe("security/api-guard", () => {
   });
 
   it("returns safe 500 and audits unhandled handler errors", async () => {
-    vi.mocked(auth).mockResolvedValue(session({ id: "u1" }));
+    authMock.mockResolvedValue(session({ id: "u1" }));
     const POST = withAuthApiRoute({}, async () => {
       throw new Error("boom");
     });
@@ -136,7 +143,7 @@ describe("security/api-guard", () => {
   });
 
   it("skipBodyParse skips zod parse for multipart handlers", async () => {
-    vi.mocked(auth).mockResolvedValue(session({ id: "u1" }));
+    authMock.mockResolvedValue(session({ id: "u1" }));
     const POST = withApiGuard({ requireAuth: true, skipBodyParse: true }, async ({ req }) => {
       const form = await req.formData();
       return Response.json({ file: form.get("file") === "1" });

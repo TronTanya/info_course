@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
+import { LearnPageHeader, LearnPageShell } from "@/components/learn/learn-chrome";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { UserSettingsForm } from "@/components/settings/user-settings-form";
 import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/ui/page-header";
 import { toDateInputValue } from "@/lib/profile-dates";
 import { parseProfileInterests } from "@/lib/profile-interests";
 import { getCurrentUser } from "@/lib/permissions";
@@ -37,15 +35,13 @@ export default async function DashboardSettingsPage({
 
   return (
     <DashboardShell>
-      <div className="space-y-8 pb-8">
-        <PageHeader
+      <LearnPageShell className="space-y-8 pb-8">
+        <LearnPageHeader
+          backHref="/dashboard/profile"
+          backLabel="← Профиль"
+          eyebrow="Аккаунт"
           title="Настройки"
-          description="Личные данные, аватар, интересы для AI и сведения об аккаунте — в одном месте, с сохранением в ваш профиль."
-          actions={
-            <Button variant="outline" size="sm" className="w-full border-primary/25 bg-card/80 sm:w-auto" asChild>
-              <Link href="/dashboard/profile">← К профилю</Link>
-            </Button>
-          }
+          subtitle="Личные данные, аватар, интересы для AI и сведения об аккаунте."
         />
 
         {saved ? (
@@ -70,7 +66,7 @@ export default async function DashboardSettingsPage({
             customInterest: interests.custom,
           }}
         />
-      </div>
+      </LearnPageShell>
     </DashboardShell>
   );
 }

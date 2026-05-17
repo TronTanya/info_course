@@ -56,12 +56,27 @@ export type AchievementRow = (typeof ACHIEVEMENT_CATALOG)[number] & {
  * Синхронизирует достижения с фактами в БД. Идемпотентно: повторные вызовы не создают дубликаты.
  * Вызывать после пересчёта прогресса модуля и после выдачи сертификата.
  */
-export async function reconcileUserAchievements(userId: string): Promise<void> {
+export function achievementNoticesFromKinds(kinds: AchievementKind[]): {
+  kind: AchievementKind;
+  title: string;
+  description: string;
+}[] {
+  return kinds.map((kind) => {
+    const def = ACHIEVEMENT_CATALOG.find((d) => d.kind === kind);
+    return {
+      kind,
+      title: def?.title ?? kind,
+      description: def?.description ?? "",
+    };
+  });
+}
+
+export async function reconcileUserAchievements(userId: string): Promise<AchievementKind[]> {
   const course = await prisma.course.findFirst({
     orderBy: { createdAt: "asc" },
     select: { id: true },
   });
-  if (!course) return;
+  if (!course) return [];
 
   const modules = await prisma.module.findMany({
     where: { courseId: course.id, isActive: true },
@@ -72,10 +87,10 @@ export async function reconcileUserAchievements(userId: string): Promise<void> {
       practicalTasks: { select: { taskType: true } },
     },
   });
-  if (modules.length === 0) return;
+  if (modules.length === 0) return [];
 
   const firstModule = modules[0];
-  if (!firstModule) return;
+  if (!firstModule) return [];
 
   const moduleIds = modules.map((m) => m.id);
 
@@ -128,15 +143,25 @@ export async function reconcileUserAchievements(userId: string): Promise<void> {
     toGrant.push("CERTIFICATE_EARNED");
   }
 
-  if (toGrant.length === 0) return;
+  if (toGrant.length === 0) return [];
+
+  const existing = await prisma.userAchievement.findMany({
+    where: { userId, kind: { in: toGrant } },
+    select: { kind: true },
+  });
+  const have = new Set(existing.map((e) => e.kind));
+  const newlyGranted = toGrant.filter((k) => !have.has(k));
+  if (newlyGranted.length === 0) return [];
 
   await prisma.userAchievement.createMany({
-    data: toGrant.map((kind) => ({
+    data: newlyGranted.map((kind) => ({
       userId,
       kind,
     })),
     skipDuplicates: true,
   });
+
+  return newlyGranted;
 }
 
 export async function getUserAchievementRows(userId: string): Promise<AchievementRow[]> {

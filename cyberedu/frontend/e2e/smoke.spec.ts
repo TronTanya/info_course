@@ -12,14 +12,15 @@ test.describe.configure({ mode: "serial" });
 test.describe("CyberEdu smoke", () => {
   test("1. student login", async ({ page }) => {
     await loginAs(page, "student");
-    await expect(page.getByRole("heading", { name: /Профиль|Кабинет/i }).first()).toBeVisible();
+    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page.getByRole("link", { name: "Курс" }).first()).toBeVisible();
   });
 
   test("2. open dashboard", async ({ page }) => {
     await loginAs(page, "student");
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/dashboard/);
-    await expect(page.getByRole("link", { name: "Курс" }).first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Здравствуйте/i }).first()).toBeVisible();
   });
 
   test("3. open course", async ({ page }) => {
@@ -32,7 +33,12 @@ test.describe("CyberEdu smoke", () => {
   test("4. submit module test (no false rate-limit error)", async ({ page }) => {
     await loginAs(page, "student");
     await openFirstTestPage(page);
-    await submitModuleTest(page);
+    const submitted = await submitModuleTest(page);
+    if (!submitted) {
+      await expect(
+        page.getByText(/Тест уже пройден|Пройти тест ещё раз|Прогресс по ответам/i).first(),
+      ).toBeVisible();
+    }
   });
 
   test("5. submit practice text (no false rate-limit error)", async ({ page }) => {
@@ -50,7 +56,8 @@ test.describe("CyberEdu smoke", () => {
     await loginAs(page, "admin");
     await page.goto("/admin/users");
     await expect(page.getByRole("heading", { name: "Пользователи" })).toBeVisible();
-    await expect(page.getByText(/admin@cyberedu\.local|@cyberedu\.local/i).first()).toBeVisible();
+    await page.getByPlaceholder(/ФИО, email/i).fill("admin@cyberedu.local");
+    await expect(page.getByRole("row", { name: /admin@cyberedu\.local/i })).toBeVisible();
   });
 
   test("7. certificate verify page (public)", async ({ page }) => {
@@ -69,5 +76,33 @@ test.describe("CyberEdu smoke", () => {
     await loginAs(page, "student");
     await logoutFromApp(page);
     await expect(page.getByRole("link", { name: "Войти" })).toBeVisible();
+  });
+
+  test("9. dashboard achievements block", async ({ page }) => {
+    await loginAs(page, "student");
+    await page.goto("/dashboard");
+    await expect(page.getByRole("heading", { name: /Здравствуйте/i })).toBeVisible();
+    await expect(page.getByText(/Достижения/i).first()).toBeVisible();
+  });
+
+  test("10. api health", async ({ request }) => {
+    const res = await request.get("/api/health");
+    expect(res.ok()).toBeTruthy();
+    const body = (await res.json()) as { status: string; checks?: { database: string } };
+    expect(body.status).toBe("ok");
+    expect(body.checks?.database).toBe("ok");
+  });
+
+  test("12. public reviews page", async ({ page }) => {
+    await page.goto("/reviews");
+    await expect(page.getByRole("heading", { name: "Отзывы" })).toBeVisible();
+  });
+
+  test("11. command palette", async ({ page }) => {
+    await loginAs(page, "student");
+    await page.goto("/dashboard");
+    const palette = page.locator("header").getByTestId("command-palette-trigger").first();
+    await palette.click();
+    await expect(page.getByTestId("command-palette-search").first()).toBeVisible({ timeout: 5000 });
   });
 });

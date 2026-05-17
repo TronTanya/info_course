@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ScrollReveal } from "@/components/effects/scroll-reveal";
 import { LandingAiFeatures } from "@/components/home/landing-ai-features";
 import { LandingCourseInside } from "@/components/home/landing-course-inside";
 import { LandingCta } from "@/components/home/landing-cta";
@@ -9,45 +10,55 @@ import { LandingProblem } from "@/components/home/landing-problem";
 import { LandingReviews } from "@/components/home/landing-reviews";
 import { LandingStats } from "@/components/home/landing-stats";
 import { MarketingShell } from "@/components/layout/marketing-shell";
+import { buildPublicMetadata } from "@/lib/seo/build-page-metadata";
+import { JsonLd, homePageJsonLd } from "@/components/seo/json-ld";
 
 export const dynamic = "force-dynamic";
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3100";
+
 export const metadata: Metadata = {
-  title: "Главная",
-  description:
-    "CyberEdu — интерактивный курс по информационной безопасности: лекции, практика, AI-наставник и сертификат.",
+  ...buildPublicMetadata({
+    title: "CyberEdu — курс по информационной безопасности",
+    description:
+      "Интерактивный курс по ИБ: лекции, практика, AI-наставник и сертификат.",
+    path: "/",
+  }),
+  title: {
+    default: "CyberEdu — курс по информационной безопасности",
+    template: "%s · CyberEdu",
+  },
 };
 
 export default function HomePage() {
   return (
     <MarketingShell>
-      <>
+      <JsonLd data={homePageJsonLd(appUrl)} />
+      <div className="flex flex-col gap-16 md:gap-24">
         <LandingHero />
-        <div className="ce-animate-in ce-stagger-1">
+        <ScrollReveal delay={0.05}>
           <LandingProblem />
-        </div>
-        <div className="ce-animate-in ce-stagger-2">
+        </ScrollReveal>
+        <ScrollReveal delay={0.08}>
           <LandingCourseInside />
-        </div>
-        <div className="ce-animate-in ce-stagger-3">
+        </ScrollReveal>
+        <ScrollReveal delay={0.06}>
           <LandingHowItWorks />
-        </div>
-        <div className="ce-animate-in ce-stagger-4">
+        </ScrollReveal>
+        <ScrollReveal delay={0.1}>
           <LandingPracticeShowcase />
-        </div>
-        <div className="ce-animate-in ce-stagger-5">
+        </ScrollReveal>
+        <ScrollReveal delay={0.06}>
           <LandingAiFeatures />
-        </div>
-        <div className="ce-animate-in">
-          <LandingStats />
-        </div>
-        <div className="ce-animate-in ce-stagger-1">
+        </ScrollReveal>
+        <LandingStats />
+        <ScrollReveal delay={0.05}>
           <LandingReviews />
-        </div>
-        <div className="ce-animate-in ce-stagger-2">
+        </ScrollReveal>
+        <ScrollReveal delay={0.08}>
           <LandingCta />
-        </div>
-      </>
+        </ScrollReveal>
+      </div>
     </MarketingShell>
   );
 }

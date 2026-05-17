@@ -1,3 +1,4 @@
+import { TechAmbient } from "@/components/effects/tech-ambient";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { PageShell } from "@/components/layout/page-shell";
@@ -5,6 +6,7 @@ import { PageShell } from "@/components/layout/page-shell";
 export async function MarketingShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen min-w-0 flex-col">
+      <TechAmbient />
       <SiteHeader />
       <main
         id="main-content"

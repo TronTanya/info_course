@@ -1,0 +1,38 @@
+# Ручная проверка staging/production после деплоя (health + публичные страницы).
+name: Ops health probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Базовый URL (например https://learn.example.com)"
+        required: true
+        type: string
+
+jobs:
+  probe:
+    name: HTTP probes
+    runs-on: ubuntu-latest
+    steps:
+      - name: API health
+        env:
+          BASE: ${{ inputs.base_url }}
+        run: |
+          set -euo pipefail
+          BASE="${BASE%/}"
+          echo "GET $BASE/api/health"
+          body="$(curl -sf "$BASE/api/health")"
+          echo "$body"
+          echo "$body" | grep -q '"status":"ok"'
+          echo "$body" | grep -q '"database":"ok"'
+
+      - name: Public pages
+        env:
+          BASE: ${{ inputs.base_url }}
+        run: |
+          BASE="${BASE%/}"
+          for path in / /reviews /auth/login; do
+            code="$(curl -s -o /dev/null -w "%{http_code}" "$BASE$path")"
+            echo "$path -> $code"
+            test "$code" = "200" -o "$code" = "307" -o "$code" = "308"
+          done

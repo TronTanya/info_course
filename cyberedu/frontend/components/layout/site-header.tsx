@@ -2,6 +2,7 @@ import { authSafe } from "@/lib/auth";
 import { BrandLogoHeaderLink } from "@/components/brand/brand-logo";
 import { Button } from "@/components/ui/button";
 import { DOCKER_IMAGE_BUILD_STAMP } from "@/lib/docker-build-stamp";
+import { CommandPalette } from "@/components/layout/command-palette";
 import { SiteHeaderNav } from "@/components/layout/site-header-nav";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 
@@ -28,6 +29,7 @@ export async function SiteHeader() {
               </a>
             </Button>
           ) : null}
+          {variant !== "guest" ? <CommandPalette /> : null}
           <ThemeToggle />
           <SiteHeaderNav variant={variant} />
         </div>

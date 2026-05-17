@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminShell } from "@/components/layout/admin-shell";
+import { AdminDashboardChartsLazy } from "@/components/admin/admin-dashboard-charts-lazy";
+import { getAdminDashboardChartsData } from "@/lib/admin-dashboard-charts";
 import { getAdminDashboardStats } from "@/lib/admin-dashboard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminHomePage() {
-  const s = await getAdminDashboardStats();
+  const [s, charts] = await Promise.all([getAdminDashboardStats(), getAdminDashboardChartsData()]);
 
   const tiles = [
     { title: "Всего пользователей", value: s.totalUsers, hint: "Все учётные записи в системе" },
@@ -62,6 +64,8 @@ export default async function AdminHomePage() {
             </p>
           </CardContent>
         </Card>
+        <AdminDashboardChartsLazy data={charts} />
+
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 min-[1920px]:grid-cols-4">
           {tiles.map((t) => (
             <Card

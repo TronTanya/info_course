@@ -48,8 +48,6 @@ const chatBodySchema = z.preprocess(
   }),
 );
 
-type ChatBody = z.infer<typeof chatBodySchema>;
-
 export const POST = withAuthApiRoute(
   { rateLimit: "aiChat", bodySchema: chatBodySchema },
   async ({ userId, ip, body }) => {

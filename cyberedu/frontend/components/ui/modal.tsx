@@ -24,6 +24,8 @@ export function Modal({ open, onOpenChange, title, description, children, footer
             "fixed left-1/2 top-1/2 z-50 w-[min(100%-2rem,520px)] max-h-[min(90vh,720px)] overflow-y-auto rounded-2xl border border-border bg-popover p-6 text-popover-foreground shadow-card-hover outline-none",
             "data-[state=open]:animate-[ce-modal-in_0.3s_var(--ease-out-expo)_forwards] data-[state=closed]:opacity-0",
           )}
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          onCloseAutoFocus={(e) => e.preventDefault()}
         >
           <div className="flex flex-col gap-2">
             <Dialog.Title className="text-lg font-semibold text-foreground">{title}</Dialog.Title>

@@ -3,6 +3,7 @@ import type { ComponentProps } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ModuleHubStepList } from "@/components/course/module-hub-step-list";
+import { LearnPageShell, LearnSection } from "@/components/learn/learn-chrome";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -83,7 +84,7 @@ export default async function ModulePage({ params }: Props) {
 
   return (
     <DashboardShell>
-      <>
+      <LearnPageShell>
         <PageHeader
           breadcrumb={
             <Button variant="ghost" className="-ml-2 h-auto w-fit px-2 text-muted-foreground" asChild>
@@ -100,19 +101,20 @@ export default async function ModulePage({ params }: Props) {
           }
         />
 
-        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <LearnSection className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <MetricCard label="Прогресс по шагам" value={`${progressPercent}%`} />
           <MetricCard label="Баллы за модуль" value={score} />
           <div className="flex min-h-full flex-col justify-center rounded-2xl border border-border bg-card p-5 shadow-card sm:col-span-2">
             <ProgressBar value={progressPercent} max={100} label="Выполнение шагов модуля" />
           </div>
-        </section>
+        </LearnSection>
 
-        <section>
+        <LearnSection>
           <h2 className="typo-h2 mb-4">Шаги прохождения</h2>
           <ModuleHubStepList steps={steps} />
-        </section>
+        </LearnSection>
 
+        <LearnSection>
         <SectionCard id="module-result" variant="muted" className="scroll-mt-24" title="Результат">
           {moduleCompleted ? (
             <p className="typo-body-muted">
@@ -128,7 +130,8 @@ export default async function ModulePage({ params }: Props) {
             <p className="typo-body-muted">Здесь появится итог после успешной практики. Сначала пройдите лекцию, тест и задание.</p>
           )}
         </SectionCard>
-      </>
+        </LearnSection>
+      </LearnPageShell>
     </DashboardShell>
   );
 }

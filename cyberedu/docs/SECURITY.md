@@ -51,9 +51,10 @@
 
 | Зона | Лимит (ориентир) | Реализация |
 |------|------------------|------------|
-| Login / credentials | 25 / 20 per 15 min | `login-attempts.ts` → Redis |
+| Login (authorize) | 25 / 15 min / IP | `checkLoginRateLimit` в `lib/auth.ts` → Redis |
+| Credentials callback | 20 / 15 min / IP | `middleware.ts` → `applyMiddlewareRateLimit` → Redis |
 | Register | 8 / IP·час, 5 / email·сутки | `registerAction` → Redis |
-| AI chat / lesson adapt | 60 / 40 per hour / user | `withApiGuard` → Redis |
+| AI chat / lesson adapt | 60 / 40 per hour / user | **`withApiGuard` only** (без дубля в middleware) |
 | Certificate verify | 40 / 15 min / IP | page + Redis |
 | Admin export | 10 / hour | `withApiGuard` → Redis |
 | Practice API checks / upload | 40 / 20 per hour | `withApiGuard` → Redis |
@@ -65,7 +66,8 @@
 - **Production (`ENVIRONMENT=production`):** только Redis (`REDIS_URL` в compose). Без Redis — **fail-closed** (`reason: unavailable`), не bypass.
 - **Development:** in-memory fallback с `console.warn` (не shared между репликами).
 
-Server Actions: `lib/security/server-action-rate-limit.ts` (не использовать sync `consumeRateLimit`).
+Server Actions: `lib/security/server-action-rate-limit.ts`.  
+**Не использовать** sync `consumeRateLimit` / `consumeRateLimitSyncDevOnly` в middleware, handlers или actions (в production → deny-all).
 
 ### API guard
 

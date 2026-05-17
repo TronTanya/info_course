@@ -10,6 +10,8 @@ import { clientIpFromHeaders } from "@/lib/security/request-ip";
 
 type Props = { params: Promise<{ verificationCode: string }> };
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { verificationCode } = await params;
   return {

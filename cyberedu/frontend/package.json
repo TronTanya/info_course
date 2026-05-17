@@ -10,7 +10,11 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test",
+    "test:e2e": "ENVIRONMENT=test E2E_USE_SEED_CREDENTIALS=1 playwright test",
+    "smoke:url": "playwright test e2e/smoke.spec.ts",
+    "smoke:local": "ALLOW_DEGRADED=1 bash ../scripts/staging-smoke.sh",
+    "smoke:local:strict": "bash ../scripts/staging-smoke.sh",
+    "smoke:local:e2e": "RUN_E2E=1 bash ../scripts/staging-smoke.sh",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report",
     "db:generate": "prisma generate",
@@ -33,10 +37,13 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tabs": "^1.1.13",
     "@react-pdf/renderer": "^4.5.1",
+    "@redis/client": "^5.12.1",
     "@tanstack/react-query": "^5.90.12",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "dotenv": "^17.4.2",
+    "framer-motion": "^11.15.0",
+    "highlight.js": "^11.11.1",
     "lucide-react": "^0.468.0",
     "next": "16.2.6",
     "next-auth": "^5.0.0-beta.31",
@@ -49,9 +56,10 @@
     "zod": "^4.4.3"
   },
   "optionalDependencies": {
-    "redis": "^5.10.0"
+    "redis": "^5.12.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.1",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
@@ -65,7 +73,6 @@
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5",
-    "vitest": "^3.2.4",
-    "@playwright/test": "^1.55.1"
+    "vitest": "^3.2.4"
   }
 }

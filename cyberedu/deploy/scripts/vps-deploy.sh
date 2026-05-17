@@ -23,3 +23,7 @@ echo "[deploy] status:"
 docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" ps
 
 echo "Готово. Проверьте https://ваш-домен и /api/v1/health"
+echo ""
+echo "Smoke после деплоя:"
+echo "  BASE_URL=https://ваш-домен CHECK_NGINX=1 ./scripts/staging-smoke.sh"
+echo "  BASE_URL=https://ваш-домен RUN_E2E=1 ./scripts/staging-smoke.sh  # при доступном seed"

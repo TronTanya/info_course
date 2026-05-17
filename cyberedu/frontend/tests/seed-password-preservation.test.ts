@@ -52,13 +52,13 @@ describe("assertSeedAllowed", () => {
   });
 
   it("throws when ENVIRONMENT=production (even if NODE_ENV=production in Docker)", () => {
-    process.env.NODE_ENV = "production";
+    vi.stubEnv("NODE_ENV", "production");
     process.env.ENVIRONMENT = "production";
     expect(() => assertSeedAllowed()).toThrow(/запрещён в production/i);
   });
 
   it("allows seed when ENVIRONMENT=development and NODE_ENV=production", () => {
-    process.env.NODE_ENV = "production";
+    vi.stubEnv("NODE_ENV", "production");
     process.env.ENVIRONMENT = "development";
     expect(() => assertSeedAllowed()).not.toThrow();
   });

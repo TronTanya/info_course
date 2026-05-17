@@ -49,6 +49,10 @@ jobs:
           AUTH_SECRET: ci-auth-secret-minimum-32-characters-long-ok
           OPENAI_API_KEY: ""
 
+      - name: npm audit (high severity)
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
   backend-test:
     name: Backend (pytest)
     runs-on: ubuntu-latest

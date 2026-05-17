@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { assertModuleAccess, checkTestPrerequisites } from "@/lib/course-progress-guards";
 import { requireAuth } from "@/lib/permissions";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
+import { LearnPageShell } from "@/components/learn/learn-chrome";
 import { ModuleTestRunner } from "@/components/test/module-test-runner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -155,19 +156,17 @@ export default async function TestPage({ params }: Props) {
 
   return (
     <DashboardShell>
-      <div className="space-y-6">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Тест · {mod?.title ?? "модуль"}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Проверка только на сервере. Поле <code className="rounded bg-muted px-1 text-xs">isCorrect</code> не
-              передаётся; порядок вариантов ответа при каждой загрузке страницы случайный.
-            </p>
-          </div>
-          <Button asChild variant="ghost" className="text-muted-foreground">
+      <LearnPageShell>
+        <header className="ce-learn-header ce-border-beam rounded-2xl border border-border/70 bg-card/90 p-5 shadow-card">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-cyan/90">Assessment</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">Тест · {mod?.title ?? "модуль"}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Проверка на сервере. Порядок вариантов при каждой загрузке случайный.
+          </p>
+          <Button asChild variant="outline" size="sm" className="mt-4 w-fit">
             <Link href={`/dashboard/course/${moduleId}`}>← К модулю</Link>
           </Button>
-        </div>
+        </header>
 
         {tests.length > 1 ? (
           <p className="text-sm text-muted-foreground">В модуле несколько тестов — пройдите каждый по очереди.</p>
@@ -186,7 +185,7 @@ export default async function TestPage({ params }: Props) {
             />
           ))}
         </div>
-      </div>
+      </LearnPageShell>
     </DashboardShell>
   );
 }

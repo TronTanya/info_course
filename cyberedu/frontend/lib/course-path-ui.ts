@@ -1,0 +1,122 @@
+import type { ComponentProps } from "react";
+import type { CourseProgressModuleRow, ModuleRequirements } from "@/lib/progress";
+import type { Badge } from "@/components/ui/badge";
+
+export type UiStatus = "locked" | "available" | "in_progress" | "completed";
+
+export function getUiStatus(row: CourseProgressModuleRow): UiStatus {
+  if (!row.unlocked) return "locked";
+  if (row.moduleCompleted) return "completed";
+  const p = row.progress;
+  const started =
+    Boolean(p?.lessonCompleted) ||
+    Boolean(p?.videoCompleted) ||
+    Boolean(p?.testCompleted) ||
+    Boolean(p?.practiceCompleted) ||
+    row.progressPercent > 0;
+  return started ? "in_progress" : "available";
+}
+
+export const statusBadge: Record<
+  UiStatus,
+  { label: string; variant: NonNullable<ComponentProps<typeof Badge>["variant"]>; className?: string }
+> = {
+  locked: { label: "Закрыт", variant: "outline", className: "border-muted-foreground/40 text-muted-foreground" },
+  available: { label: "Доступен", variant: "success" },
+  in_progress: { label: "В процессе", variant: "cyan", className: "border-sky-500/35 bg-sky-500/10 text-sky-800 dark:text-sky-200" },
+  completed: { label: "Завершён", variant: "success" },
+};
+
+export function getModuleAction(row: CourseProgressModuleRow): { href: string; label: string; disabled: boolean } {
+  const id = row.module.id;
+  const base = `/dashboard/course/${id}`;
+  if (!row.unlocked) {
+    return { href: "#", label: "Завершите предыдущий модуль", disabled: true };
+  }
+
+  const p = row.progress;
+  const req = row.requirements;
+
+  if (row.moduleCompleted) {
+    return { href: base, label: "Открыть модуль", disabled: false };
+  }
+
+  const lessonDone = !req.lessonRequired || Boolean(p?.lessonCompleted);
+  const videoDone = !req.videoRequired || Boolean(p?.videoCompleted);
+  const testDone = !req.testRequired || Boolean(p?.testCompleted);
+  const practiceDone = !req.practiceRequired || Boolean(p?.practiceCompleted);
+
+  const started = Boolean(p?.lessonCompleted || p?.videoCompleted || p?.testCompleted || p?.practiceCompleted);
+
+  if (!lessonDone) {
+    return { href: `${base}/lesson`, label: started ? "Продолжить" : "Начать", disabled: false };
+  }
+  if (!videoDone) {
+    return { href: `${base}/lesson`, label: "Продолжить", disabled: false };
+  }
+  if (!testDone) {
+    return { href: `${base}/test`, label: "Продолжить", disabled: false };
+  }
+  if (!practiceDone) {
+    return { href: `${base}/practice`, label: "Продолжить", disabled: false };
+  }
+
+  return { href: base, label: "Открыть модуль", disabled: false };
+}
+
+export function moduleTimeEstimate(req: ModuleRequirements): string {
+  let lo = 0;
+  let hi = 0;
+  if (req.lessonRequired) {
+    lo += 40;
+    hi += 85;
+  }
+  if (req.videoRequired) {
+    lo += 20;
+    hi += 50;
+  }
+  if (req.testRequired) {
+    lo += 25;
+    hi += 55;
+  }
+  if (req.practiceRequired) {
+    lo += 40;
+    hi += 120;
+  }
+  if (lo === 0) return "—";
+  const loH = Math.max(1, Math.round(lo / 60));
+  const hiH = Math.max(loH, Math.round(hi / 60));
+  return loH === hiH ? `≈ ${loH} ч` : `≈ ${loH}–${hiH} ч`;
+}
+
+export function moduleDifficultyLabel(req: ModuleRequirements): string {
+  const n = req.totalSteps;
+  if (n >= 4) return "Полный цикл";
+  if (n === 3) return "Стандарт";
+  if (n === 2) return "Компакт";
+  return n <= 1 ? "Краткий модуль" : "Стандарт";
+}
+
+export function buildModuleTrackSteps(row: CourseProgressModuleRow): { key: string; label: string; done: boolean }[] {
+  const { requirements: req, progress: p } = row;
+  const locked = !row.unlocked;
+  if (locked) return [];
+
+  const steps: { key: string; label: string; done: boolean }[] = [];
+
+  if (req.lessonRequired || req.videoRequired) {
+    const lessonOk = !req.lessonRequired || Boolean(p?.lessonCompleted);
+    const videoOk = !req.videoRequired || Boolean(p?.videoCompleted);
+    const label =
+      req.videoRequired && req.lessonRequired ? "Лекция и видео" : req.videoRequired ? "Видео к лекции" : "Лекция";
+    steps.push({ key: "prep", label, done: lessonOk && videoOk });
+  }
+  if (req.testRequired) {
+    steps.push({ key: "test", label: "Тест", done: Boolean(p?.testCompleted) });
+  }
+  if (req.practiceRequired) {
+    steps.push({ key: "practice", label: "Практика", done: Boolean(p?.practiceCompleted) });
+  }
+
+  return steps;
+}

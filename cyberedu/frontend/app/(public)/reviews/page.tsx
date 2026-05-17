@@ -1,54 +1,51 @@
-import type { Metadata } from "next";
 import Link from "next/link";
-import { ReviewStars } from "@/components/reviews/review-stars";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { ScrollReveal } from "@/components/effects/scroll-reveal";
+import { PublicReviewsGrid } from "@/components/reviews/public-reviews-grid";
+import { EmptyState } from "@/components/ui/empty-state";
+import { buildPublicMetadata } from "@/lib/seo/build-page-metadata";
 import { getPublishedReviews } from "@/lib/reviews";
 
-export const metadata: Metadata = {
+export const metadata = buildPublicMetadata({
   title: "Отзывы",
-};
+  description: "Отзывы выпускников курса CyberEdu по информационной безопасности.",
+  path: "/reviews",
+});
 
 export default async function ReviewsPage() {
   const reviews = await getPublishedReviews(48);
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground">Отзывы</h1>
-        <p className="mt-2 max-w-2xl text-muted-foreground">
-          Здесь собраны отзывы выпускников и слушателей курса, прошедшие модерацию.{" "}
-          <Link href="/auth/register" className="font-medium text-primary underline-offset-4 hover:underline">
-            Зарегистрируйтесь
-          </Link>
-          , чтобы учиться и при желании оставить свой отзыв после первого завершённого модуля.
-        </p>
-      </div>
-      {reviews.length === 0 ? (
-        <Card>
-          <CardContent className="p-6 text-sm text-muted-foreground">Пока нет опубликованных отзывов.</CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-6 sm:grid-cols-2">
-          {reviews.map((r) => (
-            <Card key={r.id} className="border-border/90 bg-card/95 shadow-card">
-              <CardHeader className="space-y-3 pb-2">
-                <ReviewStars value={r.rating} />
-                <div>
-                  <p className="font-semibold text-foreground">{r.name}</p>
-                  <p className="text-sm text-muted-foreground">{r.educationalInstitution}</p>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <blockquote className="border-l-2 border-primary/30 pl-4 text-sm leading-relaxed text-muted-foreground">
-                  {r.text}
-                </blockquote>
-                <p className="mt-3 text-xs text-muted-foreground">
-                  {new Date(r.createdAt).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+    <div className="space-y-10">
+      <ScrollReveal>
+        <div className="ce-learn-header ce-border-beam rounded-2xl border border-border/70 bg-card/90 p-6 sm:p-8">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-cyan">CyberEdu</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">Отзывы</h1>
+          <p className="mt-3 max-w-2xl text-muted-foreground">
+            Здесь собраны отзывы выпускников и слушателей курса, прошедшие модерацию.{" "}
+            <Link href="/auth/register" className="font-medium text-primary underline-offset-4 hover:underline">
+              Зарегистрируйтесь
+            </Link>
+            , чтобы учиться и при желании оставить свой отзыв после первого завершённого модуля.
+          </p>
         </div>
+      </ScrollReveal>
+
+      {reviews.length === 0 ? (
+        <EmptyState
+          title="Пока нет опубликованных отзывов"
+          description="Когда студенты оставят отзывы и администратор их опубликует, они появятся здесь."
+        />
+      ) : (
+        <PublicReviewsGrid
+          reviews={reviews.map((r) => ({
+            id: r.id,
+            name: r.name,
+            educationalInstitution: r.educationalInstitution,
+            text: r.text,
+            rating: r.rating,
+            createdAt: r.createdAt.toISOString(),
+          }))}
+        />
       )}
     </div>
   );

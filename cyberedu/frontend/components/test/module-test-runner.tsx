@@ -7,6 +7,7 @@ import type { ClientTestQuestion, SubmittedAnswerPayload } from "@/lib/test-grad
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressBar } from "@/components/ui/progress-bar";
+import { LearnEnter } from "@/components/learn/learn-chrome";
 import { cn } from "@/lib/utils";
 import type { QuestionType } from "@prisma/client";
 
@@ -215,7 +216,8 @@ export function ModuleTestRunner({ moduleId, testId, title, minScore, questions,
   }
 
   return (
-    <Card className="ce-quiz-shell overflow-hidden">
+    <LearnEnter>
+    <Card className="ce-quiz-shell ce-border-beam overflow-hidden">
       <CardHeader
         className={cn(
           "space-y-2 border-b border-border/60 bg-linear-to-r from-card via-muted/20 to-card",
@@ -317,6 +319,7 @@ export function ModuleTestRunner({ moduleId, testId, title, minScore, questions,
         </div>
       </CardContent>
     </Card>
+    </LearnEnter>
   );
 }
 

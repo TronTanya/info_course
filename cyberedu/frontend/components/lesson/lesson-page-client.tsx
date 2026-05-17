@@ -6,13 +6,14 @@ import { useRouter } from "next/navigation";
 import { markLessonStudiedAction, regenerateLessonAiAction, runLessonAiAction } from "@/lib/actions/lesson";
 import { lessonAiActionLabel, parseLessonAiMeta, type LessonAiAction } from "@/lib/lesson-ai-meta";
 import { AiMentorChat } from "@/components/ai/AiMentorChat";
+import { LessonStickyTabs } from "@/components/lesson/lesson-sticky-tabs";
+import { LearnPageHeader, LearnPageShell } from "@/components/learn/learn-chrome";
 import { extractLessonGlossary, LessonStructuredText } from "@/components/lesson/lesson-structured-text";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Modal } from "@/components/ui/modal";
 import { ProgressBar } from "@/components/ui/progress-bar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { formatRuDateTimeShortUtc } from "@/lib/datetime-stable";
@@ -235,29 +236,15 @@ export function LessonPageClient({
 
   return (
     <>
-      <div className="space-y-8">
-        <header className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/90 p-4 shadow-card ring-1 ring-secondary/10 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-5">
-          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start">
-            <Button variant="outline" size="sm" className="shrink-0 self-start" asChild>
-              <Link href={moduleHref} aria-label="Назад к модулю">
-                ← Назад
-              </Link>
-            </Button>
-            <div className="min-w-0 space-y-1">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Модуль</p>
-              <p className="truncate text-sm font-semibold text-foreground sm:text-base">{moduleTitle}</p>
-              <p className="text-xs text-muted-foreground">Лекция</p>
-              <h1 className="text-balance text-xl font-semibold tracking-tight text-foreground sm:text-2xl">{lesson.title}</h1>
-            </div>
-          </div>
-          <div className="w-full shrink-0 space-y-2 sm:max-w-[220px]">
-            <div className="flex items-end justify-between gap-2">
-              <p className="text-xs font-medium text-muted-foreground">Прогресс модуля</p>
-              <span className="text-sm font-semibold tabular-nums text-foreground">{moduleProgressPercent}%</span>
-            </div>
-            <ProgressBar value={moduleProgressPercent} max={100} label={`Шаги: ${moduleStepsLabel}`} />
-          </div>
-        </header>
+      <LearnPageShell>
+        <LearnPageHeader
+          backHref={moduleHref}
+          eyebrow={`Модуль · ${moduleTitle}`}
+          title={lesson.title}
+          subtitle="Лекция"
+          moduleProgressPercent={moduleProgressPercent}
+          moduleStepsLabel={moduleStepsLabel}
+        />
 
         {error ? (
           <p className="rounded-xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">{error}</p>
@@ -276,28 +263,11 @@ export function LessonPageClient({
               </div>
             ) : null}
 
-            <div className="lesson-prose w-full space-y-3">
-              <p className="text-pretty text-sm leading-relaxed text-muted-foreground">
-                Оригинальный текст в базе не меняется — отдельные вкладки для AI-объяснения и конспекта.
-              </p>
-
-              <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as typeof mainTab)} className="w-full">
-                <TabsList className="flex h-auto w-full min-h-11 snap-x snap-mandatory gap-1 overflow-x-auto overflow-y-hidden border border-border/60 bg-linear-to-b from-secondary/8 to-muted/50 p-1.5 text-[11px] leading-tight shadow-inner ring-1 ring-inset ring-secondary/10 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin] sm:grid sm:grid-cols-3 sm:overflow-x-visible sm:snap-none sm:text-sm">
-                  <TabsTrigger value="original" className="min-w-[7.5rem] shrink-0 snap-start sm:min-w-0">
-                    Оригинал
-                  </TabsTrigger>
-                  <TabsTrigger value="ai" className="min-w-[7.5rem] shrink-0 snap-start sm:min-w-0">
-                    AI-объяснение
-                  </TabsTrigger>
-                  <TabsTrigger value="summary" className="min-w-[7.5rem] shrink-0 snap-start sm:min-w-0">
-                    Конспект
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent
-                  value="original"
-                  className="mt-4 space-y-6 rounded-2xl border border-border/70 bg-card p-5 shadow-sm ring-1 ring-inset ring-border/40 sm:p-6"
-                >
+            <LessonStickyTabs
+              value={mainTab}
+              onValueChange={setMainTab}
+              original={
+                <>
                   <LessonStructuredText source={lesson.content} />
                   {lesson.videoUrl ? (
                     <div className="space-y-2 border-t border-border pt-6">
@@ -305,83 +275,58 @@ export function LessonPageClient({
                       <LessonVideo url={lesson.videoUrl} />
                     </div>
                   ) : null}
-                </TabsContent>
-
-                <TabsContent
-                  value="ai"
-                  className="mt-4 space-y-5 rounded-2xl border border-border/70 bg-card p-5 shadow-sm ring-1 ring-inset ring-border/40 sm:p-6"
-                >
-                  {explanationAdaptation ? (
-                    <>
-                      <AiResultMeta interestsUsed={explanationAdaptation.interestsUsed} />
-                      <div className="rounded-2xl border border-primary/15 bg-linear-to-br from-primary/[0.04] to-card p-4 ring-1 ring-inset ring-primary/10 sm:p-5">
-                        <LessonStructuredText source={explanationAdaptation.adaptedContent} />
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {formatRuDateTimeShortUtc(explanationAdaptation.createdAt)}
-                      </p>
-                      {lesson.allowAiAdaptation ? (
-                        <div className="flex flex-wrap gap-2 border-t border-border pt-4">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            disabled={aiBusy}
-                            onClick={() => onRegenerate("explanation")}
-                          >
-                            Сгенерировать заново
-                          </Button>
-                          <Button type="button" variant="ghost" size="sm" disabled={aiBusy} onClick={() => setMainTab("original")}>
-                            Вернуться к оригиналу
-                          </Button>
-                        </div>
-                      ) : null}
-                    </>
-                  ) : (
-                    <p className="text-pretty text-sm text-muted-foreground">
-                      Здесь появится AI-объяснение после нажатия одной из кнопок в панели справа. Исходник лекции в базе не меняется.
-                    </p>
-                  )}
-                </TabsContent>
-
-                <TabsContent
-                  value="summary"
-                  className="mt-4 space-y-5 rounded-2xl border border-border/70 bg-card p-5 shadow-sm ring-1 ring-inset ring-border/40 sm:p-6"
-                >
-                  {summaryAdaptation ? (
-                    <>
-                      <AiResultMeta interestsUsed={summaryAdaptation.interestsUsed} />
-                      <div className="rounded-2xl border border-primary/15 bg-linear-to-br from-primary/[0.04] to-card p-4 ring-1 ring-inset ring-primary/10 sm:p-5">
-                        <LessonStructuredText source={summaryAdaptation.adaptedContent} />
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {formatRuDateTimeShortUtc(summaryAdaptation.createdAt)}
-                      </p>
-                      {lesson.allowAiAdaptation ? (
-                        <div className="flex flex-wrap gap-2 border-t border-border pt-4">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            disabled={aiBusy}
-                            onClick={() => onRegenerate("summary")}
-                          >
-                            Сгенерировать заново
-                          </Button>
-                          <Button type="button" variant="ghost" size="sm" disabled={aiBusy} onClick={() => setMainTab("original")}>
-                            Вернуться к оригиналу
-                          </Button>
-                        </div>
-                      ) : null}
-                    </>
-                  ) : (
-                    <div className="space-y-3 text-pretty text-sm text-muted-foreground">
-                      <p>Конспект ещё не создан. Нажмите «Сделать краткий конспект» в панели AI справа.</p>
+                </>
+              }
+              ai={
+                explanationAdaptation ? (
+                  <>
+                    <AiResultMeta interestsUsed={explanationAdaptation.interestsUsed} />
+                    <div className="rounded-2xl border border-primary/15 bg-linear-to-br from-primary/[0.04] to-card p-4 ring-1 ring-inset ring-primary/10 sm:p-5">
+                      <LessonStructuredText source={explanationAdaptation.adaptedContent} />
                     </div>
-                  )}
-                </TabsContent>
-              </Tabs>
-            </div>
+                    <p className="text-xs text-muted-foreground">{formatRuDateTimeShortUtc(explanationAdaptation.createdAt)}</p>
+                    {lesson.allowAiAdaptation ? (
+                      <div className="flex flex-wrap gap-2 border-t border-border pt-4">
+                        <Button type="button" variant="outline" size="sm" disabled={aiBusy} onClick={() => onRegenerate("explanation")}>
+                          Сгенерировать заново
+                        </Button>
+                        <Button type="button" variant="ghost" size="sm" disabled={aiBusy} onClick={() => setMainTab("original")}>
+                          Вернуться к оригиналу
+                        </Button>
+                      </div>
+                    ) : null}
+                  </>
+                ) : (
+                  <p className="text-pretty text-sm text-muted-foreground">
+                    Здесь появится AI-объяснение после нажатия одной из кнопок в панели справа.
+                  </p>
+                )
+              }
+              summary={
+                summaryAdaptation ? (
+                  <>
+                    <AiResultMeta interestsUsed={summaryAdaptation.interestsUsed} />
+                    <div className="rounded-2xl border border-primary/15 bg-linear-to-br from-primary/[0.04] to-card p-4 ring-1 ring-inset ring-primary/10 sm:p-5">
+                      <LessonStructuredText source={summaryAdaptation.adaptedContent} />
+                    </div>
+                    <p className="text-xs text-muted-foreground">{formatRuDateTimeShortUtc(summaryAdaptation.createdAt)}</p>
+                    {lesson.allowAiAdaptation ? (
+                      <div className="flex flex-wrap gap-2 border-t border-border pt-4">
+                        <Button type="button" variant="outline" size="sm" disabled={aiBusy} onClick={() => onRegenerate("summary")}>
+                          Сгенерировать заново
+                        </Button>
+                        <Button type="button" variant="ghost" size="sm" disabled={aiBusy} onClick={() => setMainTab("original")}>
+                          Вернуться к оригиналу
+                        </Button>
+                      </div>
+                    ) : null}
+                  </>
+                ) : (
+                  <p className="text-pretty text-sm text-muted-foreground">Конспект ещё не создан. Нажмите «Сделать краткий конспект» в панели AI справа.</p>
+                )
+              }
+            />
+
           </div>
 
           <aside className="min-w-0 space-y-4 xl:sticky xl:top-24 xl:self-start">
@@ -530,7 +475,7 @@ export function LessonPageClient({
             </div>
           </CardContent>
         </Card>
-      </div>
+      </LearnPageShell>
 
       <Modal
         open={askOpen}
@@ -568,10 +513,11 @@ export function LessonPageClient({
         />
       </Modal>
 
-      <div className="mt-10 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-inner ring-1 ring-secondary/5 sm:p-8">
-        <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Наставник</p>
-        <AiMentorChat moduleId={moduleId} lessonId={lesson.id} />
-      </div>
+      <AiMentorChat
+        moduleId={moduleId}
+        lessonId={lesson.id}
+        contextLabels={{ moduleTitle, lessonTitle: lesson.title }}
+      />
     </>
   );
 }

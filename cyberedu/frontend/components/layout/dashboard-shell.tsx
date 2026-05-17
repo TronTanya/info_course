@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { AppSidebar } from "@/components/layout/app-sidebar";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 
 export function DashboardShell({
@@ -15,7 +16,14 @@ export function DashboardShell({
   stack?: "tight" | "default" | "loose";
 }) {
   return (
-    <div className={cn("dashboard-grid flex-1", wide && "dashboard-grid--wide", className)}>
+    <div
+      className={cn(
+        "dashboard-grid dashboard-grid--with-sidebar flex-1",
+        wide && "dashboard-grid--wide",
+        className,
+      )}
+    >
+      <AppSidebar variant="student" />
       <section className="dashboard-content ce-app-main-panel overflow-x-clip p-5 sm:p-7 lg:p-9">
         <DashboardLayout stack={stack}>{children}</DashboardLayout>
       </section>

@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { updateUserSettingsAction, type UpdateUserSettingsState } from "@/lib/actions/user-settings";
 import { AvatarPicker } from "@/components/profile/avatar-picker";
-import { CUSTOM_AVATAR_API_PATH, canonicalizeBuiltinPreset, isBuiltinPresetAvatarUrl, isCustomAvatarApiPath } from "@/lib/avatar-presets";
+import { canonicalizeBuiltinPreset, isBuiltinPresetAvatarUrl, isCustomAvatarApiPath } from "@/lib/avatar-presets";
 import { INTEREST_TAG_OPTIONS } from "@/lib/profile-interests";
 import { Alert } from "@/components/ui/alert";
 import { ActionPanel } from "@/components/ui/action-panel";

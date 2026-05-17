@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { Prisma } from "@prisma/client";
 import { AdminDualTable } from "@/components/admin/admin-dual-table";
+import { AdminFilterTabs } from "@/components/admin/admin-filter-tabs";
+import { AdminTable, AdminTableBody, AdminTableHead } from "@/components/admin/admin-table";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/db";
-import { cn } from "@/lib/utils";
-
 export const metadata: Metadata = {
   title: "Отправки практики",
 };
@@ -102,24 +102,11 @@ export default async function AdminSubmissionsPage({ searchParams }: Props) {
         description="Отправки со статусом не «черновик». После «Принято» пересчитывается прогресс модуля и курс."
       />
 
-      <div className="mt-6 flex gap-2 overflow-x-auto pb-2 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin] sm:flex-wrap sm:overflow-visible sm:pb-0">
-        {TABS.map((t) => (
-          <Link
-            key={t.match}
-            href={t.href}
-            className={cn(
-              "shrink-0 snap-start rounded-xl px-3 py-2.5 text-sm font-medium whitespace-nowrap transition-colors sm:whitespace-normal",
-              active === t.match ? "bg-primary text-primary-foreground shadow-card" : "border border-border bg-card text-foreground hover:bg-muted/80",
-            )}
-          >
-            {t.label}
-          </Link>
-        ))}
-      </div>
+      <AdminFilterTabs tabs={TABS} active={active} className="mt-6" />
 
-      <div className="mt-8 overflow-hidden rounded-2xl border border-border bg-card shadow-card">
+      <div className="ce-admin-dual-table mt-8 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-card ring-1 ring-secondary/5">
         {rows.length === 0 ? (
-          <p className="p-6 text-center text-sm text-muted-foreground">Нет отправок по выбранному фильтру.</p>
+          <p className="p-8 text-center text-sm text-muted-foreground">Нет отправок по выбранному фильтру.</p>
         ) : (
           <AdminDualTable
             mobile={
@@ -161,44 +148,44 @@ export default async function AdminSubmissionsPage({ searchParams }: Props) {
               </div>
             }
             desktop={
-              <table className="w-full min-w-[960px] text-left text-sm">
-                <thead className="border-b border-border bg-muted/50 text-xs uppercase text-muted-foreground">
+              <AdminTable minWidth="960px">
+                <AdminTableHead>
                   <tr>
-                    <th className="px-4 py-3 font-medium">Студент</th>
-                    <th className="px-4 py-3 font-medium">Модуль</th>
-                    <th className="px-4 py-3 font-medium">Задание</th>
-                    <th className="px-4 py-3 font-medium">Тип</th>
-                    <th className="px-4 py-3 font-medium">Дата</th>
-                    <th className="px-4 py-3 font-medium">Статус</th>
-                    <th className="px-4 py-3 font-medium">Баллы</th>
-                    <th className="px-4 py-3 text-right font-medium">Действие</th>
+                    <th>Студент</th>
+                    <th>Модуль</th>
+                    <th>Задание</th>
+                    <th>Тип</th>
+                    <th>Дата</th>
+                    <th>Статус</th>
+                    <th>Баллы</th>
+                    <th className="text-right">Действие</th>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
+                </AdminTableHead>
+                <AdminTableBody>
                   {rows.map((r) => (
-                    <tr key={r.id} className="hover:bg-muted/30">
-                      <td className="px-4 py-3">
+                    <tr key={r.id}>
+                      <td>
                         <span className="font-medium text-foreground">{studentLabel(r.user.email, r.user.profile)}</span>
                         <br />
                         <span className="text-xs text-muted-foreground">{r.user.email}</span>
                       </td>
-                      <td className="px-4 py-3 text-foreground">{r.practicalTask.module.title}</td>
-                      <td className="px-4 py-3 text-foreground">{r.practicalTask.title}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{taskTypeRu(r.practicalTask.taskType)}</td>
-                      <td className="whitespace-nowrap px-4 py-3 tabular-nums text-muted-foreground">
+                      <td className="text-foreground">{r.practicalTask.module.title}</td>
+                      <td className="text-foreground">{r.practicalTask.title}</td>
+                      <td className="text-muted-foreground">{taskTypeRu(r.practicalTask.taskType)}</td>
+                      <td className="whitespace-nowrap tabular-nums text-muted-foreground">
                         {r.createdAt.toLocaleString("ru-RU")}
                       </td>
-                      <td className="px-4 py-3">{statusRu(r.status)}</td>
-                      <td className="px-4 py-3 tabular-nums text-muted-foreground">{r.score ?? "—"}</td>
-                      <td className="px-4 py-3 text-right">
+                      <td>{statusRu(r.status)}</td>
+                      <td className="tabular-nums text-muted-foreground">{r.score ?? "—"}</td>
+                      <td className="text-right">
                         <Button asChild size="sm" variant="secondary">
                           <Link href={`/admin/submissions/${r.id}`}>Проверить</Link>
                         </Button>
                       </td>
                     </tr>
                   ))}
-                </tbody>
-              </table>
+                </AdminTableBody>
+              </AdminTable>
             }
           />
         )}

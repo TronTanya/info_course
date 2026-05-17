@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { AchievementRow } from "@/lib/achievements";
 import type { ProfileCourseStats } from "@/lib/profile-course-stats";
-import { ProfileAchievements } from "@/components/profile/profile-achievements";
+import { ProfileAchievementsPanel } from "@/components/achievements/profile-achievements-panel";
 import { CertificatePanel } from "@/components/certificate/certificate-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -200,7 +200,7 @@ export function ProfileProgressOverview({
       </section>
 
       <section className={cn(cardShell, "overflow-hidden")}>
-        <ProfileAchievements rows={achievements} />
+        <ProfileAchievementsPanel rows={achievements} />
       </section>
 
       <section className={cardShell}>

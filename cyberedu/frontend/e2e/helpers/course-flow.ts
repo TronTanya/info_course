@@ -4,12 +4,31 @@ const RATE_LIMIT_ERROR = /слишком много отправок|слишк�
 
 export async function openFirstTestPage(page: Page): Promise<void> {
   await page.goto("/dashboard/course");
-  const testLink = page.locator('a[href*="/test"]').first();
-  if ((await testLink.count()) > 0) {
-    await testLink.click();
-  } else {
-    await page.getByRole("link", { name: /Начать|Продолжить|тест/i }).first().click();
+
+  const continueHref = await page
+    .getByRole("link", { name: /Продолжить обучение/i })
+    .first()
+    .getAttribute("href");
+  const fromContinue = continueHref?.match(/^(\/dashboard\/course\/[^/]+)\/(lesson|practice)$/);
+  if (fromContinue) {
+    await page.goto(`${fromContinue[1]}/test`);
+    await expect(page).toHaveURL(/\/dashboard\/course\/[^/]+\/test/);
+    return;
   }
+
+  const testUrls = await page.evaluate(() =>
+    Array.from(document.querySelectorAll<HTMLAnchorElement>("a[href]"))
+      .map((a) => a.getAttribute("href"))
+      .filter((h): h is string => Boolean(h?.match(/^\/dashboard\/course\/[^/]+\/test$/))),
+  );
+  const testUrl = testUrls.at(-1) ?? testUrls[0] ?? null;
+  if (testUrl) {
+    await page.goto(testUrl);
+    await expect(page).toHaveURL(/\/dashboard\/course\/[^/]+\/test/);
+    return;
+  }
+
+  await page.getByRole("link", { name: /Перейти к тесту|Пройти тест/i }).first().click();
   await expect(page).toHaveURL(/\/dashboard\/course\/[^/]+\/test/);
 }
 
@@ -17,32 +36,50 @@ export async function startTestAttempt(page: Page): Promise<void> {
   const retake = page.getByRole("button", { name: /Пройти тест ещё раз/i });
   if (await retake.isVisible().catch(() => false)) {
     await retake.click();
+    await expect(page.getByText(/Прогресс по ответам:/i).first()).toBeVisible({ timeout: 10_000 });
   }
 }
 
-/** Ответить на все вопросы и отправить тест. */
-export async function submitModuleTest(page: Page): Promise<void> {
+async function answerVisibleQuestion(page: Page): Promise<void> {
+  const textarea = page.getByRole("textbox").first();
+  if (await textarea.isVisible().catch(() => false)) {
+    await textarea.fill(
+      "E2E smoke: развёрнутый ответ для проверки rate limit server action и отправки теста.",
+    );
+    return;
+  }
+
+  const checkboxes = page.getByRole("checkbox");
+  const cbCount = await checkboxes.count();
+  for (let i = 0; i < cbCount; i++) {
+    await checkboxes.nth(i).check();
+  }
+  if (cbCount > 0) return;
+
+  const radio = page.getByRole("radio").first();
+  if (await radio.isVisible().catch(() => false)) {
+    await radio.check();
+  }
+}
+
+async function testAnswerProgress(page: Page): Promise<{ answered: number; total: number } | null> {
+  const text = await page.getByText(/Прогресс по ответам:/i).first().textContent();
+  const m = text?.match(/(\d+)\s*\/\s*(\d+)/);
+  if (!m) return null;
+  return { answered: Number(m[1]), total: Number(m[2]) };
+}
+
+/** Ответить на все вопросы и отправить тест; false — если тест уже сдан и повтор недоступен в UI. */
+export async function submitModuleTest(page: Page): Promise<boolean> {
   await startTestAttempt(page);
 
   const finishBtn = page.getByRole("button", { name: /Завершить тест/i });
   const maxSteps = 40;
 
   for (let step = 0; step < maxSteps; step++) {
-    const radio = page.locator('input[type="radio"]').first();
-    const checkbox = page.locator('input[type="checkbox"]').first();
-    const textarea = page.locator("textarea").first();
-
-    if (await radio.isVisible().catch(() => false)) {
-      await radio.check();
-    } else if (await checkbox.isVisible().catch(() => false)) {
-      await checkbox.check();
-    } else if (await textarea.isVisible().catch(() => false)) {
-      await textarea.fill(
-        "E2E smoke: развёрнутый ответ для проверки rate limit server action и отправки теста.",
-      );
-    }
-
-    if (await finishBtn.isEnabled().catch(() => false)) {
+    await answerVisibleQuestion(page);
+    const progress = await testAnswerProgress(page);
+    if (progress && progress.answered >= progress.total) {
       break;
     }
 
@@ -51,18 +88,27 @@ export async function submitModuleTest(page: Page): Promise<void> {
       await nextBtn.click();
       continue;
     }
+
+    const backBtn = page.getByRole("button", { name: /Назад/i });
+    if (await backBtn.isEnabled().catch(() => false)) {
+      await backBtn.click();
+      continue;
+    }
     break;
   }
 
-  await expect(finishBtn).toBeEnabled({ timeout: 15_000 });
+  if (!(await finishBtn.isEnabled().catch(() => false))) {
+    return false;
+  }
   await finishBtn.click();
   await expect(page.getByText(RATE_LIMIT_ERROR)).not.toBeVisible({ timeout: 15_000 });
   await expect(page.getByText(/Результат:|Статус:/i).first()).toBeVisible({ timeout: 20_000 });
+  return true;
 }
 
 export async function openFirstPracticePage(page: Page): Promise<void> {
   await page.goto("/dashboard/course");
-  const practiceLink = page.locator('a[href*="/practice"]').first();
+  const practiceLink = page.locator('a[href^="/dashboard/course/"][href$="/practice"]').first();
   if ((await practiceLink.count()) === 0) {
     throw new Error("Practice link not available — complete test first or check seed");
   }

@@ -15,8 +15,6 @@ const patchBodySchema = z.object({
   clear: z.boolean().optional(),
 });
 
-type PatchBody = z.infer<typeof patchBodySchema>;
-
 function revalidatePaths() {
   revalidatePath("/dashboard/profile");
   revalidatePath("/dashboard/settings");
