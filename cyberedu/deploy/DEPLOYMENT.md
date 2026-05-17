@@ -42,7 +42,7 @@ sudo usermod -aG docker "$USER"
 git clone https://github.com/TronTanya/info_course.git
 cd info_course/cyberedu
 
-cp .env.production.example .env.production
+cp .env.prod.example .env.production
 chmod 600 .env.production
 nano .env.production   # задайте домен, пароли, AUTH_SECRET, INTERNAL_API_KEY
 ```

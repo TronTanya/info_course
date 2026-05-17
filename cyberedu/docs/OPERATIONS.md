@@ -12,7 +12,7 @@
 
 ### Required environment variables
 
-Файл-шаблон: [`../.env.production.example`](../.env.production.example). Секреты **только** в runtime (`env_file`), не в `docker build`.
+Файл-шаблон: [`../.env.prod.example`](../.env.prod.example). Секреты **только** в runtime (`env_file`), не в `docker build`. Проверка compose: `make -C cyberedu compose-prod-config-quiet`.
 
 | Переменная | Обязательность | Назначение |
 |------------|----------------|------------|
@@ -119,7 +119,7 @@ E2E на изолированной CI-БД: `E2E_PRODUCTION_SMOKE=1` + отде
 
 ```bash
 cd cyberedu
-cp .env.production.example .env.production
+cp .env.prod.example .env.production
 # заполните секреты
 chmod 600 .env.production
 

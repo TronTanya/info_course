@@ -246,7 +246,7 @@ Production — отдельный compose, **без seed**, внутренняя
 
 ```bash
 cd cyberedu
-cp .env.production.example .env.production
+cp .env.prod.example .env.production
 chmod 600 .env.production
 # заполните секреты: AUTH_SECRET, POSTGRES_PASSWORD, INTERNAL_API_KEY, REDIS_PASSWORD, домены
 

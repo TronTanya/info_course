@@ -23,7 +23,7 @@ step "Compose config (dev + prod)"
   docker compose -f cyberedu/docker-compose.yml config --quiet
   docker compose \
     -f cyberedu/docker-compose.prod.yml \
-    --env-file cyberedu/.env.production.example \
+    --env-file cyberedu/.env.prod.example \
     config --quiet
 )
 green "compose OK"
@@ -72,7 +72,7 @@ if [[ "$RUN_DOCKER" == "1" ]]; then
     export AUTH_SECRET="${AUTH_SECRET:-ci-build-auth-secret-minimum-32-chars-x}"
     export JWT_SECRET_KEY="${JWT_SECRET_KEY:-ci-jwt-secret-key-minimum-32-characters-long}"
     docker compose -f docker-compose.yml build --parallel
-    docker compose -f docker-compose.prod.yml --env-file .env.production.example build --parallel
+    docker compose -f docker-compose.prod.yml --env-file .env.prod.example build --parallel
   )
   green "docker OK"
 fi

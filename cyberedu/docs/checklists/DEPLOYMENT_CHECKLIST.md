@@ -13,7 +13,7 @@
 ## Конфигурация приложения
 
 - [ ] `git clone` → `cd cyberedu`
-- [ ] `cp .env.production.example .env.production` + `chmod 600`
+- [ ] `cp .env.prod.example .env.production` + `chmod 600`
 - [ ] Сгенерированы: `AUTH_SECRET`, `JWT_SECRET_KEY`, `INTERNAL_API_KEY`, DB/Redis passwords
 - [ ] `AUTH_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_API_URL`, `CORS_ORIGINS` = production HTTPS
 - [ ] `OPENAI_API_KEY` (если AI нужен в prod)

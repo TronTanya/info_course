@@ -47,11 +47,17 @@ Internet → Nginx (:80/:443)
 
 ```bash
 cd cyberedu
-cp .env.production.example .env.production
+cp .env.prod.example .env.production
 chmod 600 .env.production
 ```
 
-Обязательные переменные — см. `.env.production.example`. Генерация:
+Обязательные переменные — см. `.env.prod.example`. Локальная проверка compose:
+
+```bash
+make -C cyberedu compose-prod-config-quiet
+```
+
+Генерация секретов:
 
 ```bash
 openssl rand -base64 32   # AUTH_SECRET, JWT_SECRET_KEY

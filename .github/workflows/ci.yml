@@ -90,7 +90,7 @@ jobs:
         run: |
           docker compose \
             -f cyberedu/docker-compose.prod.yml \
-            --env-file cyberedu/.env.production.example \
+            --env-file cyberedu/.env.prod.example \
             config --quiet
 
   rate-limit-redis:
@@ -357,4 +357,4 @@ jobs:
         run: |
           docker compose -f docker-compose.yml build --parallel
           docker compose -f docker-compose.prod.yml \
-            --env-file .env.production.example build --parallel
+            --env-file .env.prod.example build --parallel

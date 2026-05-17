@@ -33,10 +33,25 @@ RUN_SEED=1 docker compose up --build
 ## Production
 
 ```bash
-cp .env.production.example .env.production
+cp .env.prod.example .env.production
 chmod 600 .env.production
+# отредактируйте CHANGE_ME_* и your-domain.example
 docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
 ```
+
+### Проверка compose локально (без warnings)
+
+Без `--env-file` Compose выдаёт ошибки о незаданных секретах (`${VAR:?…}`) — это ожидаемо.
+
+```bash
+make compose-prod-config-quiet
+# или:
+./scripts/compose-prod-config.sh --quiet
+# или:
+docker compose --env-file .env.prod.example -f docker-compose.prod.yml config
+```
+
+Шаблон переменных: [`.env.prod.example`](./.env.prod.example) (в git). На VPS копируйте в `.env.production` (не коммитить).
 
 `RUN_SEED=0` · `ENVIRONMENT=production` · см. [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)
 

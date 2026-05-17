@@ -9,7 +9,7 @@ ENV_FILE="${ENV_FILE:-.env.production}"
 COMPOSE_FILE="docker-compose.prod.yml"
 
 if [[ ! -f "$ENV_FILE" ]]; then
-  echo "Создайте $ENV_FILE из .env.production.example" >&2
+  echo "Создайте $ENV_FILE из .env.prod.example" >&2
   exit 1
 fi
 
