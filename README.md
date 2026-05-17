@@ -261,28 +261,52 @@ docker compose -f docker-compose.prod.yml --env-file .env.production up -d --bui
 - `REDIS_URL` для rate limit
 - Volume `frontend_uploads` для файлов
 
-Пошагово: [`cyberedu/docs/DEPLOYMENT.md`](./cyberedu/docs/DEPLOYMENT.md) · чеклист: [`cyberedu/docs/checklists/DEPLOYMENT_CHECKLIST.md`](./cyberedu/docs/checklists/DEPLOYMENT_CHECKLIST.md)
+Пошагово: [`cyberedu/docs/DEPLOYMENT.md`](./cyberedu/docs/DEPLOYMENT.md)
+
+**Операционные чеклисты (canonical):** [`cyberedu/docs/OPERATIONS.md`](./cyberedu/docs/OPERATIONS.md)
+
+| Раздел в OPERATIONS.md | Содержание |
+|------------------------|------------|
+| Production checklist | Env vars, PostgreSQL, Redis, migrations, seed policy, Docker Compose, healthcheck, backups |
+| Go-live checklist | CI green, prod e2e, Redis, rate limit, admin user, secrets, uploads, logs |
+| Troubleshooting | Redis, Prisma, login/session, rate limit, uploads, AI |
+| UX screenshots | Placeholder — какие экраны снять (без фейковых файлов) |
+
+Дополнительно: [`cyberedu/docs/checklists/FINAL_CHECKLIST.md`](./cyberedu/docs/checklists/FINAL_CHECKLIST.md)
+
+### Production-like окружение локально
+
+```bash
+cd cyberedu
+docker compose up -d postgres redis
+cd frontend && cp .env.example .env
+# DATABASE_URL + REDIS_URL=redis://127.0.0.1:6379/0
+npm run test:e2e:prod:local   # migrate, seed (e2e only), playwright
+```
 
 ---
 
-## 11. Скриншоты
+## 11. Скриншоты (placeholder)
 
-Добавьте снимки экрана в [`cyberedu/docs/screenshots/`](./cyberedu/docs/screenshots/) перед защитой (PNG/WebP, без PII реальных пользователей).
+**Готовых изображений в git нет** — не добавляйте фейковые скриншоты.
 
-| № | Экран | Файл |
-|---|--------|------|
-| 1 | Главная (лендинг) | `01-home.png` |
-| 2 | Профиль и прогресс | `02-profile.png` |
-| 3 | Карта курса / модули | `03-course.png` |
-| 4 | Лекция + AI | `04-lesson.png` |
-| 5 | Практика / лаборатория | `05-practice.png` |
-| 6 | Сертификат / verify | `06-certificate.png` |
-| 7 | Админ-панель | `07-admin.png` |
+Снимите реальные экраны и положите в [`cyberedu/docs/screenshots/`](./cyberedu/docs/screenshots/):
+
+| Файл | Экран |
+|------|--------|
+| `01-landing.png` | Landing / home |
+| `02-dashboard.png` | Student dashboard |
+| `03-course.png` | Course map |
+| `04-lesson.png` | Lesson |
+| `05-test.png` | Module test |
+| `07-admin.png` | Admin dashboard |
+
+Инструкция: [`cyberedu/docs/screenshots/README.md`](./cyberedu/docs/screenshots/README.md) · [`cyberedu/docs/OPERATIONS.md`](./cyberedu/docs/OPERATIONS.md#ux-screenshots-placeholder)
 
 Пример вставки после добавления файла:
 
 ```markdown
-![Карта курса](./cyberedu/docs/screenshots/03-course.png)
+![Student dashboard](./cyberedu/docs/screenshots/02-dashboard.png)
 ```
 
 Бренд-активы (SVG): [`cyberedu/frontend/public/brand/`](./cyberedu/frontend/public/brand/)
@@ -337,6 +361,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.production up -d --bui
 | [`cyberedu/README.md`](./cyberedu/README.md) | Операционный quick start |
 | [`cyberedu/docs/ARCHITECTURE.md`](./cyberedu/docs/ARCHITECTURE.md) | Архитектура |
 | [`cyberedu/docs/SECURITY.md`](./cyberedu/docs/SECURITY.md) | Модель безопасности |
+| [`cyberedu/docs/OPERATIONS.md`](./cyberedu/docs/OPERATIONS.md) | Production / go-live / troubleshooting |
 | [`cyberedu/docs/DEPLOYMENT.md`](./cyberedu/docs/DEPLOYMENT.md) | Production deploy |
 | [`cyberedu/docs/API.md`](./cyberedu/docs/API.md) | HTTP API |
 | [`cyberedu/docs/checklists/`](./cyberedu/docs/checklists/) | Release / Security / Deploy |

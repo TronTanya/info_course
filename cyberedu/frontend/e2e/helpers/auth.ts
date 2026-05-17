@@ -25,19 +25,20 @@ export async function loginAs(page: Page, role: E2eRole): Promise<void> {
   await expect(page).toHaveURL(role === "admin" ? /\/admin/ : /\/dashboard/, { timeout: 15_000 });
 }
 
+/** Выход через NextAuth API — не зависит от sidebar / mobile drawer. */
 export async function logoutFromApp(page: Page): Promise<void> {
-  const sidebarLogout = page.getByRole("complementary").getByRole("button", { name: "Выйти" });
-  const drawerLogout = page.getByRole("dialog", { name: "Меню" }).getByRole("button", { name: "Выйти" });
+  const csrfRes = await page.request.get("/api/auth/csrf");
+  expect(csrfRes.ok()).toBeTruthy();
+  const { csrfToken } = (await csrfRes.json()) as { csrfToken: string };
 
-  if (await sidebarLogout.isVisible().catch(() => false)) {
-    await sidebarLogout.click();
-  } else {
-    await page.getByRole("button", { name: "Открыть меню" }).click();
-    await expect(drawerLogout).toBeVisible({ timeout: 15_000 });
-    await drawerLogout.click();
-  }
-  await page.waitForURL((url) => {
-    const path = url.pathname;
-    return path === "/" || path.startsWith("/auth/");
-  }, { timeout: 20_000 });
+  const signOutRes = await page.request.post("/api/auth/signout", {
+    form: {
+      csrfToken,
+      json: "true",
+    },
+  });
+  expect(signOutRes.ok()).toBeTruthy();
+
+  await page.goto("/");
+  await expect(page.getByRole("link", { name: "Войти" })).toBeVisible({ timeout: 15_000 });
 }

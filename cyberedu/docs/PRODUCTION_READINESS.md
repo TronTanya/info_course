@@ -61,5 +61,6 @@
 | [checklists/DEPLOYMENT_CHECKLIST.md](./checklists/DEPLOYMENT_CHECKLIST.md) | Деплой на VPS |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Архитектура |
 | [SECURITY.md](./SECURITY.md) | Модель угроз и контроли |
+| [OPERATIONS.md](./OPERATIONS.md) | Production / go-live / troubleshooting |
 | [DEPLOYMENT.md](./DEPLOYMENT.md) | Операции и инфраструктура |
 | [API.md](./API.md) | Контракты API |

@@ -40,6 +40,15 @@ docker compose -f docker-compose.prod.yml --env-file .env.production up -d --bui
 
 `RUN_SEED=0` · `ENVIRONMENT=production` · см. [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)
 
+### Production-like окружение (новый разработчик)
+
+1. Dev stack: `docker compose up -d postgres redis` (из каталога `cyberedu/`).
+2. `cd frontend && cp .env.example .env` — задайте `DATABASE_URL`, `REDIS_URL=redis://127.0.0.1:6379/0`.
+3. Для проверки prod-поведения rate limit: `ENVIRONMENT=production npm run dev` (только на локальной БД).
+4. Полный prod-like E2E: `npm run test:e2e:prod:local`.
+
+Чеклисты и troubleshooting: **[`docs/OPERATIONS.md`](./docs/OPERATIONS.md)**.
+
 ## Пересборка frontend после правок кода
 
 ```bash
@@ -66,8 +75,9 @@ npm run test:e2e          # Playwright (нужен running app + seed)
 | [`docs/SECURITY.md`](./docs/SECURITY.md) | Безопасность |
 | [`docs/DATABASE.md`](./docs/DATABASE.md) | Prisma / миграции |
 | [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) | Деплой |
+| [`docs/OPERATIONS.md`](./docs/OPERATIONS.md) | Production / go-live / troubleshooting |
 | [`docs/checklists/`](./docs/checklists/) | Чеклисты |
 
 ## Скриншоты для защиты
 
-Каталог: [`docs/screenshots/`](./docs/screenshots/) — см. таблицу в корневом README.
+Каталог: [`docs/screenshots/`](./docs/screenshots/) — **placeholder** (файлов пока нет). Какие экраны снять: landing, dashboard, course, lesson, test, admin — см. [`docs/screenshots/README.md`](./docs/screenshots/README.md).

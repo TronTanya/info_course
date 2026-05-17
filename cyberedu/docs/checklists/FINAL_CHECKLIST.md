@@ -2,6 +2,8 @@
 
 Используйте перед первым production-запуском и перед каждым major-релизом. Отмечайте `[x]` только при проверке на **staging**, максимально близком к prod.
 
+> Пошаговые разделы (env, Redis, migrations, go-live, troubleshooting): **[OPERATIONS.md](../OPERATIONS.md)**.
+
 ## 1. Безопасность
 
 - [ ] `AUTH_SECRET`, `JWT_SECRET_KEY`, `INTERNAL_API_KEY`, `POSTGRES_PASSWORD`, `REDIS_PASSWORD` — уникальные, ≥32 символов, не в git

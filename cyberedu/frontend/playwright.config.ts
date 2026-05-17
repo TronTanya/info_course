@@ -4,6 +4,8 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3100";
 
 export default defineConfig({
   testDir: "./e2e",
+  /** prod-smoke.spec.ts тоже содержит подстроку smoke.spec.ts — исключаем из dev smoke. */
+  testIgnore: [/prod-smoke\.spec\.ts/],
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,

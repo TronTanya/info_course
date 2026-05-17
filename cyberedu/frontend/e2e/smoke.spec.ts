@@ -75,7 +75,6 @@ test.describe("CyberEdu smoke", () => {
   test("8. logout", async ({ page }) => {
     await loginAs(page, "student");
     await logoutFromApp(page);
-    await expect(page.getByRole("link", { name: "Войти" })).toBeVisible();
   });
 
   test("9. dashboard achievements block", async ({ page }) => {

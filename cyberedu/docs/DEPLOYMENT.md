@@ -1,8 +1,14 @@
 # DEPLOYMENT — CyberEdu
 
-Операционное руководство для production (VPS). Краткий чеклист: [checklists/DEPLOYMENT_CHECKLIST.md](./checklists/DEPLOYMENT_CHECKLIST.md).
+Операционное руководство для production (VPS).
 
-> Дублирует и расширяет [`../deploy/DEPLOYMENT.md`](../deploy/DEPLOYMENT.md) (nginx paths, certbot). Этот файл — **canonical** для CTO/on-call.
+| Документ | Содержание |
+|----------|------------|
+| **[OPERATIONS.md](./OPERATIONS.md)** | Production checklist, go-live, troubleshooting, UX screenshots placeholder |
+| [checklists/DEPLOYMENT_CHECKLIST.md](./checklists/DEPLOYMENT_CHECKLIST.md) | Краткий чеклист деплоя |
+| [checklists/FINAL_CHECKLIST.md](./checklists/FINAL_CHECKLIST.md) | Полный pre-production |
+
+> Дублирует и расширяет [`../deploy/DEPLOYMENT.md`](../deploy/DEPLOYMENT.md) (nginx paths, certbot). Этот файл — **canonical** для инфраструктуры; операционные чеклисты — в **OPERATIONS.md**.
 
 ## Topology
 
