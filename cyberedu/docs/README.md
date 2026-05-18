@@ -13,6 +13,7 @@
 | [GO_LIVE_CHECKLIST.md](./GO_LIVE_CHECKLIST.md) | Чеклист перед выкладкой (CI, security tests, ops) |
 | [SECURITY.md](./SECURITY.md) | Модель безопасности + **карта Vitest-тестов** |
 | [STORAGE.md](./STORAGE.md) | Local uploads, **single replica**, S3 **NOT IMPLEMENTED** |
+| [CERTIFICATE.md](./CERTIFICATE.md) | PDF-сертификат, шаблон, скачивание |
 | [screenshots/](./screenshots/) | PNG для README (`npm run screenshots`) |
 | [`../.env.prod.example`](../.env.prod.example) | Шаблон production env (не коммитить `.env.production`) |
 
