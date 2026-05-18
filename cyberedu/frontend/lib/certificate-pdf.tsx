@@ -1,15 +1,21 @@
+/**
+ * Шаблон PDF-сертификата (@react-pdf/renderer).
+ * Настройка: StyleSheet + CertificatePdfDocument ниже; организация/подпись — env CERTIFICATE_* в lib/certificate.ts.
+ * Документация: ../../docs/CERTIFICATE.md
+ */
 import path from "node:path";
 import { Defs, Document, Font, G, Image, LinearGradient, Page, Path, Stop, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
 
 const cwd = process.cwd();
 
+/** @react-pdf не парсит WOFF2 (DataView bounds) — только WOFF/TTF. */
 Font.register({
   family: "Roboto",
   fonts: [
-    { src: path.join(cwd, "node_modules/@fontsource/roboto/files/roboto-latin-400-normal.woff2") },
-    { src: path.join(cwd, "node_modules/@fontsource/roboto/files/roboto-latin-ext-400-normal.woff2") },
-    { src: path.join(cwd, "node_modules/@fontsource/roboto/files/roboto-cyrillic-400-normal.woff2") },
-    { src: path.join(cwd, "node_modules/@fontsource/roboto/files/roboto-cyrillic-ext-400-normal.woff2") },
+    { src: path.join(cwd, "node_modules/@fontsource/roboto/files/roboto-latin-400-normal.woff") },
+    { src: path.join(cwd, "node_modules/@fontsource/roboto/files/roboto-latin-ext-400-normal.woff") },
+    { src: path.join(cwd, "node_modules/@fontsource/roboto/files/roboto-cyrillic-400-normal.woff") },
+    { src: path.join(cwd, "node_modules/@fontsource/roboto/files/roboto-cyrillic-ext-400-normal.woff") },
   ],
 });
 
