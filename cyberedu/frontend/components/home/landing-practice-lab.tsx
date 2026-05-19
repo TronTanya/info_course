@@ -46,9 +46,9 @@ export function LandingPracticeLab() {
   return (
     <LandingSection
       id="practice-lab"
-      eyebrow="Practice Lab"
-      title="Лабораторная панель"
-      description="Четыре шага сценария — от запуска до зачёта, как в реальной SOC-смене."
+      eyebrow="Практика"
+      title="Практические задания"
+      description="Лаборатории с автопроверкой и ручной проверкой преподавателя: фишинг, логи, крипто, консоль и файловые работы."
       headerClassName="max-w-2xl"
     >
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(260px,340px)] lg:items-start">

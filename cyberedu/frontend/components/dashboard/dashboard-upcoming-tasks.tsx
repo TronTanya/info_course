@@ -25,9 +25,15 @@ export function DashboardUpcomingTasks({ tasks }: { tasks: DashboardUpcomingTask
       </h2>
       {tasks.length === 0 ? (
         <EmptyState
-          className="py-10"
+          compact
+          className="py-6"
           title="Все шаги по текущим модулям закрыты"
           description="Откройте карту курса или перейдите к следующему модулю, когда он разблокируется."
+          action={
+            <Button asChild variant="primary" size="sm">
+              <Link href="/dashboard/course">К карте курса</Link>
+            </Button>
+          }
         />
       ) : (
         <ul className="space-y-2">

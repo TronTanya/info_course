@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useId, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
@@ -16,6 +16,7 @@ import { registerAction } from "@/lib/actions/register";
 
 export function RegisterForm() {
   const router = useRouter();
+  const consentErrorId = useId();
   const [pending, setPending] = useState(false);
   const [state, setState] = useState<RegisterActionState>({});
   const [success, setSuccess] = useState(false);
@@ -125,11 +126,13 @@ export function RegisterForm() {
             className="mt-1 size-4 shrink-0 rounded border-border text-primary focus-visible:ring-2 focus-visible:ring-primary/50"
             disabled={pending}
             required
+            aria-invalid={state.errors?.consent?.[0] ? true : undefined}
+            aria-describedby={state.errors?.consent?.[0] ? consentErrorId : undefined}
           />
           <span className="text-muted-foreground">
             Я согласен на обработку персональных данных в соответствии с политикой платформы.
             {state.errors?.consent?.[0] ? (
-              <span className="mt-1 block text-sm text-danger" role="alert">
+              <span id={consentErrorId} className="mt-1 block text-sm text-danger" role="alert">
                 {state.errors.consent[0]}
               </span>
             ) : null}

@@ -101,7 +101,7 @@ export default async function AdminUserDetailPage({ params }: Props) {
                     <div className="relative flex size-28 items-center justify-center bg-linear-to-br from-primary/10 via-card to-cyan/8 text-2xl font-bold tracking-tight text-primary sm:size-35 sm:text-3xl">
                       {avatarUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element -- URL из профиля
-                        <img src={avatarUrl} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+                        <img src={avatarUrl} alt={`Аватар студента: ${displayName}`} className="h-full w-full object-cover" referrerPolicy="no-referrer" />
                       ) : (
                         initials
                       )}

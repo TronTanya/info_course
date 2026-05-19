@@ -1,36 +1,23 @@
 "use client";
 
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { DashboardAiHint } from "@/components/dashboard/dashboard-ai-hint";
-import { DashboardAchievementsPreview } from "@/components/dashboard/dashboard-achievements-preview";
-import { DashboardCertificateProgress } from "@/components/dashboard/dashboard-certificate-progress";
-import { DashboardContinueLearning } from "@/components/dashboard/dashboard-continue-learning";
+import { motion, useReducedMotion } from "framer-motion";
+import { DashboardContinueHero } from "@/components/dashboard/dashboard-continue-hero";
+import { DashboardCourseSnapshot } from "@/components/dashboard/dashboard-course-snapshot";
 import { DashboardEmpty } from "@/components/dashboard/dashboard-empty";
-import { DashboardProgressOverview } from "@/components/dashboard/dashboard-progress-overview";
-import { DashboardRecentActivity } from "@/components/dashboard/dashboard-recent-activity";
-import { DashboardRoadmap } from "@/components/dashboard/dashboard-roadmap";
-import { DashboardUpcomingTasks } from "@/components/dashboard/dashboard-upcoming-tasks";
-import { LearningJourneyStrip } from "@/components/learn/learning-journey-strip";
-import { DashboardWelcome } from "@/components/dashboard/dashboard-welcome";
-import { inferLearningJourneyStep } from "@/lib/learning-journey";
-import type { AchievementRow } from "@/lib/achievements";
+import { DashboardNextStepCard } from "@/components/dashboard/dashboard-next-step-card";
+import { DashboardQuickActions } from "@/components/dashboard/dashboard-quick-actions";
+import { DashboardWeakTopics } from "@/components/dashboard/dashboard-weak-topics";
 import {
-  buildRecentActivities,
-  buildUpcomingTasks,
+  buildWeakTopicRecommendations,
+  getNextLessonCard,
+  getNextPracticeCard,
+  welcomeStatusLabel,
 } from "@/lib/dashboard-ui";
-import { motionPresets } from "@/lib/design-system/motion";
+import { motionPresets, motionWithReducedMotion } from "@/lib/design-system/motion";
+import type { AchievementRow } from "@/lib/achievements";
 import type { ProfileCourseStats } from "@/lib/profile-course-stats";
 import type { CourseProgressModuleRow } from "@/lib/progress";
-import { cn } from "@/lib/utils";
-
-const SECONDARY_LINKS = [
-  { href: "/dashboard/course", label: "Карта курса" },
-  { href: "/dashboard/profile", label: "Профиль" },
-  { href: "/dashboard/my-assignments", label: "Задания" },
-  { href: "/dashboard/certificate", label: "Сертификат" },
-  { href: "/dashboard/settings", label: "Настройки" },
-] as const;
+import { StatusBadge } from "@/components/ui/status-badge";
 
 export function DashboardHome({
   stats,
@@ -43,68 +30,66 @@ export function DashboardHome({
   achievements: AchievementRow[];
   modules: CourseProgressModuleRow[];
 }) {
+  const reduce = useReducedMotion();
+
   if (!stats) {
     return (
-      <motion.div className="space-y-8" {...motionPresets.fadeIn}>
+      <motion.div className="space-y-8" {...motionWithReducedMotion(motionPresets.fadeIn, reduce)}>
         <DashboardEmpty />
       </motion.div>
     );
   }
 
-  const recent = buildRecentActivities(stats);
-  const upcoming = buildUpcomingTasks(modules);
   const achievementsUnlocked = achievements.filter((a) => a.unlocked).length;
+  const lessonCard = getNextLessonCard(modules);
+  const practiceCard = getNextPracticeCard(modules);
+  const weakTopics = buildWeakTopicRecommendations(stats, modules);
 
   return (
-    <motion.div
-      className="space-y-10 overflow-x-hidden pb-4"
-      {...motionPresets.fadeIn}
-    >
-      <DashboardWelcome displayName={displayName} stats={stats} modules={modules} />
+    <motion.div className="space-y-5 overflow-x-hidden pb-2 sm:space-y-8 sm:pb-4" {...motionWithReducedMotion(motionPresets.fadeIn, reduce)}>
+      <header className="space-y-2">
+        <p className="typo-eyebrow text-primary">Личный кабинет</p>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="font-display text-2xl font-semibold text-balance text-foreground sm:text-3xl">
+              Здравствуйте, {displayName}
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground sm:text-base">{welcomeStatusLabel(stats)}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {stats.allModulesComplete ? (
+              <StatusBadge status="completed" label="Курс завершён" />
+            ) : (
+              <StatusBadge status="in_progress" label={`${stats.progressPercent}% курса`} />
+            )}
+          </div>
+        </div>
+      </header>
 
-      <LearningJourneyStrip current={inferLearningJourneyStep(stats, modules)} />
+      <DashboardContinueHero stats={stats} modules={modules} />
 
-      <DashboardContinueLearning stats={stats} modules={modules} />
-
-      <DashboardAiHint />
-
-      <DashboardProgressOverview
+      <DashboardCourseSnapshot
         stats={stats}
         modules={modules}
         achievementsUnlocked={achievementsUnlocked}
         achievementsTotal={achievements.length}
       />
 
-      {modules.length > 0 ? (
-        <DashboardRoadmap modules={modules} currentModuleId={stats.currentModuleId} />
-      ) : null}
+      {(lessonCard || practiceCard) && (
+        <section aria-labelledby="dash-next-steps-heading" className="space-y-3">
+          <h2 id="dash-next-steps-heading" className="font-display text-lg font-semibold text-foreground">
+            Следующие шаги
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {lessonCard ? <DashboardNextStepCard card={lessonCard} /> : null}
+            {practiceCard ? <DashboardNextStepCard card={practiceCard} /> : null}
+          </div>
+        </section>
+      )}
 
-      <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
-        <DashboardRecentActivity items={recent} />
-        <DashboardUpcomingTasks tasks={upcoming} />
-      </div>
+      <DashboardWeakTopics items={weakTopics} />
 
-      <DashboardCertificateProgress stats={stats} />
-
-      {achievements.length > 0 ? <DashboardAchievementsPreview rows={achievements} /> : null}
-
-      <nav
-        className="ce-glass flex flex-wrap justify-center gap-x-4 gap-y-2 rounded-2xl border border-border/60 px-4 py-3 sm:justify-start"
-        aria-label="Разделы кабинета"
-      >
-        {SECONDARY_LINKS.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "inline-flex min-h-11 items-center rounded-xl px-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/50 hover:text-primary",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            )}
-          >
-            {item.label}
-          </Link>
-        ))}
-      </nav>
+      <DashboardQuickActions modules={modules} stats={stats} />
     </motion.div>
   );
 }

@@ -4,5 +4,6 @@ export const gradients = {
   card: "card-gradient",
   heroGlow: "hero-glow",
   borderGlow: "border-glow",
+  surfaceSubtle: "surface-subtle-gradient",
   glass: "ce-glass",
 } as const;

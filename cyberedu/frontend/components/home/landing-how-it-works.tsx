@@ -40,7 +40,7 @@ const staggerClass = ["ce-stagger-1", "ce-stagger-2", "ce-stagger-3", "ce-stagge
 export function LandingHowItWorks() {
   return (
     <LandingSection
-      id="program"
+      id="how-it-works"
       eyebrow="Как проходит обучение"
       title="Понятный путь от старта до диплома"
       description="Пять шагов — без хаоса в сроках и материалах. Каждый следующий модуль открывается после предыдущего."

@@ -221,15 +221,13 @@ export function TrainingConsole({
       {structuredPractice ? (
         <div className="space-y-3 rounded-xl border border-border bg-card/40 p-4">
           {needsCommand ? (
-            <div className="break-words text-xs text-muted-foreground">
-              <span>Ожидаемая команда: </span>
-              <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground">{ec}</code>
+            <p className="break-words text-xs text-muted-foreground">
               {expectedCommandDone ? (
-                <span className="ce-terminal-success mt-1 block font-medium">Команда выполнена.</span>
+                <span className="ce-terminal-success font-medium">Команда выполнена — можно отправить ответ.</span>
               ) : (
-                <span className="mt-1 block">Выполните команду в консоли выше.</span>
+                <span>Выполните нужную команду в консоли выше (эталон не показывается до проверки).</span>
               )}
-            </div>
+            </p>
           ) : null}
 
           {needsExplanation && (needsCommand ? expectedCommandDone : true) ? (

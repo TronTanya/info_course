@@ -119,6 +119,72 @@ export function formatPracticeCount(count: number): string {
   return `${n} практик`;
 }
 
+export function formatTestCount(count: number): string {
+  if (count === 0) return "без тестов";
+  const n = count;
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return `${n} тест`;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return `${n} теста`;
+  return `${n} тестов`;
+}
+
+export type ModuleContentMeta = {
+  lessons: number;
+  tests: number;
+  practices: number;
+  lessonsLabel: string;
+  testsLabel: string;
+  practicesLabel: string;
+};
+
+export function getModuleContentMeta(row: CourseProgressModuleRow): ModuleContentMeta {
+  const { lessons, tests, practices } = row.contentCounts;
+  return {
+    lessons,
+    tests,
+    practices,
+    lessonsLabel: formatLessonCount(lessons),
+    testsLabel: formatTestCount(tests),
+    practicesLabel: formatPracticeCount(practices),
+  };
+}
+
+/** Следующий модуль в треке (по orderNumber). */
+export function getNextModuleRow(
+  modules: CourseProgressModuleRow[],
+  currentModuleId: string,
+): CourseProgressModuleRow | null {
+  const idx = modules.findIndex((m) => m.module.id === currentModuleId);
+  if (idx < 0 || idx >= modules.length - 1) return null;
+  return modules[idx + 1] ?? null;
+}
+
+export type AfterModulePreview =
+  | { kind: "next_module"; row: CourseProgressModuleRow; opensWhenComplete: boolean }
+  | { kind: "certificate"; href: string }
+  | { kind: "none" };
+
+/** Превью «что после модуля» на основе данных прогресса (без новых API). */
+export function getAfterModulePreview(
+  modules: CourseProgressModuleRow[],
+  currentModuleId: string,
+  currentModuleCompleted: boolean,
+): AfterModulePreview {
+  const next = getNextModuleRow(modules, currentModuleId);
+  if (next) {
+    return {
+      kind: "next_module",
+      row: next,
+      opensWhenComplete: !currentModuleCompleted,
+    };
+  }
+  if (currentModuleCompleted) {
+    return { kind: "certificate", href: "/dashboard/certificate" };
+  }
+  return { kind: "none" };
+}
+
 export function moduleTimeEstimate(req: ModuleRequirements): string {
   let lo = 0;
   let hi = 0;

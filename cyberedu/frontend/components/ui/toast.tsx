@@ -78,9 +78,11 @@ export function useToast() {
 function ToasterViewport({ toasts, dismiss }: { toasts: ToastItem[]; dismiss: (id: string) => void }) {
   if (toasts.length === 0) return null;
 
+  const hasAssertive = toasts.some((t) => t.variant === "error");
+
   return (
     <div
-      aria-live="polite"
+      aria-live={hasAssertive ? "assertive" : "polite"}
       aria-relevant="additions"
       className="pointer-events-none fixed inset-x-0 bottom-0 z-[100] flex flex-col items-end gap-2 p-4 sm:inset-x-auto sm:left-auto sm:right-4 sm:bottom-4 sm:max-w-sm"
     >
@@ -99,7 +101,7 @@ function ToastCard({ item, onDismiss }: { item: ToastItem; onDismiss: () => void
       role="status"
       className={cn(
         "pointer-events-auto flex w-full max-w-sm gap-3 rounded-xl border p-4 shadow-card backdrop-blur-md",
-        "animate-[ce-toast-in_0.35s_var(--ease-out-expo)_forwards]",
+        "animate-[ce-toast-in_0.35s_var(--ease-out-expo)_forwards] motion-reduce:animate-none",
         variantStyles[variant],
       )}
     >

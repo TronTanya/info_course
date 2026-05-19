@@ -2,14 +2,17 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition, type TransitionStartFunction } from "react";
+import { useId, useState, useTransition, type TransitionStartFunction } from "react";
 import type { CheckType, PracticalTaskType, SubmissionStatus } from "@prisma/client";
 import type { ProgressGate } from "@/lib/course-progress-guards";
 import { AiMentorChat } from "@/components/ai/AiMentorChat";
 import { PracticeLabLayout } from "@/components/layout/practice-lab-layout";
 import { PracticeLabAside } from "@/components/practice/practice-lab-aside";
 import { PracticeLabResult } from "@/components/practice/practice-lab-result";
+import { PracticeLabAfterSubmit } from "@/components/practice/practice-lab-after-submit";
+import { PracticeLabHints } from "@/components/practice/practice-lab-hints";
 import { PracticeLabScenario } from "@/components/practice/practice-lab-scenario";
+import { parsePracticeScenario } from "@/lib/practice-scenario-parse";
 import { PracticeLabSkeleton } from "@/components/practice/practice-lab-skeleton";
 import { PracticeLabTopBar } from "@/components/practice/practice-lab-top-bar";
 import { PracticeLabWorkspace } from "@/components/practice/practice-lab-workspace";
@@ -30,7 +33,6 @@ import { practiceStepBreadcrumbs } from "@/lib/student-nav";
 import { SectionCard } from "@/components/ui/section-card";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { formatRuDateTimeFullUtc } from "@/lib/datetime-stable";
 import { useFormDraft } from "@/lib/hooks/use-form-draft";
 
 export type ClientSubmission = {
@@ -172,25 +174,12 @@ function practiceChecklist(labState: ReturnType<typeof getPracticeLabState>, has
   return [
     { text: "Изучить сценарий и цель", checked: labState !== "not_started" },
     { text: "Выполнить шаги в терминале", checked: hasSubmission || labState === "in_progress" || labState === "correct" },
-    { text: "Отправить ответ на проверку", checked: hasSubmission || labState === "pending_review" || labState === "completed" },
-    { text: "Получить зачёт", checked: labState === "completed" },
+    {
+      text: "Отправить ответ на проверку",
+      checked: hasSubmission || labState === "submitted" || labState === "passed" || labState === "needs_review",
+    },
+    { text: "Получить зачёт", checked: labState === "passed" },
   ];
-}
-
-function feedbackSummary(sub: NonNullable<ClientSubmission>, maxScore: number): string {
-  switch (sub.status) {
-    case "ACCEPTED":
-      return sub.score != null ? `Зачёт: ${sub.score} из ${maxScore} баллов.` : "Работа принята.";
-    case "REJECTED":
-      return "Работа не принята. Ознакомьтесь с комментарием проверяющего.";
-    case "NEEDS_REVISION":
-      return "Требуется доработка. Исправьте замечания и отправьте снова.";
-    case "SUBMITTED":
-    case "CHECKING":
-      return "Отправление получено и ожидает проверки преподавателем.";
-    default:
-      return "";
-  }
 }
 
 export type PracticePageClientProps = {
@@ -295,10 +284,19 @@ function PracticeLabSession({
   const pendingReview = Boolean(sub && (sub.status === "SUBMITTED" || sub.status === "CHECKING"));
   const needsRevision = sub?.status === "NEEDS_REVISION";
   const accepted = sub?.status === "ACCEPTED";
-  const goalBody = task.instruction?.trim() || null;
   const lab = taskLabComponentLabel(task.taskType);
   const labState = getPracticeLabState(sub, { flash: checkFlash });
-  const inputData = task.consoleScenario?.trim() || null;
+  const parsedScenario = parsePracticeScenario(
+    task.description,
+    task.instruction,
+    task.consoleScenario,
+    task.scenarioData,
+  );
+  const canRetry = !pendingReview && !accepted;
+  const submissionExplanation =
+    sub?.adminComment?.trim() ||
+    (info && !error ? info : null) ||
+    (needsRevision ? "Требуется доработка по комментарию проверяющего." : null);
 
   function onMessage(err: string | null, ok: string | null) {
     setError(err);
@@ -352,13 +350,9 @@ function PracticeLabSession({
         </div>
       ) : null}
 
-      <PracticeLabScenario
-        scenarioText={task.description}
-        goalText={goalBody}
-        goalFallback={`Закрепить навык «${taskTypeRu(task.taskType)}»: выполните шаги в терминале и отправьте ответ.`}
-        conditions={criteriaBullets(task)}
-        inputData={inputData}
-      />
+      <PracticeLabScenario parsed={parsedScenario} contextNotes={task.description} />
+
+      <PracticeLabHints levels={parsedScenario.hintLevels} />
 
       <PracticeLabWorkspace taskTypeLabel={taskTypeRu(task.taskType)} componentLabel={lab}>
         <div className="space-y-4">
@@ -447,22 +441,32 @@ function PracticeLabSession({
       </PracticeLabWorkspace>
 
       {sub ? (
-        <SectionCard variant="lab" title="Журнал отправки">
-          <p className="typo-body-muted">{feedbackSummary(sub, task.maxScore)}</p>
-          {sub.adminComment?.trim() ? (
-            <p className="typo-body-muted mt-3 rounded-xl border border-border bg-muted/40 p-3">
-              <span className="font-medium text-foreground">Комментарий: </span>
-              {sub.adminComment.trim()}
-            </p>
-          ) : null}
-          {sub.fileDownloadUrl ? (
-            <p className="mt-3">
-              <a className="font-medium text-primary underline-offset-4 hover:underline" href={sub.fileDownloadUrl}>
-                Скачать прикреплённый файл
-              </a>
-            </p>
-          ) : null}
-          <p className="typo-caption mt-2">Отправка: {formatRuDateTimeFullUtc(sub.createdAt)}</p>
+        <PracticeLabAfterSubmit
+          moduleId={moduleId}
+          status={sub.status}
+          score={sub.score}
+          maxScore={task.maxScore}
+          adminComment={sub.adminComment}
+          explanation={submissionExplanation}
+          createdAt={sub.createdAt}
+          canRetry={canRetry}
+          onRetry={
+            canRetry
+              ? () => {
+                  setError(null);
+                  setInfo(null);
+                  setCheckFlash(null);
+                }
+              : undefined
+          }
+        />
+      ) : null}
+
+      {sub?.fileDownloadUrl ? (
+        <SectionCard variant="muted" flushTitle className="p-4">
+          <a className="font-medium text-primary underline-offset-4 hover:underline" href={sub.fileDownloadUrl}>
+            Скачать прикреплённый файл
+          </a>
         </SectionCard>
       ) : null}
     </div>
@@ -575,6 +579,7 @@ function FileUploadForm({
   submitBlocked: boolean;
   onMessage: (err: string | null, ok: string | null) => void;
 }) {
+  const fileInputId = useId();
   const [file, setFile] = useState<File | null>(null);
   if (submitBlocked) {
     return (
@@ -590,7 +595,11 @@ function FileUploadForm({
           Форматы: {typesLabel}. До {maxMb} МБ. Исполняемые файлы не принимаются.
         </p>
       </PracticeLabTerminal>
+      <label htmlFor={fileInputId} className="text-sm font-medium text-foreground">
+        Файл для отправки
+      </label>
       <input
+        id={fileInputId}
         type="file"
         accept={accept || undefined}
         className="block w-full rounded-xl border border-border bg-card px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground"
@@ -811,6 +820,7 @@ function CombinedForm({
   submitBlocked: boolean;
   onMessage: (err: string | null, ok: string | null) => void;
 }) {
+  const fileInputId = useId();
   const [text, setText] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const textOk = text.trim().length >= minLength;
@@ -834,10 +844,11 @@ function CombinedForm({
           className="ce-terminal-input border-0 bg-transparent shadow-none"
         />
       </PracticeLabTerminal>
-      <p className="text-xs text-muted-foreground">
-        Файл: {typesLabel}, до {maxMb} МБ.
-      </p>
+      <label htmlFor={fileInputId} className="text-sm font-medium text-foreground">
+        Файл ({typesLabel}, до {maxMb} МБ)
+      </label>
       <input
+        id={fileInputId}
         type="file"
         accept={accept || undefined}
         className="block w-full rounded-xl border border-border bg-card px-3 py-2 text-sm"

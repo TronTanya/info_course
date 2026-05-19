@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useCallback, useMemo, useState, useTransition } from "react";
 import { submitTestAttemptAction } from "@/lib/actions/test";
 import type { ClientTestQuestion, SubmittedAnswerPayload } from "@/lib/test-grading";
-import { estimateTestMinutes } from "@/lib/test-ui";
-import { TestListCard } from "@/components/test/test-list-card";
+import { computeTestMaxScore, estimateTestMinutes } from "@/lib/test-ui";
+import { TestStartScreen } from "@/components/test/test-start-screen";
 import { TestResultView, type TestReviewRow } from "@/components/test/test-result-view";
 import { TestTakingView, type TestLocalAnswers } from "@/components/test/test-taking-view";
 import { Button } from "@/components/ui/button";
@@ -88,9 +88,14 @@ export function ModuleTestRunner({
 
   const questionCount = questions.length;
   const estimatedMinutes = estimateTestMinutes(questionCount);
+  const maxScore = useMemo(() => computeTestMaxScore(questions), [questions]);
   const filledAll = useMemo(() => questions.every((qq) => isQuestionFilled(qq, local)), [questions, local]);
   const answeredCount = useMemo(
     () => questions.filter((qq) => isQuestionFilled(qq, local)).length,
+    [questions, local],
+  );
+  const answeredFlags = useMemo(
+    () => questions.map((qq) => isQuestionFilled(qq, local)),
     [questions, local],
   );
   const totalGraded = useMemo(
@@ -177,7 +182,12 @@ export function ModuleTestRunner({
       <SectionCard variant="lab">
         <EmptyState
           title="Вопросов пока нет"
-          description="Администратор ещё не добавил вопросы в этот тест."
+          description="Администратор ещё не добавил вопросы в этот тест. Пока можно вернуться к лекции модуля."
+          action={
+            <Button asChild variant="outline">
+              <Link href={`/dashboard/course/${moduleId}`}>К модулю</Link>
+            </Button>
+          }
         />
       </SectionCard>
     );
@@ -186,13 +196,14 @@ export function ModuleTestRunner({
   if (phase === "lobby") {
     return (
       <div className="space-y-4">
-        <TestListCard
+        <TestStartScreen
           title={title}
           moduleTitle={moduleTitle}
           moduleOrderNumber={moduleOrderNumber}
           questionCount={questionCount}
           estimatedMinutes={estimatedMinutes}
           minScore={minScore}
+          maxScore={maxScore}
           lastAttempt={lastAttempt}
           onStart={startTest}
         />
@@ -235,12 +246,14 @@ export function ModuleTestRunner({
         <TestTakingView
           title={title}
           minScore={minScore}
+          maxScore={maxScore}
           questions={questions}
           idx={idx}
           local={local}
           error={error}
           pending={pending}
           answeredCount={answeredCount}
+          answeredFlags={answeredFlags}
           submitOpen={submitOpen}
           onSubmitOpenChange={setSubmitOpen}
           onIndexChange={setIdx}

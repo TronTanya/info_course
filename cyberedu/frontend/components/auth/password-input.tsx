@@ -50,7 +50,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
             onClick={() => setVisible((v) => !v)}
             disabled={disabled}
             aria-label={visible ? "Скрыть пароль" : "Показать пароль"}
-            tabIndex={-1}
+            aria-pressed={visible}
           >
             {visible ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
           </button>

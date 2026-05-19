@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ComponentProps } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { ModuleAfterPreview } from "@/components/course/module-after-preview";
 import { ModuleHubStepList } from "@/components/course/module-hub-step-list";
 import { ModuleLearningShell } from "@/components/course/module-learning-shell";
 import { ModuleOverviewPanel } from "@/components/course/module-overview-panel";
@@ -18,7 +19,9 @@ import {
   getModuleRequirements,
   isModuleUnlocked,
   recalculateModuleProgress,
+  syncAndGetUserCourseProgress,
 } from "@/lib/progress";
+import type { CourseProgressModuleRow } from "@/lib/progress";
 import { requireAuth } from "@/lib/permissions";
 import type { Badge } from "@/components/ui/badge";
 
@@ -95,6 +98,30 @@ export default async function ModulePage({ params }: Props) {
     p,
   );
 
+  const courseProgress = await syncAndGetUserCourseProgress(session.user.id, courseModule.courseId);
+  const trackModules = courseProgress?.modules ?? [];
+  const progressRow: CourseProgressModuleRow | null =
+    trackModules.find((m) => m.module.id === moduleId) ??
+    ({
+      module: {
+        id: courseModule.id,
+        title: courseModule.title,
+        description: courseModule.description,
+        orderNumber: courseModule.orderNumber,
+      },
+      requirements: req,
+      contentCounts: {
+        lessons: courseModule.lessons.length,
+        tests: courseModule.tests.length,
+        practices: courseModule.practicalTasks.length,
+      },
+      progress: p,
+      unlocked: true,
+      progressPercent,
+      score,
+      moduleCompleted,
+    } satisfies CourseProgressModuleRow);
+
   const reqFull = getModuleRequirements(courseModule);
   const nextStep = steps.find((s) => s.actionHref && (s.status === "available" || s.status === "not_started"));
   const continueHref = nextStep?.actionHref ?? `/dashboard/course/${moduleId}/lesson`;
@@ -129,6 +156,13 @@ export default async function ModulePage({ params }: Props) {
           requirements={reqFull}
           continueHref={continueHref}
           continueLabel={continueLabel}
+          progressRow={progressRow}
+        />
+
+        <ModuleAfterPreview
+          modules={trackModules}
+          currentModuleId={moduleId}
+          currentModuleCompleted={moduleCompleted}
         />
 
         <LearnSection>

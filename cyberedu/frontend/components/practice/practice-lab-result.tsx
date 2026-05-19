@@ -11,10 +11,11 @@ import { cn } from "@/lib/utils";
 const stateShell: Record<PracticeLabState, string> = {
   not_started: "border-border/60",
   in_progress: "border-primary/30 ring-primary/15",
+  submitted: "border-warning/35 bg-warning/[0.06] ring-warning/20",
+  passed: "border-success/40 bg-success/[0.08] ring-success/25",
+  needs_review: "border-warning/40 bg-warning/[0.08] ring-warning/25",
   wrong: "border-danger/40 bg-danger/[0.06] ring-danger/25 ce-practice-result--wrong",
   correct: "border-success/40 bg-success/[0.08] ring-success/25 ce-practice-result--correct",
-  completed: "border-success/40 bg-success/[0.08] ring-success/25",
-  pending_review: "border-warning/35 bg-warning/[0.06] ring-warning/20",
 };
 
 export function PracticeLabResult({
@@ -58,9 +59,9 @@ export function PracticeLabResult({
             className={cn(
               "mt-1 font-display text-sm font-semibold",
               labState === "wrong" && "text-danger",
-              (labState === "correct" || labState === "completed") && "text-success",
+              (labState === "correct" || labState === "passed") && "text-success",
               labState === "in_progress" && "text-primary",
-              labState === "pending_review" && "text-warning",
+              (labState === "submitted" || labState === "needs_review") && "text-warning",
             )}
           >
             {meta.label}
@@ -129,15 +130,15 @@ export function PracticeLabResult({
         {showIntro ? (
           <motion.div key="intro" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <Alert variant="info" title="Добро пожаловать в Cyber Lab">
-              Прочитайте сценарий, выполните шаги в терминале и нажмите «Проверить», когда будете готовы.
+              Изучите карточку сценария, при необходимости откройте подсказки и выполните задание в рабочей области.
             </Alert>
           </motion.div>
         ) : null}
 
         {pendingReview && !accepted ? (
           <motion.div key="pending" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <Alert variant="warning" title="На проверке преподавателем">
-              Ответ отправлен. Новая попытка станет доступна после проверки.
+            <Alert variant="warning" title="Отправлено на проверку">
+              Ответ принят системой. Новая попытка станет доступна после решения преподавателя.
             </Alert>
           </motion.div>
         ) : null}

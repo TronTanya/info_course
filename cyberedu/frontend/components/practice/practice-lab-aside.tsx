@@ -91,7 +91,7 @@ export function PracticeLabAside({
       <aside
         className={cn(
           "rounded-2xl border p-4 sm:p-5",
-          labState === "completed"
+          labState === "passed"
             ? "border-success/30 bg-success/[0.06] ring-success/20"
             : "border-primary/25 bg-card/80 ring-primary/10",
         )}

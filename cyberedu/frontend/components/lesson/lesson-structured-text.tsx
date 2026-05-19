@@ -154,14 +154,6 @@ function parsePlainBlocks(text: string, out: Segment[]) {
       continue;
     }
 
-    if (nonEmpty.length > 0 && nonEmpty.every((l) => /^[-*]\s+/.test(l))) {
-      out.push({
-        type: "ul",
-        items: nonEmpty.map((l) => l.replace(/^[-*]\s+/, "").trim()),
-      });
-      continue;
-    }
-
     if (nonEmpty.length > 0 && nonEmpty.every((l) => /^- \[[ xX]\]\s+/.test(l))) {
       out.push({
         type: "checklist",
@@ -169,6 +161,14 @@ function parsePlainBlocks(text: string, out: Segment[]) {
           const m = /^- \[([ xX])\]\s+(.+)$/.exec(l);
           return { checked: m?.[1]?.toLowerCase() === "x", text: m?.[2]?.trim() ?? l };
         }),
+      });
+      continue;
+    }
+
+    if (nonEmpty.length > 0 && nonEmpty.every((l) => /^[-*]\s+/.test(l))) {
+      out.push({
+        type: "ul",
+        items: nonEmpty.map((l) => l.replace(/^[-*]\s+/, "").trim()),
       });
       continue;
     }
@@ -275,7 +275,8 @@ export function extractLessonGlossary(source: string): GlossaryEntry[] {
   return list;
 }
 
-const prose = "text-[17px] leading-[1.8] tracking-[-0.01em] text-foreground/95";
+const prose =
+  "text-[17px] leading-[1.75] tracking-[-0.01em] text-foreground/95 [&_p+p]:mt-4 [&_h2+p]:mt-3 [&_h3+p]:mt-2";
 
 function BlockShell({
   className,
@@ -322,13 +323,13 @@ export function LessonStructuredText({
   const skip = new Set(skipTypes);
 
   return (
-    <article className={cn("lesson-reading mx-auto max-w-prose space-y-7 text-pretty", prose, className)}>
+    <article className={cn("lesson-reading mx-auto w-full max-w-prose space-y-8 text-pretty", prose, className)}>
       {segments.map((seg, i) => {
         if (skip.has(seg.type)) return null;
         switch (seg.type) {
           case "h2":
             return (
-              <h2 key={i} className="scroll-mt-24 border-b border-border/70 pb-2 text-2xl font-semibold tracking-tight text-foreground">
+              <h2 key={i} className="scroll-mt-28 border-b border-border/70 pb-2.5 pt-1 text-2xl font-semibold tracking-tight text-foreground">
                 {seg.text}
               </h2>
             );
@@ -502,7 +503,7 @@ export function LessonStructuredText({
             );
           case "ul":
             return (
-              <ul key={i} className="max-w-prose list-inside list-disc space-y-2 pl-1 text-[16px] leading-relaxed text-foreground/90 marker:text-primary">
+              <ul key={i} className="max-w-prose list-disc space-y-2.5 pl-5 text-[16px] leading-relaxed text-foreground/90 marker:text-primary">
                 {seg.items.map((item, j) => (
                   <li key={j} className="pl-1">
                     {item}

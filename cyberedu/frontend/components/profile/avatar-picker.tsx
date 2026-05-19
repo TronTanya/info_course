@@ -1,7 +1,7 @@
 "use client";
 
 import type { RefObject } from "react";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AVATAR_PICKER_ITEMS } from "@/lib/avatar-presets";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,8 @@ export function AvatarPicker({
   persistMode = "form",
   onApiPersisted,
 }: AvatarPickerProps) {
+  const fileInputId = useId();
+  const fileErrorId = useId();
   const router = useRouter();
   const [apiBusy, setApiBusy] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -143,7 +145,7 @@ export function AvatarPicker({
         <div className="relative flex size-36 overflow-hidden rounded-2xl border border-border/80 bg-linear-to-br from-muted to-muted/50 shadow-inner ring-2 ring-cyan/15">
           {previewDisplay ? (
             // eslint-disable-next-line @next/next/no-img-element -- blob, same-origin API и статика
-            <img src={previewDisplay} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+            <img src={previewDisplay} alt="Предпросмотр аватара" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
           ) : (
             <span className="m-auto text-2xl font-semibold text-muted-foreground">{initials}</span>
           )}
@@ -188,7 +190,7 @@ export function AvatarPicker({
                   )}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={path} alt="" className="h-full w-full object-cover" />
+                  <img src={path} alt="" className="h-full w-full object-cover" aria-hidden />
                 </button>
               );
             })}
@@ -199,17 +201,27 @@ export function AvatarPicker({
           <p className="text-sm font-medium text-foreground">Своё изображение</p>
           <p className="mt-1 text-xs text-muted-foreground">PNG, JPEG или WebP, до 2 МБ. Загрузка SVG отключена.</p>
           <div className="mt-3 flex flex-wrap items-center gap-3">
+            <label htmlFor={fileInputId} className="sr-only">
+              Загрузить своё изображение для аватара
+            </label>
             <input
+              id={fileInputId}
               ref={fileInputRef}
               type="file"
               name={persistMode === "form" ? "avatarFile" : "avatarFilePicker"}
               accept="image/png,image/jpeg,image/webp"
               disabled={busy}
               onChange={handleFileInputChange}
+              aria-invalid={fileFieldError ? true : undefined}
+              aria-describedby={fileFieldError ? fileErrorId : undefined}
               className="block w-full max-w-xs text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
             />
           </div>
-          {fileFieldError ? <p className="mt-2 text-sm text-danger">{fileFieldError}</p> : null}
+          {fileFieldError ? (
+            <p id={fileErrorId} className="mt-2 text-sm text-danger" role="alert">
+              {fileFieldError}
+            </p>
+          ) : null}
         </div>
 
         <div className="flex flex-wrap gap-2">

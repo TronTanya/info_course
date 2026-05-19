@@ -11,6 +11,25 @@ export function PageHeaderSkeleton({ className }: { className?: string }) {
   );
 }
 
+export function ProfilePageSkeleton({ className }: { className?: string }) {
+  return (
+    <div className={cn("space-y-6 sm:space-y-8", className)} aria-busy="true" aria-label="Загрузка профиля">
+      <Skeleton className="h-48 w-full rounded-3xl sm:h-56" />
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-20 rounded-2xl" />
+        ))}
+      </div>
+      <Skeleton className="h-36 rounded-2xl" />
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Skeleton className="min-h-[14rem] rounded-2xl" />
+        <Skeleton className="min-h-[14rem] rounded-2xl" />
+      </div>
+      <Skeleton className="h-48 rounded-2xl" />
+    </div>
+  );
+}
+
 export function CardGridSkeleton({ count = 3, className }: { count?: number; className?: string }) {
   return (
     <div className={cn("responsive-card-grid", className)} aria-busy="true" aria-label="Загрузка">

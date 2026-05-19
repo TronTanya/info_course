@@ -10,13 +10,16 @@ export function FormMessage({
   children,
   variant = "error",
   className,
+  id,
 }: {
   children: React.ReactNode;
   variant?: keyof typeof variants;
   className?: string;
+  id?: string;
 }) {
   return (
     <p
+      id={id}
       role="alert"
       className={cn("rounded-lg border px-3 py-2 text-sm", variants[variant], className)}
     >

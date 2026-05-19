@@ -23,6 +23,25 @@ export function getTestCardStatus(last: { passed: boolean } | null): TestCardSta
   return last.passed ? "passed" : "failed";
 }
 
+/** Сумма баллов по автоматически оцениваемым вопросам. */
+export function computeTestMaxScore(
+  questions: { points: number; manualTextGrading?: boolean }[],
+): number {
+  return questions.reduce((sum, q) => sum + (q.manualTextGrading ? 0 : q.points), 0);
+}
+
+export function formatPassingScore(minScore: number, maxScore: number): string {
+  if (maxScore <= 0) return `${minScore} б.`;
+  const pct = Math.round((minScore / maxScore) * 100);
+  return `${minScore} из ${maxScore} б. (${pct}%)`;
+}
+
+export const testAfterSubmitSteps = [
+  "Ответы проверяются на сервере — изменить их после отправки нельзя.",
+  "Результат и разбор ошибок появятся сразу на этой странице.",
+  "При успешной сдаче откроется практика модуля; прогресс обновится в карте курса.",
+] as const;
+
 export const testStatusMeta: Record<
   TestCardStatus,
   { label: string; className: string }

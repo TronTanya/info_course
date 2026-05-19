@@ -25,7 +25,7 @@ export function PracticeLabLayout({ breadcrumb, header, main, aside, className }
   return (
     <div
       className={cn(
-        "lab-shell hero-glow ce-learn-lab ce-practice-cyber-lab ce-border-beam ce-animate-in min-w-0 overflow-x-clip",
+        "lab-shell hero-glow ce-learn-lab ce-practice-cyber-lab ce-border-beam ce-animate-in ce-immersive-mobile-pad min-w-0 overflow-x-clip",
         className,
       )}
     >
@@ -40,7 +40,7 @@ export function PracticeLabLayout({ breadcrumb, header, main, aside, className }
           <Button
             type="button"
             variant="outline"
-            className="w-full"
+            className="min-h-11 w-full"
             onClick={() => setAsideOpen(true)}
           >
             <PanelRightOpen className="size-4" aria-hidden />

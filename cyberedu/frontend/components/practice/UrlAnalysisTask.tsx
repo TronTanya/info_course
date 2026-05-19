@@ -157,7 +157,7 @@ export function UrlAnalysisTask({ moduleId, practicalTaskId, disabled, onResult 
         структуру имени хоста.
       </PracticeTaskBanner>
 
-      <div className={cn(cyber.adminTable, "overflow-x-auto")}>
+      <div className={cn(cyber.adminTable, "ce-scroll-x-contained -mx-1 min-w-0 px-1")}>
         <table className="w-full min-w-[640px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-border bg-muted/50 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">

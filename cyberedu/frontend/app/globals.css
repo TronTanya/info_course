@@ -30,9 +30,11 @@
   --font-family-display: var(--font-display);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+  --shadow-sm: var(--shadow-sm);
   --shadow-card: var(--shadow-card);
   --shadow-card-hover: var(--shadow-card-hover);
   --shadow-glow: var(--shadow-glow);
+  --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
   --radius-xl: var(--radius-xl);
@@ -99,12 +101,35 @@ html:not(.dark) {
   /** Отступ под фиксированную нижнюю навигацию кабинета (< lg). */
   .ce-dashboard-main-pad {
     @media (max-width: 1023px) {
-      padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+      padding-bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
     }
   }
 
   .ce-dashboard-bottom-nav {
     box-shadow: 0 -8px 32px -12px color-mix(in oklab, var(--foreground) 12%, transparent);
+  }
+
+  .ce-dashboard-bottom-nav a {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /** Вертикальный ритм карточек на узких экранах. */
+  .ce-mobile-card-stack > * + * {
+    margin-top: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .ce-mobile-card-stack > * + * {
+      margin-top: 0;
+    }
+  }
+
+  /** Иммерсивные экраны (урок, тест, практика): отступ под sticky CTA / header. */
+  .ce-immersive-mobile-pad {
+    @media (max-width: 1023px) {
+      padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+    }
   }
 
   .ce-mobile-accordion summary::-webkit-details-marker {
@@ -123,6 +148,16 @@ html:not(.dark) {
 
     .ce-test-result-stats {
       grid-template-columns: 1fr !important;
+    }
+
+    .container-page {
+      padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+      padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+    }
+
+    .dashboard-grid {
+      padding-left: max(0.5rem, env(safe-area-inset-left, 0px));
+      padding-right: max(0.5rem, env(safe-area-inset-right, 0px));
     }
   }
 
@@ -577,6 +612,22 @@ html:not(.dark) {
   .lesson-reading {
     width: 100%;
     max-width: 42rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .lesson-reading :where(pre, code) {
+    font-size: 0.875rem;
+    line-height: 1.55;
+  }
+  .lesson-prose .lesson-reading {
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  @media (min-width: 1024px) {
+    .lesson-prose > .lesson-reading {
+      max-width: 42rem;
+    }
   }
   @media (max-width: 1279px) {
     .lesson-prose {
@@ -634,7 +685,12 @@ html:not(.dark) {
     width: 100%;
     min-width: 0;
     grid-template-columns: 1fr;
-    gap: 1.25rem;
+    gap: 1rem;
+  }
+  @media (min-width: 640px) {
+    .responsive-card-grid {
+      gap: 1.25rem;
+    }
   }
   @media (min-width: 768px) {
     .responsive-card-grid {
@@ -783,6 +839,9 @@ html:not(.dark) {
   .card-gradient {
     background-image: var(--gradient-card);
   }
+  .surface-subtle-gradient {
+    background-image: var(--gradient-surface-subtle);
+  }
   .hero-glow {
     position: relative;
     isolation: isolate;
@@ -807,10 +866,10 @@ html:not(.dark) {
       0 12px 40px -16px color-mix(in oklab, var(--accent) 22%, transparent);
   }
   .ce-glass {
-    border: 1px solid color-mix(in oklab, var(--border) 75%, var(--primary) 12%);
-    background: color-mix(in oklab, var(--card) 72%, transparent);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid color-mix(in oklab, var(--border) 88%, var(--primary) 8%);
+    background: color-mix(in oklab, var(--card) 78%, transparent);
+    backdrop-filter: blur(14px) saturate(1.12);
+    -webkit-backdrop-filter: blur(14px) saturate(1.12);
     box-shadow: var(--shadow-card);
   }
 
@@ -819,54 +878,56 @@ html:not(.dark) {
     font-family: var(--font-display);
     font-size: 0.6875rem;
     font-weight: 600;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--primary);
+    color: color-mix(in oklab, var(--primary) 88%, var(--foreground));
   }
   .typo-h1 {
     font-family: var(--font-display);
     font-size: clamp(1.625rem, 1.4rem + 0.65vw, 2.125rem);
     font-weight: 700;
     letter-spacing: -0.03em;
-    line-height: 1.15;
+    line-height: var(--line-height-tight);
     color: var(--foreground);
+    text-wrap: balance;
   }
   .typo-h2 {
     font-family: var(--font-display);
     font-size: clamp(1.3125rem, 1.15rem + 0.4vw, 1.625rem);
     font-weight: 600;
     letter-spacing: -0.025em;
-    line-height: 1.22;
+    line-height: var(--line-height-snug);
     color: var(--foreground);
+    text-wrap: balance;
   }
   .typo-h3 {
     font-family: var(--font-display);
-    font-size: 1.125rem;
+    font-size: var(--font-size-lg);
     font-weight: 600;
     letter-spacing: -0.02em;
-    line-height: 1.28;
+    line-height: var(--line-height-snug);
     color: var(--foreground);
   }
   .typo-body {
-    font-size: 0.9375rem;
-    line-height: 1.6;
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-relaxed);
     color: var(--foreground);
   }
   .typo-body-muted {
-    font-size: 0.9375rem;
-    line-height: 1.6;
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-relaxed);
     color: var(--muted-foreground);
   }
   .typo-caption {
-    font-size: 0.8125rem;
-    line-height: 1.5;
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-normal);
     color: var(--subtle-foreground);
   }
   .typo-label {
     font-family: var(--font-mono);
     font-size: 0.6875rem;
     font-weight: 500;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--muted-foreground);
   }
@@ -888,14 +949,14 @@ html:not(.dark) {
 
   .ce-learn-grid {
     background-image:
-      linear-gradient(color-mix(in oklab, var(--cyan) 8%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in oklab, var(--cyan) 8%, transparent) 1px, transparent 1px);
+      linear-gradient(color-mix(in oklab, var(--primary) 7%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in oklab, var(--primary) 7%, transparent) 1px, transparent 1px);
     background-size: 32px 32px;
     mask-image: radial-gradient(ellipse 90% 80% at 50% 30%, #000 15%, transparent 72%);
-    opacity: 0.5;
+    opacity: 0.42;
   }
   .ce-learn-orb {
-    background: color-mix(in oklab, var(--cyan) 35%, transparent);
+    background: color-mix(in oklab, var(--primary) 28%, transparent);
     animation: ce-orb-drift-a 28s ease-in-out infinite alternate;
   }
   .ce-learn-orb-b {

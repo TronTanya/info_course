@@ -3,6 +3,7 @@
 import type { ClientTestQuestion } from "@/lib/test-grading";
 import type { QuestionType } from "@prisma/client";
 import { TestAnswerOption } from "@/components/test/test-answer-option";
+import { TestQuestionNav } from "@/components/test/test-question-nav";
 import { TestSubmitDialog } from "@/components/test/test-submit-dialog";
 import { Button } from "@/components/ui/button";
 import { FormFeedback } from "@/components/ui/form-feedback";
@@ -40,12 +41,14 @@ export type TestLocalAnswers = {
 export function TestTakingView({
   title,
   minScore,
+  maxScore,
   questions,
   idx,
   local,
   error,
   pending,
   answeredCount,
+  answeredFlags,
   submitOpen,
   onSubmitOpenChange,
   onIndexChange,
@@ -58,12 +61,14 @@ export function TestTakingView({
 }: {
   title: string;
   minScore: number;
+  maxScore: number;
   questions: ClientTestQuestion[];
   idx: number;
   local: TestLocalAnswers;
   error: string | null;
   pending: boolean;
   answeredCount: number;
+  answeredFlags: boolean[];
   submitOpen: boolean;
   onSubmitOpenChange: (open: boolean) => void;
   onIndexChange: (next: number) => void;
@@ -78,10 +83,13 @@ export function TestTakingView({
   const q = questions[idx];
   if (!q) return null;
 
-  const progressPct = total > 0 ? Math.round(((idx + 1) / total) * 100) : 0;
+  const progressPct = total > 0 ? Math.round((answeredCount / total) * 100) : 0;
+  const unansweredIndexes = questions
+    .map((qq, i) => (!answeredFlags[i] ? i + 1 : null))
+    .filter((n): n is number => n != null);
 
   return (
-    <div className={cn("ce-test-taking", cyber.panel, "card-gradient min-w-0 space-y-0 overflow-hidden p-0")}>
+    <div className={cn("ce-test-taking ce-immersive-mobile-pad", cyber.panel, "card-gradient min-w-0 space-y-0 overflow-hidden p-0")}>
       <header
         className={cn(
           "sticky top-0 z-20 border-b border-border/60 bg-card/95 px-4 py-4 backdrop-blur-sm sm:px-6",
@@ -92,17 +100,30 @@ export function TestTakingView({
         <div className="relative space-y-3">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-primary">{title}</p>
-            <p className="text-sm text-muted-foreground">
-              Проходной балл: <span className="font-medium text-foreground">{minScore}</span>
+            <p className="text-xs text-muted-foreground">
+              Проходной: <span className="font-medium text-foreground">{minScore}</span> б.
             </p>
           </div>
           <ProgressBar label={`Вопрос ${idx + 1} из ${total}`} value={idx + 1} max={total} />
-          <div className="flex justify-between text-sm text-muted-foreground">
+          <ProgressBar
+            label="Отвечено"
+            value={answeredCount}
+            max={total}
+            tone={answeredCount === total ? "success" : "default"}
+          />
+          <div className="flex justify-between text-xs text-muted-foreground">
             <span>
-              Отвечено: <span className="font-semibold tabular-nums text-foreground">{answeredCount}</span> / {total}
+              Заполнено <span className="font-semibold tabular-nums text-foreground">{answeredCount}</span> / {total}
             </span>
             <span className="tabular-nums">{progressPct}%</span>
           </div>
+          <TestQuestionNav
+            total={total}
+            currentIndex={idx}
+            answeredFlags={answeredFlags}
+            onSelect={onIndexChange}
+            disabled={pending}
+          />
         </div>
       </header>
 
@@ -112,7 +133,7 @@ export function TestTakingView({
           <FormFeedback id="test-form-error" message={error} />
           {draftNote ? (
             <p className="text-xs text-muted-foreground" role="note">
-              Черновик сохраняется автоматически в этом браузере.
+              Ответы сохраняются автоматически в этом браузере — можно переключаться между вопросами.
             </p>
           ) : null}
 
@@ -125,9 +146,11 @@ export function TestTakingView({
                 {typeLabel(q.questionType)} · {q.points} б.
               </span>
             </div>
-            <h2 className="mt-4 text-lg font-medium leading-relaxed text-foreground sm:text-xl">{q.questionText}</h2>
+            <h2 className="mt-4 text-lg font-medium leading-relaxed text-pretty text-foreground sm:text-xl">{q.questionText}</h2>
             {q.manualTextGrading ? (
-              <p className="mt-2 text-xs text-muted-foreground">Ответ проверяется вручную и не входит в автоматический зачёт.</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Ответ проверяется вручную и не входит в автоматический зачёт.
+              </p>
             ) : null}
           </div>
 
@@ -206,7 +229,7 @@ export function TestTakingView({
                 disabled={pending}
                 onClick={onRequestFinish}
               >
-                Завершить
+                Завершить тест
               </Button>
             </div>
           </nav>
@@ -218,6 +241,9 @@ export function TestTakingView({
         onOpenChange={onSubmitOpenChange}
         answeredCount={answeredCount}
         total={total}
+        unansweredIndexes={unansweredIndexes}
+        minScore={minScore}
+        maxScore={maxScore}
         pending={pending}
         onConfirm={onConfirmSubmit}
       />

@@ -9,10 +9,11 @@ import { cn } from "@/lib/utils";
 const toneBadge: Record<PracticeLabState, string> = {
   not_started: "border-border text-muted-foreground",
   in_progress: "border-primary/35 bg-primary/12 text-primary",
+  submitted: "border-warning/40 bg-warning/12 text-warning",
+  passed: "border-success/35 bg-success/12 text-success",
+  needs_review: "border-warning/40 bg-warning/12 text-warning",
   wrong: "border-danger/35 bg-danger/12 text-danger",
   correct: "border-success/35 bg-success/12 text-success",
-  completed: "border-success/35 bg-success/12 text-success",
-  pending_review: "border-warning/40 bg-warning/12 text-warning",
 };
 
 export type PracticeLabTopBarProps = {
@@ -48,7 +49,9 @@ export function PracticeLabTopBar({
             <Badge variant="outline" className="border-primary/20 bg-primary/5 font-normal">
               {difficulty}
             </Badge>
-            {showTimer && labState !== "completed" ? <PracticeLabTimer active={labState === "in_progress" || labState === "not_started"} /> : null}
+            {showTimer && labState !== "passed" ? (
+              <PracticeLabTimer active={labState === "in_progress" || labState === "not_started"} />
+            ) : null}
           </div>
         </div>
 

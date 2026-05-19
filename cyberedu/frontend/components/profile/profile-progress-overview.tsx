@@ -1,21 +1,24 @@
-import Link from "next/link";
 import type { AchievementRow } from "@/lib/achievements";
 import type { ProfileCourseStats } from "@/lib/profile-course-stats";
+import { buildProfileQuickActions, buildProfileWeakTopics } from "@/lib/profile-ui";
+import { buildRecentActivities, computeStepMetrics } from "@/lib/dashboard-ui";
+import type { CourseProgressModuleRow } from "@/lib/progress";
 import { ProfileAchievementsPanel } from "@/components/achievements/profile-achievements-panel";
-import { CertificatePanel } from "@/components/certificate/certificate-panel";
+import { DashboardRecentActivity } from "@/components/dashboard/dashboard-recent-activity";
+import { ProfileCertificateProgress } from "@/components/profile/profile-certificate-progress";
+import { ProfileCompletedModules } from "@/components/profile/profile-completed-modules";
+import { ProfileQuickActions } from "@/components/profile/profile-quick-actions";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { MetricCard } from "@/components/ui/metric-card";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { ProgressRing } from "@/components/ui/progress-ring";
-import { cn } from "@/lib/utils";
-
-const cardShell = "ce-glass relative overflow-hidden rounded-2xl p-6 shadow-(--shadow-card) sm:p-8";
+import { SectionCard } from "@/components/ui/section-card";
+import { BookOpen, ClipboardCheck, FlaskConical } from "lucide-react";
 
 export type ProfileProgressOverviewProps = {
   stats: ProfileCourseStats;
   achievements: AchievementRow[];
-  /** Текст интересов для блока AI (уже отформатирован). */
+  modules: CourseProgressModuleRow[];
   interestsDisplay: string;
   hasInterestsForAi: boolean;
 };
@@ -23,15 +26,16 @@ export type ProfileProgressOverviewProps = {
 export function ProfileProgressOverview({
   stats,
   achievements,
+  modules,
   interestsDisplay,
   hasInterestsForAi,
 }: ProfileProgressOverviewProps) {
-  const continueHref = stats.currentModuleId
-    ? `/dashboard/course/${stats.currentModuleId}`
-    : "/dashboard/course";
-
-  const scoreBarMax = Math.max(1, stats.maxPossiblePoints);
-  const scoreTone: "default" | "success" | "warning" =
+  const weakTopics = buildProfileWeakTopics(stats, modules);
+  const quickActions = buildProfileQuickActions(stats, modules, weakTopics);
+  const activities = buildRecentActivities(stats);
+  const steps = computeStepMetrics(modules);
+  const progressTone = stats.progressPercent >= 100 ? "success" : "default";
+  const scoreTone =
     stats.maxPossiblePoints <= 0
       ? "default"
       : stats.scoreSuccessPercent >= 70
@@ -40,150 +44,133 @@ export function ProfileProgressOverview({
           ? "warning"
           : "default";
 
-  const progressTone: "default" | "success" = stats.progressPercent >= 100 ? "success" : "default";
-
-  const certificatePayload =
-    stats.certificateId && stats.certificateNumber && stats.issuedAt && stats.certificateVerifyUrl
-      ? {
-          id: stats.certificateId,
-          certificateNumber: stats.certificateNumber,
-          issuedAt: stats.issuedAt.toISOString(),
-          verifyUrl: stats.certificateVerifyUrl,
-        }
-      : null;
-
-  const interestsEmpty = !hasInterestsForAi || interestsDisplay.trim().length === 0;
-
   return (
-    <div className="space-y-6">
-      <section className="hero-glow ce-glass relative overflow-hidden rounded-2xl p-6 shadow-(--shadow-card) sm:p-8">
-        <div className="pointer-events-none absolute -right-20 top-0 h-48 w-48 rounded-full bg-accent/12 blur-3xl" aria-hidden />
-        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0">
-            <p className="typo-eyebrow text-primary">Ваш курс</p>
-            <h2 className="typo-h2 mt-1">{stats.courseTitle}</h2>
-            <p className="typo-body-muted mt-2 max-w-2xl">
-              Здесь видно, как вы движетесь по программе: модули, баллы и следующий шаг.
-            </p>
-          </div>
-          <Badge variant={stats.allModulesComplete ? "success" : "secondary"} className="w-fit shrink-0">
-            {stats.allModulesComplete ? "Курс пройден" : "Учитесь в своём темпе"}
-          </Badge>
-        </div>
-      </section>
+    <div className="space-y-5 sm:space-y-6">
+      <ProfileQuickActions actions={quickActions} />
 
-      <section className={cardShell}>
-        <h3 className="typo-h3">Прогресс</h3>
-        <p className="typo-body-muted mt-1">Общая доля пройденного материала и зачёт по модулям.</p>
-        <div className="mt-6 flex flex-col items-stretch gap-6 sm:flex-row sm:items-center">
-          <ProgressRing value={stats.progressPercent} size={120} strokeWidth={10} tone={progressTone} label="Прогресс курса" />
-          <div className="min-w-0 flex-1">
-            <p className="typo-h3 text-foreground">
-              Завершено модулей{" "}
-              <span className="text-primary">
-                {stats.completedModules} из {stats.totalModules}
-              </span>
-            </p>
-            <ProgressBar
-              className="mt-4"
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+        <SectionCard variant="lab" flushTitle className="p-5 sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="typo-eyebrow text-primary">Образовательный прогресс</p>
+              <h2 className="mt-1 font-display text-lg font-semibold text-foreground sm:text-xl">{stats.courseTitle}</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Завершено {stats.completedModules} из {stats.totalModules} модулей · {stats.totalPoints} баллов
+                {stats.maxPossiblePoints > 0 ? ` из ${stats.maxPossiblePoints}` : ""}
+              </p>
+            </div>
+            <Badge variant={stats.allModulesComplete ? "success" : "secondary"} className="shrink-0">
+              {stats.allModulesComplete ? "Курс пройден" : `${stats.progressPercent}%`}
+            </Badge>
+          </div>
+
+          <div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-center">
+            <ProgressRing
               value={stats.progressPercent}
-              max={100}
-              label={`Общий прогресс курса: ${stats.progressPercent}%`}
+              size={112}
+              strokeWidth={9}
               tone={progressTone}
+              label="Общий прогресс курса"
             />
-          </div>
-        </div>
-
-        <div className="mt-8 border-t border-border/60 pt-8">
-          <h4 className="typo-h3">Баллы</h4>
-          <p className="typo-caption mt-1">Сумма за тесты и принятую практику.</p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 min-[1920px]:grid-cols-4">
-            <MetricCard label="Набрано баллов" value={`${stats.totalPoints}`} />
-            <MetricCard
-              label="Максимум по курсу"
-              value={stats.maxPossiblePoints > 0 ? `${stats.maxPossiblePoints}` : "—"}
-              hint={stats.maxPossiblePoints <= 0 ? "Пока нет настроенных балльных заданий" : undefined}
-            />
-            <MetricCard
-              label="Успешность"
-              value={stats.maxPossiblePoints > 0 ? `${stats.scoreSuccessPercent}%` : "—"}
-              hint={stats.maxPossiblePoints > 0 ? "доля от максимума" : undefined}
-            />
-          </div>
-          {stats.maxPossiblePoints > 0 ? (
-            <ProgressBar
-              className="mt-5"
-              value={stats.totalPoints}
-              max={scoreBarMax}
-              label="Доля набранных баллов"
-              tone={scoreTone}
-            />
-          ) : null}
-        </div>
-
-        <div className="mt-8 border-t border-border/60 pt-8">
-          <h4 className="typo-h3">Текущий модуль</h4>
-          <p className="typo-body mt-3 font-medium text-foreground">{stats.currentModuleTitle ?? "—"}</p>
-          <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <Button variant="primary" className="w-full sm:w-auto" asChild>
-              <Link href={continueHref}>Продолжить обучение</Link>
-            </Button>
-            <Button variant="outline" className="w-full sm:w-auto" asChild>
-              <Link href="/dashboard/course">Все модули</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      <section className="ce-glass relative overflow-hidden rounded-2xl border border-primary/25 p-6 shadow-(--shadow-card) sm:p-8">
-        <div className="pointer-events-none absolute -right-16 -top-12 h-32 w-32 rounded-full bg-accent/15 blur-2xl" aria-hidden />
-        <div className="relative">
-          <div className="flex items-start gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary ring-1 ring-primary/25">
-              <svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-                <path d="M12 3v1M12 20v1M3 12h1M20 12h1" strokeLinecap="round" />
-                <path d="m15 9-1.5 4.5L9 15l4.5 1.5L15 21l1.5-4.5L21 15l-4.5-1.5L15 9Z" strokeLinejoin="round" />
-              </svg>
-            </span>
-            <div className="min-w-0 flex-1">
-              <h3 className="typo-h3">AI-персонализация</h3>
-              <p className="typo-body mt-3 font-medium">
-                {interestsEmpty ? (
-                  <span className="text-muted-foreground">Интересы пока не указаны.</span>
-                ) : (
-                  <span className="leading-relaxed">{interestsDisplay}</span>
-                )}
-              </p>
-              <p className="typo-body-muted mt-3">
-                AI использует ваши интересы, чтобы объяснять лекции понятнее.
-              </p>
-              <Button variant="outline" size="sm" className="mt-5 w-full border-primary/25 bg-card/80 hover:border-primary/40 sm:w-auto" asChild>
-                <Link href="/dashboard/settings">{hasInterestsForAi ? "Изменить интересы" : "Указать интересы"}</Link>
-              </Button>
+            <div className="min-w-0 flex-1 space-y-4">
+              <ProgressBar
+                label="Прогресс по модулям"
+                value={stats.progressPercent}
+                max={100}
+                tone={progressTone}
+              />
+              {stats.maxPossiblePoints > 0 ? (
+                <ProgressBar
+                  label="Набранные баллы"
+                  value={stats.totalPoints}
+                  max={stats.maxPossiblePoints}
+                  tone={scoreTone}
+                />
+              ) : null}
             </div>
           </div>
-        </div>
-      </section>
 
-      <section className={cn(cardShell, "overflow-hidden")}>
+          <dl className="mt-6 grid grid-cols-3 gap-2 border-t border-border/60 pt-5">
+            <StepChip icon={BookOpen} done={steps.lessonsDone} total={steps.lessonsTotal} label="Лекции" />
+            <StepChip icon={ClipboardCheck} done={steps.testsDone} total={steps.testsTotal} label="Тесты" />
+            <StepChip icon={FlaskConical} done={steps.practiceDone} total={steps.practiceTotal} label="Практика" />
+          </dl>
+        </SectionCard>
+
+        <SectionCard variant="default" flushTitle className="p-5 sm:p-6">
+          <h2 className="font-display text-base font-semibold text-foreground">Аналитика</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Сводка по проверкам и баллам.</p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <MetricCard
+              label="Средний результат тестов"
+              value={stats.averageTestPercent != null ? `${stats.averageTestPercent}%` : "—"}
+              hint={
+                stats.testAttemptCount > 0
+                  ? `${stats.testAttemptCount} попыток · ${stats.testsPassedCount} зачётов`
+                  : "Сдайте первый тест"
+              }
+            />
+            <MetricCard
+              label="Выполненные практики"
+              value={stats.practicesTotal > 0 ? String(stats.practicesCompleted) : "—"}
+              hint={stats.practicesTotal > 0 ? `из ${stats.practicesTotal} модулей с практикой` : "нет заданий"}
+            />
+            <MetricCard label="Успешность баллов" value={stats.maxPossiblePoints > 0 ? `${stats.scoreSuccessPercent}%` : "—"} />
+            <MetricCard
+              label="Текущий модуль"
+              value={stats.currentModuleTitle ? "В работе" : "—"}
+              hint={stats.currentModuleTitle ?? "Все модули завершены"}
+            />
+          </div>
+        </SectionCard>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ProfileCompletedModules modules={stats.completedModuleRows} />
+        <SectionCard variant="default" flushTitle className="p-4 sm:p-6">
+          <DashboardRecentActivity items={activities} showProfileLink={false} />
+        </SectionCard>
+      </div>
+
+      <ProfileCertificateProgress stats={stats} />
+
+      <SectionCard variant="default" flushTitle className="overflow-hidden" id="achievements">
         <ProfileAchievementsPanel rows={achievements} />
-      </section>
+      </SectionCard>
 
-      <section className={cardShell}>
-        <h3 className="typo-h3">Сертификат</h3>
-        <p className="typo-body-muted mt-1">
-          Электронный документ о прохождении программы — после полного прохождения модулей.
+      <SectionCard variant="muted" flushTitle className="p-4 sm:p-6">
+        <h2 className="font-display text-base font-semibold text-foreground">AI-персонализация</h2>
+        <p className="mt-2 text-sm leading-relaxed text-foreground/90">
+          {hasInterestsForAi && interestsDisplay.trim().length > 0 ? (
+            interestsDisplay
+          ) : (
+            <span className="text-muted-foreground">Интересы не указаны — настройте в параметрах профиля.</span>
+          )}
         </p>
-        <div className="mt-6">
-          <CertificatePanel
-            courseId={stats.courseId}
-            courseCompleted={stats.allModulesComplete}
-            certificate={certificatePayload}
-            generateButtonText="Получить сертификат"
-            downloadButtonText="Скачать сертификат"
-          />
-        </div>
-      </section>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Используются только для адаптации объяснений в лекциях; другим студентам не показываются.
+        </p>
+      </SectionCard>
+    </div>
+  );
+}
+
+function StepChip({
+  icon: Icon,
+  done,
+  total,
+  label,
+}: {
+  icon: typeof BookOpen;
+  done: number;
+  total: number;
+  label: string;
+}) {
+  return (
+    <div className="rounded-xl border border-border/70 bg-muted/20 px-2 py-2.5 text-center">
+      <Icon className="mx-auto size-4 text-primary" aria-hidden />
+      <p className="mt-1 text-sm font-semibold tabular-nums text-foreground">{total > 0 ? `${done}/${total}` : "—"}</p>
+      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
     </div>
   );
 }

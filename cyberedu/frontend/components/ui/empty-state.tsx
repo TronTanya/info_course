@@ -10,6 +10,8 @@ export type EmptyStateProps = {
   description?: string;
   action?: React.ReactNode;
   terminalLine?: string;
+  /** Компактный вариант для секций внутри страницы (не полноэкранный). */
+  compact?: boolean;
 };
 
 export function EmptyState({
@@ -19,7 +21,25 @@ export function EmptyState({
   description,
   action,
   terminalLine = "data --empty",
+  compact = false,
 }: EmptyStateProps) {
+  if (compact) {
+    return (
+      <StateShell variant="empty" terminalLine={terminalLine} role="status" className={cn("ce-empty-state--compact", className)}>
+        <div className="flex flex-col gap-4 px-4 py-6 sm:flex-row sm:items-center sm:px-5">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-muted/80 text-muted-foreground ring-1 ring-border">
+            {icon ?? <Inbox className="size-5 opacity-70" aria-hidden />}
+          </div>
+          <div className="min-w-0 flex-1 text-left">
+            <h3 className="font-display text-base font-semibold text-foreground">{title}</h3>
+            {description ? <p className="mt-1 text-sm text-pretty text-muted-foreground">{description}</p> : null}
+          </div>
+          {action ? <div className="shrink-0 sm:self-center">{action}</div> : null}
+        </div>
+      </StateShell>
+    );
+  }
+
   return (
     <StateShell
       variant="empty"

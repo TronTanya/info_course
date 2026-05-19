@@ -1,27 +1,34 @@
 /**
  * CyberEdu design system — исходная палитра (синхронизировать с app/design-tokens.css).
- * Контраст (на #05030A): primary #F5F3FF ~16:1, secondary #A8A2B8 ~7.5:1, subtle #6F6880 ~4.6:1 (крупный текст / captions).
+ * Контраст (на #060712): primary #F4F2FA ~16:1, secondary #B8B3CC ~8:1, muted #7C7794 ~4.8:1.
  */
 export const palette = {
   bg: {
-    base: "#05030A",
-    elevated: "#0B0714",
-    surface: "#100A1F",
+    base: "#060712",
+    elevated: "#0C0F1C",
+    surface: "#12152A",
   },
-  border: "rgba(255, 255, 255, 0.08)",
+  border: "rgba(255, 255, 255, 0.09)",
   accent: {
-    primary: "#863BFF",
-    violetDeep: "#140033",
-    cyberGreen: "#39FF88",
+    primary: "#7C5CFF",
+    soft: "#9B87FF",
+    violetDeep: "#1A1033",
+    cyberMint: "#4CC9A0",
+    cyberTeal: "#5EEAD4",
   },
   semantic: {
-    warning: "#FACC15",
-    danger: "#FF4D6D",
+    warning: "#E8B84A",
+    danger: "#F0527A",
   },
   text: {
-    primary: "#F5F3FF",
-    secondary: "#A8A2B8",
-    muted: "#6F6880",
+    primary: "#F4F2FA",
+    secondary: "#B8B3CC",
+    muted: "#7C7794",
+  },
+  terminal: {
+    bg: "#0D0B18",
+    prompt: "#6EE7C4",
+    success: "#5CD9A8",
   },
 } as const;
 

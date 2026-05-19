@@ -3,6 +3,7 @@ import { BookOpen, ClipboardCheck, FlaskConical } from "lucide-react";
 import type { DashboardActivityItem } from "@/lib/dashboard-ui";
 import { cyber } from "@/lib/design-system/cyber";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SectionHeader } from "@/components/ui/section-header";
 
@@ -21,7 +22,14 @@ function formatWhen(iso: string) {
   });
 }
 
-export function DashboardRecentActivity({ items }: { items: DashboardActivityItem[] }) {
+export function DashboardRecentActivity({
+  items,
+  showProfileLink = true,
+}: {
+  items: DashboardActivityItem[];
+  /** Ссылка «Вся история в профиле» — скрыть на странице профиля. */
+  showProfileLink?: boolean;
+}) {
   return (
     <section className="space-y-4" aria-labelledby="dash-activity-heading">
       <SectionHeader title="Недавняя активность" description="Последние лекции, тесты и практика." />
@@ -30,9 +38,15 @@ export function DashboardRecentActivity({ items }: { items: DashboardActivityIte
       </h2>
       {items.length === 0 ? (
         <EmptyState
-          className="py-10"
+          compact
+          className="py-6"
           title="Пока нет записей"
           description="Пройдите первую лекцию или тест — здесь появится история действий."
+          action={
+            <Button asChild variant="primary" size="sm">
+              <Link href="/dashboard/course">Открыть курс</Link>
+            </Button>
+          }
         />
       ) : (
       <ul className="space-y-2">
@@ -56,7 +70,7 @@ export function DashboardRecentActivity({ items }: { items: DashboardActivityIte
         })}
       </ul>
       )}
-      {items.length > 0 ? (
+      {items.length > 0 && showProfileLink ? (
         <p className="text-center text-sm sm:text-left">
           <Link href="/dashboard/profile" className="font-medium text-primary underline-offset-4 hover:underline">
             Вся история в профиле

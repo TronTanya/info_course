@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Bot, Scan } from "lucide-react";
 import { MentorContextBar } from "@/components/ai/mentor/mentor-context-bar";
 import { MentorMarkdown } from "@/components/ai/mentor/mentor-markdown";
@@ -15,6 +15,7 @@ import { resolveMentorContextKind } from "@/lib/ai/mentor-ui/context";
 import { getSuggestedPrompts } from "@/lib/ai/mentor-ui/suggested-prompts";
 import type { MentorChatTurn, MentorContextLabels } from "@/lib/ai/mentor-ui/types";
 import type { TutorPipelineMeta } from "@/lib/ai/tutor/types";
+import { useOverlayA11y } from "@/lib/hooks/use-overlay-a11y";
 import { cn } from "@/lib/utils";
 
 export type { MentorContextLabels, MentorChatTurn as ChatTurn };
@@ -53,7 +54,15 @@ export function AiMentorChat({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const prevOpenSignal = useRef<number | null>(null);
+  const reduce = useReducedMotion();
+
+  useOverlayA11y({
+    open,
+    onClose: () => setOpen(false),
+    containerRef: panelRef,
+  });
 
   const contextKind = useMemo(
     () => resolveMentorContextKind({ moduleId, lessonId, practicalTaskId }),
@@ -175,14 +184,15 @@ export function AiMentorChat({
       <AnimatePresence>
         {open ? (
           <motion.div
+            ref={panelRef}
             id="ai-mentor-chat-panel"
             role="dialog"
             aria-modal="true"
             aria-labelledby="ai-mentor-chat-title"
-            initial={{ opacity: 0, y: 16, scale: 0.98 }}
+            initial={reduce ? false : { opacity: 0, y: 16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 12, scale: 0.98 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            exit={reduce ? undefined : { opacity: 0, y: 12, scale: 0.98 }}
+            transition={{ duration: reduce ? 0 : 0.22, ease: [0.22, 1, 0.36, 1] }}
             className={cn(
               "ce-ai-mentor-panel ce-mentor-soc fixed z-[60] flex flex-col overflow-hidden",
               "inset-x-0 bottom-0 max-h-[min(88dvh,40rem)] w-full rounded-t-2xl border-t border-cyan/25",
@@ -219,7 +229,7 @@ export function AiMentorChat({
             <div ref={scrollRef} className="relative min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-3 py-3">
               {messages.length === 0 && !loading ? (
                 <motion.div
-                  initial={{ opacity: 0 }}
+                  initial={reduce ? false : { opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className="rounded-xl border border-dashed border-cyan/20 bg-cyan/5 px-3 py-3 text-xs leading-relaxed text-muted-foreground"
                 >
@@ -231,9 +241,9 @@ export function AiMentorChat({
               {messages.map((m) => (
                 <motion.article
                   key={m.id}
-                  initial={{ opacity: 0, y: 6 }}
+                  initial={reduce ? false : { opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2 }}
+                  transition={{ duration: reduce ? 0 : 0.2 }}
                   className={cn(
                     "ce-mentor-bubble rounded-xl border px-3 py-2.5 text-sm",
                     m.role === "user"
@@ -278,6 +288,7 @@ export function AiMentorChat({
 
             <div className="border-t border-cyan/15 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
               <Textarea
+                label="Сообщение наставнику"
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 placeholder="Сформулируйте вопрос для наставника…"

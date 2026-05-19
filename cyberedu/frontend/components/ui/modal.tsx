@@ -33,8 +33,6 @@ export function Modal({ open, onOpenChange, title, description, children, footer
             focusRing,
             "data-[state=open]:animate-[ce-modal-in_0.25s_var(--ease-out-expo)_forwards] data-[state=closed]:opacity-0 motion-reduce:animate-none",
           )}
-          onOpenAutoFocus={(e) => e.preventDefault()}
-          onCloseAutoFocus={(e) => e.preventDefault()}
         >
           <div className="flex flex-col gap-2">
             <Dialog.Title className="font-display text-lg font-semibold text-foreground">{title}</Dialog.Title>

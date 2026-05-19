@@ -30,7 +30,7 @@ export function AdminProfileHero({
           <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary/10 font-bold text-primary ring-1 ring-primary/20 sm:size-16">
             {avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatarUrl} alt="" className="size-full object-cover" referrerPolicy="no-referrer" />
+              <img src={avatarUrl} alt={`Аватар: ${displayName}`} className="size-full object-cover" referrerPolicy="no-referrer" />
             ) : (
               initials
             )}

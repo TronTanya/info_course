@@ -9,6 +9,7 @@ import { computeReviewRatingStats } from "@/lib/admin-review-rating-stats";
 import { getAdminReviewRows } from "@/lib/admin-reviews-list";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ReviewStars } from "@/components/reviews/review-stars";
 
 export const metadata: Metadata = {
@@ -34,7 +35,12 @@ export default async function AdminReviewsPage() {
         <AdminReviewRatingStatsPanel stats={ratingStats} total={rows.length} />
         <AdminTableCard title="Все отзывы" description={rows.length === 0 ? "Список пуст" : `${rows.length} записей`}>
             {rows.length === 0 ? (
-              <p className="px-4 py-8 text-center text-muted-foreground sm:px-0">Отзывов пока нет.</p>
+              <EmptyState
+                compact
+                className="border-0 bg-transparent shadow-none"
+                title="Отзывов пока нет"
+                description="Когда студенты оставят отзыв в кабинете, он появится здесь для модерации."
+              />
             ) : (
               <AdminDualTable
                 mobile={

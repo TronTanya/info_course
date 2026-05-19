@@ -26,7 +26,7 @@ export function DashboardContentArea({
   return (
     <section
       className={cn(
-        "dashboard-content ce-app-main-panel ce-lab-panel min-w-0 overflow-x-clip p-4 sm:p-7 lg:p-9",
+        "dashboard-content ce-app-main-panel ce-lab-panel min-w-0 overflow-x-clip p-3 sm:p-6 lg:p-9",
         !immersive && "ce-dashboard-main-pad",
         className,
       )}

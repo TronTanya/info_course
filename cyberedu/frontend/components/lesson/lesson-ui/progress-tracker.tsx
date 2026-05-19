@@ -9,6 +9,8 @@ export type ProgressTrackerProps = {
   lessonCompleted: boolean;
   difficulty: string;
   steps: LearningNavStepItem[];
+  /** Прогресс прокрутки материала урока (0–100). */
+  lessonReadingPercent?: number;
   className?: string;
 };
 
@@ -18,8 +20,10 @@ export function ProgressTracker({
   lessonCompleted,
   difficulty,
   steps,
+  lessonReadingPercent,
   className,
 }: ProgressTrackerProps) {
+  const reading = lessonCompleted ? 100 : (lessonReadingPercent ?? 0);
   return (
     <aside className={cn("space-y-4", className)} aria-label="Прогресс урока">
       <div className="rounded-2xl border border-border/80 bg-card/90 p-4 shadow-card">
@@ -37,6 +41,7 @@ export function ProgressTracker({
           </Badge>
           <Badge variant="outline">{difficulty}</Badge>
         </div>
+        <ProgressBar value={reading} max={100} className="mt-3" label="Чтение" tone={reading >= 100 ? "success" : "default"} />
       </div>
 
       <div className="rounded-2xl border border-border/80 bg-card/90 p-4 shadow-card">

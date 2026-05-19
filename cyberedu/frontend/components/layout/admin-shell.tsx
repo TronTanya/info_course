@@ -14,7 +14,7 @@ export function AdminShell({
   return (
     <div className={cn("dashboard-grid dashboard-grid--with-sidebar flex-1", className)}>
       <AppSidebar variant="admin" />
-      <section className="dashboard-content ce-admin-shell ce-app-main-panel ce-lab-panel relative isolate overflow-x-clip p-4 pb-6 sm:p-6 lg:p-8">
+      <section className="dashboard-content ce-admin-shell ce-app-main-panel ce-lab-panel relative isolate overflow-x-clip p-3 pb-6 sm:p-6 lg:p-8">
         <div className="ce-learn-ambient pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]" aria-hidden>
           <div className="ce-learn-grid absolute inset-0 opacity-[0.08]" />
         </div>

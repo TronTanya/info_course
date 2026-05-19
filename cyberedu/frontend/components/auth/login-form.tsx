@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useId, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSession, signIn } from "next-auth/react";
@@ -19,6 +19,7 @@ function safeCallbackUrl(raw: string | null): string | null {
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const formErrorId = useId();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -83,7 +84,7 @@ export function LoginForm() {
       ) : null}
 
       <form onSubmit={onSubmit} className="space-y-4" noValidate>
-        {error ? <FormMessage>{error}</FormMessage> : null}
+        {error ? <FormMessage id={formErrorId}>{error}</FormMessage> : null}
         <Input
           autoComplete="email"
           label="Email"
@@ -92,6 +93,7 @@ export function LoginForm() {
           placeholder="name@example.ru"
           required
           disabled={pending}
+          aria-describedby={error ? formErrorId : undefined}
         />
         <div className="space-y-2">
           <PasswordInput
@@ -100,6 +102,7 @@ export function LoginForm() {
             name="password"
             required
             disabled={pending}
+            aria-describedby={error ? formErrorId : undefined}
           />
           <div className="flex justify-end">
             <Link

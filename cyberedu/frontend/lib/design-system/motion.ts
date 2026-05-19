@@ -1,4 +1,16 @@
 /** Framer Motion presets — keep durations in sync with globals.css */
+
+/** Отключает входную анимацию при prefers-reduced-motion. */
+export function motionWithReducedMotion<T extends Record<string, unknown>>(preset: T, reduce: boolean | null): T {
+  if (!reduce) return preset;
+  return {
+    ...preset,
+    initial: false,
+    exit: undefined,
+    transition: { duration: 0 },
+  } as T;
+}
+
 export const motionPresets = {
   fadeIn: {
     initial: { opacity: 0 },
@@ -26,9 +38,9 @@ export const motionPresets = {
   glowPulse: {
     animate: {
       boxShadow: [
-        "0 0 0 0 color-mix(in oklab, var(--cyan) 0%, transparent)",
-        "0 0 24px 2px color-mix(in oklab, var(--cyan) 18%, transparent)",
-        "0 0 0 0 color-mix(in oklab, var(--cyan) 0%, transparent)",
+        "0 0 0 0 color-mix(in oklab, var(--primary) 0%, transparent)",
+        "0 0 24px 2px color-mix(in oklab, var(--primary) 14%, transparent)",
+        "0 0 0 0 color-mix(in oklab, var(--primary) 0%, transparent)",
       ],
     },
     transition: { duration: 3.2, repeat: Infinity, ease: "easeInOut" },

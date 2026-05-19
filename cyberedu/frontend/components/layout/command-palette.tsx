@@ -14,8 +14,9 @@ import {
   Sun,
   TestTube2,
 } from "lucide-react";
-import { commandPaletteActions } from "@/lib/design-system/nav-config";
+import { commandPaletteAdminAction, commandPaletteStudentActions } from "@/lib/design-system/nav-config";
 import { useTheme } from "@/components/theme/theme-provider";
+import { focusRing } from "@/lib/design-system/primitives";
 import { cn } from "@/lib/utils";
 
 type PaletteItem = {
@@ -27,7 +28,7 @@ type PaletteItem = {
   keywords?: string;
 };
 
-export function CommandPalette() {
+export function CommandPalette({ isAdmin = false }: { isAdmin?: boolean }) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const router = useRouter();
@@ -38,7 +39,10 @@ export function CommandPalette() {
   const moduleId = moduleMatch?.[1];
 
   const items = React.useMemo<PaletteItem[]>(() => {
-    const nav: PaletteItem[] = commandPaletteActions.map((a) => ({
+    const navSources = isAdmin
+      ? [...commandPaletteStudentActions, commandPaletteAdminAction]
+      : commandPaletteStudentActions;
+    const nav: PaletteItem[] = navSources.map((a) => ({
       id: a.href,
       label: a.label,
       description: a.description,
@@ -120,7 +124,7 @@ export function CommandPalette() {
     });
 
     return [...nav, ...extra];
-  }, [moduleId, resolved, router, setTheme]);
+  }, [isAdmin, moduleId, resolved, router, setTheme]);
 
   React.useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -169,24 +173,28 @@ export function CommandPalette() {
             "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
             "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
             "motion-reduce:transition-none motion-reduce:animate-none",
+            focusRing,
           )}
-          onOpenAutoFocus={(e) => e.preventDefault()}
         >
           <Dialog.Title className="sr-only">Командная палитра</Dialog.Title>
           <Dialog.Description className="sr-only">Поиск по разделам курса и действиям</Dialog.Description>
           <div className="flex items-center gap-2 border-b border-border px-4 py-3">
             <Search className="size-4 text-muted-foreground" aria-hidden />
+            <label htmlFor="command-palette-search" className="sr-only">
+              Поиск команд и разделов
+            </label>
             <input
+              id="command-palette-search"
               type="search"
               data-testid="command-palette-search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Раздел, модуль, тема…"
-              className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+              className="min-w-0 flex-1 rounded-md bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
               autoFocus
             />
           </div>
-          <ul className="max-h-72 overflow-y-auto p-2" role="listbox">
+          <ul className="max-h-72 overflow-y-auto p-2" role="group" aria-label="Результаты поиска">
             {filtered.length === 0 ? (
               <li className="px-3 py-6 text-center text-sm text-muted-foreground">Ничего не найдено</li>
             ) : (

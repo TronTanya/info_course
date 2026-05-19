@@ -33,7 +33,7 @@ export function LessonLayout({
   const [asideOpen, setAsideOpen] = useState(false);
 
   return (
-    <LearnPageShell className={cn("overflow-x-hidden pb-24 lg:pb-0", className)}>
+    <LearnPageShell className={cn("overflow-x-hidden ce-immersive-mobile-pad pb-28 lg:pb-0", className)}>
       <div className="space-y-5">
         {header}
 
@@ -57,7 +57,7 @@ export function LessonLayout({
             </div>
           </aside>
 
-          <div className="min-w-0">{children}</div>
+          <div className="lesson-prose min-w-0">{children}</div>
 
           <aside className="hidden lg:block">
             <div className="sticky top-24 max-h-[calc(100vh-7rem)] space-y-4 overflow-y-auto">{aside}</div>

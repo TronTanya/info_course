@@ -1,9 +1,10 @@
 import Link from "next/link";
 
 const links = [
-  { href: "#learning-path", label: "Курс" },
+  { href: "#what-you-learn", label: "Программа" },
+  { href: "#modules", label: "Модули" },
   { href: "#practice-lab", label: "Практика" },
-  { href: "/reviews", label: "Рейтинг" },
+  { href: "/reviews", label: "Отзывы" },
   { href: "/about", label: "О проекте" },
   { href: "/auth/login", label: "Войти" },
 ] as const;

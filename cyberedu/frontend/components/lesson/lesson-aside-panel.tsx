@@ -20,6 +20,7 @@ export type LessonAsidePanelProps = {
   lessonCompleted: boolean;
   difficulty: string;
   steps: LearningNavStepItem[];
+  lessonReadingPercent?: number;
   allowAiAdaptation: boolean;
   aiBusy: boolean;
   onRunAi: (action: LessonAiAction) => void;
@@ -35,6 +36,7 @@ export function LessonAsidePanel({
   lessonCompleted,
   difficulty,
   steps,
+  lessonReadingPercent,
   allowAiAdaptation,
   aiBusy,
   onRunAi,
@@ -51,6 +53,7 @@ export function LessonAsidePanel({
         lessonCompleted={lessonCompleted}
         difficulty={difficulty}
         steps={steps}
+        lessonReadingPercent={lessonReadingPercent}
       />
 
       {allowAiAdaptation ? (

@@ -6,12 +6,15 @@ import { GraduationCap, MapPin, School, Sparkles } from "lucide-react";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { LearnPageWrap } from "@/components/learn/learn-page-wrap";
 import { ProfileProgressOverview } from "@/components/profile/profile-progress-overview";
+import { ProfileUserStatsStrip } from "@/components/profile/profile-user-stats-strip";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { formatInterestsDisplay, parseProfileInterests } from "@/lib/profile-interests";
 import { getProfileCourseStats } from "@/lib/profile-course-stats";
 import { getCurrentUser } from "@/lib/permissions";
+import { syncAndGetUserCourseProgress } from "@/lib/progress";
 import { AchievementUnlockToasts } from "@/components/achievements/achievement-unlock-toasts";
 import { achievementNoticesFromKinds, getUserAchievementRows, reconcileUserAchievements } from "@/lib/achievements";
 
@@ -65,6 +68,9 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
     getProfileCourseStats(user.id),
     getUserAchievementRows(user.id),
   ]);
+  const progress =
+    stats?.courseId != null ? await syncAndGetUserCourseProgress(user.id, stats.courseId) : null;
+  const modules = progress?.modules ?? [];
   const interests = parseProfileInterests(p.interests);
   const interestsText = formatInterestsDisplay(interests);
   const hasInterestsForAi = interests.tags.length > 0 || interests.custom.trim().length > 0;
@@ -93,7 +99,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
           </Alert>
         ) : null}
 
-        <header className="ce-user-profile-hero hero-glow ce-cyber-hero p-6 sm:p-8 lg:p-10">
+        <header className="ce-user-profile-hero hero-glow ce-cyber-hero overflow-x-clip p-4 sm:p-8 lg:p-10">
           <div className="ce-user-profile-hero-blob" aria-hidden />
           <div className="ce-user-profile-hero-grid" aria-hidden />
           <div className="ce-user-profile-hero-vignette" aria-hidden />
@@ -106,7 +112,12 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                     <div className="relative flex size-28 items-center justify-center bg-linear-to-br from-primary/10 via-card to-accent/10 text-2xl font-bold tracking-tight text-primary sm:size-35 sm:text-3xl">
                       {p.avatarUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element -- внешние URL аватаров
-                        <img src={p.avatarUrl} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+                        <img
+                          src={p.avatarUrl}
+                          alt={fullName !== "—" ? `Фото профиля: ${fullName}` : "Фото профиля"}
+                          className="h-full w-full object-cover"
+                          referrerPolicy="no-referrer"
+                        />
                       ) : (
                         initials
                       )}
@@ -140,6 +151,14 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                   <MetaTile icon={GraduationCap} label="Специальность" value={displayField(p.specialty)} />
                   <MetaTile icon={MapPin} label="Город" value={displayField(p.city)} />
                 </div>
+
+                {stats ? (
+                  <ProfileUserStatsStrip
+                    stats={stats}
+                    achievementsUnlocked={achievements.filter((a) => a.unlocked).length}
+                    achievementsTotal={achievements.length}
+                  />
+                ) : null}
               </div>
             </div>
 
@@ -165,13 +184,21 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
         </header>
 
         {!stats ? (
-          <div className="ce-glass rounded-2xl p-8 text-sm leading-relaxed text-muted-foreground shadow-(--shadow-card)">
-            Курс в системе пока не настроен. Когда администратор подключит программу, здесь появится прогресс и сертификат.
-          </div>
+          <EmptyState
+            terminalLine="profile --no-course"
+            title="Прогресс курса пока недоступен"
+            description="Когда администратор подключит программу, здесь появятся модули, статистика тестов, практики и прогресс к сертификату."
+            action={
+              <Button asChild variant="primary">
+                <Link href="/dashboard">В кабинет</Link>
+              </Button>
+            }
+          />
         ) : (
           <ProfileProgressOverview
             stats={stats}
             achievements={achievements}
+            modules={modules}
             interestsDisplay={interestsText}
             hasInterestsForAi={hasInterestsForAi}
           />

@@ -4,9 +4,14 @@ import type { CourseProgressModuleRow, ProgressRow } from "@/lib/progress";
 import {
   buildRecentActivities,
   buildUpcomingTasks,
+  buildWeakTopicRecommendations,
   computeStepMetrics,
+  countPendingTasks,
   getContinueFromModules,
   getContinueTarget,
+  getNextLessonCard,
+  getNextPracticeCard,
+  getQuickActionHrefs,
   welcomeStatusLabel,
 } from "@/lib/dashboard-ui";
 
@@ -50,6 +55,12 @@ function baseStats(over: Partial<ProfileCourseStats> = {}): ProfileCourseStats {
     totalPoints: 0,
     maxPossiblePoints: 100,
     scoreSuccessPercent: 0,
+    averageTestPercent: null,
+    testAttemptCount: 0,
+    testsPassedCount: 0,
+    practicesCompleted: 0,
+    practicesTotal: 0,
+    completedModuleRows: [],
     currentModuleTitle: null,
     currentModuleId: null,
     allModulesComplete: false,
@@ -131,5 +142,59 @@ describe("dashboard-ui", () => {
   it("welcomeStatusLabel reflects completion", () => {
     expect(welcomeStatusLabel(baseStats({ allModulesComplete: true }))).toMatch(/завершён/i);
     expect(welcomeStatusLabel(baseStats({ currentModuleTitle: "Модуль 1" }))).toContain("Модуль 1");
+  });
+
+  it("getNextLessonCard returns upcoming lesson href", () => {
+    const card = getNextLessonCard([moduleRow({ id: "m1" })]);
+    expect(card?.kind).toBe("lesson");
+    expect(card?.href).toContain("/lesson");
+    expect(card?.empty).toBeFalsy();
+  });
+
+  it("getNextPracticeCard falls back to test when no practice queue", () => {
+    const card = getNextPracticeCard([
+      moduleRow({
+        id: "m1",
+        requirements: { lessonRequired: true, videoRequired: false, testRequired: true, practiceRequired: false, totalSteps: 2 },
+        progress: {
+          lessonCompleted: true,
+          videoCompleted: false,
+          testCompleted: false,
+          practiceCompleted: false,
+          moduleCompleted: false,
+        } as ProgressRow,
+      }),
+    ]);
+    expect(card?.kind).toBe("test");
+    expect(card?.href).toContain("/test");
+  });
+
+  it("buildWeakTopicRecommendations includes failed last test", () => {
+    const items = buildWeakTopicRecommendations(
+      baseStats({
+        lastTest: {
+          testTitle: "Контроль 1",
+          moduleTitle: "Module m1",
+          passed: false,
+          percent: 40,
+          at: "2026-05-01T00:00:00.000Z",
+        },
+      }),
+      [moduleRow({ id: "m1", module: { id: "m1", title: "Module m1", description: null, orderNumber: 1 } })],
+    );
+    expect(items.some((i) => i.id === "weak-test")).toBe(true);
+  });
+
+  it("countPendingTasks matches upcoming queue length", () => {
+    expect(countPendingTasks([moduleRow({ id: "m1" })])).toBe(1);
+  });
+
+  it("getQuickActionHrefs resolves module and mentor links", () => {
+    const hrefs = getQuickActionHrefs(
+      [moduleRow({ id: "m1" })],
+      baseStats({ currentModuleId: "m1" }),
+    );
+    expect(hrefs.modules).toBe("/dashboard/course");
+    expect(hrefs.mentor).toContain("/lesson");
   });
 });

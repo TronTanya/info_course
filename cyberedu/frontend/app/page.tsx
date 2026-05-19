@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
-import { LandingHero } from "@/components/home/landing-hero";
-import { LandingLearningPath } from "@/components/home/landing-learning-path";
-import { LandingMetrics } from "@/components/home/landing-metrics";
+import { LandingCertificates } from "@/components/home/landing-certificates";
 import { LandingCta } from "@/components/home/landing-cta";
+import { LandingHero } from "@/components/home/landing-hero";
+import { LandingHowItWorks } from "@/components/home/landing-how-it-works";
+import { LandingModules } from "@/components/home/landing-modules";
+import { LandingPlatformBenefits } from "@/components/home/landing-platform-benefits";
 import { LandingPracticeLab } from "@/components/home/landing-practice-lab";
+import { LandingWhatYouLearn } from "@/components/home/landing-what-you-learn";
 import { LandingShell } from "@/components/layout/landing-shell";
 import { buildPublicMetadata } from "@/lib/seo/build-page-metadata";
 import { JsonLd, homePageJsonLd } from "@/components/seo/json-ld";
@@ -14,13 +17,13 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3100";
 
 export const metadata: Metadata = {
   ...buildPublicMetadata({
-    title: "CyberEdu — кибербезопасность через практику",
+    title: "CyberEdu — практический курс по кибербезопасности",
     description:
-      "Интерактивная платформа: уроки, тесты, лабораторные задания и сценарии защиты инфраструктуры.",
+      "Теория, практики, тесты, AI-наставник и сертификат. Пошаговая программа по информационной безопасности в интерактивной платформе.",
     path: "/",
   }),
   title: {
-    default: "CyberEdu — кибербезопасность через практику",
+    default: "CyberEdu — практический курс по кибербезопасности",
     template: "%s · CyberEdu",
   },
 };
@@ -30,9 +33,12 @@ export default function HomePage() {
     <LandingShell>
       <JsonLd data={homePageJsonLd(appUrl)} />
       <LandingHero />
-      <LandingMetrics />
-      <LandingLearningPath />
+      <LandingWhatYouLearn />
+      <LandingModules />
+      <LandingHowItWorks />
+      <LandingPlatformBenefits />
       <LandingPracticeLab />
+      <LandingCertificates />
       <LandingCta />
     </LandingShell>
   );

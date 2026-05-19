@@ -10,7 +10,7 @@ export function LandingShell({ children }: { children: React.ReactNode }) {
       <main
         id="main-content"
         tabIndex={-1}
-        className="container-page flex min-w-0 flex-1 flex-col gap-16 py-10 md:gap-20 md:py-14"
+        className="container-page flex min-w-0 flex-1 flex-col gap-12 py-8 sm:gap-16 sm:py-10 md:gap-20 md:py-14"
       >
         {children}
       </main>

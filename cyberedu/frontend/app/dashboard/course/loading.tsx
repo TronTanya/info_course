@@ -8,6 +8,8 @@ export default function CourseLoading() {
       <div className="space-y-8 overflow-x-hidden" aria-busy="true" aria-label="Загрузка курса">
         <CoursePathNav />
         <Skeleton className="h-72 rounded-3xl" />
+        <Skeleton className="h-24 rounded-2xl" />
+        <Skeleton className="h-36 rounded-2xl" />
         <div className="space-y-4">
           <Skeleton className="h-8 w-64" />
           <div className="responsive-card-grid">

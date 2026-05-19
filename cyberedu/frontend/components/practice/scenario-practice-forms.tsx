@@ -41,9 +41,6 @@ export function ScenarioPracticeBlock(props: Props & { console?: ConsoleScenario
     props;
 
   const sd = isRecord(scenarioData) ? scenarioData : null;
-  const hints =
-    sd && Array.isArray(sd.hints) ? sd.hints.filter((x): x is string => typeof x === "string") : ([] as string[]);
-  const criteria = sd && typeof sd.criteria === "string" ? sd.criteria : "";
 
   const locked = latestSubmission && (latestSubmission.status === "SUBMITTED" || latestSubmission.status === "CHECKING");
   const done = latestSubmission?.status === "ACCEPTED";
@@ -77,32 +74,9 @@ export function ScenarioPracticeBlock(props: Props & { console?: ConsoleScenario
       </div>
     ) : null;
 
-  const hintBlock =
-    hints.length > 0 || criteria ? (
-      <div className="space-y-2 rounded-xl border border-border bg-muted/30 px-3 py-2 text-sm">
-        {hints.length > 0 ? (
-          <div>
-            <p className="font-medium text-foreground">Подсказки</p>
-            <ul className="mt-1 list-disc pl-5 text-muted-foreground">
-              {hints.map((h, i) => (
-                <li key={i}>{h}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-        {criteria ? (
-          <p className="text-muted-foreground">
-            <span className="font-medium text-foreground">Критерии оценивания: </span>
-            {criteria}
-          </p>
-        ) : null}
-      </div>
-    ) : null;
-
   return (
-    <div className="space-y-4 border-t border-border pt-4">
+    <div className="space-y-4">
       {revisionBanner}
-      {hintBlock}
       {taskType === "SITUATION_CHOICE" ? (
         <SituationChoiceForm
           sd={sd}

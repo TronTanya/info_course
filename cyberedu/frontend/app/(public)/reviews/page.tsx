@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ScrollReveal } from "@/components/effects/scroll-reveal";
 import { PublicReviewsGrid } from "@/components/reviews/public-reviews-grid";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { buildPublicMetadata } from "@/lib/seo/build-page-metadata";
 import { getPublishedReviews } from "@/lib/reviews";
@@ -34,6 +35,11 @@ export default async function ReviewsPage() {
         <EmptyState
           title="Пока нет опубликованных отзывов"
           description="Когда студенты оставят отзывы и администратор их опубликует, они появятся здесь."
+          action={
+            <Button asChild variant="primary">
+              <Link href="/auth/register">Начать обучение</Link>
+            </Button>
+          }
         />
       ) : (
         <PublicReviewsGrid

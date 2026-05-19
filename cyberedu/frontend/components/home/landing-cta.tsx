@@ -25,7 +25,7 @@ export function LandingCta() {
             <Link href="/auth/register">Начать обучение</Link>
           </Button>
           <Button asChild size="lg" variant="outline" className="w-full border-primary/30 bg-card/90 sm:w-auto">
-            <Link href="/#program">Посмотреть курсы</Link>
+            <Link href="/#modules">Посмотреть программу</Link>
           </Button>
         </div>
       </div>

@@ -119,7 +119,7 @@ export function AdminProfileView({ email, displayName, initials, avatarUrl, subt
                   >
                     {avatarUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element -- внешние URL аватаров
-                      <img src={avatarUrl} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+                      <img src={avatarUrl} alt={`Аватар: ${displayName}`} className="h-full w-full object-cover" referrerPolicy="no-referrer" />
                     ) : (
                       initials
                     )}

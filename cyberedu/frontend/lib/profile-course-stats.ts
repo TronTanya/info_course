@@ -36,6 +36,12 @@ export type ProfileLastActivitySummary = {
 /** Сертификат в интерфейсе профиля. */
 export type ProfileCertificateDisplayState = "unavailable" | "available" | "issued";
 
+export type ProfileCompletedModule = {
+  id: string;
+  title: string;
+  orderNumber: number;
+};
+
 export type ProfileCourseStats = {
   courseId: string;
   courseTitle: string;
@@ -45,6 +51,14 @@ export type ProfileCourseStats = {
   totalPoints: number;
   maxPossiblePoints: number;
   scoreSuccessPercent: number;
+  /** Средний процент по всем попыткам тестов курса (null — попыток не было). */
+  averageTestPercent: number | null;
+  testAttemptCount: number;
+  testsPassedCount: number;
+  /** Модули с зачтённой практикой (по progress.practiceCompleted). */
+  practicesCompleted: number;
+  practicesTotal: number;
+  completedModuleRows: ProfileCompletedModule[];
   currentModuleTitle: string | null;
   currentModuleId: string | null;
   allModulesComplete: boolean;
@@ -99,6 +113,7 @@ export async function getProfileCourseStats(userId: string): Promise<ProfileCour
     select: {
       id: true,
       title: true,
+      orderNumber: true,
       lessons: { orderBy: { createdAt: "asc" }, take: 1, select: { id: true, title: true } },
       tests: {
         select: {
@@ -125,7 +140,8 @@ export async function getProfileCourseStats(userId: string): Promise<ProfileCour
     }
   }
 
-  const [progressRows, lastLessonProgress, lastAttempt, lastSubmission, certificate, canCert] = await Promise.all([
+  const [progressRows, lastLessonProgress, lastAttempt, lastSubmission, certificate, canCert, testAttempts] =
+    await Promise.all([
     moduleIds.length
       ? prisma.progress.findMany({
           where: { userId, moduleId: { in: moduleIds } },
@@ -179,16 +195,33 @@ export async function getProfileCourseStats(userId: string): Promise<ProfileCour
       select: { id: true, certificateNumber: true, issuedAt: true, verificationCode: true },
     }),
     canGenerateCertificate(userId, course.id),
+    moduleIds.length
+      ? prisma.testAttempt.findMany({
+          where: { userId, test: { moduleId: { in: moduleIds } } },
+          select: { score: true, maxScore: true, passed: true },
+        })
+      : Promise.resolve([]),
   ]);
 
   const byModule = new Map(progressRows.map((p) => [p.moduleId, p]));
 
   let completed = 0;
   let totalPoints = 0;
+  let practicesCompleted = 0;
+  let practicesTotal = 0;
+  const completedModuleRows: ProfileCompletedModule[] = [];
+
   for (const m of modules) {
     const p = byModule.get(m.id);
     totalPoints += p?.score ?? 0;
-    if (p?.moduleCompleted) completed++;
+    if (m.practicalTasks.length > 0) {
+      practicesTotal++;
+      if (p?.practiceCompleted) practicesCompleted++;
+    }
+    if (p?.moduleCompleted) {
+      completed++;
+      completedModuleRows.push({ id: m.id, title: m.title, orderNumber: m.orderNumber });
+    }
   }
 
   const total = modules.length;
@@ -213,6 +246,16 @@ export async function getProfileCourseStats(userId: string): Promise<ProfileCour
 
   const scoreSuccessPercent =
     maxPossiblePoints > 0 ? Math.min(100, Math.round((totalPoints / maxPossiblePoints) * 100)) : 0;
+
+  const scoredAttempts = testAttempts.filter((a) => a.maxScore > 0);
+  const averageTestPercent =
+    scoredAttempts.length > 0
+      ? Math.round(
+          scoredAttempts.reduce((sum, a) => sum + (a.score / a.maxScore) * 100, 0) / scoredAttempts.length,
+        )
+      : null;
+  const testAttemptCount = testAttempts.length;
+  const testsPassedCount = testAttempts.filter((a) => a.passed).length;
 
   const lastLesson: ProfileLastLesson = lastLessonProgress?.module.lessons[0]
     ? {
@@ -305,6 +348,12 @@ export async function getProfileCourseStats(userId: string): Promise<ProfileCour
     totalPoints,
     maxPossiblePoints,
     scoreSuccessPercent,
+    averageTestPercent,
+    testAttemptCount,
+    testsPassedCount,
+    practicesCompleted,
+    practicesTotal,
+    completedModuleRows,
     currentModuleTitle,
     currentModuleId,
     allModulesComplete,

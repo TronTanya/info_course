@@ -88,9 +88,10 @@ export function AdminTableToolbar({
                 density === "comfortable" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground",
               )}
               aria-pressed={density === "comfortable"}
+              aria-label="Обычная плотность таблицы"
               title="Обычная плотность"
             >
-              <LayoutList className="size-4" />
+              <LayoutList className="size-4" aria-hidden />
             </button>
             <button
               type="button"
@@ -100,9 +101,10 @@ export function AdminTableToolbar({
                 density === "compact" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground",
               )}
               aria-pressed={density === "compact"}
+              aria-label="Компактная плотность таблицы"
               title="Компактная плотность"
             >
-              <Rows3 className="size-4" />
+              <Rows3 className="size-4" aria-hidden />
             </button>
           </div>
         ) : null}

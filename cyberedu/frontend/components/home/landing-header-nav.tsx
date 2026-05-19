@@ -2,18 +2,13 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
+import { publicNavLinks } from "@/lib/design-system/nav-config";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { isNavHrefActive } from "@/lib/nav-active";
 import { cn } from "@/lib/utils";
-
-const navLinks = [
-  { href: "#learning-path", label: "Курс" },
-  { href: "#practice-lab", label: "Практика" },
-  { href: "#metrics", label: "Тесты" },
-  { href: "/reviews", label: "Рейтинг" },
-  { href: "/about", label: "О проекте" },
-] as const;
 
 function SecureModeBadge({ className }: { className?: string }) {
   return (
@@ -28,7 +23,7 @@ function SecureModeBadge({ className }: { className?: string }) {
         <span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-60 motion-reduce:animate-none" />
         <span className="relative inline-flex size-1.5 rounded-full bg-success" />
       </span>
-      Secure Mode: ON
+      Secure
     </span>
   );
 }
@@ -49,23 +44,43 @@ function CloseIcon() {
   );
 }
 
+function isPublicLinkActive(pathname: string, href: string): boolean {
+  if (href.startsWith("/#")) return pathname === "/";
+  return isNavHrefActive(pathname, href);
+}
+
 type LandingHeaderNavProps = {
   isAuthenticated: boolean;
   dashboardHref: string;
 };
 
 export function LandingHeaderNav({ isAuthenticated, dashboardHref }: LandingHeaderNavProps) {
+  const pathname = usePathname() ?? "";
   const [open, setOpen] = React.useState(false);
   const close = () => setOpen(false);
+
+  const linkClass = (active: boolean, mobile?: boolean) =>
+    cn(
+      "rounded-xl font-medium transition-colors",
+      mobile
+        ? "flex min-h-11 items-center border px-4 py-3 text-base"
+        : "px-3 py-2 text-sm",
+      active
+        ? "border-primary/35 bg-primary/10 text-primary"
+        : mobile
+          ? "border-border/60 text-foreground hover:bg-muted"
+          : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+    );
 
   return (
     <>
       <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 lg:flex" aria-label="Навигация">
-        {navLinks.map((item) => (
+        {publicNavLinks.map((item) => (
           <Link
             key={item.href}
             href={item.href}
-            className="rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground transition-colors duration-200 hover:bg-muted/60 hover:text-foreground"
+            className={linkClass(isPublicLinkActive(pathname, item.href))}
+            aria-current={isPublicLinkActive(pathname, item.href) ? "page" : undefined}
           >
             {item.label}
           </Link>
@@ -74,16 +89,21 @@ export function LandingHeaderNav({ isAuthenticated, dashboardHref }: LandingHead
 
       <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
         <ThemeToggle className="hidden sm:inline-flex" />
-        <SecureModeBadge className="hidden sm:inline-flex" />
+        <SecureModeBadge className="hidden md:inline-flex" />
 
         {isAuthenticated ? (
-          <Button asChild size="sm" variant="primary" className="hidden sm:inline-flex">
+          <Button asChild size="sm" variant="primary" className="hidden sm:inline-flex shadow-sm">
             <Link href={dashboardHref}>Кабинет</Link>
           </Button>
         ) : (
-          <Button asChild size="sm" variant="outline" className="hidden sm:inline-flex">
-            <Link href="/auth/login">Войти</Link>
-          </Button>
+          <>
+            <Button asChild size="sm" variant="ghost" className="hidden sm:inline-flex">
+              <Link href="/auth/login">Войти</Link>
+            </Button>
+            <Button asChild size="sm" variant="primary" className="hidden sm:inline-flex shadow-sm">
+              <Link href="/auth/register">Начать</Link>
+            </Button>
+          </>
         )}
 
         <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -108,12 +128,12 @@ export function LandingHeaderNav({ isAuthenticated, dashboardHref }: LandingHead
                   <ThemeToggle />
                   <SecureModeBadge className="w-fit" />
                 </div>
-                {navLinks.map((item) => (
+                {publicNavLinks.map((item) => (
                   <Dialog.Close asChild key={item.href}>
                     <Link
                       href={item.href}
                       onClick={close}
-                      className="flex min-h-11 items-center rounded-xl border border-transparent px-4 py-3 text-base font-medium text-foreground transition-colors hover:border-border hover:bg-muted"
+                      className={linkClass(isPublicLinkActive(pathname, item.href), true)}
                     >
                       {item.label}
                     </Link>
@@ -140,7 +160,7 @@ export function LandingHeaderNav({ isAuthenticated, dashboardHref }: LandingHead
                       <Dialog.Close asChild>
                         <Button asChild size="lg" className="w-full">
                           <Link href="/auth/register" onClick={close}>
-                            Начать обучение
+                            Регистрация
                           </Link>
                         </Button>
                       </Dialog.Close>

@@ -1,12 +1,15 @@
 import type { ComponentProps } from "react";
 import Link from "next/link";
+import { BookOpen, ClipboardCheck, FlaskConical } from "lucide-react";
+import { ModuleInlineProgress } from "@/components/course/module-inline-progress";
 import { CyberHero } from "@/components/cyber/cyber-hero";
 import {
   formatLessonCount,
   formatPracticeCount,
+  formatTestCount,
   moduleDifficultyByOrder,
 } from "@/lib/course-path-ui";
-import type { ModuleContentCounts, ModuleRequirements } from "@/lib/progress";
+import type { CourseProgressModuleRow, ModuleContentCounts, ModuleRequirements } from "@/lib/progress";
 import { cyber } from "@/lib/design-system/cyber";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,6 +29,8 @@ type ModuleOverviewPanelProps = {
   continueHref: string;
   continueLabel: string;
   courseHref?: string;
+  /** Для внутреннего прогресса по шагам (лекция → тест → практика). */
+  progressRow?: CourseProgressModuleRow | null;
 };
 
 export function ModuleOverviewPanel({
@@ -37,13 +42,13 @@ export function ModuleOverviewPanel({
   statusLabel,
   statusVariant,
   contentCounts,
-  requirements,
+  requirements: _requirements,
   continueHref,
   continueLabel,
   courseHref = "/dashboard/course",
+  progressRow = null,
 }: ModuleOverviewPanelProps) {
   const difficulty = moduleDifficultyByOrder(orderNumber);
-  const stepsTotal = requirements.totalSteps;
 
   return (
     <CyberHero className="ce-module-overview" padding="default">
@@ -60,16 +65,16 @@ export function ModuleOverviewPanel({
           <h1 className="typo-h1 text-balance sm:text-2xl">{title}</h1>
           <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">{description}</p>
 
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="outline">{formatLessonCount(contentCounts.lessons)}</Badge>
-            <Badge variant="outline">{formatPracticeCount(contentCounts.practices)}</Badge>
-            {contentCounts.tests > 0 ? (
-              <Badge variant="outline">
-                {contentCounts.tests} {contentCounts.tests === 1 ? "тест" : "теста"}
-              </Badge>
-            ) : null}
-            <Badge variant="outline">{stepsTotal} шагов</Badge>
-          </div>
+          <dl className="grid grid-cols-3 gap-2 sm:max-w-md">
+            <MetricPill icon={BookOpen} label="Уроки" text={formatLessonCount(contentCounts.lessons)} />
+            <MetricPill icon={ClipboardCheck} label="Тесты" text={formatTestCount(contentCounts.tests)} />
+            <MetricPill icon={FlaskConical} label="Практика" text={formatPracticeCount(contentCounts.practices)} />
+          </dl>
+          {progressRow ? (
+            <div className="max-w-xl">
+              <ModuleInlineProgress row={progressRow} />
+            </div>
+          ) : null}
 
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <Button asChild size="lg" className="w-full sm:w-auto">
@@ -104,5 +109,23 @@ export function ModuleOverviewPanel({
         </aside>
       </div>
     </CyberHero>
+  );
+}
+
+function MetricPill({
+  icon: Icon,
+  label,
+  text,
+}: {
+  icon: typeof BookOpen;
+  label: string;
+  text: string;
+}) {
+  return (
+    <div className="rounded-xl border border-border/70 bg-muted/20 px-2 py-2 text-center">
+      <Icon className="mx-auto size-4 text-primary" aria-hidden />
+      <dt className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">{label}</dt>
+      <dd className="text-xs font-semibold text-foreground">{text}</dd>
+    </div>
   );
 }
