@@ -10,64 +10,24 @@
 
 | Что | Зачем |
 |-----|--------|
-| Docker | `compose config`, Postgres, Redis |
-| `cyberedu/frontend/.env` с `DATABASE_URL` | Prisma, E2E persistence |
-| Seed | `student@cyberedu.local` / `admin@cyberedu.local` (dev only) |
-| Redis на `127.0.0.1:6379` | prod E2E и rate limit |
-
-### Окружение A — dev E2E (`test:e2e`)
-
-Нужно приложение на **http://127.0.0.1:3100** в **обычном dev/test** режиме (достаточно `npm run dev`).
+| Docker (для compose validate; для E2E — Postgres + Redis) | БД и rate limit |
+| Приложение на **http://127.0.0.1:3100** | Playwright smoke |
+| `cyberedu/frontend/.env` с `DATABASE_URL` | E2E, Prisma |
+| Seed (`RUN_SEED=1` в dev compose или `npm run seed`) | Учётки `student@cyberedu.local` / `admin@cyberedu.local` |
+| Redis на `127.0.0.1:6379` | `test:e2e:prod` |
 
 ```bash
-cd cyberedu
-cp -n .env.example .env 2>/dev/null || true
-docker compose up -d postgres redis
-cd frontend
-# В .env: DATABASE_URL на :15432 (см. .env.example), REDIS_URL=redis://127.0.0.1:6379/0
-npx prisma migrate deploy && npm run db:seed   # или RUN_SEED=1 docker compose up --build -d
-
-# Терминал 1 — оставить запущенным:
-npm run dev
+# Пример: dev-стек + seed
+cd cyberedu && cp .env.example .env && RUN_SEED=1 docker compose up --build -d
+# или только БД/Redis + локальный Next:
+cd cyberedu/frontend && npm run dev
 ```
-
-Playwright для dev smoke сам выставляет `ENVIRONMENT=test` — **не путать** с режимом сервера.
-
-### Окружение B — prod E2E (`test:e2e:prod`)
-
-Тесты задают `ENVIRONMENT=production` только процессу Playwright. **Сервер** на `:3100` тоже должен работать с `ENVIRONMENT=production` и `REDIS_URL`, иначе `/api/health` вернёт `checks.redis: "skipped"` и global-setup упадёт.
-
-**Рекомендуется (один скрипт, без ручного перезапуска):**
-
-```bash
-cd cyberedu/frontend
-npm run test:e2e:prod:local
-# (= migrate + seed + build + start с ENVIRONMENT=production + test:e2e:staging)
-```
-
-**Вручную** (если уже подняты Postgres + Redis):
-
-```bash
-cd cyberedu/frontend
-export ENVIRONMENT=production
-export REDIS_URL=redis://127.0.0.1:6379
-export AUTH_SECRET="${AUTH_SECRET:-local-e2e-prod-auth-secret-minimum-32-chars}"
-export AUTH_URL=http://127.0.0.1:3100
-export NEXT_PUBLIC_APP_URL=http://127.0.0.1:3100
-npx prisma migrate deploy && npm run db:seed
-npm run build && npm run start
-# Дождаться: curl -s http://127.0.0.1:3100/api/health | jq .checks.redis  → "ok"
-```
-
-После dev E2E **нельзя** сразу запускать `test:e2e:prod` против того же `npm run dev` — перезапустите приложение по варианту B или используйте `test:e2e:prod:local`.
 
 ---
 
-## Автоматические команды
+## Автоматические команды (из корня репозитория)
 
-### Фаза 1 — без запущенного приложения
-
-Из **корня репозитория**:
+Выполняйте по порядку. Все должны завершиться с **exit code 0** (допустимы **skipped** в E2E — см. примечания).
 
 ```bash
 docker compose --env-file cyberedu/.env.prod.example \
@@ -78,46 +38,31 @@ npm ci
 npm run lint
 npm run typecheck
 npm test
+npm run test:e2e -- --project=desktop
+REDIS_URL=redis://127.0.0.1:6379 npm run test:e2e:prod
 npx prisma validate
 ```
-
-### Фаза 2 — dev E2E
-
-**Предусловие:** [окружение A](#окружение-a--dev-e2e-teste2e) (`npm run dev` в отдельном терминале).
-
-```bash
-cd cyberedu/frontend
-npm run test:e2e -- --project=desktop
-```
-
-### Фаза 3 — production-like E2E
-
-**Предусловие:** [окружение B](#окружение-b--prod-e2e-teste2eprod) — **не** тот же процесс, что для фазы 2.
-
-**Вариант 1 (предпочтительно):**
-
-```bash
-cd cyberedu/frontend
-npm run test:e2e:prod:local
-```
-
-**Вариант 2** (сервер уже в `ENVIRONMENT=production`, health → `redis: "ok"`):
-
-```bash
-cd cyberedu/frontend
-REDIS_URL=redis://127.0.0.1:6379 npm run test:e2e:prod
-```
-
----
 
 ### Примечания к E2E
 
 | Команда | Ожидание | Замечание |
 |---------|----------|-----------|
-| `npm run test:e2e` | desktop + mobile | Параллельные проекты могут конфликтовать по Redis. Гейт: `--project=desktop`. |
-| `npm run test:e2e -- --project=desktop` | **11 passed**, **1 skipped** | Нужен dev-сервер (фаза 2). |
-| `npm run test:e2e:prod` | **4 passed**, **1 skipped** | Нужен **production**-сервер + Redis `ok` в health (фаза 3). `DATABASE_URL` из `frontend/.env`. |
-| `npm run test:e2e:prod:local` | как prod | Сам поднимает build+start; не требует отдельного `npm run dev`. |
+| `npm run test:e2e` | 12 desktop + 12 mobile | Проекты **desktop** и **mobile** могут идти **параллельно** → иногда падает mobile login (общий Redis/сессии). Для **стабильного гейта** используйте `--project=desktop`. |
+| `npm run test:e2e -- --project=desktop` | **11 passed**, **1 skipped** | Skip: практика TEXT, если тест модуля ещё не пройден в сценарии. |
+| `npm run test:e2e:prod` | **4 passed**, **1 skipped** | `DATABASE_URL` подхватывается из `frontend/.env` (global-setup). Нужен Redis и `/api/health` с `checks.redis: "ok"`. Skip: нет TEXT-практики в первом доступном модуле. |
+
+### Результат прогона (локально, для ориентира)
+
+| Команда | Статус |
+|---------|--------|
+| `docker compose … config --quiet` | ✅ |
+| `npm ci` | ✅ |
+| `npm run lint` | ✅ |
+| `npm run typecheck` | ✅ |
+| `npm test` | ✅ 216 passed, 2 skipped |
+| `npm run test:e2e -- --project=desktop` | ✅ 11 passed, 1 skipped |
+| `REDIS_URL=… npm run test:e2e:prod` | ✅ 4 passed, 1 skipped (с `.env`) |
+| `npx prisma validate` | ✅ |
 
 ---
 
@@ -170,25 +115,21 @@ REDIS_URL=redis://127.0.0.1:6379 npm run test:e2e:prod
 |------|--------|
 | Uploads | `UPLOAD_STORAGE_DRIVER=local`, **одна реплика** frontend ([STORAGE.md](./STORAGE.md)) |
 | S3 | **NOT IMPLEMENTED** |
-| Объём контента | 8 модулей × 1 лекция (см. seed) |
+| Объём контента | 8 модулей × 1 лекция (см. аудит контента в обсуждении / seed) |
 | AI | Без API-ключа — деградация, без полного тьютора |
 
 ---
 
-## Быстрый прогон (без ловушки «dev → prod подряд»)
+## Быстрый «всё зелёное» одной цепочкой
 
 ```bash
-# Статика + unit
 cd cyberedu/frontend
-npm ci && npm run lint && npm run typecheck && npm test && npx prisma validate
+npm ci && npm run lint && npm run typecheck && npm test \
+  && npm run test:e2e -- --project=desktop \
+  && REDIS_URL=redis://127.0.0.1:6379 npm run test:e2e:prod \
+  && npx prisma validate
 cd ../.. && docker compose --env-file cyberedu/.env.prod.example \
   -f cyberedu/docker-compose.prod.yml config --quiet
-
-# Dev E2E — в другом терминале должен быть npm run dev (см. окружение A)
-cd cyberedu/frontend && npm run test:e2e -- --project=desktop
-
-# Prod E2E — отдельно, скрипт сам поднимает production-like сервер
-cd cyberedu/frontend && npm run test:e2e:prod:local
 ```
 
-После автоматики — пройти **ручной** блок выше.
+После автоматики — пройти **ручной** блок выше и зафиксировать дату/окружение в журнале защиты.

@@ -5,6 +5,7 @@ import type { LearningNavModuleItem, LearningNavStepItem, LearningStepNeighbors 
 import { LearnPageShell } from "@/components/learn/learn-chrome";
 import { LearningProgressStrip } from "@/components/learn/learning-progress-strip";
 import { LearningSidebar, LearningSidebarPanel } from "@/components/learn/learning-sidebar";
+import { LearningAsideMobile } from "@/components/learn/learning-aside-mobile";
 import { LearningStepNav } from "@/components/learn/learning-step-nav";
 import { cn } from "@/lib/utils";
 
@@ -68,12 +69,13 @@ export function LearningLayout({
 
           <div className="min-w-0 space-y-6">
             <div className="lesson-prose w-full">{children}</div>
+            {asideRight ? <LearningAsideMobile title="Справка и материалы">{asideRight}</LearningAsideMobile> : null}
             <LearningStepNav neighbors={neighbors} />
             {footer}
           </div>
 
           {asideRight ? (
-            <aside className="min-w-0 space-y-4 xl:sticky xl:top-24 xl:self-start">{asideRight}</aside>
+            <aside className="hidden min-w-0 space-y-4 xl:block xl:sticky xl:top-24 xl:self-start">{asideRight}</aside>
           ) : null}
         </div>
       </div>

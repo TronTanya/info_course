@@ -6,6 +6,7 @@ import { computeStepMetrics } from "@/lib/dashboard-ui";
 import type { CourseProgressModuleRow } from "@/lib/progress";
 import { MetricCard } from "@/components/ui/metric-card";
 import { ProgressBar } from "@/components/ui/progress-bar";
+import { SectionCard } from "@/components/ui/section-card";
 import { SectionHeader } from "@/components/ui/section-header";
 
 export function DashboardProgressOverview({
@@ -35,15 +36,15 @@ export function DashboardProgressOverview({
       <h2 id="dash-progress-heading" className="sr-only">
         Обзор прогресса
       </h2>
-      <div className="ce-glass rounded-2xl p-5 sm:p-6">
+      <SectionCard variant="lab" flushTitle className="p-5 sm:p-6">
         <ProgressBar
           label="Общий прогресс курса"
           value={stats.progressPercent}
           max={100}
           tone={stats.progressPercent >= 100 ? "success" : "default"}
         />
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      </SectionCard>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <MetricCard
           label="Лекции"
           value={steps.lessonsTotal > 0 ? `${steps.lessonsDone}/${steps.lessonsTotal}` : "—"}

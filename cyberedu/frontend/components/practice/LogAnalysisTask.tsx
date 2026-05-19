@@ -7,11 +7,15 @@ import {
   MINI_SOC_LOG_LINES,
   type MiniSocIncidentId,
 } from "@/lib/log-analysis-mini-soc-score";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
+import {
+  PracticeTaskBanner,
+  PracticeTaskResult,
+  PracticeTaskStep,
+  type PracticeResultTone,
+} from "@/components/practice/practice-task-ui";
 
 type CheckResponse = {
   score: number;
@@ -20,6 +24,12 @@ type CheckResponse = {
   feedback: string;
   saved?: boolean;
 };
+
+function logResultTone(result: CheckResponse): PracticeResultTone {
+  if (result.saved) return "success";
+  if (result.passed) return "good";
+  return "retry";
+}
 
 export type LogAnalysisTaskProps = {
   moduleId: string;
@@ -94,33 +104,25 @@ export function LogAnalysisTask({ moduleId, practicalTaskId, disabled, onResult 
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/5 px-3 py-2 text-xs text-muted-foreground">
-        <span>
-          Журнал вымышленный, IP из частной сети. Цель — научиться замечать аномалии и фиксировать факты для защиты,
-          а не воспроизводить действия злоумышленника.
-        </span>
-        <Badge variant="success" className="shrink-0">
-          Учебный SOC
-        </Badge>
-      </div>
+      <PracticeTaskBanner badge="Учебный SOC" variant="success">
+        Журнал вымышленный, IP из частной сети. Цель — научиться замечать аномалии и фиксировать факты для защиты, а не
+        воспроизводить действия злоумышленника.
+      </PracticeTaskBanner>
 
-      <div className="space-y-2">
-        <h3 className="text-sm font-semibold text-foreground">Фрагмент журнала аутентификации</h3>
-        <pre className="max-h-72 overflow-auto rounded-2xl border border-border bg-zinc-950 p-4 font-mono text-[11px] leading-relaxed text-zinc-100 shadow-inner sm:text-xs whitespace-pre">
+      <PracticeTaskStep title="Фрагмент журнала аутентификации">
+        <pre className="ce-terminal-body max-h-72 overflow-auto rounded-2xl border border-[var(--terminal-border)] bg-[var(--terminal-bg)] p-4 text-[11px] whitespace-pre shadow-inner sm:text-xs">
           {MINI_SOC_LOG_LINES.join("\n")}
         </pre>
-      </div>
+      </PracticeTaskStep>
 
-      <div className="space-y-2 rounded-2xl border border-border bg-card/50 p-4">
-        <p className="text-sm font-medium text-foreground">1. Подозрительное поведение</p>
+      <PracticeTaskStep title="1. Подозрительное поведение">
         <p className="text-sm text-muted-foreground leading-relaxed">
           Опишите в выводе ниже, что смущает аналитика: последовательность событий, учётная запись, типы сообщений
           журнала. Сформулируйте нейтрально, с позиции мониторинга и реагирования.
         </p>
-      </div>
+      </PracticeTaskStep>
 
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-foreground">2. Тип возможного инцидента</p>
+      <PracticeTaskStep title="2. Тип возможного инцидента">
         <Select
           disabled={disabled || checked}
           value={incidentType}
@@ -134,7 +136,7 @@ export function LogAnalysisTask({ moduleId, practicalTaskId, disabled, onResult 
             </option>
           ))}
         </Select>
-      </div>
+      </PracticeTaskStep>
 
       <Textarea
         label="3. Краткий вывод"
@@ -159,27 +161,18 @@ export function LogAnalysisTask({ moduleId, practicalTaskId, disabled, onResult 
       {fetchError ? <p className="text-sm text-danger">{fetchError}</p> : null}
 
       {result && checked ? (
-        <div
-          className={cn(
-            "rounded-xl border px-4 py-3 text-sm",
-            result.saved
-              ? "border-emerald-500/40 bg-emerald-500/10"
-              : result.passed
-                ? "border-sky-500/40 bg-sky-500/10"
-                : "border-amber-500/35 bg-amber-500/8",
-          )}
-        >
-          <p className="font-semibold text-foreground">
-            Оценка: {result.score} из {result.maxScore}
-            {result.saved ? " — зачёт" : result.passed ? " — критерии выполнены" : " — доработайте ответ"}
-          </p>
-          <p className="mt-2 text-muted-foreground leading-relaxed">{result.feedback}</p>
-          {result.saved ? (
-            <p className="mt-2 text-xs font-medium text-emerald-700 dark:text-emerald-300">
-              Ответ зафиксирован в журнале отправок.
-            </p>
-          ) : null}
-        </div>
+        <PracticeTaskResult
+          tone={logResultTone(result)}
+          title={`Оценка: ${result.score} из ${result.maxScore}${
+            result.saved ? " — зачёт" : result.passed ? " — критерии выполнены" : " — доработайте ответ"
+          }`}
+          feedback={result.feedback}
+          footer={
+            result.saved ? (
+              <p className="text-xs font-medium text-success">Ответ зафиксирован в журнале отправок.</p>
+            ) : null
+          }
+        />
       ) : null}
     </div>
   );

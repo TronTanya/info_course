@@ -9,5 +9,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/reviews`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
     { url: `${baseUrl}/auth/login`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/auth/register`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${baseUrl}/auth/forgot-password`, lastModified: now, changeFrequency: "monthly", priority: 0.4 },
   ];
 }

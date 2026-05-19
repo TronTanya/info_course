@@ -5,7 +5,7 @@ import type { SubmissionStatus } from "@prisma/client";
 import { motion, useReducedMotion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { SectionCard } from "@/components/ui/section-card";
 import { cn } from "@/lib/utils";
 
 export type AssignmentListItem = {
@@ -56,15 +56,15 @@ export function MyAssignmentsList({ items }: { items: AssignmentListItem[] }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
           >
-            <Card
-              interactive
+            <SectionCard
+              variant="lab"
               className={cn(
-                "ce-learn-panel ce-glass overflow-hidden shadow-sm ring-1 ring-primary/10",
+                "overflow-hidden shadow-sm ring-1 ring-primary/10",
                 s.status === "NEEDS_REVISION" && "ring-warning/25",
                 s.status === "ACCEPTED" && "ring-success/20",
               )}
             >
-              <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Модуль {s.moduleOrder}: {s.moduleTitle}
@@ -90,8 +90,8 @@ export function MyAssignmentsList({ items }: { items: AssignmentListItem[] }) {
                     <Link href={href}>К заданию</Link>
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </SectionCard>
           </motion.li>
         );
       })}

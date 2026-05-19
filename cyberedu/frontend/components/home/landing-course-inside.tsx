@@ -1,5 +1,5 @@
 import { BookOpen, Brain, ClipboardCheck, FileBadge, FlaskConical } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SectionCard } from "@/components/ui/section-card";
 
 const items = [
   {
@@ -44,21 +44,19 @@ export function LandingCourseInside() {
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((item) => (
-          <Card
+          <SectionCard
             key={item.title}
-            className="group border-border/80 bg-card/95 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan/25 hover:shadow-[var(--shadow-card-hover)]"
+            variant="default"
+            flushTitle
+            className="group transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan/25 hover:shadow-[var(--shadow-card-hover)]"
           >
-            <CardHeader className="pb-2">
-              <div className="mb-3 flex size-11 items-center justify-center rounded-xl border border-primary/15 bg-primary/8 text-primary transition-colors group-hover:bg-primary/12">
-                <item.icon className="size-5" strokeWidth={1.75} aria-hidden />
-              </div>
-              <CardTitle className="text-lg leading-snug">{item.title}</CardTitle>
-              <CardDescription className="text-sm leading-relaxed">{item.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="h-1 w-10 rounded-full bg-gradient-to-r from-primary to-cyan opacity-90 transition-all group-hover:w-16" />
-            </CardContent>
-          </Card>
+            <div className="mb-3 flex size-11 items-center justify-center rounded-xl border border-primary/15 bg-primary/8 text-primary transition-colors group-hover:bg-primary/12">
+              <item.icon className="size-5" strokeWidth={1.75} aria-hidden />
+            </div>
+            <h3 className="text-lg font-semibold leading-snug text-foreground">{item.title}</h3>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
+            <div className="mt-4 h-1 w-10 rounded-full bg-gradient-to-r from-primary to-cyan opacity-90 transition-all group-hover:w-16" />
+          </SectionCard>
         ))}
       </div>
     </section>

@@ -3,11 +3,15 @@ import Link from "next/link";
 import type { Prisma } from "@prisma/client";
 import { AdminDualTable } from "@/components/admin/admin-dual-table";
 import { AdminFilterTabs } from "@/components/admin/admin-filter-tabs";
+import { AdminMobileCard } from "@/components/admin/admin-mobile-card";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminTable, AdminTableBody, AdminTableHead } from "@/components/admin/admin-table";
+import { AdminTableCard } from "@/components/admin/admin-table-card";
 import { AdminShell } from "@/components/layout/admin-shell";
-import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
+import { UiStatePanel } from "@/components/ui/ui-state-panel";
 import { prisma } from "@/lib/db";
+
 export const metadata: Metadata = {
   title: "Отправки практики",
 };
@@ -97,98 +101,110 @@ export default async function AdminSubmissionsPage({ searchParams }: Props) {
 
   return (
     <AdminShell>
-      <PageHeader
-        title="Проверка практических работ"
-        description="Отправки со статусом не «черновик». После «Принято» пересчитывается прогресс модуля и курс."
-      />
+      <div className="space-y-6">
+        <AdminPageHeader
+          eyebrow="Проверка · Cyber Lab"
+          title="Практические отправки"
+          description="Отправки со статусом не «черновик». После «Принято» пересчитывается прогресс модуля и курс."
+        />
 
-      <AdminFilterTabs tabs={TABS} active={active} className="mt-6" />
+        <AdminFilterTabs tabs={TABS} active={active} />
 
-      <div className="ce-admin-dual-table mt-8 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-card ring-1 ring-secondary/5">
-        {rows.length === 0 ? (
-          <p className="p-8 text-center text-sm text-muted-foreground">Нет отправок по выбранному фильтру.</p>
-        ) : (
-          <AdminDualTable
-            mobile={
-              <div className="divide-y divide-border">
-                {rows.map((r) => (
-                  <div key={r.id} className="space-y-3 p-4">
-                    <div>
-                      <p className="font-medium text-foreground">{studentLabel(r.user.email, r.user.profile)}</p>
-                      <p className="mt-0.5 break-all text-xs text-muted-foreground">{r.user.email}</p>
-                    </div>
-                    <div className="grid gap-2 text-sm">
-                      <p>
-                        <span className="text-muted-foreground">Модуль: </span>
-                        <span className="text-foreground">{r.practicalTask.module.title}</span>
-                      </p>
-                      <p>
-                        <span className="text-muted-foreground">Задание: </span>
-                        <span className="text-foreground">{r.practicalTask.title}</span>
-                      </p>
-                      <p>
-                        <span className="text-muted-foreground">Тип: </span>
-                        {taskTypeRu(r.practicalTask.taskType)}
-                      </p>
-                      <p className="tabular-nums text-muted-foreground">{r.createdAt.toLocaleString("ru-RU")}</p>
-                      <p>
-                        <span className="text-muted-foreground">Статус: </span>
-                        {statusRu(r.status)}
-                      </p>
-                      <p>
-                        <span className="text-muted-foreground">Баллы: </span>
-                        <span className="tabular-nums">{r.score ?? "—"}</span>
-                      </p>
-                    </div>
-                    <Button asChild size="sm" variant="secondary" className="w-full">
-                      <Link href={`/admin/submissions/${r.id}`}>Проверить</Link>
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            }
-            desktop={
-              <AdminTable minWidth="960px">
-                <AdminTableHead>
-                  <tr>
-                    <th>Студент</th>
-                    <th>Модуль</th>
-                    <th>Задание</th>
-                    <th>Тип</th>
-                    <th>Дата</th>
-                    <th>Статус</th>
-                    <th>Баллы</th>
-                    <th className="text-right">Действие</th>
-                  </tr>
-                </AdminTableHead>
-                <AdminTableBody>
+        <AdminTableCard
+          title="Очередь проверки"
+          description={`${rows.length} записей по фильтру «${TABS.find((t) => t.match === active)?.label ?? active}»`}
+        >
+          <UiStatePanel
+            state={rows.length === 0 ? "empty" : "idle"}
+            className="m-4 py-10"
+            title="Нет отправок"
+            description="По выбранному фильтру работ не найдено."
+            terminalLine="queue --empty"
+          >
+            <AdminDualTable
+              mobile={
+                <div className="space-y-4 p-4 sm:p-5">
                   {rows.map((r) => (
-                    <tr key={r.id}>
-                      <td>
-                        <span className="font-medium text-foreground">{studentLabel(r.user.email, r.user.profile)}</span>
-                        <br />
-                        <span className="text-xs text-muted-foreground">{r.user.email}</span>
-                      </td>
-                      <td className="text-foreground">{r.practicalTask.module.title}</td>
-                      <td className="text-foreground">{r.practicalTask.title}</td>
-                      <td className="text-muted-foreground">{taskTypeRu(r.practicalTask.taskType)}</td>
-                      <td className="whitespace-nowrap tabular-nums text-muted-foreground">
-                        {r.createdAt.toLocaleString("ru-RU")}
-                      </td>
-                      <td>{statusRu(r.status)}</td>
-                      <td className="tabular-nums text-muted-foreground">{r.score ?? "—"}</td>
-                      <td className="text-right">
-                        <Button asChild size="sm" variant="secondary">
-                          <Link href={`/admin/submissions/${r.id}`}>Проверить</Link>
-                        </Button>
-                      </td>
-                    </tr>
+                    <AdminMobileCard key={r.id} className="space-y-3">
+                      <div>
+                        <p className="font-medium text-foreground">{studentLabel(r.user.email, r.user.profile)}</p>
+                        <p className="mt-0.5 break-all text-xs text-muted-foreground">{r.user.email}</p>
+                      </div>
+                      <div className="grid gap-2 text-sm">
+                        <p>
+                          <span className="text-muted-foreground">Модуль: </span>
+                          <span className="text-foreground">{r.practicalTask.module.title}</span>
+                        </p>
+                        <p>
+                          <span className="text-muted-foreground">Задание: </span>
+                          <span className="text-foreground">{r.practicalTask.title}</span>
+                        </p>
+                        <p>
+                          <span className="text-muted-foreground">Тип: </span>
+                          {taskTypeRu(r.practicalTask.taskType)}
+                        </p>
+                        <p className="tabular-nums text-muted-foreground">{r.createdAt.toLocaleString("ru-RU")}</p>
+                        <p>
+                          <span className="text-muted-foreground">Статус: </span>
+                          {statusRu(r.status)}
+                        </p>
+                        <p>
+                          <span className="text-muted-foreground">Баллы: </span>
+                          <span className="tabular-nums">{r.score ?? "—"}</span>
+                        </p>
+                      </div>
+                      <Button asChild size="sm" variant="secondary" className="w-full">
+                        <Link href={`/admin/submissions/${r.id}`}>Проверить</Link>
+                      </Button>
+                    </AdminMobileCard>
                   ))}
-                </AdminTableBody>
-              </AdminTable>
-            }
-          />
-        )}
+                </div>
+              }
+              desktop={
+                <AdminTable minWidth="960px">
+                  <AdminTableHead>
+                    <tr>
+                      <th>Студент</th>
+                      <th>Модуль</th>
+                      <th>Задание</th>
+                      <th>Тип</th>
+                      <th>Дата</th>
+                      <th>Статус</th>
+                      <th>Баллы</th>
+                      <th className="text-right">Действие</th>
+                    </tr>
+                  </AdminTableHead>
+                  <AdminTableBody>
+                    {rows.map((r) => (
+                      <tr key={r.id}>
+                        <td>
+                          <span className="font-medium text-foreground">
+                            {studentLabel(r.user.email, r.user.profile)}
+                          </span>
+                          <br />
+                          <span className="text-xs text-muted-foreground">{r.user.email}</span>
+                        </td>
+                        <td className="text-foreground">{r.practicalTask.module.title}</td>
+                        <td className="text-foreground">{r.practicalTask.title}</td>
+                        <td className="text-muted-foreground">{taskTypeRu(r.practicalTask.taskType)}</td>
+                        <td className="whitespace-nowrap tabular-nums text-muted-foreground">
+                          {r.createdAt.toLocaleString("ru-RU")}
+                        </td>
+                        <td>{statusRu(r.status)}</td>
+                        <td className="tabular-nums text-muted-foreground">{r.score ?? "—"}</td>
+                        <td className="text-right">
+                          <Button asChild size="sm" variant="secondary">
+                            <Link href={`/admin/submissions/${r.id}`}>Проверить</Link>
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </AdminTableBody>
+                </AdminTable>
+              }
+            />
+          </UiStatePanel>
+        </AdminTableCard>
       </div>
     </AdminShell>
   );

@@ -17,6 +17,7 @@ export type RegisterActionState = {
   /** Email для автоматического входа после регистрации (пароль не возвращается). */
   email?: string;
   errors?: {
+    name?: string[];
     email?: string[];
     password?: string[];
     confirmPassword?: string[];
@@ -25,8 +26,16 @@ export type RegisterActionState = {
   };
 };
 
+function parseDisplayName(name: string): { firstName: string; lastName: string } {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { firstName: "—", lastName: "—" };
+  if (parts.length === 1) return { firstName: parts[0], lastName: "—" };
+  return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
+}
+
 function formDataToInput(fd: FormData) {
   return {
+    name: fd.get("name"),
     email: fd.get("email"),
     password: fd.get("password"),
     confirmPassword: fd.get("confirmPassword"),
@@ -56,6 +65,7 @@ export async function registerAction(_prev: RegisterActionState, formData: FormD
     const flat = parsed.error.flatten();
     return {
       errors: {
+        name: flat.fieldErrors.name,
         email: flat.fieldErrors.email,
         password: flat.fieldErrors.password,
         confirmPassword: flat.fieldErrors.confirmPassword,
@@ -64,8 +74,9 @@ export async function registerAction(_prev: RegisterActionState, formData: FormD
     };
   }
 
-  const { email, password } = parsed.data;
+  const { email, password, name } = parsed.data;
   const normalizedEmail = email.trim().toLowerCase();
+  const { firstName, lastName } = parseDisplayName(name);
 
   const regEmail = RATE_LIMIT_POLICIES.registerEmail;
   const emailRl = await enforceRateLimit({
@@ -95,8 +106,8 @@ export async function registerAction(_prev: RegisterActionState, formData: FormD
       await tx.profile.create({
         data: {
           userId: user.id,
-          lastName: "—",
-          firstName: "—",
+          lastName,
+          firstName,
           middleName: null,
           birthDate: new Date("2000-01-01"),
           educationalInstitution: "—",

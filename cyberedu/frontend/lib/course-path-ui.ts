@@ -22,8 +22,8 @@ export const statusBadge: Record<
   { label: string; variant: NonNullable<ComponentProps<typeof Badge>["variant"]>; className?: string }
 > = {
   locked: { label: "Закрыт", variant: "outline", className: "border-muted-foreground/40 text-muted-foreground" },
-  available: { label: "Доступен", variant: "success" },
-  in_progress: { label: "В процессе", variant: "cyan", className: "border-sky-500/35 bg-sky-500/10 text-sky-800 dark:text-sky-200" },
+  available: { label: "Не начат", variant: "outline", className: "border-border text-muted-foreground" },
+  in_progress: { label: "В процессе", variant: "primary" },
   completed: { label: "Завершён", variant: "success" },
 };
 
@@ -38,7 +38,7 @@ export function getModuleAction(row: CourseProgressModuleRow): { href: string; l
   const req = row.requirements;
 
   if (row.moduleCompleted) {
-    return { href: base, label: "Открыть модуль", disabled: false };
+    return { href: base, label: "Повторить", disabled: false };
   }
 
   const lessonDone = !req.lessonRequired || Boolean(p?.lessonCompleted);
@@ -61,7 +61,62 @@ export function getModuleAction(row: CourseProgressModuleRow): { href: string; l
     return { href: `${base}/practice`, label: "Продолжить", disabled: false };
   }
 
-  return { href: base, label: "Открыть модуль", disabled: false };
+  return { href: base, label: "Продолжить", disabled: false };
+}
+
+/** Уровень сложности по порядку модуля в треке (1–10). */
+export function moduleDifficultyByOrder(orderNumber: number): string {
+  if (orderNumber <= 2) return "Начальный";
+  if (orderNumber <= 5) return "Средний";
+  if (orderNumber <= 8) return "Продвинутый";
+  return "Экспертный";
+}
+
+export type UserTrackLevel = {
+  label: string;
+  tier: number;
+  hint: string;
+};
+
+/** Текущий уровень пользователя по завершённым модулям. */
+export function getUserTrackLevel(completedModules: number, totalModules: number): UserTrackLevel {
+  if (totalModules === 0) {
+    return { label: "Стажёр", tier: 1, hint: "Начните первый модуль трека" };
+  }
+  if (completedModules === 0) {
+    return { label: "Стажёр L1", tier: 1, hint: "Откройте модуль 1 и пройдите лекцию" };
+  }
+  const ratio = completedModules / totalModules;
+  if (ratio >= 1) {
+    return { label: "Эксперт", tier: 5, hint: "Трек пройден — оформите сертификат" };
+  }
+  if (ratio >= 0.7) {
+    return { label: "Специалист L4", tier: 4, hint: "Финишная прямая — осталось несколько модулей" };
+  }
+  if (ratio >= 0.4) {
+    return { label: "Аналитик L3", tier: 3, hint: "Середина трека — держите темп" };
+  }
+  return { label: "Стажёр L2", tier: 2, hint: "Продолжайте по порядку модулей" };
+}
+
+export function formatLessonCount(count: number): string {
+  if (count === 0) return "без уроков";
+  const n = count;
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return `${n} урок`;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return `${n} урока`;
+  return `${n} уроков`;
+}
+
+export function formatPracticeCount(count: number): string {
+  if (count === 0) return "без практик";
+  const n = count;
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return `${n} практика`;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return `${n} практики`;
+  return `${n} практик`;
 }
 
 export function moduleTimeEstimate(req: ModuleRequirements): string {

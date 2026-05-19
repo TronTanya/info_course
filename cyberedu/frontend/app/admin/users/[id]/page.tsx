@@ -10,7 +10,8 @@ import { getAdminUserDetail } from "@/lib/admin-user-detail";
 import { parseProfileEducationalInstitution } from "@/lib/profile-school-parse";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminTableCard } from "@/components/admin/admin-table-card";
+import { SectionCard } from "@/components/ui/section-card";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -149,12 +150,12 @@ export default async function AdminUserDetailPage({ params }: Props) {
           </div>
         </header>
 
-        <Card className="overflow-hidden border-border/70 shadow-(--shadow-card)">
-          <CardHeader className="border-b border-border/60 bg-muted/25 pb-4">
-            <CardTitle className="text-lg">Данные профиля</CardTitle>
-            <CardDescription>Карточка учётной записи и анкеты в системе.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 pt-6">
+        <SectionCard
+          variant="lab"
+          title="Данные профиля"
+          description="Карточка учётной записи и анкеты в системе."
+          className="space-y-3"
+        >
             {d.profile && school ? (
               <div className="grid gap-3 sm:grid-cols-2">
                 {profileFieldRow(<School className="size-4" />, "Учебное заведение", school.institution)}
@@ -182,36 +183,24 @@ export default async function AdminUserDetailPage({ params }: Props) {
             ) : (
               <p className="text-sm text-muted-foreground">Профиль не заполнен.</p>
             )}
-          </CardContent>
-        </Card>
+        </SectionCard>
 
-        <Card className="overflow-hidden border-border/70 shadow-(--shadow-card)">
-          <CardHeader>
-            <CardTitle>Интересы</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-foreground">
+        <SectionCard title="Интересы" className="text-sm text-foreground">
             {d.profile?.interests?.trim() ? (
               <p className="whitespace-pre-wrap">{d.profile.interests}</p>
             ) : (
               <p className="text-muted-foreground">Не указаны.</p>
             )}
-          </CardContent>
-        </Card>
+        </SectionCard>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Прогресс по модулям</CardTitle>
-            <CardDescription>
-              {d.course ? d.course.title : "Курс не найден"}
-              {d.courseProgress ? (
-                <>
-                  {" "}
-                  · всего {d.courseProgress.overallProgressPercent}% модулей · баллы: {d.courseProgress.totalScore}
-                </>
-              ) : null}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-0 sm:p-6">
+        <AdminTableCard
+          title="Прогресс по модулям"
+          description={`${d.course ? d.course.title : "Курс не найден"}${
+            d.courseProgress
+              ? ` · всего ${d.courseProgress.overallProgressPercent}% модулей · баллы: ${d.courseProgress.totalScore}`
+              : ""
+          }`}
+        >
             {!d.courseProgress ? (
               <p className="px-4 py-4 text-sm text-muted-foreground sm:px-0">
                 {d.user.role === "ADMIN"
@@ -261,15 +250,9 @@ export default async function AdminUserDetailPage({ params }: Props) {
                 }
               />
             )}
-          </CardContent>
-        </Card>
+        </AdminTableCard>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Результаты тестов</CardTitle>
-            <CardDescription>Последние попытки</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0 sm:p-6">
+        <AdminTableCard title="Результаты тестов" description="Последние попытки">
             {d.testAttempts.length === 0 ? (
               <p className="px-4 py-4 text-sm text-muted-foreground sm:px-0">Попыток нет.</p>
             ) : (
@@ -324,14 +307,9 @@ export default async function AdminUserDetailPage({ params }: Props) {
                 }
               />
             )}
-          </CardContent>
-        </Card>
+        </AdminTableCard>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Практические работы</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 sm:p-6">
+        <AdminTableCard title="Практические работы">
             {d.submissions.length === 0 ? (
               <p className="px-4 py-4 text-sm text-muted-foreground sm:px-0">Отправок нет.</p>
             ) : (
@@ -385,14 +363,9 @@ export default async function AdminUserDetailPage({ params }: Props) {
                 }
               />
             )}
-          </CardContent>
-        </Card>
+        </AdminTableCard>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Сертификаты</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm">
+        <SectionCard title="Сертификаты" className="space-y-4 text-sm">
             {d.certificates.length === 0 ? (
               <p className="text-muted-foreground">Сертификат не выдавался.</p>
             ) : (
@@ -412,8 +385,7 @@ export default async function AdminUserDetailPage({ params }: Props) {
                 </div>
               ))
             )}
-          </CardContent>
-        </Card>
+        </SectionCard>
       </div>
     </AdminShell>
   );

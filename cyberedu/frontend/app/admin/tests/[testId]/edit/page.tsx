@@ -5,7 +5,7 @@ import { AdminShell } from "@/components/layout/admin-shell";
 import { AdminTestMetaForm } from "@/components/admin/admin-test-meta-form";
 import { AdminTestQuestionCard } from "@/components/admin/admin-test-question-card";
 import { Alert } from "@/components/ui/alert";
-import { PageHeader } from "@/components/ui/page-header";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/db";
 import { createQuestionAction } from "@/lib/actions/admin-tests";
@@ -53,7 +53,8 @@ export default async function AdminEditTestPage({ params, searchParams }: Props)
 
   return (
     <AdminShell>
-      <PageHeader
+      <div className="space-y-6">
+      <AdminPageHeader
         title="Редактирование теста"
         description={`Модуль: ${test.module.title}. Порог прохождения считается только по вопросам с автоматической оценкой.`}
         breadcrumb={
@@ -68,7 +69,7 @@ export default async function AdminEditTestPage({ params, searchParams }: Props)
         }
       />
 
-      <div className="mt-8 space-y-8">
+      <div className="space-y-8">
         {errText ? (
           <Alert variant="danger" title="Внимание">
             {errText}
@@ -116,6 +117,7 @@ export default async function AdminEditTestPage({ params, searchParams }: Props)
             ))}
           </div>
         )}
+      </div>
       </div>
     </AdminShell>
   );

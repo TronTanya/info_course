@@ -18,6 +18,7 @@ function moduleRow(over: Partial<CourseProgressModuleRow> & { id?: string }): Co
       practiceRequired: false,
       totalSteps: 1,
     },
+    contentCounts: { lessons: 1, tests: 0, practices: 0, ...over.contentCounts },
     progress: null,
     unlocked: true,
     progressPercent: 0,

@@ -38,6 +38,10 @@ const config: Record<UiStatus, { label: string; className: string }> = {
     label: "Внимание",
     className: "border-warning/45 bg-warning/15 text-foreground",
   },
+  disabled: {
+    label: "Недоступно",
+    className: "border-border/60 bg-muted/30 text-muted-foreground",
+  },
 };
 
 export type StatusBadgeProps = {

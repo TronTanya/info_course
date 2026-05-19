@@ -1,4 +1,10 @@
+"use client";
+
 import * as React from "react";
+import { useState } from "react";
+import { PanelRightOpen } from "lucide-react";
+import { MobileDrawer } from "@/components/layout/mobile-drawer";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export type PracticeLabLayoutProps = {
@@ -11,22 +17,46 @@ export type PracticeLabLayoutProps = {
 };
 
 /**
- * Двухколоночная лаборатория: общая оболочка, шапка в стиле продукта (secondary + cyan),
- * основная колонка и боковая панель с тем же `practice-layout`, что и в глобальных стилях.
+ * Двухколоночная лаборатория: на lg+ — сетка; на мобиле боковая панель в drawer.
  */
 export function PracticeLabLayout({ breadcrumb, header, main, aside, className }: PracticeLabLayoutProps) {
+  const [asideOpen, setAsideOpen] = useState(false);
+
   return (
-    <div className={cn("lab-shell hero-glow ce-learn-lab ce-border-beam ce-animate-in min-w-0 overflow-x-clip", className)}>
+    <div
+      className={cn(
+        "lab-shell hero-glow ce-learn-lab ce-practice-cyber-lab ce-border-beam ce-animate-in min-w-0 overflow-x-clip",
+        className,
+      )}
+    >
       <header className="lab-shell-header relative px-4 py-5 sm:px-6 sm:py-6">
         <div className="ce-learn-grid pointer-events-none absolute inset-0 opacity-[0.12]" aria-hidden />
         <div className="relative mb-3 hidden h-0.5 w-24 rounded-full bg-linear-to-r from-primary via-accent to-transparent sm:block" aria-hidden />
         {breadcrumb ? <div className="min-w-0">{breadcrumb}</div> : null}
         <div className={breadcrumb ? "mt-4" : ""}>{header}</div>
       </header>
-      <div className="lab-main-surface practice-layout min-w-0 p-4 sm:p-6">
-        <div className="practice-layout-main min-w-0">{main}</div>
-        <aside className="practice-layout-aside min-w-0 space-y-5 lg:sticky lg:top-4 lg:self-start">{aside}</aside>
+      <div className="lab-main-surface min-w-0 p-4 sm:p-6">
+        <div className="mb-4 lg:hidden">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={() => setAsideOpen(true)}
+          >
+            <PanelRightOpen className="size-4" aria-hidden />
+            Чеклист и подсказки
+          </Button>
+        </div>
+        <div className="practice-layout min-w-0">
+          <div className="practice-layout-main min-w-0">{main}</div>
+          <aside className="practice-layout-aside hidden min-w-0 space-y-5 lg:block lg:sticky lg:top-4 lg:self-start">
+            {aside}
+          </aside>
+        </div>
       </div>
+      <MobileDrawer open={asideOpen} onOpenChange={setAsideOpen} title="Лаборатория">
+        {aside}
+      </MobileDrawer>
     </div>
   );
 }

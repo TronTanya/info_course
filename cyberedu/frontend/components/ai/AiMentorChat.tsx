@@ -158,7 +158,7 @@ export function AiMentorChat({
         className={cn(
           "ce-ai-mentor-fab fixed z-[60] flex size-14 items-center justify-center rounded-full",
           "bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-[max(1.25rem,env(safe-area-inset-right))]",
-          "border border-cyan/40 bg-[#0b1220] text-cyan shadow-(--shadow-glow)",
+          "ce-mentor-fab-surface border border-cyan/40 text-cyan shadow-(--shadow-glow)",
           "transition hover:scale-[1.03] motion-reduce:hover:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan",
           open && "ring-2 ring-cyan/60 ring-offset-2 ring-offset-background",
         )}
@@ -192,7 +192,7 @@ export function AiMentorChat({
           >
             <div className="ce-mentor-scanline pointer-events-none absolute inset-0 opacity-[0.04]" aria-hidden />
 
-            <header className="relative flex items-start justify-between gap-2 border-b border-cyan/20 bg-[#060a12]/95 px-4 py-3">
+            <header className="ce-mentor-header relative flex items-start justify-between gap-2 border-b px-4 py-3">
               <div className="min-w-0">
                 <p id="ai-mentor-chat-title" className="flex items-center gap-2 text-sm font-semibold text-foreground">
                   <Scan className="size-4 text-cyan" aria-hidden />
@@ -238,7 +238,7 @@ export function AiMentorChat({
                     "ce-mentor-bubble rounded-xl border px-3 py-2.5 text-sm",
                     m.role === "user"
                       ? "ml-6 border-primary/25 bg-primary/10"
-                      : "mr-1 border-cyan/15 bg-[#0c121c]/90",
+                      : "ce-mentor-bubble-assistant mr-1",
                   )}
                 >
                   <p className="mb-1 font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
@@ -282,7 +282,7 @@ export function AiMentorChat({
                 onChange={(e) => setDraft(e.target.value)}
                 placeholder="Сформулируйте вопрос для наставника…"
                 rows={2}
-                className="min-h-[64px] resize-none border-cyan/20 bg-[#0a0f18]/80 text-sm sm:min-h-[72px]"
+                className="ce-mentor-input min-h-[64px] resize-none text-sm sm:min-h-[72px]"
                 disabled={loading}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {

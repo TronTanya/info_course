@@ -29,6 +29,7 @@ export const studentNav: NavItem[] = [
 ];
 
 export const adminNav: NavItem[] = [
+  { href: "/admin/profile", label: "Security", icon: LayoutDashboard, description: "Обзор платформы" },
   { href: "/admin", label: "Обзор", icon: LayoutDashboard, description: "KPI и активность" },
   { href: "/admin/users", label: "Пользователи", icon: Users, description: "Аккаунты и прогресс" },
   { href: "/admin/modules", label: "Модули", icon: BookOpen, description: "Структура курса" },

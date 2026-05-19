@@ -1,11 +1,12 @@
 import * as React from "react";
+import { badgeBase } from "@/lib/design-system/primitives";
 import { cn } from "@/lib/utils";
 
 const variants = {
   default: "border-border bg-muted/80 text-foreground",
   primary: "border-primary/30 bg-primary/12 text-primary",
-  secondary: "border-secondary/30 bg-secondary/12 text-secondary-foreground",
-  accent: "border-accent/35 bg-accent/12 text-accent",
+  secondary: "border-border bg-secondary/80 text-secondary-foreground",
+  accent: "border-accent/35 bg-accent/20 text-accent-foreground",
   success: "border-success/35 bg-success/12 text-success",
   warning: "border-warning/40 bg-warning/12 text-warning",
   danger: "border-danger/35 bg-danger/12 text-danger",
@@ -18,14 +19,5 @@ export type BadgeProps = React.HTMLAttributes<HTMLSpanElement> & {
 };
 
 export function Badge({ className, variant = "default", ...props }: BadgeProps) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-xl border px-2.5 py-0.5 text-xs font-medium transition-colors duration-150",
-        variants[variant],
-        className,
-      )}
-      {...props}
-    />
-  );
+  return <span className={cn(badgeBase, variants[variant], className)} {...props} />;
 }

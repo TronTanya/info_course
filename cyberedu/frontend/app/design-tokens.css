@@ -1,0 +1,161 @@
+/**
+ * CyberEdu Design System v2 — токены (цвета, типографика, радиусы, тени).
+ * Тёмная cyber-тема по умолчанию через класс .dark на <html>.
+ */
+
+/* --- Примитивы палитры (не использовать в компонентах напрямую) --- */
+:root {
+  --ce-bg-base: #05030a;
+  --ce-bg-elevated: #0b0714;
+  --ce-bg-surface: #100a1f;
+  --ce-border: rgb(255 255 255 / 0.08);
+  --ce-accent: #863bff;
+  --ce-violet-deep: #140033;
+  --ce-cyber-green: #39ff88;
+  --ce-warning: #facc15;
+  --ce-danger: #ff4d6d;
+  --ce-text: #f5f3ff;
+  --ce-text-secondary: #a8a2b8;
+  --ce-text-muted: #6f6880;
+
+  /* SOC-терминал (не зависит от light/dark страницы) */
+  --terminal-bg: #0c0816;
+  --terminal-bg-deep: #06040c;
+  --terminal-bg-chrome: rgb(14 10 26 / 0.94);
+  --terminal-border: rgb(134 59 255 / 0.32);
+  --terminal-fg: #ebe6f8;
+  --terminal-fg-muted: #8f86a8;
+  --terminal-prompt: #39ff88;
+  --terminal-path: #c4b5fd;
+  --terminal-accent: #a78bfa;
+  --terminal-success: #39ff88;
+  --terminal-live: #b794ff;
+  --terminal-dot-red: #ff5f57;
+  --terminal-dot-amber: #febc2e;
+  --terminal-dot-green: #28c840;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Motion */
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 450ms;
+
+  /* Radius 16–24px */
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 1.5rem;
+
+  /* Светлая тема (если снят класс .dark) */
+  --background: #e8ecf4;
+  --foreground: #0c0a12;
+  --card: #ffffff;
+  --card-foreground: #0c0a12;
+  --primary: #6d28d9;
+  --primary-foreground: #faf5ff;
+  --secondary: #e2e8f0;
+  --secondary-foreground: #1e293b;
+  --muted: #dce4f0;
+  --muted-foreground: #475569;
+  --subtle-foreground: #64748b;
+  --border: rgb(12 10 18 / 0.12);
+  --ring: #6d28d9;
+  --accent: #4c1d95;
+  --accent-foreground: #f5f3ff;
+  --success: #059669;
+  --success-foreground: #ecfdf5;
+  --warning: #d97706;
+  --warning-foreground: #fffbeb;
+  --danger: #dc2626;
+  --danger-foreground: #fef2f2;
+  --cyan: #0891b2;
+  --cyan-foreground: #ecfeff;
+  --popover: #ffffff;
+  --popover-foreground: #0c0a12;
+
+  --shadow-card:
+    0 1px 0 0 rgb(255 255 255 / 0.65) inset,
+    0 1px 2px rgb(8 10 20 / 0.04),
+    0 8px 24px -8px rgb(8 10 20 / 0.08);
+  --shadow-card-hover:
+    0 1px 0 0 rgb(255 255 255 / 0.5) inset,
+    0 12px 32px -10px rgb(8 10 20 / 0.1);
+  --shadow-glow: 0 0 0 1px rgb(109 40 217 / 0.12), 0 20px 48px -24px rgb(109 40 217 / 0.2);
+  --shadow-focus: 0 0 0 3px rgb(134 59 255 / 0.35);
+}
+
+/* --- Cyber Lab (default): класс .dark на html --- */
+.dark {
+  --background: var(--ce-bg-base);
+  --foreground: var(--ce-text);
+  --card: var(--ce-bg-surface);
+  --card-foreground: var(--ce-text);
+  --primary: var(--ce-accent);
+  --primary-foreground: var(--ce-text);
+  --secondary: var(--ce-bg-elevated);
+  --secondary-foreground: var(--ce-text-secondary);
+  --muted: var(--ce-bg-elevated);
+  --muted-foreground: var(--ce-text-secondary);
+  --subtle-foreground: var(--ce-text-muted);
+  --border: var(--ce-border);
+  --ring: color-mix(in oklab, var(--ce-accent) 75%, white);
+  --accent: var(--ce-violet-deep);
+  --accent-foreground: var(--ce-text);
+  --success: var(--ce-cyber-green);
+  --success-foreground: var(--ce-bg-base);
+  --warning: var(--ce-warning);
+  --warning-foreground: var(--ce-bg-base);
+  --danger: var(--ce-danger);
+  --danger-foreground: var(--ce-text);
+  --cyan: var(--ce-cyber-green);
+  --cyan-foreground: var(--ce-bg-base);
+  --popover: var(--ce-bg-surface);
+  --popover-foreground: var(--ce-text);
+
+  --shadow-card:
+    0 1px 0 0 rgb(255 255 255 / 0.04) inset,
+    0 1px 2px rgb(0 0 0 / 0.35),
+    0 8px 28px -10px rgb(0 0 0 / 0.5);
+  --shadow-card-hover:
+    0 1px 0 0 rgb(255 255 255 / 0.06) inset,
+    0 12px 36px -12px rgb(0 0 0 / 0.55),
+    0 0 0 1px rgb(134 59 255 / 0.18);
+  --shadow-glow:
+    0 0 0 1px rgb(134 59 255 / 0.2),
+    0 20px 56px -24px rgb(134 59 255 / 0.28);
+  --shadow-focus: 0 0 0 3px rgb(134 59 255 / 0.45);
+
+  --gradient-cyber: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--ce-accent) 90%, var(--ce-cyber-green)) 0%,
+    var(--ce-violet-deep) 100%
+  );
+  --gradient-card: linear-gradient(
+    165deg,
+    color-mix(in oklab, var(--ce-bg-surface) 98%, var(--ce-accent) 4%) 0%,
+    var(--ce-bg-surface) 100%
+  );
+  --gradient-hero-glow: radial-gradient(
+    ellipse 80% 55% at 50% -20%,
+    color-mix(in oklab, var(--ce-accent) 22%, transparent),
+    transparent 68%
+  );
+  --gradient-border-glow: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--ce-accent) 55%, transparent),
+    color-mix(in oklab, var(--ce-cyber-green) 35%, transparent)
+  );
+}

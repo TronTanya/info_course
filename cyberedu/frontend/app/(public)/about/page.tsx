@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SectionCard } from "@/components/ui/section-card";
 
 export const metadata: Metadata = {
   title: "О курсе",
@@ -14,19 +14,14 @@ export default function AboutPage() {
           Платформа для изучения основ информационной безопасности: угрозы, защита данных, сети и практические сценарии.
         </p>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Программа (черновик)</CardTitle>
-        </CardHeader>
-        <CardContent className="list-inside list-disc space-y-2 text-sm text-muted-foreground">
-          <ul>
-            <li>Введение и модель угроз</li>
-            <li>Криптография и целостность</li>
-            <li>Сетевая безопасность</li>
-            <li>Инцидент-менеджмент</li>
-          </ul>
-        </CardContent>
-      </Card>
+      <SectionCard variant="lab" title="Программа (черновик)">
+        <ul className="list-inside list-disc space-y-2 text-sm text-muted-foreground">
+          <li>Введение и модель угроз</li>
+          <li>Криптография и целостность</li>
+          <li>Сетевая безопасность</li>
+          <li>Инцидент-менеджмент</li>
+        </ul>
+      </SectionCard>
     </div>
   );
 }

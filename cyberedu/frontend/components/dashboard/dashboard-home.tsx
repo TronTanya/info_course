@@ -97,8 +97,8 @@ export function DashboardHome({
             key={item.href}
             href={item.href}
             className={cn(
-              "text-sm font-medium text-muted-foreground transition-colors hover:text-primary",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md px-1",
+              "inline-flex min-h-11 items-center rounded-xl px-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/50 hover:text-primary",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             )}
           >
             {item.label}

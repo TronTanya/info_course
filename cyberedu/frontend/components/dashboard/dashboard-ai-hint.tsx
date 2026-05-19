@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
-import { GlassCard } from "@/components/ui/glass-card";
+import { LearnPanel } from "@/components/learn/learn-chrome";
+import { cn } from "@/lib/utils";
 
 export function DashboardAiHint() {
   return (
-    <GlassCard className="border-cyan/20 bg-linear-to-r from-cyan/[0.06] to-card p-4 sm:p-5">
+    <LearnPanel beam className={cn("border-cyan/20 bg-linear-to-r from-cyan/[0.06] to-card p-4 sm:p-5")}>
       <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 gap-3">
           <span
@@ -30,6 +31,6 @@ export function DashboardAiHint() {
           К курсу
         </Link>
       </div>
-    </GlassCard>
+    </LearnPanel>
   );
 }

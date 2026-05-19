@@ -19,8 +19,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     where: { id: moduleId },
     select: { title: true, isActive: true },
   });
-  if (!m?.isActive) return { title: "Практика" };
-  return { title: `Практика · ${m.title}` };
+  if (!m?.isActive) return { title: "Лабораторная работа" };
+  return { title: `Лабораторная работа · ${m.title}` };
 }
 
 export default async function PracticePage({ params }: Props) {
@@ -77,6 +77,16 @@ export default async function PracticePage({ params }: Props) {
     if (!latestByTask.has(s.practicalTaskId)) latestByTask.set(s.practicalTaskId, s);
   }
 
+  const attemptRows =
+    taskIds.length > 0
+      ? await prisma.submission.groupBy({
+          by: ["practicalTaskId"],
+          where: { userId, practicalTaskId: { in: taskIds }, status: { not: "DRAFT" } },
+          _count: { _all: true },
+        })
+      : [];
+  const attemptByTask = new Map(attemptRows.map((r) => [r.practicalTaskId, r._count._all]));
+
   const clientTasks = tasks.map((t) => {
     const ls = latestByTask.get(t.id);
     const ec = t.expectedCommand?.trim() || null;
@@ -124,6 +134,7 @@ export default async function PracticePage({ params }: Props) {
             createdAt: ls.createdAt.toISOString(),
           }
         : null,
+      attemptCount: attemptByTask.get(t.id) ?? 0,
     };
   });
 

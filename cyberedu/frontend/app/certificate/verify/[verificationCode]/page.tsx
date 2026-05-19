@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { Alert } from "@/components/ui/alert";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SectionCard } from "@/components/ui/section-card";
 import { prisma } from "@/lib/db";
 import { SECURITY_ACTIONS } from "@/lib/security/audit-actions";
 import { logSecurityEvent } from "@/lib/security/audit";
@@ -49,17 +49,11 @@ export default async function VerifyCertificatePage({ params }: Props) {
     return (
       <div className="ce-app-auth-main flex min-h-screen items-center justify-center px-4 py-16">
           <div className="mx-auto max-w-lg">
-          <Card interactive className="ce-glass border-border/80">
-            <CardHeader>
-              <CardTitle className="text-xl">Проверка сертификата</CardTitle>
-              <p className="text-sm text-muted-foreground">Слишком много запросов. Попробуйте позже.</p>
-            </CardHeader>
-            <CardContent>
-              <Link href="/" className="text-sm font-medium text-primary underline-offset-4 hover:underline">
-                На главную
-              </Link>
-            </CardContent>
-          </Card>
+          <SectionCard variant="lab" title="Проверка сертификата" description="Слишком много запросов. Попробуйте позже.">
+            <Link href="/" className="text-sm font-medium text-primary underline-offset-4 hover:underline">
+              На главную
+            </Link>
+          </SectionCard>
         </div>
       </div>
     );
@@ -90,17 +84,11 @@ export default async function VerifyCertificatePage({ params }: Props) {
     return (
       <div className="ce-app-auth-main flex min-h-screen items-center justify-center px-4 py-16">
         <div className="mx-auto max-w-lg">
-          <Card interactive className="ce-glass border-border/80">
-            <CardHeader>
-              <CardTitle className="text-xl">Проверка сертификата</CardTitle>
-              <p className="text-sm text-muted-foreground">Запись с таким кодом не найдена.</p>
-            </CardHeader>
-            <CardContent>
-              <Link href="/" className="text-sm font-medium text-primary underline-offset-4 hover:underline">
-                На главную
-              </Link>
-            </CardContent>
-          </Card>
+          <SectionCard variant="lab" title="Проверка сертификата" description="Запись с таким кодом не найдена.">
+            <Link href="/" className="text-sm font-medium text-primary underline-offset-4 hover:underline">
+              На главную
+            </Link>
+          </SectionCard>
         </div>
       </div>
     );
@@ -113,12 +101,12 @@ export default async function VerifyCertificatePage({ params }: Props) {
   return (
     <div className="ce-app-auth-main flex min-h-screen items-center justify-center px-4 py-16">
       <div className="mx-auto max-w-lg">
-        <Card interactive className="ce-glass border-border/80">
-          <CardHeader>
-            <CardTitle className="text-xl">Проверка сертификата</CardTitle>
-            <p className="text-sm text-muted-foreground">Запись найдена в реестре выданных сертификатов.</p>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
+        <SectionCard
+          variant="lab"
+          title="Проверка сертификата"
+          description="Запись найдена в реестре выданных сертификатов."
+          className="space-y-3 text-sm"
+        >
             <Alert variant="success" title="Статус: действителен">
               Сертификат найден в реестре платформы CyberEdu.
             </Alert>
@@ -148,8 +136,7 @@ export default async function VerifyCertificatePage({ params }: Props) {
             <Link href="/" className="inline-block pt-4 text-sm font-medium text-primary underline-offset-4 hover:underline">
               На главную
             </Link>
-          </CardContent>
-        </Card>
+        </SectionCard>
       </div>
     </div>
   );

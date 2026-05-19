@@ -6,7 +6,7 @@ import { MyAssignmentsList, type AssignmentListItem } from "@/components/assignm
 import { LearnPageHeader, LearnPageShell } from "@/components/learn/learn-chrome";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
+import { UiStatePanel } from "@/components/ui/ui-state-panel";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/permissions";
 import { dashboardSectionBreadcrumbs } from "@/lib/student-nav";
@@ -57,24 +57,23 @@ export default async function MyAssignmentsPage() {
           subtitle="Практические работы по курсу: статус проверки и быстрый переход к заданию."
         />
 
-        {items.length === 0 ? (
-          <EmptyState
-            title="Пока нет отправок"
-            description="Когда вы начнёте или отправите практику в модулях курса, они появятся в этом списке."
-            icon={
-              <svg className="size-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-                <path d="M9 12h6M9 16h6M7 4h10a2 2 0 0 1 2 2v14l-4-2-4 2-4-2-4 2V6a2 2 0 0 1 2-2Z" strokeLinejoin="round" />
-              </svg>
-            }
-            action={
-              <Button variant="primary" asChild>
-                <Link href="/dashboard/course">Перейти к курсу</Link>
-              </Button>
-            }
-          />
-        ) : (
+        <UiStatePanel
+          state={items.length === 0 ? "empty" : "idle"}
+          title="Пока нет отправок"
+          description="Когда вы начнёте или отправите практику в модулях курса, они появятся в этом списке."
+          icon={
+            <svg className="size-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+              <path d="M9 12h6M9 16h6M7 4h10a2 2 0 0 1 2 2v14l-4-2-4 2-4-2-4 2V6a2 2 0 0 1 2-2Z" strokeLinejoin="round" />
+            </svg>
+          }
+          action={
+            <Button variant="primary" asChild>
+              <Link href="/dashboard/course">Перейти к курсу</Link>
+            </Button>
+          }
+        >
           <MyAssignmentsList items={items} />
-        )}
+        </UiStatePanel>
       </LearnPageShell>
     </DashboardShell>
   );

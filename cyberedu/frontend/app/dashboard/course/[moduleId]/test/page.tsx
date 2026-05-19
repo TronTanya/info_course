@@ -31,8 +31,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     where: { id: moduleId },
     select: { title: true, isActive: true },
   });
-  if (!m?.isActive) return { title: "Тест" };
-  return { title: `Тест · ${m.title}` };
+  if (!m?.isActive) return { title: "Тесты модуля" };
+  return { title: `Тесты · ${m.title}` };
 }
 
 export default async function TestPage({ params }: Props) {
@@ -188,15 +188,15 @@ export default async function TestPage({ params }: Props) {
               ? moduleStepBreadcrumbs(moduleId, mod.orderNumber, "Тест")
               : undefined
           }
-          eyebrow="Assessment"
-          title={`Тест · ${mod?.title ?? "модуль"}`}
-          description="Проверка на сервере. Порядок вариантов при каждой загрузке случайный."
+          eyebrow="Cyber Lab · Тесты"
+          title={mod?.title ? `Тесты · ${mod.title}` : "Тесты модуля"}
+          description="Контроль знаний перед практикой. Варианты ответов перемешиваются при каждом запуске."
           backHref={`/dashboard/course/${moduleId}`}
           backLabel="← К модулю"
         />
 
         {tests.length > 1 ? (
-          <p className="text-sm text-muted-foreground">В модуле несколько тестов — пройдите каждый по очереди.</p>
+          <p className="text-sm text-muted-foreground">В модуле {tests.length} теста — пройдите каждый с карточки ниже.</p>
         ) : null}
 
         <div className="space-y-8">
@@ -204,6 +204,8 @@ export default async function TestPage({ params }: Props) {
             <ModuleTestRunner
               key={row.testId}
               moduleId={moduleId}
+              moduleTitle={mod?.title ?? "Модуль"}
+              moduleOrderNumber={mod?.orderNumber ?? 0}
               testId={row.testId}
               title={row.title}
               minScore={row.minScore}

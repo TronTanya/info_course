@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { SectionHeader } from "@/components/ui/section-header";
 import { getModuleAction, statusBadge } from "@/lib/course-path-ui";
+import { cyber } from "@/lib/design-system/cyber";
 import { cn } from "@/lib/utils";
 
 export function DashboardRoadmap({
@@ -70,7 +71,7 @@ export function DashboardRoadmap({
                     {badge.label}
                   </Badge>
                   {isCurrent ? (
-                    <span className="rounded-md bg-primary/12 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                    <span className="rounded-md bg-primary/12 px-1.5 py-0.5 typo-label text-primary">
                       Сейчас
                     </span>
                   ) : null}
@@ -89,7 +90,8 @@ export function DashboardRoadmap({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.04, duration: 0.3 }}
               className={cn(
-                "ce-glass ce-card-glow rounded-2xl p-4 transition-[transform,box-shadow] duration-200",
+                cyber.panel,
+                "card-gradient p-4 transition-[transform,box-shadow] duration-200",
                 clickable && "hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)] motion-reduce:hover:translate-y-0",
                 !clickable && "opacity-95",
               )}

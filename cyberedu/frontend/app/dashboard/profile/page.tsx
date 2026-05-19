@@ -93,7 +93,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
           </Alert>
         ) : null}
 
-        <header className="ce-user-profile-hero hero-glow p-6 sm:p-8 lg:p-10">
+        <header className="ce-user-profile-hero hero-glow ce-cyber-hero p-6 sm:p-8 lg:p-10">
           <div className="ce-user-profile-hero-blob" aria-hidden />
           <div className="ce-user-profile-hero-grid" aria-hidden />
           <div className="ce-user-profile-hero-vignette" aria-hidden />
@@ -143,17 +143,19 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
               </div>
             </div>
 
-            <div className="flex w-full max-w-md flex-col gap-3 self-stretch sm:max-w-none lg:w-72 lg:shrink-0 lg:self-start">
+            <div className="flex w-full max-w-md flex-col gap-3 self-stretch lg:w-72 lg:shrink-0 lg:self-start">
               <Button
                 variant="primary"
-                className="h-12 w-full shadow-md transition-[transform,box-shadow] hover:scale-[1.01] hover:shadow-lg active:scale-[0.99] sm:w-auto lg:w-full"
+                size="lg"
+                className="w-full shadow-md transition-[transform,box-shadow] hover:scale-[1.01] hover:shadow-lg active:scale-[0.99] lg:w-full"
                 asChild
               >
                 <Link href="/dashboard/settings">Редактировать профиль</Link>
               </Button>
               <Button
                 variant="outline"
-                className="h-12 w-full border-primary/25 bg-card/85 backdrop-blur-sm hover:border-primary/40 lg:w-full"
+                size="lg"
+                className="w-full border-primary/25 bg-card/85 backdrop-blur-sm hover:border-primary/40 lg:w-full"
                 asChild
               >
                 <Link href="/dashboard/settings">Настройки и пароль</Link>

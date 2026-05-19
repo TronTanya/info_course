@@ -20,8 +20,16 @@ export type SubmitTestState =
       maxScore: number;
       passed: boolean;
       percent: number;
-      /** Короткие пояснения с сервера (без поля is_correct). */
-      review: { questionId: string; questionText: string; explanation: string | null }[];
+      correctCount: number;
+      /** Пояснения и итог по вопросам (без правильных вариантов). */
+      review: {
+        questionId: string;
+        questionText: string;
+        explanation: string | null;
+        isCorrect: boolean | null;
+        pointsEarned: number;
+        maxPoints: number;
+      }[];
     }
   | { ok: false; error: string };
 
@@ -136,11 +144,21 @@ export async function submitTestAttemptAction(input: {
   await recalculateModuleProgress(userId, moduleId);
   revalidateTestPaths(moduleId);
 
-  const review = questions.map((q) => ({
-    questionId: q.id,
-    questionText: q.questionText,
-    explanation: q.explanation,
-  }));
+  const review = questions.map((q) => {
+    const sub = byId.get(q.id)!;
+    const g = gradeQuestion(q, sub);
+    const manual = q.questionType === "TEXT" && q.textManualGrading;
+    return {
+      questionId: q.id,
+      questionText: q.questionText,
+      explanation: q.explanation,
+      isCorrect: manual ? null : Boolean(g.rows[0]?.isCorrect),
+      pointsEarned: g.pointsEarned,
+      maxPoints: q.points,
+    };
+  });
 
-  return { ok: true, score, maxScore, passed, percent, review };
+  const correctCount = review.filter((r) => r.isCorrect === true).length;
+
+  return { ok: true, score, maxScore, passed, percent, correctCount, review };
 }

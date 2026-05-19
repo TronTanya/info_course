@@ -22,6 +22,7 @@ function moduleRow(over: Partial<CourseProgressModuleRow> & { id?: string }): Co
       totalSteps: 2,
       ...over.requirements,
     },
+    contentCounts: { lessons: 1, tests: 1, practices: 0, ...over.contentCounts },
     progress:
       over.progress ??
       ({

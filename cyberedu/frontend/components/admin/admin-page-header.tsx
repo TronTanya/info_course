@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { cyber } from "@/lib/design-system/cyber";
 import { cn } from "@/lib/utils";
 
 export function AdminPageHeader({
@@ -21,7 +22,9 @@ export function AdminPageHeader({
   return (
     <header
       className={cn(
-        "ce-admin-page-hero hero-glow relative isolate overflow-hidden rounded-2xl border border-primary/15 p-5 sm:p-7",
+        "ce-admin-page-hero",
+        cyber.hero,
+        "rounded-2xl border-primary/15 p-5 sm:p-7",
         className,
       )}
     >

@@ -1,128 +1,7 @@
 @import "tailwindcss";
+@import "./design-tokens.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
-
-/* Дизайн-система v4: cybersecurity SaaS — navy / cyan / violet */
-:root {
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
-  --space-16: 4rem;
-  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
-  --duration-fast: 150ms;
-  --duration-normal: 250ms;
-  --duration-slow: 450ms;
-  --background: #e4eaf4;
-  --foreground: #0c1428;
-  --card: #f8fafc;
-  --card-foreground: #0c1428;
-  --primary: #0284c7;
-  --primary-foreground: #f0f9ff;
-  --secondary: #1e293b;
-  --secondary-foreground: #e2e8f0;
-  --muted: #dce4f0;
-  --muted-foreground: #475569;
-  --border: #c5d0e2;
-  --ring: #0ea5e9;
-  --success: #059669;
-  --success-foreground: #ecfdf5;
-  --warning: #d97706;
-  --warning-foreground: #fffbeb;
-  --danger: #dc2626;
-  --danger-foreground: #fef2f2;
-  --cyan: #0891b2;
-  --cyan-foreground: #ecfeff;
-  --accent: #7c3aed;
-  --accent-foreground: #f5f3ff;
-  --popover: #ffffff;
-  --popover-foreground: #0c1428;
-  --gradient-cyber: linear-gradient(
-    135deg,
-    color-mix(in oklab, #0284c7 92%, #0ea5e9) 0%,
-    color-mix(in oklab, #7c3aed 88%, #6366f1) 100%
-  );
-  --gradient-card: linear-gradient(
-    165deg,
-    color-mix(in oklab, var(--card) 96%, #fff) 0%,
-    color-mix(in oklab, var(--card) 88%, var(--muted)) 100%
-  );
-  --gradient-hero-glow: radial-gradient(
-    ellipse 80% 60% at 50% -20%,
-    color-mix(in oklab, var(--primary) 22%, transparent),
-    color-mix(in oklab, var(--accent) 12%, transparent) 45%,
-    transparent 70%
-  );
-  --gradient-border-glow: linear-gradient(
-    135deg,
-    color-mix(in oklab, var(--primary) 55%, transparent),
-    color-mix(in oklab, var(--accent) 45%, transparent)
-  );
-}
-
-.dark {
-  --background: #060b16;
-  --foreground: #e8eef8;
-  --card: #0c1424;
-  --card-foreground: #e8eef8;
-  --primary: #38bdf8;
-  --primary-foreground: #082f49;
-  --secondary: #1a2744;
-  --secondary-foreground: #dbeafe;
-  --muted: #111827;
-  --muted-foreground: #94a3b8;
-  --border: #1e2d45;
-  --ring: #38bdf8;
-  --success: #34d399;
-  --success-foreground: #022c22;
-  --warning: #fbbf24;
-  --warning-foreground: #422006;
-  --danger: #f87171;
-  --danger-foreground: #450a0a;
-  --cyan: #22d3ee;
-  --cyan-foreground: #083344;
-  --accent: #a78bfa;
-  --accent-foreground: #2e1065;
-  --popover: #0f172a;
-  --popover-foreground: #e8eef8;
-  --gradient-cyber: linear-gradient(
-    135deg,
-    color-mix(in oklab, #22d3ee 90%, #38bdf8) 0%,
-    color-mix(in oklab, #a78bfa 85%, #818cf8) 100%
-  );
-  --gradient-card: linear-gradient(
-    165deg,
-    color-mix(in oklab, var(--card) 94%, #0f172a) 0%,
-    color-mix(in oklab, var(--card) 72%, var(--secondary)) 100%
-  );
-  --gradient-hero-glow: radial-gradient(
-    ellipse 85% 65% at 50% -15%,
-    color-mix(in oklab, var(--primary) 28%, transparent),
-    color-mix(in oklab, var(--accent) 18%, transparent) 42%,
-    transparent 68%
-  );
-  --gradient-border-glow: linear-gradient(
-    135deg,
-    color-mix(in oklab, var(--primary) 70%, transparent),
-    color-mix(in oklab, var(--accent) 55%, transparent)
-  );
-  --shadow-card:
-    0 1px 0 0 color-mix(in oklab, #fff 6%, transparent) inset,
-    0 1px 2px rgb(0 0 0 / 0.35),
-    0 8px 24px -8px rgb(0 0 0 / 0.45);
-  --shadow-card-hover:
-    0 1px 0 0 color-mix(in oklab, #fff 8%, transparent) inset,
-    0 12px 32px -10px rgb(0 0 0 / 0.5),
-    0 0 0 1px color-mix(in oklab, var(--primary) 22%, transparent);
-  --shadow-glow:
-    0 0 0 1px color-mix(in oklab, var(--primary) 18%, transparent),
-    0 24px 64px -28px color-mix(in oklab, var(--cyan) 32%, transparent);
-}
 
 @theme inline {
   --color-background: var(--background);
@@ -135,6 +14,7 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
   --color-border: var(--border);
   --color-ring: var(--ring);
   --color-success: var(--success);
@@ -150,37 +30,27 @@
   --font-family-display: var(--font-display);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
-  --shadow-card:
-    0 1px 0 0 color-mix(in oklab, #fff 58%, transparent) inset,
-    0 1px 2px rgb(8 20 40 / 0.035),
-    0 6px 16px -6px rgb(8 20 40 / 0.08),
-    0 20px 44px -22px rgb(8 20 40 / 0.09);
-  --shadow-card-hover:
-    0 1px 0 0 color-mix(in oklab, #fff 52%, transparent) inset,
-    0 4px 10px -4px rgb(8 20 40 / 0.07),
-    0 16px 36px -14px rgb(8 20 40 / 0.11),
-    0 32px 64px -28px color-mix(in oklab, var(--primary) 20%, transparent);
-  --shadow-glow:
-    0 0 0 1px color-mix(in oklab, var(--primary) 14%, transparent),
-    0 1px 0 0 color-mix(in oklab, #fff 58%, transparent) inset,
-    0 28px 72px -32px color-mix(in oklab, var(--cyan) 26%, transparent);
-  --radius-lg: 1rem;
-  --radius-xl: 1.1875rem;
-  --radius-2xl: 1.75rem;
-  --radius-3xl: 2rem;
+  --shadow-card: var(--shadow-card);
+  --shadow-card-hover: var(--shadow-card-hover);
+  --shadow-glow: var(--shadow-glow);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-3xl: var(--radius-3xl);
   --font-sans: var(--font-inter), system-ui, sans-serif;
   --font-display: var(--font-display), var(--font-inter), system-ui, sans-serif;
   --font-mono: var(--font-mono), ui-monospace, monospace;
 }
 
 html {
-  color-scheme: light;
+  color-scheme: dark;
   overflow-x: clip;
   scroll-behavior: smooth;
 }
 
-html.dark {
-  color-scheme: dark;
+html:not(.dark) {
+  color-scheme: light;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -224,6 +94,76 @@ html.dark {
   .ce-admin-mobile-nav {
     scrollbar-width: thin;
     overscroll-behavior-x: contain;
+  }
+
+  /** Отступ под фиксированную нижнюю навигацию кабинета (< lg). */
+  .ce-dashboard-main-pad {
+    @media (max-width: 1023px) {
+      padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    }
+  }
+
+  .ce-dashboard-bottom-nav {
+    box-shadow: 0 -8px 32px -12px color-mix(in oklab, var(--foreground) 12%, transparent);
+  }
+
+  .ce-mobile-accordion summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /** На узких экранах не уменьшаем основной текст ниже ~13px; без горизонтального скролла страницы. */
+  @media (max-width: 430px) {
+    .ce-app-main-panel .text-xs:not(.font-mono):not([class*="uppercase"]),
+    .ce-app-marketing-main .text-xs:not(.font-mono):not([class*="uppercase"]),
+    .ce-app-auth-main .text-xs:not(.font-mono):not([class*="uppercase"]),
+    .dashboard-content .text-xs:not(.font-mono):not([class*="uppercase"]) {
+      font-size: 0.8125rem;
+      line-height: 1.35;
+    }
+
+    .ce-test-result-stats {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  .ce-app-marketing-main,
+  .ce-auth-split,
+  .ce-learn-lab,
+  .ce-course-track-map {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  /** Горизонтальный скролл только внутри явных контейнеров (навигация-чипы, таблицы). */
+  .ce-scroll-x-contained {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /** UI states — cyber feedback */
+  .ce-ui-state-shell {
+    min-width: 0;
+  }
+
+  .ce-answer-feedback {
+    animation: ce-fade-in 0.25s var(--ease-out-expo);
+  }
+
+  .ce-test-option--selected:active:not(:disabled) {
+    transform: scale(0.995);
+  }
+
+  @keyframes ce-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   /* Горизонтальный скролл только внутри контейнера таблицы */
@@ -372,11 +312,34 @@ html.dark {
     border-color: color-mix(in oklab, var(--border) 75%, var(--cyan) 20%);
   }
 
+  .ce-mentor-fab-surface {
+    background: color-mix(in oklab, var(--terminal-bg-deep) 88%, var(--cyan) 12%);
+  }
+  .ce-mentor-header {
+    border-color: color-mix(in oklab, var(--cyan) 20%, var(--terminal-border));
+    background: color-mix(in oklab, var(--terminal-bg-chrome) 95%, transparent);
+  }
+  .ce-mentor-context {
+    border-color: color-mix(in oklab, var(--cyan) 15%, var(--terminal-border));
+    background: color-mix(in oklab, var(--terminal-bg-deep) 85%, transparent);
+  }
+  .ce-mentor-code {
+    border-color: color-mix(in oklab, var(--cyan) 20%, var(--terminal-border));
+    background: var(--terminal-bg);
+  }
+  .ce-mentor-bubble-assistant {
+    border-color: color-mix(in oklab, var(--cyan) 15%, transparent);
+    background: color-mix(in oklab, var(--terminal-bg) 92%, var(--cyan) 8%);
+  }
+  .ce-mentor-input {
+    border-color: color-mix(in oklab, var(--cyan) 20%, var(--terminal-border));
+    background: color-mix(in oklab, var(--terminal-bg) 80%, transparent);
+  }
   .ce-mentor-soc {
     background: linear-gradient(
       180deg,
-      color-mix(in oklab, #0a0f18 96%, var(--cyan) 4%) 0%,
-      color-mix(in oklab, #060a12 98%, transparent) 100%
+      color-mix(in oklab, var(--terminal-bg) 96%, var(--cyan) 4%) 0%,
+      color-mix(in oklab, var(--terminal-bg-deep) 98%, transparent) 100%
     );
     box-shadow:
       0 0 0 1px color-mix(in oklab, var(--cyan) 22%, transparent),
@@ -449,13 +412,40 @@ html.dark {
     box-shadow: 0 -18px 48px -36px color-mix(in oklab, var(--secondary) 16%, transparent);
   }
 
-  /** Страницы входа / регистрации: мягкий акцент за формой */
+  /** Страницы входа / регистрации: тёмный cyber-фон с фиолетовой подсветкой */
   .ce-app-auth-main {
     position: relative;
     isolation: isolate;
     background:
-      radial-gradient(ellipse 70% 55% at 15% 20%, color-mix(in oklab, var(--cyan) 12%, transparent), transparent 58%),
-      radial-gradient(ellipse 60% 50% at 90% 75%, color-mix(in oklab, var(--primary) 10%, transparent), transparent 55%);
+      radial-gradient(ellipse 85% 60% at 0% 50%, color-mix(in oklab, var(--primary) 18%, transparent), transparent 55%),
+      radial-gradient(ellipse 70% 55% at 100% 30%, color-mix(in oklab, var(--cyan) 10%, transparent), transparent 50%),
+      radial-gradient(ellipse 50% 40% at 50% 100%, color-mix(in oklab, var(--primary) 8%, transparent), transparent 60%),
+      color-mix(in oklab, var(--background) 96%, #0a0614);
+  }
+
+  .ce-auth-glass-card {
+    background: linear-gradient(
+      165deg,
+      color-mix(in oklab, var(--card) 88%, var(--primary) 12%) 0%,
+      color-mix(in oklab, var(--card) 94%, transparent) 45%,
+      color-mix(in oklab, var(--card) 90%, #0d0818) 100%
+    );
+    border-color: color-mix(in oklab, var(--primary) 35%, var(--border));
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--primary) 12%, transparent),
+      0 24px 64px -32px color-mix(in oklab, var(--primary) 45%, transparent);
+  }
+
+  .ce-auth-terminal-line {
+    text-shadow: 0 0 24px color-mix(in oklab, var(--primary) 40%, transparent);
+  }
+
+  .ce-auth-visual-panel {
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--card) 70%, var(--primary) 8%) 0%,
+      color-mix(in oklab, var(--background) 92%, #120a1f) 100%
+    );
   }
 
   /** Публичные страницы в container-page: лёгкая верхняя подсветка */
@@ -527,6 +517,38 @@ html.dark {
     }
     .practice-layout-aside {
       grid-column: span 3 / span 3;
+    }
+  }
+
+  .ce-practice-result--wrong {
+    animation: ce-practice-shake 0.45s ease-out;
+  }
+  .ce-practice-result--correct {
+    animation: ce-practice-glow-success 0.65s ease-out;
+  }
+  @keyframes ce-practice-shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    20%,
+    60% {
+      transform: translateX(-4px);
+    }
+    40%,
+    80% {
+      transform: translateX(4px);
+    }
+  }
+  @keyframes ce-practice-glow-success {
+    0% {
+      box-shadow: 0 0 0 0 color-mix(in oklab, var(--success) 0%, transparent);
+    }
+    40% {
+      box-shadow: 0 0 24px 2px color-mix(in oklab, var(--success) 35%, transparent);
+    }
+    100% {
+      box-shadow: none;
     }
   }
 
@@ -630,6 +652,27 @@ html.dark {
     .responsive-card-grid {
       gap: 1.75rem;
     }
+  }
+
+  /** Карта модулей курса (Cyber Lab track) */
+  .ce-course-track-map {
+    position: relative;
+  }
+  .ce-course-track-map::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 12rem 0 auto;
+    height: 40%;
+    background: radial-gradient(
+      ellipse 70% 50% at 50% 0%,
+      color-mix(in oklab, var(--primary) 8%, transparent),
+      transparent 70%
+    );
+    opacity: 0.9;
+  }
+  .ce-course-module-card {
+    animation: ce-fade-in-up 0.45s var(--ease-out-expo) both;
   }
 
   /** Горизонтальный скролл только у таблицы, не у всей страницы */
@@ -776,9 +819,9 @@ html.dark {
     font-family: var(--font-display);
     font-size: 0.6875rem;
     font-weight: 600;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--muted-foreground);
+    color: var(--primary);
   }
   .typo-h1 {
     font-family: var(--font-display);
@@ -817,12 +860,13 @@ html.dark {
   .typo-caption {
     font-size: 0.8125rem;
     line-height: 1.5;
-    color: var(--muted-foreground);
+    color: var(--subtle-foreground);
   }
   .typo-label {
+    font-family: var(--font-mono);
     font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
+    font-weight: 500;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--muted-foreground);
   }
@@ -864,6 +908,34 @@ html.dark {
       transform var(--duration-normal) var(--ease-out-expo),
       box-shadow var(--duration-normal) ease;
   }
+  /** Единый hero-блок Cyber Lab (лендинг, трек, CTA) */
+  .ce-cyber-hero {
+    isolation: isolate;
+  }
+
+  .ce-app-marketing-main {
+    position: relative;
+  }
+
+  .ce-app-marketing-main::before {
+    content: "";
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-image:
+      linear-gradient(color-mix(in oklab, var(--primary) 6%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in oklab, var(--primary) 6%, transparent) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 8%, transparent 70%);
+    opacity: 0.35;
+  }
+
+  .ce-app-marketing-main > * {
+    position: relative;
+    z-index: 1;
+  }
+
   .ce-learn-header {
     position: relative;
     overflow: hidden;
@@ -1401,6 +1473,39 @@ html.dark {
     box-shadow: 0 0 0 1px color-mix(in oklab, var(--primary) 20%, transparent);
   }
 
+  .ce-test-card {
+    transition:
+      border-color var(--duration-normal) ease,
+      box-shadow var(--duration-normal) ease,
+      transform var(--duration-fast) ease;
+  }
+  .ce-test-card:hover {
+    border-color: color-mix(in oklab, var(--primary) 40%, var(--border));
+    box-shadow: var(--shadow-card-hover);
+  }
+  .ce-test-option--selected {
+    transform: translateY(-1px);
+  }
+  .ce-test-option--correct {
+    box-shadow: 0 0 20px -6px color-mix(in oklab, var(--success) 45%, transparent);
+  }
+  .ce-test-option--incorrect {
+    box-shadow: 0 0 16px -6px color-mix(in oklab, var(--danger) 40%, transparent);
+  }
+
+  .ce-admin-security-hero {
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--card) 92%, var(--primary) 8%) 0%,
+      color-mix(in oklab, var(--card) 96%, transparent) 100%
+    );
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ce-test-option--selected {
+      transform: none;
+    }
+  }
+
   .ce-cert-card {
     position: relative;
     overflow: hidden;
@@ -1482,9 +1587,9 @@ html.dark {
 
   .ce-tech-grid {
     background-image:
-      linear-gradient(color-mix(in oklab, var(--cyan) 12%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in oklab, var(--cyan) 12%, transparent) 1px, transparent 1px);
-    background-size: 48px 48px;
+      linear-gradient(color-mix(in oklab, var(--primary) 10%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in oklab, var(--primary) 10%, transparent) 1px, transparent 1px);
+    background-size: 40px 40px;
     mask-image: radial-gradient(ellipse 85% 70% at 50% 40%, #000 20%, transparent 75%);
     animation: ce-grid-shift 24s linear infinite;
   }
@@ -1502,11 +1607,11 @@ html.dark {
     animation: ce-orb-drift-a 22s ease-in-out infinite alternate;
   }
   .ce-orb-b {
-    background: color-mix(in oklab, var(--primary) 50%, transparent);
+    background: color-mix(in oklab, var(--primary) 55%, transparent);
     animation: ce-orb-drift-b 26s ease-in-out infinite alternate;
   }
   .ce-orb-c {
-    background: color-mix(in oklab, var(--secondary) 40%, transparent);
+    background: color-mix(in oklab, var(--accent) 45%, transparent);
     animation: ce-orb-drift-c 20s ease-in-out infinite alternate;
   }
 
@@ -1621,21 +1726,203 @@ svg {
   color: var(--foreground);
 }
 
+/* Cyber Lab surfaces — SOC-терминал с фиксированной палитрой */
+.ce-terminal {
+  color-scheme: dark;
+  border: 1px solid var(--terminal-border);
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklab, var(--terminal-bg-deep) 88%, var(--ce-accent) 12%) 0%,
+    var(--terminal-bg) 55%,
+    color-mix(in oklab, var(--terminal-bg) 92%, var(--ce-violet-deep) 8%) 100%
+  );
+  box-shadow:
+    0 1px 0 0 color-mix(in oklab, var(--terminal-accent) 18%, transparent) inset,
+    0 12px 40px -16px rgb(8 4 20 / 0.55),
+    0 0 0 1px color-mix(in oklab, var(--terminal-border) 40%, transparent);
+}
+.ce-terminal-chrome {
+  border-color: color-mix(in oklab, var(--terminal-border) 45%, transparent);
+  background: var(--terminal-bg-chrome);
+  color: var(--terminal-fg-muted);
+}
+.ce-terminal-body {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--terminal-fg);
+}
+.ce-terminal-prompt {
+  color: var(--terminal-prompt);
+}
+.ce-terminal-path {
+  color: var(--terminal-path);
+}
+.ce-terminal-sep {
+  color: var(--terminal-fg-muted);
+}
+.ce-terminal-cmd {
+  color: var(--terminal-fg);
+}
+.ce-terminal-dim {
+  color: var(--terminal-fg-muted);
+}
+.ce-terminal-accent {
+  color: var(--terminal-accent);
+}
+.ce-terminal-success {
+  color: var(--terminal-success);
+}
+.ce-terminal-live {
+  color: var(--terminal-live);
+}
+.ce-terminal-dot-red {
+  background-color: var(--terminal-dot-red);
+}
+.ce-terminal-dot-amber {
+  background-color: var(--terminal-dot-amber);
+}
+.ce-terminal-dot-green {
+  background-color: var(--terminal-dot-green);
+}
+/* Согласование Tailwind-утилит внутри терминала с SOC-палитрой */
+.ce-terminal .text-foreground {
+  color: var(--terminal-fg);
+}
+.ce-terminal .text-muted-foreground,
+.ce-terminal .text-subtle-foreground {
+  color: var(--terminal-fg-muted);
+}
+.ce-terminal .text-primary {
+  color: var(--terminal-accent);
+}
+.ce-terminal .text-success {
+  color: var(--terminal-success);
+}
+.ce-terminal-divider {
+  border-color: color-mix(in oklab, var(--terminal-border) 35%, transparent);
+}
+.ce-terminal-footer {
+  border-color: color-mix(in oklab, var(--terminal-border) 45%, transparent);
+  background: var(--terminal-bg-chrome);
+}
+.ce-terminal-input {
+  border: 1px solid color-mix(in oklab, var(--terminal-border) 50%, transparent);
+  background: color-mix(in oklab, var(--terminal-bg-deep) 80%, transparent);
+  color: var(--terminal-fg);
+}
+.ce-terminal-input::placeholder {
+  color: var(--terminal-fg-muted);
+}
+.ce-terminal-input:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--terminal-accent) 35%, transparent);
+}
+.ce-lab-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.ce-lab-panel::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--primary) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--primary) 6%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: radial-gradient(ellipse 90% 80% at 50% 0%, #000 10%, transparent 72%);
+  opacity: 0.35;
+}
+.dark .ce-app-main-panel {
+  background: linear-gradient(
+    168deg,
+    color-mix(in oklab, var(--card) 94%, var(--primary) 6%) 0%,
+    color-mix(in oklab, var(--card) 98%, #03040a) 45%,
+    var(--card) 100%
+  );
+  border-color: color-mix(in oklab, var(--border) 65%, var(--primary) 25%);
+  box-shadow:
+    var(--shadow-card),
+    0 0 80px -40px color-mix(in oklab, var(--primary) 35%, transparent);
+}
+.dark .ce-sidebar-inner {
+  border-color: color-mix(in oklab, var(--border) 60%, var(--primary) 28%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--card) 96%, var(--primary) 4%) 0%,
+    color-mix(in oklab, var(--card) 92%, #03040a) 100%
+  );
+}
+.ce-hud-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in oklab, var(--primary) 30%, var(--border));
+  background: color-mix(in oklab, var(--primary) 10%, transparent);
+  padding: 0.25rem 0.625rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--primary) 85%, var(--foreground));
+}
+.ce-hud-chip::before {
+  content: "";
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: var(--success);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--success) 70%, transparent);
+}
+
+/* Landing: Security Core visual */
+@keyframes ce-security-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes ce-security-pulse {
+  0%,
+  100% {
+    stroke-opacity: 0.35;
+  }
+  50% {
+    stroke-opacity: 0.85;
+  }
+}
+.ce-security-core-orbit {
+  transform-origin: 50px 50px;
+  animation: ce-security-orbit 48s linear infinite;
+}
+.ce-security-core-pulse {
+  animation: ce-security-pulse 2.8s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ce-security-core-orbit,
+  .ce-security-core-pulse {
+    animation: none;
+  }
+}
+
 body {
   overflow-x: clip;
   min-height: 100vh;
   background-color: var(--background);
   background-image:
-    radial-gradient(ellipse 110% 75% at 50% -32%, color-mix(in oklab, var(--secondary) 16%, transparent), transparent 60%),
-    radial-gradient(ellipse 58% 48% at 100% 0%, color-mix(in oklab, var(--cyan) 12%, transparent), transparent 46%),
-    radial-gradient(ellipse 52% 42% at 0% 100%, color-mix(in oklab, var(--primary) 12%, transparent), transparent 50%),
-    radial-gradient(ellipse 80% 45% at 50% 100%, color-mix(in oklab, var(--secondary) 6%, transparent), transparent 62%),
+    radial-gradient(ellipse 110% 75% at 50% -32%, color-mix(in oklab, var(--primary) 18%, transparent), transparent 60%),
+    radial-gradient(ellipse 58% 48% at 100% 0%, color-mix(in oklab, var(--cyan) 10%, transparent), transparent 46%),
+    radial-gradient(ellipse 52% 42% at 0% 100%, color-mix(in oklab, var(--accent) 14%, transparent), transparent 50%),
+    radial-gradient(ellipse 80% 45% at 50% 100%, color-mix(in oklab, var(--secondary) 8%, transparent), transparent 62%),
     radial-gradient(
       circle at 1px 1px,
-      color-mix(in oklab, var(--secondary) 8%, transparent) 1px,
+      color-mix(in oklab, var(--primary) 7%, transparent) 1px,
       transparent 0
     );
-  background-size: auto, auto, auto, auto, 20px 20px;
+  background-size: auto, auto, auto, auto, 22px 22px;
   background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;

@@ -70,16 +70,16 @@ function PracticeLabCardDemo() {
     <div className={cn("rounded-2xl border border-cyan-200/50 bg-white p-5 shadow-sm", "ring-1 ring-slate-200/80")}>
       <div className="flex flex-col gap-1 border-b border-slate-100 pb-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h3 className="text-base font-semibold text-slate-900">Рабочая область</h3>
-          <p className="text-xs text-slate-500">
-            Компонент: <span className="font-mono text-slate-700">PhishingEmailTask</span>
+          <h3 className="text-base font-semibold text-foreground">Рабочая область</h3>
+          <p className="text-xs text-muted-foreground">
+            Компонент: <span className="font-mono text-foreground/80">PhishingEmailTask</span>
           </p>
         </div>
-        <Badge variant="outline" className="w-fit border-slate-200 bg-slate-50 text-xs font-normal text-slate-600">
+        <Badge variant="outline" className="w-fit border-border bg-muted/50 text-xs font-normal text-muted-foreground">
           Практика
         </Badge>
       </div>
-      <p className="mt-3 text-xs leading-relaxed text-slate-500">Учебная симуляция: действия не выполняются в реальной почте.</p>
+      <p className="mt-3 text-xs leading-relaxed text-muted-foreground">Учебная симуляция: действия не выполняются в реальной почте.</p>
       <div className="mt-4 flex flex-wrap gap-2">
         <Button type="button" size="sm" variant="outline">
           Вариант A

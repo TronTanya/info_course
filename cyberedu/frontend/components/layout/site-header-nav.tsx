@@ -45,7 +45,7 @@ function navLinkClass(mobile?: boolean, active?: boolean) {
     "rounded-xl text-sm font-medium transition-colors",
     mobile
       ? cn(
-          "block w-full border px-4 py-3 text-foreground",
+          "flex min-h-11 w-full items-center border px-4 py-3 text-base text-foreground",
           active
             ? "border-primary/35 bg-primary/[0.08] text-primary shadow-sm"
             : "border-border/60 bg-card hover:bg-muted",

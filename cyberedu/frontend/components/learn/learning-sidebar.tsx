@@ -46,7 +46,7 @@ export function LearningSidebarPanel({
                 href={m.href}
                 onClick={onNavigate}
                 className={cn(
-                  "flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition-colors",
+                  "flex min-h-11 items-center gap-2 rounded-xl px-3 py-2.5 text-sm transition-colors",
                   m.isCurrent && "bg-primary/12 font-semibold text-primary ring-1 ring-primary/25",
                   !m.isCurrent && m.unlocked && "text-foreground hover:bg-muted/50",
                   !m.unlocked && "cursor-not-allowed text-muted-foreground opacity-70",

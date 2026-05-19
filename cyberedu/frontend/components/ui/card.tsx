@@ -1,4 +1,5 @@
 import * as React from "react";
+import { cardSurface, transitionBase } from "@/lib/design-system/primitives";
 import { cn } from "@/lib/utils";
 
 export type CardProps = React.HTMLAttributes<HTMLDivElement> & {
@@ -10,9 +11,11 @@ export function Card({ className, gradient, interactive, ...props }: CardProps) 
   return (
     <div
       className={cn(
-        "rounded-2xl border border-border/75 text-card-foreground shadow-card ring-1 ring-primary/5 transition-[box-shadow,border-color] duration-200",
-        gradient ? "card-gradient bg-card" : "bg-card",
-        interactive && "hover:border-primary/25 hover:shadow-[var(--shadow-card-hover)]",
+        cardSurface,
+        transitionBase,
+        gradient && "bg-[image:var(--gradient-card)]",
+        interactive &&
+          "hover:border-primary/25 hover:shadow-[var(--shadow-card-hover)] hover:shadow-[var(--shadow-glow)]",
         className,
       )}
       {...props}
@@ -37,5 +40,5 @@ export function CardContent({ className, ...props }: React.HTMLAttributes<HTMLDi
 }
 
 export function CardFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("flex items-center p-6 pt-0", className)} {...props} />;
+  return <div className={cn("flex flex-wrap items-center gap-2 p-6 pt-0", className)} {...props} />;
 }

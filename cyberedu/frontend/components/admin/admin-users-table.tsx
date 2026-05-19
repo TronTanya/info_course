@@ -3,17 +3,44 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AdminDualTable } from "@/components/admin/admin-dual-table";
+import { AdminMobileCard } from "@/components/admin/admin-mobile-card";
+import { AdminRowMenu } from "@/components/admin/admin-row-menu";
 import { AdminTable, AdminTableBody, AdminTableHead } from "@/components/admin/admin-table";
 import { AdminTableToolbar, type AdminTableDensity } from "@/components/admin/admin-table-toolbar";
 import type { AdminUserListRow } from "@/lib/admin-users-list";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
+import { UiStatePanel } from "@/components/ui/ui-state-panel";
+import { cn } from "@/lib/utils";
+
 const ROLE_FILTERS = [
   { id: "all", label: "Все" },
   { id: "USER", label: "Студенты" },
   { id: "ADMIN", label: "Админы" },
 ] as const;
+
+const PROGRESS_FILTERS = [
+  { id: "all", label: "Прогресс" },
+  { id: "low", label: "0–25%" },
+  { id: "mid", label: "26–75%" },
+  { id: "high", label: "76–99%" },
+  { id: "done", label: "100%" },
+] as const;
+
+function progressBucket(pct: number): string {
+  if (pct >= 100) return "done";
+  if (pct >= 76) return "high";
+  if (pct >= 26) return "mid";
+  if (pct > 0) return "low";
+  return "low";
+}
+
+function progressBadgeVariant(pct: number): "secondary" | "warning" | "primary" | "success" {
+  if (pct >= 100) return "success";
+  if (pct >= 50) return "primary";
+  if (pct > 0) return "warning";
+  return "secondary";
+}
 
 function MobileField({ label, value }: { label: string; value: string }) {
   return (
@@ -21,6 +48,19 @@ function MobileField({ label, value }: { label: string; value: string }) {
       <span className="typo-label text-[0.65rem]">{label}</span>
       <span className="wrap-break-word text-sm font-medium text-foreground">{value}</span>
     </div>
+  );
+}
+
+function UserRowMenu({ userId }: { userId: string }) {
+  return (
+    <AdminRowMenu
+      items={[
+        { label: "Открыть", href: `/admin/users/${userId}` },
+        { label: "Изменить роль", href: `/admin/users/${userId}` },
+        { label: "Заблокировать", disabled: true },
+        { label: "Удалить", disabled: true, variant: "danger" },
+      ]}
+    />
   );
 }
 
@@ -39,22 +79,29 @@ function matchesSearch(row: AdminUserListRow, q: string): boolean {
   return hay.includes(q);
 }
 
-export function AdminUsersTable({ rows }: { rows: AdminUserListRow[] }) {
+export function AdminUsersTable({ rows, embedded = false }: { rows: AdminUserListRow[]; embedded?: boolean }) {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [progressFilter, setProgressFilter] = useState<string>("all");
   const [density, setDensity] = useState<AdminTableDensity>("comfortable");
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows.filter((r) => {
       if (roleFilter !== "all" && r.role !== roleFilter) return false;
+      if (progressFilter !== "all" && r.role === "USER") {
+        if (progressBucket(r.overallProgressPercent) !== progressFilter) return false;
+      }
       return matchesSearch(r, q);
     });
-  }, [rows, search, roleFilter]);
+  }, [rows, search, roleFilter, progressFilter]);
+
+  const displayRows = embedded ? filtered.slice(0, 12) : filtered;
 
   if (rows.length === 0) {
     return (
-      <EmptyState
+      <UiStatePanel
+        state="empty"
         title="Пользователей пока нет"
         description="Когда появятся учётные записи, они отобразятся в этой таблице."
         className="m-4 sm:m-6"
@@ -77,13 +124,51 @@ export function AdminUsersTable({ rows }: { rows: AdminUserListRow[] }) {
         totalCount={rows.length}
       />
 
+      <div className="flex flex-wrap gap-2 border-b border-border/50 bg-muted/10 px-4 py-2 sm:px-5">
+        <span className="text-xs font-medium text-muted-foreground">Прогресс:</span>
+        {PROGRESS_FILTERS.map((f) => (
+          <button
+            key={f.id}
+            type="button"
+            onClick={() => setProgressFilter(f.id)}
+            className={cn(
+              "rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors",
+              progressFilter === f.id
+                ? "border-primary/40 bg-primary/12 text-primary"
+                : "border-border/70 bg-card/80 text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {embedded && filtered.length > 12 ? (
+        <p className="border-b border-border/50 px-4 py-2 text-xs text-muted-foreground sm:px-5">
+          Показаны первые 12 из {filtered.length}.{" "}
+          <Link href="/admin/users" className="font-medium text-primary hover:underline">
+            Открыть полный список
+          </Link>
+        </p>
+      ) : null}
+
       {filtered.length === 0 ? (
-        <EmptyState
+        <UiStatePanel
+          state="empty"
           title="Ничего не найдено"
           description="Измените поиск или фильтр роли."
           className="m-4 border-0 bg-transparent shadow-none sm:m-6"
           action={
-            <Button type="button" variant="outline" size="sm" onClick={() => { setSearch(""); setRoleFilter("all"); }}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSearch("");
+                setRoleFilter("all");
+                setProgressFilter("all");
+              }}
+            >
               Сбросить фильтры
             </Button>
           }
@@ -92,23 +177,24 @@ export function AdminUsersTable({ rows }: { rows: AdminUserListRow[] }) {
         <AdminDualTable
           mobile={
             <div className="space-y-4 p-4 sm:p-5">
-              {filtered.map((r) => (
-                <div
-                  key={r.id}
-                  className="ce-admin-mobile-card space-y-4 rounded-2xl border border-border/60 bg-card/80 p-4 shadow-sm"
-                >
+              {displayRows.map((r) => (
+                <AdminMobileCard key={r.id} className="space-y-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-medium text-foreground">{r.fullName}</p>
-                      {r.role === "ADMIN" ? (
-                        <Badge variant="outline" className="mt-1 text-[10px]">
-                          ADMIN
-                        </Badge>
-                      ) : null}
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {r.role === "ADMIN" ? (
+                          <Badge variant="outline" className="text-[10px]">
+                            ADMIN
+                          </Badge>
+                        ) : (
+                          <Badge variant={progressBadgeVariant(r.overallProgressPercent)} className="text-[10px] tabular-nums">
+                            {r.overallProgressPercent}%
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                    <Button asChild variant="outline" size="sm" className="shrink-0">
-                      <Link href={`/admin/users/${r.id}`}>Подробнее</Link>
-                    </Button>
+                    <UserRowMenu userId={r.id} />
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <MobileField label="Email" value={r.email} />
@@ -122,7 +208,7 @@ export function AdminUsersTable({ rows }: { rows: AdminUserListRow[] }) {
                     <MobileField label="Отчёт курса" value={String(r.courseProgressRowCount)} />
                     <MobileField label="Сертификат" value={r.hasCertificate ? "Выдан" : "Нет"} />
                   </div>
-                </div>
+                </AdminMobileCard>
               ))}
             </div>
           }
@@ -145,7 +231,7 @@ export function AdminUsersTable({ rows }: { rows: AdminUserListRow[] }) {
                 </tr>
               </AdminTableHead>
               <AdminTableBody>
-                {filtered.map((r) => (
+                {displayRows.map((r) => (
                   <tr key={r.id}>
                     <td>
                       <div className="font-semibold text-foreground">{r.fullName}</div>
@@ -163,8 +249,14 @@ export function AdminUsersTable({ rows }: { rows: AdminUserListRow[] }) {
                     <td className="tabular-nums text-muted-foreground">
                       {new Date(r.createdAt).toLocaleDateString("ru-RU")}
                     </td>
-                    <td className="tabular-nums font-medium text-foreground">
-                      {r.role === "USER" ? `${r.overallProgressPercent}%` : "—"}
+                    <td>
+                      {r.role === "USER" ? (
+                        <Badge variant={progressBadgeVariant(r.overallProgressPercent)} className="tabular-nums">
+                          {r.overallProgressPercent}%
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </td>
                     <td className="tabular-nums font-medium text-foreground">{r.role === "USER" ? r.totalScore : "—"}</td>
                     <td className="tabular-nums text-muted-foreground">{r.courseProgressRowCount}</td>
@@ -176,9 +268,7 @@ export function AdminUsersTable({ rows }: { rows: AdminUserListRow[] }) {
                       )}
                     </td>
                     <td>
-                      <Button asChild variant="outline" size="sm">
-                        <Link href={`/admin/users/${r.id}`}>Подробнее</Link>
-                      </Button>
+                      <UserRowMenu userId={r.id} />
                     </td>
                   </tr>
                 ))}

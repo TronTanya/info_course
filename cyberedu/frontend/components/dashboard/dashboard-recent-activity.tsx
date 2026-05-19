@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { BookOpen, ClipboardCheck, FlaskConical } from "lucide-react";
 import type { DashboardActivityItem } from "@/lib/dashboard-ui";
+import { cyber } from "@/lib/design-system/cyber";
+import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
-import { GlassCard } from "@/components/ui/glass-card";
 import { SectionHeader } from "@/components/ui/section-header";
 
 const kindIcon = {
@@ -39,17 +40,17 @@ export function DashboardRecentActivity({ items }: { items: DashboardActivityIte
           const Icon = kindIcon[item.kind];
           return (
             <li key={item.id}>
-              <GlassCard className="flex gap-3 p-4">
+              <div className={cn(cyber.panelStatic, "flex gap-3 p-4")}>
                 <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted/60 text-primary ring-1 ring-border">
                   <Icon className="size-4" strokeWidth={1.75} aria-hidden />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{item.label}</p>
+                  <p className="typo-label text-muted-foreground">{item.label}</p>
                   <p className="mt-0.5 font-medium text-foreground">{item.detail}</p>
                   {item.meta ? <p className="text-sm text-muted-foreground">{item.meta}</p> : null}
                   <p className="typo-caption mt-1">{formatWhen(item.at)}</p>
                 </div>
-              </GlassCard>
+              </div>
             </li>
           );
         })}

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { cyber } from "@/lib/design-system/cyber";
 import { cn } from "@/lib/utils";
 
 export type MetricCardProps = {
@@ -12,10 +13,7 @@ export type MetricCardProps = {
 export function MetricCard({ label, value, hint, className }: MetricCardProps) {
   return (
     <div
-      className={cn(
-        "ce-card-glow rounded-2xl border border-border/70 bg-linear-to-br from-card to-muted/15 px-4 py-3 shadow-sm ring-1 ring-inset ring-white/20 dark:ring-cyan/10",
-        className,
-      )}
+      className={cn(cyber.metric, className)}
     >
       <p className="typo-label">{label}</p>
       <p className="mt-1 text-xl font-semibold tabular-nums tracking-tight text-foreground">{value}</p>

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AdminShell } from "@/components/layout/admin-shell";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminSubmissionReviewForm } from "@/components/admin/admin-submission-review-form";
+import { AdminShell } from "@/components/layout/admin-shell";
 import { Alert } from "@/components/ui/alert";
-import { PageHeader } from "@/components/ui/page-header";
+import { SectionCard } from "@/components/ui/section-card";
 import { prisma } from "@/lib/db";
 
 type Props = { params: Promise<{ submissionId: string }> };
@@ -88,12 +89,11 @@ export default async function AdminSubmissionDetailPage({ params }: Props) {
       },
       practicalTask: {
         select: {
-          id: true,
           title: true,
           description: true,
           taskType: true,
           maxScore: true,
-          module: { select: { id: true, title: true, courseId: true } },
+          module: { select: { title: true, courseId: true } },
         },
       },
     },
@@ -113,105 +113,106 @@ export default async function AdminSubmissionDetailPage({ params }: Props) {
 
   return (
     <AdminShell>
-      <PageHeader
-        title="Проверка отправки"
-        description={`Модуль: ${sub.practicalTask.module.title} · ${sub.practicalTask.title}`}
-        breadcrumb={
-          <Link href="/admin/submissions" className="hover:text-foreground">
-            ← Все отправки
-          </Link>
-        }
-      />
+      <div className="space-y-8">
+        <AdminPageHeader
+          eyebrow="Проверка отправки"
+          title={sub.practicalTask.title}
+          description={`Модуль: ${sub.practicalTask.module.title}`}
+          breadcrumb={
+            <Link href="/admin/submissions" className="hover:text-foreground">
+              ← Все отправки
+            </Link>
+          }
+        />
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,380px)]">
-        <div className="space-y-6">
-          <section className="rounded-2xl border border-border bg-card p-4 shadow-card">
-            <h2 className="text-sm font-semibold text-foreground">Студент</h2>
-            <dl className="mt-3 space-y-2 text-sm">
-              <div>
-                <dt className="text-xs text-muted-foreground">ФИО</dt>
-                <dd className="font-medium text-foreground">{fio}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">Email</dt>
-                <dd>
-                  <a className="text-primary hover:underline" href={`mailto:${sub.user.email}`}>
-                    {sub.user.email}
-                  </a>
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">Учебное заведение</dt>
-                <dd className="text-foreground">{p?.educationalInstitution ?? "—"}</dd>
-              </div>
-            </dl>
-          </section>
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,380px)]">
+          <div className="space-y-6">
+            <SectionCard variant="lab" title="Студент" flushTitle>
+              <dl className="space-y-2 text-sm">
+                <div>
+                  <dt className="typo-label text-muted-foreground">ФИО</dt>
+                  <dd className="font-medium text-foreground">{fio}</dd>
+                </div>
+                <div>
+                  <dt className="typo-label text-muted-foreground">Email</dt>
+                  <dd>
+                    <a className="text-primary hover:underline" href={`mailto:${sub.user.email}`}>
+                      {sub.user.email}
+                    </a>
+                  </dd>
+                </div>
+                <div>
+                  <dt className="typo-label text-muted-foreground">Учебное заведение</dt>
+                  <dd className="text-foreground">{p?.educationalInstitution ?? "—"}</dd>
+                </div>
+              </dl>
+            </SectionCard>
 
-          <section className="rounded-2xl border border-border bg-card p-4 shadow-card">
-            <h2 className="text-sm font-semibold text-foreground">Задание</h2>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Модуль: <span className="text-foreground">{sub.practicalTask.module.title}</span>
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">Тип: {taskTypeRu(sub.practicalTask.taskType)}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Макс. балл: {sub.practicalTask.maxScore}</p>
-            <div className="mt-3 max-w-none text-sm text-foreground">
-              {sub.practicalTask.description.split("\n").map((line, i) => (
-                <p key={i} className="whitespace-pre-wrap">
-                  {line}
-                </p>
-              ))}
-            </div>
-          </section>
-
-          <section className="rounded-2xl border border-border bg-card p-4 shadow-card">
-            <h2 className="text-sm font-semibold text-foreground">Ответ студента</h2>
-            {sub.textAnswer?.trim() ? (
-              <div className="mt-3 rounded-xl bg-muted/30 p-3 text-sm whitespace-pre-wrap text-foreground">
-                {sub.textAnswer}
-              </div>
-            ) : (
-              <p className="mt-2 text-sm text-muted-foreground">Текстового ответа нет.</p>
-            )}
-            {fileHref ? (
-              <p className="mt-4">
-                <a className="text-primary text-sm font-medium hover:underline" href={fileHref}>
-                  Скачать прикреплённый файл
-                </a>
+            <SectionCard variant="lab" title="Задание" flushTitle>
+              <p className="text-sm text-muted-foreground">
+                Модуль: <span className="text-foreground">{sub.practicalTask.module.title}</span>
               </p>
-            ) : null}
-            <p className="mt-4 text-xs text-muted-foreground">
-              Дата отправки: <span className="tabular-nums text-foreground">{sub.createdAt.toLocaleString("ru-RU")}</span>
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Текущий статус: <span className="font-medium text-foreground">{statusRu(sub.status)}</span>
-              {sub.checkedAt ? (
-                <>
-                  {" "}
-                  · проверено:{" "}
-                  <span className="tabular-nums text-foreground">{sub.checkedAt.toLocaleString("ru-RU")}</span>
-                </>
+              <p className="mt-1 text-sm text-muted-foreground">Тип: {taskTypeRu(sub.practicalTask.taskType)}</p>
+              <p className="mt-1 text-sm text-muted-foreground">Макс. балл: {sub.practicalTask.maxScore}</p>
+              <div className="mt-3 max-w-none text-sm text-foreground">
+                {sub.practicalTask.description.split("\n").map((line, i) => (
+                  <p key={i} className="whitespace-pre-wrap">
+                    {line}
+                  </p>
+                ))}
+              </div>
+            </SectionCard>
+
+            <SectionCard variant="lab" title="Ответ студента" flushTitle>
+              {sub.textAnswer?.trim() ? (
+                <div className="mt-1 rounded-xl border border-border/60 bg-muted/30 p-3 font-mono text-sm whitespace-pre-wrap text-foreground">
+                  {sub.textAnswer}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Текстового ответа нет.</p>
+              )}
+              {fileHref ? (
+                <p className="mt-4">
+                  <a className="text-sm font-medium text-primary hover:underline" href={fileHref}>
+                    Скачать прикреплённый файл
+                  </a>
+                </p>
               ) : null}
-            </p>
-          </section>
+              <p className="mt-4 text-xs text-muted-foreground">
+                Дата отправки:{" "}
+                <span className="tabular-nums text-foreground">{sub.createdAt.toLocaleString("ru-RU")}</span>
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Текущий статус: <span className="font-medium text-foreground">{statusRu(sub.status)}</span>
+                {sub.checkedAt ? (
+                  <>
+                    {" "}
+                    · проверено:{" "}
+                    <span className="tabular-nums text-foreground">{sub.checkedAt.toLocaleString("ru-RU")}</span>
+                  </>
+                ) : null}
+              </p>
+            </SectionCard>
 
-          {courseHint.allModulesDone ? (
-            <Alert variant="success" title="Курс завершён студентом">
-              {courseHint.hasCertificate
-                ? "Сертификат уже есть в системе (запись Certificate)."
-                : "Все активные модули курса отмечены завершёнными. Можно выпустить сертификат через раздел админки «Сертификаты» (или существующий сценарий генерации), когда он будет подключён."}
-            </Alert>
-          ) : null}
-        </div>
+            {courseHint.allModulesDone ? (
+              <Alert variant="success" title="Курс завершён студентом">
+                {courseHint.hasCertificate
+                  ? "Сертификат уже есть в системе (запись Certificate)."
+                  : "Все активные модули курса отмечены завершёнными. Можно выпустить сертификат через раздел «Сертификаты»."}
+              </Alert>
+            ) : null}
+          </div>
 
-        <div>
-          <h2 className="mb-3 text-sm font-semibold text-foreground">Решение проверяющего</h2>
-          <AdminSubmissionReviewForm
-            submissionId={sub.id}
-            maxScore={sub.practicalTask.maxScore}
-            currentStatus={sub.status}
-            currentScore={sub.score}
-            currentComment={sub.adminComment}
-          />
+          <div>
+            <p className="typo-label mb-3 text-primary">Решение проверяющего</p>
+            <AdminSubmissionReviewForm
+              submissionId={sub.id}
+              maxScore={sub.practicalTask.maxScore}
+              currentStatus={sub.status}
+              currentScore={sub.score}
+              currentComment={sub.adminComment}
+            />
+          </div>
         </div>
       </div>
     </AdminShell>

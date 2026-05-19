@@ -6,7 +6,7 @@ import { updateProfileAction, type UpdateProfileState } from "@/lib/actions/prof
 import { INTEREST_TAG_OPTIONS } from "@/lib/profile-interests";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SectionCard } from "@/components/ui/section-card";
 
 export type ProfileEditFormDefaults = {
   lastName: string;
@@ -26,14 +26,11 @@ export function ProfileEditForm({ defaultValues }: { defaultValues: ProfileEditF
   const selected = new Set(defaultValues.selectedTags);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Редактирование профиля</CardTitle>
-        <CardDescription>
-          Данные используются для сертификата и для AI-адаптации лекций под ваши интересы.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <SectionCard
+      variant="lab"
+      title="Редактирование профиля"
+      description="Данные используются для сертификата и для AI-адаптации лекций под ваши интересы."
+    >
         <form action={formAction} className="space-y-8">
           <div className="grid gap-4 md:grid-cols-2">
             <Input
@@ -148,7 +145,6 @@ export function ProfileEditForm({ defaultValues }: { defaultValues: ProfileEditF
             </Button>
           </div>
         </form>
-      </CardContent>
-    </Card>
+    </SectionCard>
   );
 }

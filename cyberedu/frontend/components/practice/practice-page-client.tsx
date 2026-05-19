@@ -2,26 +2,31 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition, type ComponentProps, type TransitionStartFunction } from "react";
+import { useState, useTransition, type TransitionStartFunction } from "react";
 import type { CheckType, PracticalTaskType, SubmissionStatus } from "@prisma/client";
 import type { ProgressGate } from "@/lib/course-progress-guards";
 import { AiMentorChat } from "@/components/ai/AiMentorChat";
 import { PracticeLabLayout } from "@/components/layout/practice-lab-layout";
-import { PracticeFeedbackBanner } from "@/components/practice/practice-feedback-banner";
+import { PracticeLabAside } from "@/components/practice/practice-lab-aside";
+import { PracticeLabResult } from "@/components/practice/practice-lab-result";
+import { PracticeLabScenario } from "@/components/practice/practice-lab-scenario";
 import { PracticeLabSkeleton } from "@/components/practice/practice-lab-skeleton";
+import { PracticeLabTopBar } from "@/components/practice/practice-lab-top-bar";
+import { PracticeLabWorkspace } from "@/components/practice/practice-lab-workspace";
+import { getPracticeLabState } from "@/lib/practice-lab-ui";
+import type { ChecklistItem } from "@/components/learn/learning-checklist";
 import { useToast } from "@/components/ui/toast";
 import { ScenarioPracticeBlock } from "@/components/practice/scenario-practice-forms";
-import { PracticeSocraticHintPanel } from "@/components/practice/practice-socratic-hint";
 import { TrainingConsole } from "@/components/practice/TrainingConsole";
+import { PracticeLabTerminal } from "@/components/practice/practice-lab-terminal";
 import { submitPracticeTextAction, verifyPracticeInteractiveAction } from "@/lib/actions/practice";
-import { Alert } from "@/components/ui/alert";
+import { PracticeEmpty } from "@/components/practice/practice-empty";
 import { BlockedState } from "@/components/ui/blocked-state";
+import { LockedCard } from "@/components/ui/locked-card";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PendingBanner } from "@/components/ui/pending-banner";
 import { practiceStepBreadcrumbs } from "@/lib/student-nav";
-import { ProgressBar } from "@/components/ui/progress-bar";
 import { SectionCard } from "@/components/ui/section-card";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -60,6 +65,7 @@ export type ClientPracticalTask = {
   expectedAnswerPattern: string | null;
   scenarioData: unknown | null;
   latestSubmission: ClientSubmission;
+  attemptCount: number;
 };
 
 export type PracticeLabModuleContext = {
@@ -126,41 +132,6 @@ function checkTypeRu(c: CheckType): string {
   return m[c] ?? c;
 }
 
-function statusRu(s: SubmissionStatus): string {
-  const m: Record<SubmissionStatus, string> = {
-    DRAFT: "Черновик",
-    SUBMITTED: "Отправлено",
-    CHECKING: "На проверке",
-    ACCEPTED: "Принято",
-    REJECTED: "Отклонено",
-    NEEDS_REVISION: "Нужны правки",
-  };
-  return m[s] ?? s;
-}
-
-function statusBadgeVariant(s: SubmissionStatus): NonNullable<ComponentProps<typeof Badge>["variant"]> {
-  switch (s) {
-    case "ACCEPTED":
-      return "success";
-    case "REJECTED":
-      return "danger";
-    case "NEEDS_REVISION":
-      return "warning";
-    case "SUBMITTED":
-    case "CHECKING":
-      return "cyan";
-    case "DRAFT":
-    default:
-      return "secondary";
-  }
-}
-
-function submissionStatusLabel(sub: ClientSubmission): string {
-  if (!sub) return "Не отправлено";
-  if (sub.status === "SUBMITTED" || sub.status === "CHECKING") return "На проверке";
-  return statusRu(sub.status);
-}
-
 function passingScoreHint(task: ClientPracticalTask): string {
   if (task.maxScore <= 0) return "Баллы не настроены для этого задания.";
   if (task.checkType === "AUTO" && task.hasInteractiveAutoCheck) {
@@ -195,6 +166,15 @@ function criteriaBullets(task: ClientPracticalTask): string[] {
     lines.push("Сценарий учебный: безопасные демо-данные, без реальных атак.");
   }
   return lines;
+}
+
+function practiceChecklist(labState: ReturnType<typeof getPracticeLabState>, hasSubmission: boolean): ChecklistItem[] {
+  return [
+    { text: "Изучить сценарий и цель", checked: labState !== "not_started" },
+    { text: "Выполнить шаги в терминале", checked: hasSubmission || labState === "in_progress" || labState === "correct" },
+    { text: "Отправить ответ на проверку", checked: hasSubmission || labState === "pending_review" || labState === "completed" },
+    { text: "Получить зачёт", checked: labState === "completed" },
+  ];
 }
 
 function feedbackSummary(sub: NonNullable<ClientSubmission>, maxScore: number): string {
@@ -243,36 +223,29 @@ export function PracticePageClient({ moduleId, moduleTitle, labContext, practice
   if (!practiceGate.ok) {
     const cta = practiceBlockedCta(practiceGate.code, moduleId);
     return (
-      <SectionCard variant="muted" className="p-6 sm:p-8">
-        <h2 className="typo-h3">Практика недоступна</h2>
-        <p className="typo-body-muted mt-2">{practiceGate.message}</p>
-        {cta ? (
-          <Button asChild variant="primary" className="mt-6 w-full sm:w-auto">
-            <Link href={cta.href}>{cta.label}</Link>
-          </Button>
-        ) : null}
-        <AiMentorChat
-          moduleId={moduleId}
-          openSignal={chatOpenSeq}
-          contextLabels={{ moduleTitle }}
+      <>
+        <LockedCard
+          title="Практика недоступна"
+          description={practiceGate.message}
+          action={
+            cta ? (
+              <Button asChild variant="primary" size="lg" className="w-full sm:w-auto">
+                <Link href={cta.href}>{cta.label}</Link>
+              </Button>
+            ) : undefined
+          }
         />
-      </SectionCard>
+        <AiMentorChat moduleId={moduleId} openSignal={chatOpenSeq} contextLabels={{ moduleTitle }} />
+      </>
     );
   }
 
   if (tasks.length === 0) {
     return (
-      <SectionCard className="p-8 text-center">
-        <p className="typo-body-muted">Для этого модуля пока нет практических заданий.</p>
-        <Button asChild variant="outline" className="mt-6 w-full sm:w-auto">
-          <Link href={`/dashboard/course/${moduleId}`}>К модулю</Link>
-        </Button>
-        <AiMentorChat
-          moduleId={moduleId}
-          openSignal={chatOpenSeq}
-          contextLabels={{ moduleTitle }}
-        />
-      </SectionCard>
+      <>
+        <PracticeEmpty moduleId={moduleId} />
+        <AiMentorChat moduleId={moduleId} openSignal={chatOpenSeq} contextLabels={{ moduleTitle }} />
+      </>
     );
   }
 
@@ -282,7 +255,6 @@ export function PracticePageClient({ moduleId, moduleTitle, labContext, practice
         <PracticeLabSession
           key={task.id}
           moduleId={moduleId}
-          moduleTitle={moduleTitle}
           labContext={labContext}
           task={task}
           onOpenAiChat={() => setChatOpenSeq((n) => n + 1)}
@@ -303,13 +275,11 @@ export function PracticePageClient({ moduleId, moduleTitle, labContext, practice
 
 function PracticeLabSession({
   moduleId,
-  moduleTitle,
   labContext,
   task,
   onOpenAiChat,
 }: {
   moduleId: string;
-  moduleTitle: string;
   labContext: PracticeLabModuleContext;
   task: ClientPracticalTask;
   onOpenAiChat: () => void;
@@ -317,6 +287,7 @@ function PracticeLabSession({
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [checkFlash, setCheckFlash] = useState<"correct" | "wrong" | null>(null);
   const [pending, startTransition] = useTransition();
   const { toast } = useToast();
 
@@ -326,14 +297,21 @@ function PracticeLabSession({
   const accepted = sub?.status === "ACCEPTED";
   const goalBody = task.instruction?.trim() || null;
   const lab = taskLabComponentLabel(task.taskType);
+  const labState = getPracticeLabState(sub, { flash: checkFlash });
+  const inputData = task.consoleScenario?.trim() || null;
 
   function onMessage(err: string | null, ok: string | null) {
     setError(err);
     setInfo(ok);
-    if (err) toast({ title: "Не удалось отправить", description: err, variant: "error" });
-    if (ok && !err) {
-      toast({ title: "Отправлено", description: ok, variant: "success" });
+    if (err) {
+      setCheckFlash("wrong");
+      toast({ title: "Проверка не пройдена", description: err, variant: "error" });
+    } else if (ok) {
+      setCheckFlash(/верно|засчитан/i.test(ok) ? "correct" : null);
+      toast({ title: /верно|засчитан/i.test(ok) ? "Верно" : "Отправлено", description: ok, variant: "success" });
       router.refresh();
+    } else {
+      setCheckFlash(null);
     }
   }
 
@@ -345,92 +323,44 @@ function PracticeLabSession({
   );
 
   const header = (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-      <div className="min-w-0 space-y-2">
-        <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-cyan/90">SOC Lab</p>
-        <h1 className="typo-h1 text-balance">{task.title}</h1>
-        <p className="typo-body-muted">
-          <span className="font-medium text-foreground">Модуль:</span> {moduleTitle}
-        </p>
-      </div>
-      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center lg:flex-col lg:items-stretch">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className="border-border bg-card font-normal text-foreground">
-            {submissionStatusLabel(sub)}
-          </Badge>
-          <Badge variant="secondary" className="font-normal">
-            Макс. {task.maxScore} б.
-          </Badge>
-        </div>
-        <Button asChild variant="outline" className="w-full sm:w-auto">
-          <Link href={`/dashboard/course/${moduleId}`}>К модулю</Link>
-        </Button>
-      </div>
-    </div>
+    <PracticeLabTopBar
+      taskTitle={task.title}
+      moduleOrderNumber={labContext.moduleOrderNumber}
+      maxScore={task.maxScore}
+      score={sub?.score ?? null}
+      labState={labState}
+      moduleId={moduleId}
+    />
   );
 
   const main = (
     <div className="space-y-6">
-      <PracticeFeedbackBanner
+      <PracticeLabResult
+        labState={labState}
         error={error}
         info={info}
         needsRevision={needsRevision}
         revisionComment={sub?.adminComment}
         accepted={accepted}
         showIntro={!sub && !pendingReview && !accepted}
+        pendingReview={pendingReview}
       />
-      {pendingReview ? (
-        <Alert variant="warning" title="Работа на проверке">
-          Ответ отправлен преподавателю. Новая попытка станет доступна после проверки — обычно в течение
-          нескольких рабочих дней.
-        </Alert>
-      ) : null}
       {pending ? (
         <div className="space-y-3" aria-busy="true" aria-live="polite">
-          <PendingBanner label="Отправка на сервер…" />
+          <PendingBanner label="Проверка на сервере…" />
           <PracticeLabSkeleton />
         </div>
       ) : null}
 
-      <SectionCard title="Цель задания">
-        <div className="typo-body-muted text-pretty">
-          {goalBody ? (
-            <p className="whitespace-pre-wrap">{goalBody}</p>
-          ) : (
-            <p>
-              Закрепить навык «{taskTypeRu(task.taskType)}»: внимательно прочитайте условие и выполните шаги в рабочей области.
-            </p>
-          )}
-        </div>
-      </SectionCard>
+      <PracticeLabScenario
+        scenarioText={task.description}
+        goalText={goalBody}
+        goalFallback={`Закрепить навык «${taskTypeRu(task.taskType)}»: выполните шаги в терминале и отправьте ответ.`}
+        conditions={criteriaBullets(task)}
+        inputData={inputData}
+      />
 
-      <SectionCard title="Условие">
-        <div className="space-y-2 text-pretty typo-body-muted">
-          {task.description.split("\n").map((line, i) => (
-            <p key={i} className="whitespace-pre-wrap">
-              {line}
-            </p>
-          ))}
-        </div>
-      </SectionCard>
-
-      <SectionCard
-        variant="workspace"
-        title="Рабочая область"
-        description={
-          <>
-            Компонент: <span className="font-mono text-foreground">{lab.en}</span> · {lab.ru}
-          </>
-        }
-      >
-        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <Badge variant="outline" className="w-fit font-normal">
-            {taskTypeRu(task.taskType)}
-          </Badge>
-        </div>
-        <p className="typo-caption mb-6 border-b border-border/60 pb-4">
-          Симуляторы и формы учебные: команды не выполняются на реальной ОС; вредоносные действия не требуются.
-        </p>
+      <PracticeLabWorkspace taskTypeLabel={taskTypeRu(task.taskType)} componentLabel={lab}>
         <div className="space-y-4">
           {task.taskType === "TEXT_ANSWER" ? (
             <TextAnswerForm
@@ -514,10 +444,10 @@ function PracticeLabSession({
             />
           ) : null}
         </div>
-      </SectionCard>
+      </PracticeLabWorkspace>
 
       {sub ? (
-        <SectionCard title="Последняя отправка">
+        <SectionCard variant="lab" title="Журнал отправки">
           <p className="typo-body-muted">{feedbackSummary(sub, task.maxScore)}</p>
           {sub.adminComment?.trim() ? (
             <p className="typo-body-muted mt-3 rounded-xl border border-border bg-muted/40 p-3">
@@ -539,80 +469,16 @@ function PracticeLabSession({
   );
 
   const aside = (
-    <div className="space-y-5">
-      <SectionCard title="Статус">
-        <div className="flex items-center gap-2">
-          <Badge variant={sub ? statusBadgeVariant(sub.status) : "secondary"} className="text-xs">
-            {submissionStatusLabel(sub)}
-          </Badge>
-        </div>
-        <dl className="mt-4 space-y-3 text-sm">
-          <div>
-            <dt className="typo-label">Текущий балл</dt>
-            <dd className="mt-1 font-semibold tabular-nums text-foreground">
-              {sub?.score != null ? `${sub.score} / ${task.maxScore}` : "—"}
-            </dd>
-          </div>
-          <div>
-            <dt className="typo-label">Проходной балл</dt>
-            <dd className="typo-body-muted mt-1 leading-snug">{passingScoreHint(task)}</dd>
-          </div>
-        </dl>
-      </SectionCard>
-
-      <SectionCard title="Критерии">
-        <ul className="list-disc space-y-2 pl-4 typo-body-muted">
-          {criteriaBullets(task).map((line) => (
-            <li key={line}>{line}</li>
-          ))}
-        </ul>
-      </SectionCard>
-
-      <SectionCard variant="accent" title="Нужна подсказка?" description="AI-наставник задаёт наводящие вопросы по заданию (без готовых ответов на практику).">
-        <PracticeSocraticHintPanel moduleId={moduleId} practicalTaskId={task.id} className="border-0 bg-transparent p-0 shadow-none" />
-        <Button type="button" variant="primary" className="mt-4 w-full" onClick={onOpenAiChat}>
-          Открыть AI-чат
-        </Button>
-      </SectionCard>
-
-      <SectionCard title="Прогресс модуля">
-        <p className="typo-caption">Шаги: {moduleProgress.completed} из {moduleProgress.total}</p>
-        <ProgressBar
-          className="mt-3"
-          value={moduleProgress.percent}
-          max={100}
-          label={`Прогресс модуля: ${moduleProgress.percent}%`}
-          tone={moduleProgress.percent >= 100 ? "success" : "default"}
-        />
-      </SectionCard>
-
-      <SectionCard title="Что дальше">
-        <ul className="space-y-2 typo-body-muted">
-          {!accepted && !pendingReview ? <li>Завершите задание в рабочей области и отправьте ответ.</li> : null}
-          {pendingReview ? <li>Дождитесь проверки преподавателя.</li> : null}
-          {needsRevision ? <li>Внесите правки и отправьте работу повторно.</li> : null}
-          {accepted ? (
-            <li>
-              <Link href={`/dashboard/course/${moduleId}`} className="font-medium text-primary hover:underline">
-                Вернуться к модулю
-              </Link>{" "}
-              и перейдите к следующему шагу (тест или итог модуля).
-            </li>
-          ) : null}
-          {!accepted ? (
-            <li>
-              <Link href={`/dashboard/course/${moduleId}/lesson`} className="text-primary hover:underline">
-                Лекция модуля
-              </Link>
-              {" · "}
-              <Link href={`/dashboard/course/${moduleId}/test`} className="text-primary hover:underline">
-                Тест
-              </Link>
-            </li>
-          ) : null}
-        </ul>
-      </SectionCard>
-    </div>
+    <PracticeLabAside
+      moduleId={moduleId}
+      practicalTaskId={task.id}
+      labState={labState}
+      checklist={practiceChecklist(labState, Boolean(sub))}
+      attemptCount={task.attemptCount}
+      recommendations={[passingScoreHint(task), ...criteriaBullets(task).slice(0, 3)]}
+      moduleProgress={moduleProgress}
+      onOpenAiChat={onOpenAiChat}
+    />
   );
 
   return <PracticeLabLayout breadcrumb={breadcrumb} header={header} main={main} aside={aside} />;
@@ -653,17 +519,20 @@ function TextAnswerForm({
     );
   }
   return (
-    <div className="space-y-3">
-      <Textarea
-        label="Ваш ответ"
-        hint={`Не менее ${minLength} символов.`}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        rows={8}
-        className="min-h-[180px] border-slate-200 bg-white"
-      />
+    <div className="space-y-4">
+      <PracticeLabTerminal title="stdout — введите ответ">
+        <Textarea
+          label="Поле ответа"
+          hint={`Не менее ${minLength} символов.`}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={8}
+          className="ce-terminal-input min-h-[160px] border-0 bg-transparent shadow-none focus-visible:ring-[var(--terminal-accent)]/40"
+        />
+      </PracticeLabTerminal>
       <Button
         type="button"
+        variant="primary"
         className="w-full sm:w-auto"
         loading={pending}
         disabled={!okLen || pending}
@@ -679,7 +548,7 @@ function TextAnswerForm({
           });
         }}
       >
-        Отправить на проверку
+        Проверить
       </Button>
     </div>
   );
@@ -716,17 +585,20 @@ function FileUploadForm({
   }
   return (
     <div className="space-y-3">
-      <p className="text-xs text-slate-600">
-        Форматы: {typesLabel}. До {maxMb} МБ. Исполняемые файлы не принимаются.
-      </p>
+      <PracticeLabTerminal title="upload@lab">
+        <p className="ce-terminal-dim text-xs">
+          Форматы: {typesLabel}. До {maxMb} МБ. Исполняемые файлы не принимаются.
+        </p>
+      </PracticeLabTerminal>
       <input
         type="file"
         accept={accept || undefined}
-        className="block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-600 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
+        className="block w-full rounded-xl border border-border bg-card px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground"
         onChange={(e) => setFile(e.target.files?.[0] ?? null)}
       />
       <Button
         type="button"
+        variant="primary"
         className="w-full sm:w-auto"
         loading={pending}
         disabled={!file}
@@ -749,7 +621,7 @@ function FileUploadForm({
           });
         }}
       >
-        Загрузить и отправить
+        Проверить
       </Button>
     </div>
   );
@@ -788,7 +660,7 @@ function InteractiveForm({
   const [manualNote, setManualNote] = useState("");
 
   if (accepted) {
-    return <p className="text-sm text-slate-600">Задание выполнено.</p>;
+    return <p className="text-sm text-muted-foreground">Задание выполнено.</p>;
   }
 
   if (submitBlocked) {
@@ -825,25 +697,25 @@ function InteractiveForm({
       ) : (
         <>
           {consoleScenario?.trim() ? (
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 whitespace-pre-wrap">
+            <div className="rounded-xl border border-border bg-muted/50 px-3 py-2 text-xs text-foreground whitespace-pre-wrap">
               {consoleScenario.trim()}
             </div>
           ) : null}
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted-foreground">
             Учебная консоль — симулятор: команды не выполняются на сервере и не вызывают реальную ОС.
           </p>
           <TrainingConsole />
           {mode === "legacy" ? (
             <div className="space-y-2">
               {!hasAuto ? (
-                <p className="text-xs text-slate-500">Автопроверка не настроена — ответ уйдет на ручную проверку.</p>
+                <p className="text-xs text-muted-foreground">Автопроверка не настроена — ответ уйдет на ручную проверку.</p>
               ) : null}
               <label className="block space-y-1 text-sm">
-                <span className="font-medium text-slate-800">Кодовая фраза из задания</span>
+                <span className="font-medium text-foreground">Кодовая фраза из задания</span>
                 <input
                   className={cn(
-                    "w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/30",
+                    "w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30",
                   )}
                   value={legacyAnswer}
                   onChange={(e) => setLegacyAnswer(e.target.value)}
@@ -852,6 +724,7 @@ function InteractiveForm({
               </label>
               <Button
                 type="button"
+                variant="primary"
                 className="w-full sm:w-auto"
                 loading={pending}
                 disabled={!legacyAnswer.trim()}
@@ -875,7 +748,7 @@ function InteractiveForm({
           ) : null}
           {mode === "manual" ? (
             <div className="space-y-3">
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Автопроверка не настроена. Опишите, какие команды вы пробовали и что увидели.
               </p>
               <Textarea
@@ -884,10 +757,11 @@ function InteractiveForm({
                 value={manualNote}
                 onChange={(e) => setManualNote(e.target.value)}
                 rows={6}
-                className="border-slate-200 bg-white"
+                className="border-border bg-card"
               />
               <Button
                 type="button"
+                variant="primary"
                 className="w-full sm:w-auto"
                 loading={pending}
                 disabled={manualNote.trim().length < minLength}
@@ -904,7 +778,7 @@ function InteractiveForm({
                   });
                 }}
               >
-                Отправить на проверку
+                Проверить
               </Button>
             </div>
           ) : null}
@@ -949,26 +823,29 @@ function CombinedForm({
   }
   return (
     <div className="space-y-3">
-      <p className="text-xs text-slate-600">Нужны и текст, и файл. Отправка на ручную проверку.</p>
-      <Textarea
-        label="Текстовая часть"
-        hint={`Минимум ${minLength} символов.`}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        rows={6}
-        className="border-slate-200 bg-white"
-      />
-      <p className="text-xs text-slate-600">
+      <p className="text-xs text-muted-foreground">Нужны и текст, и файл. Отправка на ручную проверку.</p>
+      <PracticeLabTerminal title="answer@lab">
+        <Textarea
+          label="Текстовая часть"
+          hint={`Минимум ${minLength} символов.`}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={6}
+          className="ce-terminal-input border-0 bg-transparent shadow-none"
+        />
+      </PracticeLabTerminal>
+      <p className="text-xs text-muted-foreground">
         Файл: {typesLabel}, до {maxMb} МБ.
       </p>
       <input
         type="file"
         accept={accept || undefined}
-        className="block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+        className="block w-full rounded-xl border border-border bg-card px-3 py-2 text-sm"
         onChange={(e) => setFile(e.target.files?.[0] ?? null)}
       />
       <Button
         type="button"
+        variant="primary"
         className="w-full sm:w-auto"
         loading={pending}
         disabled={!textOk || !file}
@@ -992,7 +869,7 @@ function CombinedForm({
           });
         }}
       >
-        Отправить работу
+        Проверить
       </Button>
     </div>
   );

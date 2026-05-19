@@ -43,7 +43,7 @@ export function LearningJourneyStrip({
   return (
     <nav
       className={cn(
-        "ce-surface-card overflow-x-auto px-3 py-3 sm:px-4 sm:py-4",
+        "ce-surface-card ce-scroll-x-contained px-3 py-3 sm:px-4 sm:py-4",
         className,
       )}
       aria-label="Путь обучения"
@@ -69,7 +69,7 @@ export function LearningJourneyStrip({
               <Link
                 href={step.href}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs font-semibold transition-colors sm:gap-2 sm:px-3 sm:py-2 sm:text-sm",
+                  "flex min-h-11 items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors sm:gap-2 sm:px-3 sm:py-2",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   active &&
                     "border-primary/40 bg-primary/12 text-primary shadow-sm",

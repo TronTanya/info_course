@@ -66,7 +66,13 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (pathname.startsWith("/auth/login") || pathname.startsWith("/auth/register")) {
+  const isAuthEntry =
+    pathname.startsWith("/auth/login") ||
+    pathname.startsWith("/auth/register") ||
+    pathname.startsWith("/auth/forgot-password") ||
+    pathname.startsWith("/auth/reset-password");
+
+  if (isAuthEntry) {
     if (token) {
       if (role === "ADMIN") {
         return withSecurityHeaders(NextResponse.redirect(new URL("/admin", request.url)));

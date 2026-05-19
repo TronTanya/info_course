@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { SubmissionStatus } from "@prisma/client";
+import { cyber } from "@/lib/design-system/cyber";
+import { cn } from "@/lib/utils";
 
 function statusRu(s: SubmissionStatus): string {
   const m: Record<string, string> = {
@@ -48,7 +50,7 @@ export function AdminSubmissionReviewForm({
       : "ACCEPTED";
 
   return (
-    <form action={formAction} className="space-y-4 rounded-2xl border border-border bg-card p-4 shadow-card">
+    <form action={formAction} className={cn(cyber.panel, "card-gradient space-y-4 p-4 sm:p-5")}>
       <input type="hidden" name="submissionId" value={submissionId} />
       {state?.error ? (
         <Alert variant="danger" title="Ошибка">

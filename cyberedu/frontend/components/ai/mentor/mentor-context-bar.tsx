@@ -24,7 +24,7 @@ export function MentorContextBar({
   const chips = buildContextChips(kind, labels, moduleId);
 
   return (
-    <div className="ce-mentor-context border-b border-cyan/15 bg-[#070b12]/80 px-3 py-2">
+    <div className="ce-mentor-context border-b px-3 py-2">
       <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-cyan/80">
         <Radio className="size-3 animate-pulse" aria-hidden />
         <span>Context lock</span>

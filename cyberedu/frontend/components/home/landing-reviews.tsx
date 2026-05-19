@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ReviewStars } from "@/components/reviews/review-stars";
+import { SectionCard } from "@/components/ui/section-card";
 import { getPublishedReviews } from "@/lib/reviews";
 
 const MAX_REVIEWS = 4;
@@ -29,24 +29,22 @@ export async function LandingReviews() {
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {reviews.map((r) => (
-            <Card
+            <SectionCard
               key={r.id}
-              className="flex flex-col overflow-hidden border-border/80 bg-card/95 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-[var(--shadow-card-hover)]"
+              variant="default"
+              flushTitle
+              className="flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-[var(--shadow-card-hover)]"
             >
-              <div className="h-1 w-full bg-gradient-to-r from-primary via-cyan to-secondary/60" aria-hidden />
-              <CardHeader className="space-y-4 pb-3">
-                <ReviewStars value={r.rating} />
-                <div>
-                  <p className="font-semibold text-foreground">{r.name}</p>
-                  <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-muted-foreground">{r.educationalInstitution}</p>
-                </div>
-              </CardHeader>
-              <CardContent className="flex flex-1 flex-col pt-0">
-                <blockquote className="line-clamp-6 flex-1 border-l-2 border-primary/25 pl-3 text-sm leading-relaxed text-muted-foreground">
-                  {r.text}
-                </blockquote>
-              </CardContent>
-            </Card>
+              <div className="mb-3 h-1 w-full bg-gradient-to-r from-primary via-cyan to-secondary/60" aria-hidden />
+              <ReviewStars value={r.rating} />
+              <div className="mt-4">
+                <p className="font-semibold text-foreground">{r.name}</p>
+                <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-muted-foreground">{r.educationalInstitution}</p>
+              </div>
+              <blockquote className="mt-4 line-clamp-6 flex-1 border-l-2 border-primary/25 pl-3 text-sm leading-relaxed text-muted-foreground">
+                {r.text}
+              </blockquote>
+            </SectionCard>
           ))}
         </div>
       )}

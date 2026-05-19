@@ -3,13 +3,14 @@ import Link from "next/link";
 import { AdminDualTable } from "@/components/admin/admin-dual-table";
 import { AdminModuleMoveButtons } from "@/components/admin/admin-module-move-buttons";
 import { AdminBreadcrumbs, adminBreadcrumbItems } from "@/components/admin/admin-breadcrumbs";
+import { AdminMobileCard } from "@/components/admin/admin-mobile-card";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminTable, AdminTableBody, AdminTableHead } from "@/components/admin/admin-table";
 import { AdminTableCard } from "@/components/admin/admin-table-card";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
+import { UiStatePanel } from "@/components/ui/ui-state-panel";
 import { prisma } from "@/lib/db";
 import { toggleModuleActiveAction } from "@/lib/actions/admin-modules";
 
@@ -31,7 +32,11 @@ export default async function AdminModulesPage() {
           title="Модули курса"
           description="Сначала создайте курс в базе данных."
         />
-        <EmptyState className="mt-6" title="Курс не найден" description="Добавьте курс в Prisma seed или админ-инструменты БД." />
+        <UiStatePanel
+          state="empty"
+          title="Курс не найден"
+          description="Добавьте курс в Prisma seed или админ-инструменты БД."
+        />
       </AdminShell>
     );
   }
@@ -66,23 +71,21 @@ export default async function AdminModulesPage() {
           title="Все модули"
           description={modules.length === 0 ? "Создайте первый модуль" : `${modules.length} в курсе`}
         >
-          {modules.length === 0 ? (
-            <EmptyState
-              className="m-6"
-              title="Модулей пока нет"
-              description="Создайте первый модуль — к нему можно привязать лекцию, тест и практику."
-              action={
-                <Button asChild variant="primary">
-                  <Link href="/admin/modules/new">Создать модуль</Link>
-                </Button>
-              }
-            />
-          ) : (
+          <UiStatePanel
+            state={modules.length === 0 ? "empty" : "idle"}
+            title="Модулей пока нет"
+            description="Создайте первый модуль — к нему можно привязать лекцию, тест и практику."
+            action={
+              <Button asChild variant="primary">
+                <Link href="/admin/modules/new">Создать модуль</Link>
+              </Button>
+            }
+          >
             <AdminDualTable
               mobile={
                 <div className="space-y-4 p-4 sm:p-5">
                   {modules.map((m, idx) => (
-                    <div key={m.id} className="ce-admin-mobile-card space-y-3 rounded-2xl border border-border/60 bg-card/80 p-4">
+                    <AdminMobileCard key={m.id} className="space-y-3">
                       <div className="flex flex-wrap items-start justify-between gap-2">
                         <div className="min-w-0">
                           <p className="text-xs tabular-nums text-muted-foreground">№ {m.orderNumber}</p>
@@ -104,7 +107,7 @@ export default async function AdminModulesPage() {
                           <Link href={`/admin/modules/${m.id}/edit`}>Изменить</Link>
                         </Button>
                       </div>
-                    </div>
+                    </AdminMobileCard>
                   ))}
                 </div>
               }
@@ -154,7 +157,7 @@ export default async function AdminModulesPage() {
                 </AdminTable>
               }
             />
-          )}
+          </UiStatePanel>
         </AdminTableCard>
       </div>
     </AdminShell>

@@ -19,6 +19,8 @@ export default function LessonError({
     <div className="flex min-h-[40vh] items-center justify-center px-4 py-12">
       <ErrorState
         className="max-w-lg"
+        server
+        code={error.digest}
         title="Не удалось загрузить лекцию"
         description="Попробуйте обновить страницу. Если урок заблокирован — вернитесь к карте курса и завершите предыдущий модуль."
         action={

@@ -216,9 +216,16 @@ export async function getModuleProgress(userId: string, moduleId: string): Promi
   };
 }
 
+export type ModuleContentCounts = {
+  lessons: number;
+  tests: number;
+  practices: number;
+};
+
 export type CourseProgressModuleRow = {
   module: Pick<Module, "id" | "title" | "description" | "orderNumber">;
   requirements: ModuleRequirements;
+  contentCounts: ModuleContentCounts;
   progress: ProgressRow | null;
   unlocked: boolean;
   progressPercent: number;
@@ -288,6 +295,11 @@ export async function getUserCourseProgress(
     rows.push({
       module: { id: m.id, title: m.title, description: m.description, orderNumber: m.orderNumber },
       requirements: req,
+      contentCounts: {
+        lessons: m.lessons.length,
+        tests: m.tests.length,
+        practices: m.practicalTasks.length,
+      },
       progress: p,
       unlocked,
       progressPercent,

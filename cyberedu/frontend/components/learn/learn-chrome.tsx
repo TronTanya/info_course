@@ -1,31 +1,21 @@
 "use client";
 
-import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import type { ReactNode } from "react";
+import { CyberAmbient, CyberPageShell } from "@/components/cyber/cyber-shell";
+import { CyberPageHeader } from "@/components/cyber/cyber-page-header";
+import { CyberPanel } from "@/components/cyber/cyber-panel";
 import { ScrollReveal } from "@/components/effects/scroll-reveal";
-import { Breadcrumbs, type BreadcrumbItem } from "@/components/ui/breadcrumbs";
-import { ProgressBar } from "@/components/ui/progress-bar";
+import type { BreadcrumbItem } from "@/components/ui/breadcrumbs";
 import { motionPresets } from "@/lib/design-system/motion";
 import { cn } from "@/lib/utils";
 
 export function LearnAmbient() {
-  return (
-    <div className="ce-learn-ambient pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]" aria-hidden>
-      <div className="ce-learn-grid absolute inset-0" />
-      <div className="ce-learn-orb absolute -right-16 top-0 size-56 rounded-full blur-3xl" />
-      <div className="ce-learn-orb ce-learn-orb-b absolute -left-12 bottom-8 size-40 rounded-full blur-3xl" />
-    </div>
-  );
+  return <CyberAmbient />;
 }
 
 export function LearnPageShell({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <div className={cn("relative isolate space-y-8", className)}>
-      <LearnAmbient />
-      <div className="relative z-[1] space-y-8">{children}</div>
-    </div>
-  );
+  return <CyberPageShell className={className}>{children}</CyberPageShell>;
 }
 
 export function LearnSection({
@@ -54,15 +44,9 @@ export function LearnPanel({
   beam?: boolean;
 }) {
   return (
-    <div
-      className={cn(
-        "ce-learn-panel ce-glass card-gradient rounded-2xl shadow-card",
-        beam && "ce-border-beam",
-        className,
-      )}
-    >
+    <CyberPanel beam={beam} className={cn("card-gradient", className)}>
       {children}
-    </div>
+    </CyberPanel>
   );
 }
 
@@ -90,39 +74,24 @@ export function LearnPageHeader({
   const reduce = useReducedMotion();
 
   return (
-    <motion.header
-      className={cn(
-        "hero-glow ce-learn-header ce-border-beam flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/90 p-4 shadow-card sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-5",
-        className,
-      )}
+    <motion.div
       initial={reduce ? false : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
     >
-      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start">
-        <Link
-          href={backHref}
-          className="inline-flex h-9 shrink-0 items-center justify-center rounded-xl border border-border bg-card px-3 text-sm font-medium text-foreground transition-colors duration-200 hover:border-primary/35 hover:bg-primary/8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          {backLabel}
-        </Link>
-        <div className="min-w-0 space-y-2">
-          {breadcrumbItems?.length ? <Breadcrumbs items={breadcrumbItems} /> : null}
-          <p className="typo-eyebrow text-primary">{eyebrow}</p>
-          <h1 className="typo-h2 text-balance sm:text-2xl">{title}</h1>
-          {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}
-        </div>
-      </div>
-      {moduleProgressPercent !== undefined && moduleStepsLabel ? (
-        <div className="w-full shrink-0 space-y-2 sm:max-w-[220px]">
-          <div className="flex items-end justify-between gap-2">
-            <p className="text-xs font-medium text-muted-foreground">Прогресс модуля</p>
-            <span className="text-sm font-semibold tabular-nums text-foreground">{moduleProgressPercent}%</span>
-          </div>
-          <ProgressBar value={moduleProgressPercent} max={100} label={`Шаги: ${moduleStepsLabel}`} />
-        </div>
-      ) : null}
-    </motion.header>
+      <CyberPageHeader
+        layout="split"
+        backHref={backHref}
+        backLabel={backLabel}
+        breadcrumbItems={breadcrumbItems}
+        eyebrow={eyebrow}
+        title={title}
+        subtitle={subtitle}
+        moduleProgressPercent={moduleProgressPercent}
+        moduleStepsLabel={moduleStepsLabel}
+        className={className}
+      />
+    </motion.div>
   );
 }
 

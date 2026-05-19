@@ -1,15 +1,13 @@
+import { transitionBase } from "@/lib/design-system/primitives";
 import { cn } from "@/lib/utils";
 
 export type CircularProgressProps = {
   value: number;
   max?: number;
-  /** Диаметр SVG в px */
   size?: number;
   strokeWidth?: number;
   className?: string;
-  /** Подпись для a11y */
   label?: string;
-  /** Тон обводки прогресса */
   tone?: "default" | "success" | "cyan" | "accent";
 };
 
@@ -17,12 +15,9 @@ const toneClass: Record<NonNullable<CircularProgressProps["tone"]>, string> = {
   default: "text-primary",
   success: "text-success",
   cyan: "text-cyan",
-  accent: "text-accent",
+  accent: "text-accent-foreground",
 };
 
-/**
- * Кольцевой индикатор прогресса (SVG), без внешних зависимостей.
- */
 export function CircularProgress({
   value,
   max = 100,
@@ -47,16 +42,9 @@ export function CircularProgress({
       aria-label={`${label}: ${Math.round(pct)}%`}
     >
       <svg width={size} height={size} className="block -rotate-90" aria-hidden>
+        <circle className="stroke-muted/80" fill="none" strokeWidth={strokeWidth} r={r} cx={cx} cy={cy} />
         <circle
-          className="stroke-muted/80"
-          fill="none"
-          strokeWidth={strokeWidth}
-          r={r}
-          cx={cx}
-          cy={cy}
-        />
-        <circle
-          className={cn("transition-[stroke-dashoffset] duration-700 ease-out", toneClass[tone])}
+          className={cn(transitionBase, toneClass[tone])}
           fill="none"
           stroke="currentColor"
           strokeWidth={strokeWidth}
@@ -69,8 +57,12 @@ export function CircularProgress({
         />
       </svg>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-        <span className="font-display text-2xl font-bold tabular-nums leading-none text-foreground">{Math.round(pct)}%</span>
-        <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">курс</span>
+        <span className="font-display text-2xl font-bold tabular-nums leading-none text-foreground sm:text-3xl">
+          {Math.round(pct)}%
+        </span>
+        <span className="mt-0.5 max-w-[80%] truncate text-[10px] font-medium uppercase tracking-wide text-subtle-foreground">
+          {label}
+        </span>
       </div>
     </div>
   );

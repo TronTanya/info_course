@@ -1,24 +1,26 @@
 import type { Metadata } from "next";
 import type { ComponentProps } from "react";
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ModuleHubStepList } from "@/components/course/module-hub-step-list";
 import { ModuleLearningShell } from "@/components/course/module-learning-shell";
+import { ModuleOverviewPanel } from "@/components/course/module-overview-panel";
 import { LearnSection } from "@/components/learn/learn-chrome";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
-import { Badge } from "@/components/ui/badge";
-import { MetricCard } from "@/components/ui/metric-card";
 import { buildLearningPageContext } from "@/lib/learning-context";
-import { ProgressBar } from "@/components/ui/progress-bar";
+import { SectionHeader } from "@/components/ui/section-header";
 import { SectionCard } from "@/components/ui/section-card";
 import { buildModuleHubSteps } from "@/lib/module-hub-steps";
 import { moduleStepBreadcrumbs } from "@/lib/student-nav";
 import { prisma } from "@/lib/db";
 import {
   getModuleProgress,
+  getModuleRequirements,
   isModuleUnlocked,
   recalculateModuleProgress,
 } from "@/lib/progress";
 import { requireAuth } from "@/lib/permissions";
+import type { Badge } from "@/components/ui/badge";
 
 type Props = { params: Promise<{ moduleId: string }> };
 
@@ -38,8 +40,8 @@ function moduleOverviewLabel(
   hasStarted: boolean,
 ): { text: string; variant: NonNullable<ComponentProps<typeof Badge>["variant"]> } {
   if (moduleCompleted) return { text: "Завершён", variant: "success" };
-  if (hasStarted || progressPercent > 0) return { text: "В процессе", variant: "warning" };
-  return { text: "Доступен", variant: "secondary" };
+  if (hasStarted || progressPercent > 0) return { text: "В процессе", variant: "primary" };
+  return { text: "Не начат", variant: "outline" };
 }
 
 export default async function ModulePage({ params }: Props) {
@@ -55,6 +57,9 @@ export default async function ModulePage({ params }: Props) {
       orderNumber: true,
       courseId: true,
       isActive: true,
+      lessons: { select: { videoUrl: true } },
+      tests: { select: { id: true } },
+      practicalTasks: { select: { id: true } },
     },
   });
 
@@ -80,7 +85,7 @@ export default async function ModulePage({ params }: Props) {
   const overview = moduleOverviewLabel(moduleCompleted, progressPercent, hasStarted);
   const steps = buildModuleHubSteps(moduleId, true, req, p);
   const score = p?.score ?? 0;
-  const desc = courseModule.description?.trim() || "Описание модуля появится позже.";
+  const desc = courseModule.description?.trim() || "Модуль киберлаборатории: лекция, тест и практический сценарий.";
   const moduleSteps = moduleStepsLabel(mp.requirements, mp.progress);
   const learning = await buildLearningPageContext(
     session.user.id,
@@ -89,6 +94,12 @@ export default async function ModulePage({ params }: Props) {
     req,
     p,
   );
+
+  const reqFull = getModuleRequirements(courseModule);
+  const nextStep = steps.find((s) => s.actionHref && (s.status === "available" || s.status === "not_started"));
+  const continueHref = nextStep?.actionHref ?? `/dashboard/course/${moduleId}/lesson`;
+  const continueLabel =
+    nextStep?.actionLabel ?? (hasStarted ? "Продолжить" : "Начать");
 
   return (
     <DashboardShell wide>
@@ -102,41 +113,55 @@ export default async function ModulePage({ params }: Props) {
         title={courseModule.title}
         description={desc}
       >
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge className="w-fit shrink-0" variant={overview.variant}>
-            {overview.text}
-          </Badge>
-        </div>
-
-        <LearnSection className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <MetricCard label="Прогресс по шагам" value={`${progressPercent}%`} />
-          <MetricCard label="Баллы за модуль" value={score} />
-          <div className="flex min-h-full flex-col justify-center rounded-2xl border border-border bg-card p-5 shadow-card sm:col-span-2">
-            <ProgressBar value={progressPercent} max={100} label="Выполнение шагов модуля" />
-          </div>
-        </LearnSection>
+        <ModuleOverviewPanel
+          orderNumber={courseModule.orderNumber}
+          title={courseModule.title}
+          description={desc}
+          progressPercent={progressPercent}
+          score={score}
+          statusLabel={overview.text}
+          statusVariant={overview.variant}
+          contentCounts={{
+            lessons: courseModule.lessons.length,
+            tests: courseModule.tests.length,
+            practices: courseModule.practicalTasks.length,
+          }}
+          requirements={reqFull}
+          continueHref={continueHref}
+          continueLabel={continueLabel}
+        />
 
         <LearnSection>
-          <h2 className="typo-h2 mb-4">Шаги прохождения</h2>
+          <SectionHeader
+            eyebrow="Лаборатория"
+            title="Шаги модуля"
+            description="Пройдите этапы по порядку — следующий откроется после предыдущего."
+          />
           <ModuleHubStepList steps={steps} />
         </LearnSection>
 
         <LearnSection>
-        <SectionCard id="module-result" variant="muted" className="scroll-mt-24" title="Результат">
-          {moduleCompleted ? (
-            <p className="typo-body-muted">
-              Модуль завершён. Набрано баллов: <span className="font-semibold text-foreground">{score}</span>. Следующий модуль
-              открыт в общем списке курса.
-            </p>
-          ) : p?.practiceCompleted ? (
-            <p className="typo-body-muted">
-              Практика принята; итоговый статус модуля обновится после проверки всех требований. Текущие баллы:{" "}
-              <span className="font-semibold text-foreground">{score}</span>.
-            </p>
-          ) : (
-            <p className="typo-body-muted">Здесь появится итог после успешной практики. Сначала пройдите лекцию, тест и задание.</p>
-          )}
-        </SectionCard>
+          <SectionCard id="module-result" variant="lab" className="scroll-mt-24" title="Результат модуля">
+            {moduleCompleted ? (
+              <p className="typo-body-muted">
+                Модуль завершён. Набрано баллов: <span className="font-semibold text-foreground">{score}</span>. Следующий
+                модуль открыт на{" "}
+                <Link href="/dashboard/course" className="font-medium text-primary hover:underline">
+                  карте трека
+                </Link>
+                .
+              </p>
+            ) : p?.practiceCompleted ? (
+              <p className="typo-body-muted">
+                Практика принята; итоговый статус обновится после проверки всех требований. Текущие баллы:{" "}
+                <span className="font-semibold text-foreground">{score}</span>.
+              </p>
+            ) : (
+              <p className="typo-body-muted">
+                Итог появится после успешного прохождения практики. Сначала лекция, затем тест и задание.
+              </p>
+            )}
+          </SectionCard>
         </LearnSection>
       </ModuleLearningShell>
     </DashboardShell>

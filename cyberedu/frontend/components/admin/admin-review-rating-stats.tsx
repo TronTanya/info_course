@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReviewRatingStat } from "@/lib/admin-review-rating-stats";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SectionCard } from "@/components/ui/section-card";
 import type { TooltipContentProps } from "recharts";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
@@ -41,15 +41,11 @@ export function AdminReviewRatingStatsPanel({
   const hasAny = pieData.length > 0;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Распределение оценок</CardTitle>
-        <CardDescription>
-          Доля отзывов по числу звёзд (всего {total}). Диаграмма и таблица считаются по всем записям в
-          списке ниже, включая скрытые с публикации.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <SectionCard
+      variant="lab"
+      title="Распределение оценок"
+      description={`Доля отзывов по числу звёзд (всего ${total}). Диаграмма и таблица считаются по всем записям в списке ниже, включая скрытые с публикации.`}
+    >
         <div className="grid gap-8 md:grid-cols-2 md:items-center">
           <div className="mx-auto aspect-square w-full max-w-[280px] md:max-w-[320px]">
             {hasAny ? (
@@ -113,7 +109,6 @@ export function AdminReviewRatingStatsPanel({
             </table>
           </div>
         </div>
-      </CardContent>
-    </Card>
+    </SectionCard>
   );
 }

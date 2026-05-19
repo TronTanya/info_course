@@ -19,6 +19,8 @@ export default function CourseError({
     <div className="flex min-h-[40vh] items-center justify-center px-4 py-12">
       <ErrorState
         className="max-w-lg"
+        server
+        code={error.digest}
         title="Не удалось загрузить карту курса"
         description="Попробуйте обновить страницу. Если ошибка повторяется — вернитесь в кабинет и откройте курс снова."
         action={

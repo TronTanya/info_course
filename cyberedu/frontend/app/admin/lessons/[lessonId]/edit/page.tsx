@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { AdminLessonEditorForm } from "@/components/admin/admin-lesson-editor-form";
-import { PageHeader } from "@/components/ui/page-header";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { prisma } from "@/lib/db";
 
 type Props = { params: Promise<{ lessonId: string }> };
@@ -37,21 +37,22 @@ export default async function AdminEditLessonPage({ params }: Props) {
 
   return (
     <AdminShell>
-      <PageHeader
-        title="Редактирование лекции"
-        description="Текст в формате, совместимом с отображением в курсе (# и ## для заголовков, абзацы через пустую строку). Используйте вкладку «Превью»."
-        breadcrumb={
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            <Link href="/admin/lessons" className="hover:text-foreground">
-              ← Лекции
-            </Link>
-            <Link href={`/admin/modules/${lesson.moduleId}/edit`} className="hover:text-foreground">
-              Модуль
-            </Link>
-          </div>
-        }
-      />
-      <div className="mt-8 max-w-3xl">
+      <div className="space-y-6">
+        <AdminPageHeader
+          title="Редактирование лекции"
+          description="Текст в формате, совместимом с отображением в курсе (# и ## для заголовков, абзацы через пустую строку). Используйте вкладку «Превью»."
+          breadcrumb={
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              <Link href="/admin/lessons" className="hover:text-foreground">
+                ← Лекции
+              </Link>
+              <Link href={`/admin/modules/${lesson.moduleId}/edit`} className="hover:text-foreground">
+                Модуль
+              </Link>
+            </div>
+          }
+        />
+        <div className="max-w-3xl">
         <AdminLessonEditorForm
           lesson={{
             id: lesson.id,
@@ -63,6 +64,7 @@ export default async function AdminEditLessonPage({ params }: Props) {
           }}
           moduleTitle={lesson.module.title}
         />
+        </div>
       </div>
     </AdminShell>
   );

@@ -1,7 +1,6 @@
 import { cn } from "@/lib/utils";
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { DashboardMobileNav } from "@/components/layout/dashboard-mobile-nav";
-import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { DashboardContentArea } from "@/components/layout/dashboard-content-area";
 
 export function DashboardShell({
   children,
@@ -19,16 +18,13 @@ export function DashboardShell({
   return (
     <div
       className={cn(
-        "dashboard-grid dashboard-grid--with-sidebar flex-1",
+        "dashboard-grid dashboard-grid--with-sidebar min-w-0 flex-1 overflow-x-clip",
         wide && "dashboard-grid--wide",
         className,
       )}
     >
       <AppSidebar variant="student" />
-      <section className="dashboard-content ce-app-main-panel min-w-0 overflow-x-clip p-4 sm:p-7 lg:p-9">
-        <DashboardMobileNav />
-        <DashboardLayout stack={stack}>{children}</DashboardLayout>
-      </section>
+      <DashboardContentArea stack={stack}>{children}</DashboardContentArea>
     </div>
   );
 }

@@ -4,7 +4,9 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSession, signIn } from "next-auth/react";
-import { AuthCard } from "@/components/auth/auth-card";
+import { AuthFormFooter } from "@/components/auth/auth-form-footer";
+import { AuthGlassCard } from "@/components/auth/auth-glass-card";
+import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form-message";
 import { Input } from "@/components/ui/input";
@@ -20,6 +22,9 @@ export function LoginForm() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const registered = searchParams.get("registered") === "1";
+  const resetSent = searchParams.get("reset") === "sent";
+
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
@@ -33,7 +38,6 @@ export function LoginForm() {
         password,
         redirect: false,
       });
-      // Auth.js при redirect:false может положить `error` из query в `url`; надёжнее смотреть `ok` (HTTP + факт входа).
       if (!res || res.ok !== true) {
         setError("Не удалось войти. Проверьте email и пароль или зарегистрируйте новый аккаунт.");
         return;
@@ -56,27 +60,60 @@ export function LoginForm() {
     }
   }
 
-  const registered = searchParams.get("registered") === "1";
-
   return (
-    <AuthCard title="Вход" description="Введите email и пароль учётной записи.">
+    <AuthGlassCard
+      title="Вход"
+      description="Войдите в защищённую сессию CyberEdu."
+      footer={
+        <AuthFormFooter>
+          Нет аккаунта?{" "}
+          <Link className="font-semibold text-primary underline-offset-4 hover:underline" href="/auth/register">
+            Регистрация
+          </Link>
+        </AuthFormFooter>
+      }
+    >
       {registered ? (
         <FormMessage variant="success">Регистрация прошла успешно. Войдите с теми же данными.</FormMessage>
       ) : null}
-      <form onSubmit={onSubmit} className="space-y-3" noValidate>
+      {resetSent ? (
+        <FormMessage variant="success">
+          Если аккаунт с таким email существует, мы отправим инструкции по сбросу пароля.
+        </FormMessage>
+      ) : null}
+
+      <form onSubmit={onSubmit} className="space-y-4" noValidate>
         {error ? <FormMessage>{error}</FormMessage> : null}
-        <Input autoComplete="email" label="Email" name="email" type="email" placeholder="name@example.ru" required disabled={pending} />
-        <Input autoComplete="current-password" label="Пароль" name="password" type="password" required disabled={pending} />
-        <Button className="w-full" type="submit" loading={pending}>
+        <Input
+          autoComplete="email"
+          label="Email"
+          name="email"
+          type="email"
+          placeholder="name@example.ru"
+          required
+          disabled={pending}
+        />
+        <div className="space-y-2">
+          <PasswordInput
+            autoComplete="current-password"
+            label="Пароль"
+            name="password"
+            required
+            disabled={pending}
+          />
+          <div className="flex justify-end">
+            <Link
+              href="/auth/forgot-password"
+              className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Забыли пароль?
+            </Link>
+          </div>
+        </div>
+        <Button className="w-full" size="lg" type="submit" loading={pending} disabled={pending}>
           Войти
         </Button>
       </form>
-      <p className="text-center text-sm text-muted-foreground">
-        Нет аккаунта?{" "}
-        <Link className="font-medium text-primary underline-offset-4 hover:underline" href="/auth/register">
-          Регистрация
-        </Link>
-      </p>
-    </AuthCard>
+    </AuthGlassCard>
   );
 }

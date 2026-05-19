@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { BookOpen, ClipboardCheck, FlaskConical } from "lucide-react";
 import type { DashboardUpcomingTask } from "@/lib/dashboard-ui";
+import { cyber } from "@/lib/design-system/cyber";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { GlassCard } from "@/components/ui/glass-card";
 import { SectionHeader } from "@/components/ui/section-header";
+import { cn } from "@/lib/utils";
 
 const kindIcon = {
   lesson: BookOpen,
@@ -34,7 +35,12 @@ export function DashboardUpcomingTasks({ tasks }: { tasks: DashboardUpcomingTask
             const Icon = kindIcon[task.kind];
             return (
               <li key={task.id}>
-                <GlassCard className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div
+                  className={cn(
+                    cyber.panelStatic,
+                    "flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between",
+                  )}
+                >
                   <div className="flex min-w-0 gap-3">
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/8 text-primary">
                       <Icon className="size-4" strokeWidth={1.75} aria-hidden />
@@ -47,7 +53,7 @@ export function DashboardUpcomingTasks({ tasks }: { tasks: DashboardUpcomingTask
                   <Button asChild variant="outline" size="sm" className="w-full shrink-0 sm:w-auto">
                     <Link href={task.href}>Перейти</Link>
                   </Button>
-                </GlassCard>
+                </div>
               </li>
             );
           })}

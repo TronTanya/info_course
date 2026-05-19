@@ -20,7 +20,7 @@ export function LearningProgressStrip({
   return (
     <div
       className={cn(
-        "ce-glass grid gap-4 rounded-2xl border border-border/60 p-4 sm:grid-cols-2 sm:p-5",
+        "ce-glass grid grid-cols-1 gap-4 rounded-2xl border border-border/60 p-4 md:grid-cols-2 md:p-5",
         className,
       )}
     >
@@ -34,7 +34,7 @@ export function LearningProgressStrip({
         <p className="truncate text-sm font-medium text-foreground">{courseTitle}</p>
         <ProgressBar value={courseProgressPercent} max={100} label="Прогресс курса" />
       </div>
-      <div className="min-w-0 space-y-2 border-t border-border/50 pt-4 sm:border-t-0 sm:border-l sm:pl-5 sm:pt-0">
+      <div className="min-w-0 space-y-2 border-t border-border/50 pt-4 md:border-t-0 md:border-l md:pl-5 md:pt-0">
         <p className="typo-eyebrow text-muted-foreground">Модуль</p>
         <p className="truncate text-sm font-medium text-foreground">{moduleTitle}</p>
         <ProgressBar value={moduleProgressPercent} max={100} label={`Шаги: ${moduleStepsLabel}`} />

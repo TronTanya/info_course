@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { AdminPracticalTaskForm } from "@/components/admin/admin-practical-task-form";
-import { PageHeader } from "@/components/ui/page-header";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { prisma } from "@/lib/db";
 
 type Props = { params: Promise<{ taskId: string }> };
@@ -32,21 +32,22 @@ export default async function AdminEditPracticalTaskPage({ params }: Props) {
 
   return (
     <AdminShell>
-      <PageHeader
-        title="Редактирование задания"
-        description="Изменение типа переключает набор полей — сохраните, чтобы применить настройки к форме студента."
-        breadcrumb={
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            <Link href="/admin/practical-tasks" className="hover:text-foreground">
-              ← Практика
-            </Link>
-            <Link href={`/admin/modules/${task.moduleId}/edit`} className="hover:text-foreground">
-              Модуль
-            </Link>
-          </div>
-        }
-      />
-      <div className="mt-8">
+      <div className="space-y-6">
+        <AdminPageHeader
+          title="Редактирование задания"
+          description="Изменение типа переключает набор полей — сохраните, чтобы применить настройки к форме студента."
+          breadcrumb={
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              <Link href="/admin/practical-tasks" className="hover:text-foreground">
+                ← Практика
+              </Link>
+              <Link href={`/admin/modules/${task.moduleId}/edit`} className="hover:text-foreground">
+                Модуль
+              </Link>
+            </div>
+          }
+        />
+        <div>
         <AdminPracticalTaskForm
           key={task.id}
           modules={modules}
@@ -70,6 +71,7 @@ export default async function AdminEditPracticalTaskPage({ params }: Props) {
               task.scenarioData == null ? "" : JSON.stringify(task.scenarioData as object, null, 2),
           }}
         />
+        </div>
       </div>
     </AdminShell>
   );

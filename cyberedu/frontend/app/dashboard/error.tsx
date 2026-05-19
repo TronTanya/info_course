@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { ErrorState } from "@/components/ui/error-state";
+import { ErrorCard } from "@/components/ui/error-card";
 import { Button } from "@/components/ui/button";
 
 export default function DashboardError({
@@ -18,10 +18,12 @@ export default function DashboardError({
 
   return (
     <div className="flex min-h-[50vh] items-center justify-center px-4 py-12">
-      <ErrorState
+      <ErrorCard
         className="max-w-lg"
+        server
         title="Не удалось загрузить кабинет"
         description="Похоже, произошла временная ошибка. Проверьте соединение и попробуйте снова. Если проблема повторяется — обновите страницу позже."
+        code={error.digest}
         action={
           <div className="flex flex-wrap justify-center gap-3">
             <Button type="button" variant="primary" onClick={() => reset()}>

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { AdminDualTable } from "@/components/admin/admin-dual-table";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminTableCard } from "@/components/admin/admin-table-card";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { deleteReviewAction, hideReviewAction, publishReviewAction } from "@/lib/actions/admin-reviews";
 import { AdminReviewRatingStatsPanel } from "@/components/admin/admin-review-rating-stats";
@@ -7,7 +9,6 @@ import { computeReviewRatingStats } from "@/lib/admin-review-rating-stats";
 import { getAdminReviewRows } from "@/lib/admin-reviews-list";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReviewStars } from "@/components/reviews/review-stars";
 
 export const metadata: Metadata = {
@@ -26,19 +27,12 @@ export default async function AdminReviewsPage() {
   return (
     <AdminShell>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Отзывы</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Публикация, снятие с публикации и удаление. На сайте показываются только отзывы с признаком «опубликован».
-          </p>
-        </div>
+        <AdminPageHeader
+          title="Отзывы"
+          description="Публикация, снятие с публикации и удаление. На сайте показываются только отзывы с признаком «опубликован»."
+        />
         <AdminReviewRatingStatsPanel stats={ratingStats} total={rows.length} />
-        <Card>
-          <CardHeader>
-            <CardTitle>Все отзывы</CardTitle>
-            <CardDescription>{rows.length} записей</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0 sm:p-6">
+        <AdminTableCard title="Все отзывы" description={rows.length === 0 ? "Список пуст" : `${rows.length} записей`}>
             {rows.length === 0 ? (
               <p className="px-4 py-8 text-center text-muted-foreground sm:px-0">Отзывов пока нет.</p>
             ) : (
@@ -149,8 +143,7 @@ export default async function AdminReviewsPage() {
                 }
               />
             )}
-          </CardContent>
-        </Card>
+        </AdminTableCard>
       </div>
     </AdminShell>
   );

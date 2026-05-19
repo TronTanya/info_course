@@ -55,7 +55,7 @@ export function CodeBlock({ code, language }: { code: string; language?: string 
   }
 
   return (
-    <div className="ce-mentor-code group relative my-3 overflow-hidden rounded-lg border border-cyan/20 bg-[#0a0f18]">
+    <div className="ce-mentor-code group relative my-3 overflow-hidden rounded-lg border">
       <div className="flex items-center justify-between border-b border-cyan/15 bg-cyan/5 px-3 py-1.5">
         <span className="font-mono text-[10px] font-medium uppercase tracking-wider text-cyan/90">{lang}</span>
         <button

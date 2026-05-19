@@ -129,27 +129,21 @@ export function TrainingConsole({
         Симулятор терминала: ввод обрабатывается только в браузере, без shell и без выполнения команд на сервере.
       </p>
 
-      <div
-        className={cn(
-          "w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-zinc-700/90 bg-[#0c0c0e] text-zinc-100 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.65)]",
-          "ring-1 ring-white/[0.06]",
-        )}
-      >
-        {/* «Окно» терминала */}
-        <div className="flex items-center gap-2 border-b border-zinc-800/90 bg-gradient-to-b from-zinc-900 to-zinc-950 px-3 py-2.5">
+      <div className={cn("ce-terminal w-full min-w-0 max-w-full overflow-hidden")}>
+        <div className="ce-terminal-chrome flex items-center gap-2 border-b px-3 py-2.5">
           <div className="flex gap-1.5" aria-hidden>
-            <span className="size-3 rounded-full bg-[#ff5f57]" />
-            <span className="size-3 rounded-full bg-[#febc2e]" />
-            <span className="size-3 rounded-full bg-[#28c840]" />
+            <span className="ce-terminal-dot-red size-3 rounded-full" />
+            <span className="ce-terminal-dot-amber size-3 rounded-full" />
+            <span className="ce-terminal-dot-green size-3 rounded-full" />
           </div>
-          <div className="min-w-0 flex-1 text-center font-mono text-[11px] font-medium tracking-wide text-zinc-400">
+          <div className="ce-terminal-dim min-w-0 flex-1 text-center font-mono text-[11px] font-medium tracking-wide">
             Учебная консоль · sandbox
           </div>
           <Button
             type="button"
             size="sm"
             variant="ghost"
-            className="h-7 shrink-0 px-2 text-[11px] text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+            className="ce-terminal-dim h-7 shrink-0 px-2 text-[11px] hover:bg-white/5 hover:text-[var(--terminal-fg)]"
             onClick={applyClear}
           >
             clear
@@ -158,9 +152,9 @@ export function TrainingConsole({
 
         <div
           className={cn(
-            "relative max-h-[min(340px,52vh)] min-h-[220px] overflow-y-auto px-3 py-3",
-            "font-mono text-[13px] leading-relaxed sm:text-sm",
-            "selection:bg-emerald-500/30 selection:text-emerald-50",
+            "ce-terminal-body relative max-h-[min(340px,52vh)] min-h-[220px] overflow-y-auto px-3 py-3",
+            "text-[13px] leading-relaxed sm:text-sm",
+            "selection:bg-[color-mix(in_oklab,var(--terminal-success)_25%,transparent)]",
           )}
           role="log"
           aria-live="polite"
@@ -179,7 +173,7 @@ export function TrainingConsole({
                 key={`${i}-${line.slice(0, 32)}`}
                 className={cn(
                   "whitespace-pre-wrap break-words",
-                  line.startsWith("$ ") ? "text-emerald-400/95" : "text-zinc-300",
+                  line.startsWith("$ ") ? "ce-terminal-prompt" : "ce-terminal-dim",
                 )}
               >
                 {line}
@@ -190,23 +184,19 @@ export function TrainingConsole({
         </div>
 
         <form
-          className="flex items-stretch gap-2 border-t border-zinc-800/90 bg-zinc-950/80 px-2 py-2"
+          className="ce-terminal-footer flex items-stretch gap-2 border-t px-2 py-2"
           onSubmit={(e) => {
             e.preventDefault();
             runLine(draft);
             setDraft("");
           }}
         >
-          <span
-            className="hidden shrink-0 self-center px-1 font-mono text-xs text-emerald-500/90 sm:inline sm:text-sm"
-            aria-hidden
-          >
+          <span className="ce-terminal-prompt hidden shrink-0 self-center px-1 font-mono text-xs sm:inline sm:text-sm" aria-hidden>
             cyberedu@lab:~$
           </span>
           <input
             className={cn(
-              "min-h-11 min-w-0 flex-1 rounded-lg border border-zinc-700/90 bg-zinc-900/90 px-3 py-2.5 font-mono text-sm text-zinc-100",
-              "placeholder:text-zinc-600 outline-none ring-emerald-500/25 focus:ring-2",
+              "ce-terminal-input min-h-11 min-w-0 flex-1 rounded-lg px-3 py-2.5 font-mono text-sm",
             )}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -215,7 +205,7 @@ export function TrainingConsole({
             spellCheck={false}
             aria-label="Учебная командная строка"
           />
-          <Button type="submit" size="sm" variant="secondary" className="shrink-0 bg-zinc-800 text-zinc-100 hover:bg-zinc-700">
+          <Button type="submit" size="sm" variant="secondary" className="shrink-0">
             Ввод
           </Button>
         </form>
@@ -235,7 +225,7 @@ export function TrainingConsole({
               <span>Ожидаемая команда: </span>
               <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground">{ec}</code>
               {expectedCommandDone ? (
-                <span className="mt-1 block font-medium text-emerald-600 dark:text-emerald-400">Команда выполнена.</span>
+                <span className="ce-terminal-success mt-1 block font-medium">Команда выполнена.</span>
               ) : (
                 <span className="mt-1 block">Выполните команду в консоли выше.</span>
               )}

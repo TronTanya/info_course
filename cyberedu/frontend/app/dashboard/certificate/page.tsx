@@ -32,12 +32,13 @@ export default async function CertificatePage() {
         />
 
         {!state ? (
-          <SectionCard variant="muted" className="text-pretty typo-body-muted">
+          <SectionCard variant="lab" className="text-pretty typo-body-muted">
             Курс пока не настроен в системе.
           </SectionCard>
         ) : (
           <div className="space-y-6">
             <SectionCard
+              variant="lab"
               title={state.courseTitle}
               description={`Объём программы: ${state.courseHours} ч.`}
               className="overflow-hidden"
@@ -62,7 +63,7 @@ export default async function CertificatePage() {
             </SectionCard>
 
             {!state.courseCompleted && state.incompleteModules.length > 0 ? (
-              <SectionCard title="Осталось пройти">
+              <SectionCard variant="lab" title="Осталось пройти">
                 <ul className="space-y-2">
                   {state.incompleteModules.map((m) => (
                     <li key={m.id}>

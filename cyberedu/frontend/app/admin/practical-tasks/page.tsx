@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminDualTable } from "@/components/admin/admin-dual-table";
 import { AdminBreadcrumbs, adminBreadcrumbItems } from "@/components/admin/admin-breadcrumbs";
+import { AdminMobileCard } from "@/components/admin/admin-mobile-card";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminTableCard } from "@/components/admin/admin-table-card";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
+import { UiStatePanel } from "@/components/ui/ui-state-panel";
 import { prisma } from "@/lib/db";
 
 function taskTypeRu(t: string): string {
@@ -62,23 +63,21 @@ export default async function AdminPracticalTasksPage() {
           title="Все задания"
           description={tasks.length === 0 ? "Список пуст" : `${tasks.length} в курсе`}
         >
-          {tasks.length === 0 ? (
-            <EmptyState
-              className="m-6"
-              title="Практических заданий нет"
-              description="Создайте задание и привяжите его к модулю — студенты увидят его в цепочке модуля."
-              action={
-                <Button asChild variant="primary">
-                  <Link href="/admin/practical-tasks/new">Создать задание</Link>
-                </Button>
-              }
-            />
-          ) : (
+          <UiStatePanel
+            state={tasks.length === 0 ? "empty" : "idle"}
+            title="Практических заданий нет"
+            description="Создайте задание и привяжите его к модулю — студенты увидят его в цепочке модуля."
+            action={
+              <Button asChild variant="primary">
+                <Link href="/admin/practical-tasks/new">Создать задание</Link>
+              </Button>
+            }
+          >
             <AdminDualTable
               mobile={
                 <div className="space-y-4 p-4 sm:p-5">
                   {tasks.map((t) => (
-                    <div key={t.id} className="ce-admin-mobile-card space-y-2 rounded-2xl border border-border/60 bg-card/80 p-4">
+                    <AdminMobileCard key={t.id} className="space-y-2">
                       <p className="text-xs text-muted-foreground">
                         <span className="tabular-nums">#{t.module.orderNumber}</span> {t.module.title}
                       </p>
@@ -92,7 +91,7 @@ export default async function AdminPracticalTasksPage() {
                       >
                         Изменить
                       </Link>
-                    </div>
+                    </AdminMobileCard>
                   ))}
                 </div>
               }
@@ -145,7 +144,7 @@ export default async function AdminPracticalTasksPage() {
                 </table>
               }
             />
-          )}
+          </UiStatePanel>
         </AdminTableCard>
       </div>
     </AdminShell>

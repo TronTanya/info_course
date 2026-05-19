@@ -1,6 +1,6 @@
 /**
  * Design system tokens (spacing, type scale, motion).
- * CSS variables live in app/globals.css — keep in sync when changing scale.
+ * CSS variables live in app/design-tokens.css — keep in sync when changing scale.
  */
 export const spacing = {
   1: "var(--space-1)",

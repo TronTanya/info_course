@@ -12,7 +12,7 @@ export async function SiteHeader() {
   const variant = !session?.user ? "guest" : role === "ADMIN" ? "admin" : "user";
 
   return (
-    <header className="ce-app-header sticky top-0 z-40">
+    <header className="ce-app-header sticky top-0 z-40 border-b border-primary/15">
       <div className="container-page flex min-w-0 items-center justify-between gap-2 py-3.5 sm:gap-4 sm:py-4">
         <div className="min-w-0 flex-1">
           <BrandLogoHeaderLink className="max-w-full" />

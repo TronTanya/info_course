@@ -27,13 +27,13 @@ function applyTheme(dark: boolean) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = React.useState<Theme>("system");
-  const [resolved, setResolved] = React.useState<"light" | "dark">("light");
+  const [theme, setThemeState] = React.useState<Theme>("dark");
+  const [resolved, setResolved] = React.useState<"light" | "dark">("dark");
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
     queueMicrotask(() => {
-      let stored: Theme = "system";
+      let stored: Theme = "dark";
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw === "light" || raw === "dark" || raw === "system") stored = raw;

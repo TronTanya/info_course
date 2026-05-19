@@ -12,9 +12,11 @@ import {
 import type { AdminDashboardExtended, AdminDashboardStats } from "@/lib/admin-dashboard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
+import { cyber } from "@/lib/design-system/cyber";
+import { cn } from "@/lib/utils";
+import { UiStatePanel } from "@/components/ui/ui-state-panel";
 import { MetricCard } from "@/components/ui/metric-card";
+import { SectionCard } from "@/components/ui/section-card";
 
 const QUICK_ACTIONS = [
   { href: "/admin/users", label: "Пользователи", icon: Users, description: "Поиск и карточки" },
@@ -43,23 +45,23 @@ export function AdminDashboardKpiGrid({ stats }: { stats: AdminDashboardStats })
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 min-[1920px]:grid-cols-6">
       {tiles.map((t) => (
-        <Card
+        <article
           key={t.label}
-          interactive
-          className="group relative overflow-hidden border-border/70 pt-0 ring-1 ring-primary/10 motion-reduce:hover:translate-y-0"
+          className={cn(
+            cyber.adminKpi,
+            "group overflow-hidden rounded-2xl border pt-0 motion-reduce:hover:translate-y-0",
+          )}
         >
           <div
             className={`h-1 w-full bg-linear-to-r from-primary/80 via-accent/60 to-primary/40 ${"warn" in t && t.warn ? "from-warning/80 via-warning/60" : ""}`}
             aria-hidden
           />
-          <CardHeader className="pb-2 pt-5">
-            <CardTitle className="text-base font-semibold">{t.label}</CardTitle>
-            <CardDescription className="text-xs leading-relaxed">{t.hint}</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <p className="text-3xl font-bold tabular-nums tracking-tight sm:text-4xl">{t.value}</p>
-          </CardContent>
-        </Card>
+          <div className="space-y-1 px-5 pb-5 pt-5">
+            <p className="text-base font-semibold text-foreground">{t.label}</p>
+            <p className="text-xs leading-relaxed text-muted-foreground">{t.hint}</p>
+            <p className="pt-2 text-3xl font-bold tabular-nums tracking-tight sm:text-4xl">{t.value}</p>
+          </div>
+        </article>
       ))}
     </div>
   );
@@ -67,12 +69,7 @@ export function AdminDashboardKpiGrid({ stats }: { stats: AdminDashboardStats })
 
 export function AdminDashboardQuickActions() {
   return (
-    <Card className="border-border/70">
-      <CardHeader>
-        <CardTitle className="text-lg">Быстрые действия</CardTitle>
-        <CardDescription>Частые переходы без поиска в меню</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <SectionCard variant="lab" title="Быстрые действия" description="Частые переходы без поиска в меню" flushTitle>
         <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {QUICK_ACTIONS.map((a) => {
             const Icon = a.icon;
@@ -110,46 +107,42 @@ export function AdminDashboardQuickActions() {
             );
           })}
         </ul>
-      </CardContent>
-    </Card>
+    </SectionCard>
   );
 }
 
 export function AdminDashboardContentOverview({ content }: { content: AdminDashboardExtended["content"] }) {
   return (
-    <Card className="border-border/70">
-      <CardHeader>
-        <CardTitle className="text-lg">Контент курса</CardTitle>
-        <CardDescription>
-          {content.courseTitle ? `Курс: ${content.courseTitle}` : "Курс не настроен в базе"}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-3 sm:grid-cols-2">
+    <SectionCard
+      variant="lab"
+      title="Контент курса"
+      description={content.courseTitle ? `Курс: ${content.courseTitle}` : "Курс не настроен в базе"}
+      flushTitle
+    >
+      <div className="grid gap-3 sm:grid-cols-2">
         <MetricCard label="Модули" value={`${content.modulesActive}/${content.modulesTotal}`} hint="активных" />
         <MetricCard label="Лекции" value={content.lessonsTotal} hint="в системе" />
         <MetricCard label="Тесты" value={content.testsTotal} hint="по модулям" />
         <MetricCard label="Практика" value={content.practicalTasksTotal} hint="заданий" />
-      </CardContent>
-    </Card>
+      </div>
+    </SectionCard>
   );
 }
 
 export function AdminDashboardRecentActivity({ recent }: { recent: AdminDashboardExtended["recent"] }) {
   return (
-    <Card className="border-border/70">
-      <CardHeader className="flex flex-row items-start justify-between gap-2">
-        <div>
-          <CardTitle className="text-lg">Недавняя активность</CardTitle>
-          <CardDescription>Последние отправки и регистрации</CardDescription>
-        </div>
+    <SectionCard variant="lab" title="Недавняя активность" description="Последние отправки и регистрации" flushTitle>
+      <div className="mb-4 flex justify-end">
         <Button asChild variant="outline" size="sm">
           <Link href="/admin/submissions">Все отправки</Link>
         </Button>
-      </CardHeader>
-      <CardContent>
-        {recent.length === 0 ? (
-          <EmptyState className="py-8" title="Пока нет событий" description="Активность появится после работы студентов." />
-        ) : (
+      </div>
+        <UiStatePanel
+          state={recent.length === 0 ? "empty" : "idle"}
+          className="py-8"
+          title="Пока нет событий"
+          description="Активность появится после работы студентов."
+        >
           <ul className="space-y-2">
             {recent.map((item) => (
               <li key={item.id}>
@@ -171,9 +164,8 @@ export function AdminDashboardRecentActivity({ recent }: { recent: AdminDashboar
               </li>
             ))}
           </ul>
-        )}
-      </CardContent>
-    </Card>
+        </UiStatePanel>
+    </SectionCard>
   );
 }
 
@@ -185,12 +177,8 @@ export function AdminDashboardSystemStatus({
   pendingWork: number;
 }) {
   return (
-    <Card className="border-border/70">
-      <CardHeader>
-        <CardTitle className="text-lg">Статус системы</CardTitle>
-        <CardDescription>Базовые проверки конфигурации</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
+    <SectionCard variant="lab" title="Статус системы" description="Базовые проверки конфигурации" flushTitle>
+      <div className="space-y-3">
         <div className="flex items-center justify-between gap-3 rounded-xl border border-border/60 px-3 py-2.5">
           <span className="text-sm text-foreground">Курс в БД</span>
           <Badge variant={systemOk ? "success" : "danger"}>{systemOk ? "OK" : "Нет курса"}</Badge>
@@ -215,7 +203,7 @@ export function AdminDashboardSystemStatus({
             </Link>
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </SectionCard>
   );
 }

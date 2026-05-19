@@ -64,8 +64,8 @@ export function ScenarioPracticeBlock(props: Props & { console?: ConsoleScenario
 
   const revisionBanner =
     needsRevision ? (
-      <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm ring-1 ring-inset ring-amber-500/20">
-        <p className="font-semibold text-amber-950 dark:text-amber-200">Работа на доработке</p>
+      <div className="rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm ring-1 ring-inset ring-warning/20">
+        <p className="font-semibold text-warning">Работа на доработке</p>
         {revisionNote ? (
           <p className="mt-2 text-pretty leading-relaxed text-foreground/90">
             <span className="font-medium text-foreground">Комментарий: </span>

@@ -1,8 +1,8 @@
 "use client";
 
 import type { AdminDashboardChartsData } from "@/lib/admin-dashboard-charts";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
+import { SectionCard } from "@/components/ui/section-card";
+import { UiStatePanel } from "@/components/ui/ui-state-panel";
 import type { TooltipContentProps } from "recharts";
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
@@ -34,13 +34,13 @@ function ChartCard({
   const hasData = data.some((d) => d.count > 0);
 
   return (
-    <Card className="overflow-hidden border-border/70 shadow-sm ring-1 ring-secondary/10">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">{title}</CardTitle>
-        <CardDescription className="text-sm">{description}</CardDescription>
-      </CardHeader>
-      <CardContent className="pb-5">
-        {hasData ? (
+    <SectionCard variant="lab" title={title} description={description} className="overflow-hidden ring-1 ring-secondary/10">
+        <UiStatePanel
+          state={hasData ? "idle" : "empty"}
+          className="py-8"
+          title={emptyTitle}
+          description="Данные появятся после активности студентов."
+        >
           <div className="h-[220px] w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
@@ -56,11 +56,8 @@ function ChartCard({
               </BarChart>
             </ResponsiveContainer>
           </div>
-        ) : (
-          <EmptyState title={emptyTitle} description="Данные появятся после активности студентов." className="py-8" />
-        )}
-      </CardContent>
-    </Card>
+        </UiStatePanel>
+    </SectionCard>
   );
 }
 

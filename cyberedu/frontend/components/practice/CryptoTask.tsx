@@ -9,11 +9,16 @@ import {
   CRYPTO_HASH_B,
   CRYPTO_HASH_MEANING_MIN,
 } from "@/lib/crypto-beginner-score";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
+import {
+  PracticeTaskBanner,
+  PracticeTaskResult,
+  PracticeTaskStep,
+  practiceToggleClass,
+  type PracticeResultTone,
+} from "@/components/practice/practice-task-ui";
 
 type CheckResponse = {
   score: number;
@@ -23,6 +28,12 @@ type CheckResponse = {
   explanations?: { caesar: string; base64: string; hash: string };
   saved?: boolean;
 };
+
+function cryptoResultTone(result: CheckResponse): PracticeResultTone {
+  if (result.saved) return "success";
+  if (result.passed) return "good";
+  return "retry";
+}
 
 export type CryptoTaskProps = {
   moduleId: string;
@@ -109,19 +120,12 @@ export function CryptoTask({ moduleId, practicalTaskId, disabled, onResult }: Cr
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-sky-500/25 bg-sky-500/5 px-3 py-2 text-xs text-muted-foreground">
-        <span>
-          Учебные примеры без атак на пароли и без перебора. Вы вручную применяете сдвиг, декодируете Base64 и
-          интерпретируете готовые хеши — как в вводном курсе по ИБ.
-        </span>
-        <Badge variant="cyan" className="shrink-0">
-          Только обучение
-        </Badge>
-      </div>
+      <PracticeTaskBanner badge="Только обучение" variant="cyan">
+        Учебные примеры без атак на пароли и без перебора. Вы вручную применяете сдвиг, декодируете Base64 и
+        интерпретируете готовые хеши — как в вводном курсе по ИБ.
+      </PracticeTaskBanner>
 
-      {/* 1. Caesar */}
-      <section className="space-y-3 rounded-2xl border border-border bg-card/40 p-4 sm:p-5">
-        <h3 className="text-sm font-semibold text-foreground">1. Шифр Цезаря (латиница)</h3>
+      <PracticeTaskStep title="1. Шифр Цезаря (латиница)">
         <p className="text-sm text-muted-foreground leading-relaxed">
           Зашифрованный текст:{" "}
           <span className="font-mono text-foreground">{CRYPTO_CAESAR_CIPHER}</span>. Сдвиг при шифровании:{" "}
@@ -137,11 +141,9 @@ export function CryptoTask({ moduleId, practicalTaskId, disabled, onResult }: Cr
           autoComplete="off"
           spellCheck={false}
         />
-      </section>
+      </PracticeTaskStep>
 
-      {/* 2. Base64 */}
-      <section className="space-y-3 rounded-2xl border border-border bg-card/40 p-4 sm:p-5">
-        <h3 className="text-sm font-semibold text-foreground">2. Base64</h3>
+      <PracticeTaskStep title="2. Base64">
         <p className="text-sm text-muted-foreground leading-relaxed">
           Строка в кодировке Base64:{" "}
           <span className="break-all font-mono text-[13px] text-foreground">{CRYPTO_B64_STRING}</span>. Введите
@@ -156,11 +158,9 @@ export function CryptoTask({ moduleId, practicalTaskId, disabled, onResult }: Cr
           autoComplete="off"
           spellCheck={false}
         />
-      </section>
+      </PracticeTaskStep>
 
-      {/* 3. Hash */}
-      <section className="space-y-3 rounded-2xl border border-border bg-card/40 p-4 sm:p-5">
-        <h3 className="text-sm font-semibold text-foreground">3. Сравнение хешей SHA-256</h3>
+      <PracticeTaskStep title="3. Сравнение хешей SHA-256">
         <p className="text-sm text-muted-foreground leading-relaxed">
           Ниже два учебных отпечатка (hex). Определите, совпадают ли они, и кратко объясните, что означает ваш выбор
           (например, про разные входные данные или про контроль целостности).
@@ -180,12 +180,7 @@ export function CryptoTask({ moduleId, practicalTaskId, disabled, onResult }: Cr
             type="button"
             disabled={disabled || checked}
             onClick={() => setHashSame(true)}
-            className={cn(
-              "rounded-lg border px-3 py-1.5 font-medium transition-colors",
-              hashSame === true
-                ? "border-primary/50 bg-primary/10 text-primary"
-                : "border-border bg-card hover:bg-muted/50",
-            )}
+            className={practiceToggleClass(hashSame === true, Boolean(disabled || checked), "neutral")}
           >
             Совпадают
           </button>
@@ -193,12 +188,7 @@ export function CryptoTask({ moduleId, practicalTaskId, disabled, onResult }: Cr
             type="button"
             disabled={disabled || checked}
             onClick={() => setHashSame(false)}
-            className={cn(
-              "rounded-lg border px-3 py-1.5 font-medium transition-colors",
-              hashSame === false
-                ? "border-primary/50 bg-primary/10 text-primary"
-                : "border-border bg-card hover:bg-muted/50",
-            )}
+            className={practiceToggleClass(hashSame === false, Boolean(disabled || checked), "neutral")}
           >
             Не совпадают
           </button>
@@ -211,7 +201,7 @@ export function CryptoTask({ moduleId, practicalTaskId, disabled, onResult }: Cr
           rows={4}
           disabled={disabled || checked}
         />
-      </section>
+      </PracticeTaskStep>
 
       <div className="flex flex-wrap gap-2">
         <Button type="button" loading={pending} disabled={disabled || !formComplete || checked} onClick={runCheck}>
@@ -227,46 +217,41 @@ export function CryptoTask({ moduleId, practicalTaskId, disabled, onResult }: Cr
       {fetchError ? <p className="text-sm text-danger">{fetchError}</p> : null}
 
       {result && checked ? (
-        <div
-          className={cn(
-            "space-y-3 rounded-xl border px-4 py-3 text-sm",
-            result.saved
-              ? "border-emerald-500/40 bg-emerald-500/10"
-              : result.passed
-                ? "border-sky-500/40 bg-sky-500/10"
-                : "border-amber-500/35 bg-amber-500/8",
-          )}
-        >
-          <p className="font-semibold text-foreground">
-            Результат: {result.score} из {result.maxScore}
-            {result.saved ? " — зачёт" : result.passed ? " — допуск по курсу" : " — повторите задание"}
-          </p>
-          <p className="text-muted-foreground">{result.feedback}</p>
-          {result.explanations ? (
-            <div className="border-t border-border pt-3 space-y-2 text-xs text-muted-foreground leading-relaxed">
-              <p className="font-medium text-foreground">Учебные пояснения</p>
-              <p>
-                <span className="font-medium text-foreground">Цезарь: </span>
-                {result.explanations.caesar}
-              </p>
-              <p>
-                <span className="font-medium text-foreground">Base64: </span>
-                {result.explanations.base64}
-              </p>
-              <p>
-                <span className="font-medium text-foreground">Хеши: </span>
-                {result.explanations.hash}
-              </p>
-            </div>
-          ) : null}
-          {result.saved ? (
-            <p className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Ответ зафиксирован в журнале отправок.</p>
-          ) : result.passed && !result.saved ? (
-            <p className="text-xs text-muted-foreground">
-              Для автоматического сохранения зачёта нужны все три верных ответа и осмысленное пояснение к хешам.
-            </p>
-          ) : null}
-        </div>
+        <PracticeTaskResult
+          tone={cryptoResultTone(result)}
+          title={`Результат: ${result.score} из ${result.maxScore}${
+            result.saved ? " — зачёт" : result.passed ? " — допуск по курсу" : " — повторите задание"
+          }`}
+          feedback={result.feedback}
+          footer={
+            <>
+              {result.explanations ? (
+                <div className="border-t border-border pt-3 space-y-2 text-xs text-muted-foreground leading-relaxed">
+                  <p className="font-medium text-foreground">Учебные пояснения</p>
+                  <p>
+                    <span className="font-medium text-foreground">Цезарь: </span>
+                    {result.explanations.caesar}
+                  </p>
+                  <p>
+                    <span className="font-medium text-foreground">Base64: </span>
+                    {result.explanations.base64}
+                  </p>
+                  <p>
+                    <span className="font-medium text-foreground">Хеши: </span>
+                    {result.explanations.hash}
+                  </p>
+                </div>
+              ) : null}
+              {result.saved ? (
+                <p className="text-xs font-medium text-success">Ответ зафиксирован в журнале отправок.</p>
+              ) : result.passed && !result.saved ? (
+                <p className="text-xs text-muted-foreground">
+                  Для автоматического сохранения зачёта нужны все три верных ответа и осмысленное пояснение к хешам.
+                </p>
+              ) : null}
+            </>
+          }
+        />
       ) : null}
     </div>
   );

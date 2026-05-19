@@ -11,7 +11,7 @@ export function AdminMobileNav() {
 
   return (
     <nav
-      className="ce-admin-mobile-nav -mx-1 flex gap-2 overflow-x-auto pb-1 lg:hidden [-webkit-overflow-scrolling:touch]"
+      className="ce-admin-mobile-nav ce-scroll-x-contained -mx-1 flex gap-2 pb-1 lg:hidden"
       aria-label="Разделы админки"
     >
       {adminNav.map((item) => {
@@ -22,7 +22,7 @@ export function AdminMobileNav() {
             key={item.href}
             href={item.href}
             className={cn(
-              "inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition-colors",
+              "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-3.5 py-2.5 text-sm font-semibold transition-colors",
               active
                 ? "border-primary/40 bg-primary/12 text-primary shadow-sm"
                 : "border-border/70 bg-card/90 text-muted-foreground hover:text-foreground",

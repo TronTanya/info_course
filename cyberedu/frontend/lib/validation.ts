@@ -12,6 +12,11 @@ export const passwordSchema = z
 
 export const registerSchema = z
   .object({
+    name: z
+      .string()
+      .trim()
+      .min(2, "Укажите имя (минимум 2 символа)")
+      .max(120, "Слишком длинное имя"),
     email: emailSchema,
     password: passwordSchema,
     confirmPassword: z.string().min(1, "Подтвердите пароль"),
@@ -31,8 +36,25 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Введите пароль"),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+});
+
+export const resetPasswordSchema = z
+  .object({
+    token: z.string().min(1, "Недействительная ссылка"),
+    password: passwordSchema,
+    confirmPassword: z.string().min(1, "Подтвердите пароль"),
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Пароли должны совпадать",
+  });
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
 const optionalLooseString = z
   .string()

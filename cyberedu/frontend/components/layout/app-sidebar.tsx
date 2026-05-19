@@ -21,8 +21,8 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
         "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card",
         active
-          ? "bg-primary/12 text-primary shadow-sm ring-1 ring-primary/20"
-          : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
+          ? "bg-primary/15 text-primary shadow-sm ring-1 ring-primary/30"
+          : "text-muted-foreground hover:bg-primary/8 hover:text-foreground",
       )}
       aria-current={active ? "page" : undefined}
     >
@@ -57,7 +57,11 @@ export function AppSidebar({ variant }: { variant: AppSidebarVariant }) {
       aria-label={variant === "admin" ? "Навигация админки" : "Навигация кабинета"}
     >
       <div className="ce-sidebar-inner sticky top-[calc(var(--header-height,4.5rem)+1rem)] flex max-h-[calc(100dvh-var(--header-height,4.5rem)-2rem)] flex-col gap-1 overflow-y-auto p-3">
-        <p className="px-3 pb-2 typo-eyebrow text-muted-foreground">
+        <div className="mb-2 flex items-center justify-between gap-2 px-2">
+          <span className="ce-hud-chip">lab online</span>
+          <span className="font-mono text-[10px] text-muted-foreground">v2026</span>
+        </div>
+        <p className="px-3 pb-2 typo-eyebrow text-primary/90">
           {variant === "admin" ? "Администрирование" : "Обучение"}
         </p>
         <nav className="flex flex-1 flex-col gap-0.5">

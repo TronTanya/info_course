@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminDualTable } from "@/components/admin/admin-dual-table";
 import { AdminBreadcrumbs, adminBreadcrumbItems } from "@/components/admin/admin-breadcrumbs";
+import { AdminMobileCard } from "@/components/admin/admin-mobile-card";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminTableCard } from "@/components/admin/admin-table-card";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
+import { UiStatePanel } from "@/components/ui/ui-state-panel";
 import { prisma } from "@/lib/db";
 
 export const metadata: Metadata = {
@@ -41,23 +42,21 @@ export default async function AdminLessonsPage() {
           title="Все лекции"
           description={lessons.length === 0 ? "Список пуст" : `${lessons.length} в курсе`}
         >
-          {lessons.length === 0 ? (
-            <EmptyState
-              className="m-6"
-              title="Лекций пока нет"
-              description="Откройте модуль в разделе «Модули» и нажмите «Новая лекция»."
-              action={
-                <Button asChild variant="primary">
-                  <Link href="/admin/modules">Перейти к модулям</Link>
-                </Button>
-              }
-            />
-          ) : (
+          <UiStatePanel
+            state={lessons.length === 0 ? "empty" : "idle"}
+            title="Лекций пока нет"
+            description="Откройте модуль в разделе «Модули» и нажмите «Новая лекция»."
+            action={
+              <Button asChild variant="primary">
+                <Link href="/admin/modules">Перейти к модулям</Link>
+              </Button>
+            }
+          >
             <AdminDualTable
               mobile={
                 <div className="space-y-4 p-4 sm:p-5">
                   {lessons.map((l) => (
-                    <div key={l.id} className="ce-admin-mobile-card flex flex-col gap-2 rounded-2xl border border-border/60 bg-card/80 p-4">
+                    <AdminMobileCard key={l.id} className="flex flex-col gap-2">
                       <div>
                         <p className="text-xs text-muted-foreground">
                           <span className="tabular-nums">#{l.module.orderNumber}</span>{" "}
@@ -76,7 +75,7 @@ export default async function AdminLessonsPage() {
                       >
                         Редактировать
                       </Link>
-                    </div>
+                    </AdminMobileCard>
                   ))}
                 </div>
               }
@@ -122,7 +121,7 @@ export default async function AdminLessonsPage() {
                 </table>
               }
             />
-          )}
+          </UiStatePanel>
         </AdminTableCard>
       </div>
     </AdminShell>

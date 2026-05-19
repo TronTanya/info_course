@@ -7,7 +7,6 @@ import { AchievementGlyph } from "@/components/achievements/achievement-glyph";
 import type { AchievementRow } from "@/lib/achievements";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { CircularProgress } from "@/components/ui/circular-progress";
 import { cn } from "@/lib/utils";
 
@@ -59,9 +58,9 @@ export function ProfileAchievementsPanel({ rows }: { rows: AchievementRow[] }) {
             transition={{ delay: index * 0.06, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             whileHover={reduce ? undefined : { y: -3 }}
           >
-            <Card
+            <article
               className={cn(
-                "ce-achievement-card relative flex h-full flex-col overflow-hidden border transition-shadow duration-300",
+                "ce-achievement-card relative flex h-full flex-col overflow-hidden rounded-2xl border p-4 pt-5 transition-shadow duration-300",
                 a.unlocked
                   ? "border-primary/35 bg-linear-to-b from-primary/[0.1] to-card shadow-(--shadow-card-hover) ring-1 ring-primary/15"
                   : "border-border/70 bg-muted/15 opacity-95 ring-1 ring-inset ring-border/40",
@@ -76,7 +75,7 @@ export function ProfileAchievementsPanel({ rows }: { rows: AchievementRow[] }) {
                   <Lock className="size-3.5" aria-hidden />
                 </div>
               )}
-              <CardContent className="flex flex-1 flex-col gap-3 p-4 pt-5">
+              <div className="flex flex-1 flex-col gap-3">
                 <AchievementGlyph slug={a.slug} unlocked={a.unlocked} />
                 <div>
                   <p className="font-semibold leading-snug text-foreground">{a.title}</p>
@@ -91,8 +90,8 @@ export function ProfileAchievementsPanel({ rows }: { rows: AchievementRow[] }) {
                 ) : (
                   <p className="mt-auto text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Закрыто</p>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </article>
           </motion.div>
         ))}
       </div>

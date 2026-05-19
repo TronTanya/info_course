@@ -8,4 +8,5 @@ export type UiStatus =
   | "completed"
   | "in_progress"
   | "pending"
-  | "warning";
+  | "warning"
+  | "disabled";

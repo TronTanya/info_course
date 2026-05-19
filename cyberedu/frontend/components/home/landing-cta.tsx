@@ -1,23 +1,23 @@
 import Link from "next/link";
+import { CyberHero } from "@/components/cyber/cyber-hero";
 import { Button } from "@/components/ui/button";
 
 export function LandingCta() {
   return (
-    <section
-      className="hero-glow relative overflow-hidden rounded-3xl border border-primary/25 bg-linear-to-br from-primary/14 via-card to-accent/12 px-8 py-16 text-center shadow-[var(--shadow-glow)] ring-1 ring-primary/15 backdrop-blur-sm sm:px-12 sm:py-20"
-      aria-labelledby="cta-heading"
+    <CyberHero
+      className="border-primary/25 bg-linear-to-br from-primary/14 via-card to-accent/12 text-center shadow-[var(--shadow-glow)] ring-primary/15"
+      labelledBy="cta-heading"
+      padding="spacious"
     >
-      <div className="pointer-events-none absolute -left-24 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full bg-primary/15 blur-3xl" aria-hidden />
-      <div className="pointer-events-none absolute -right-20 -top-16 h-64 w-64 rounded-full bg-accent/12 blur-3xl" aria-hidden />
-
-      <div className="relative mx-auto max-w-2xl space-y-8">
+      <div className="mx-auto max-w-2xl space-y-8">
         <div className="space-y-4">
           <p className="typo-eyebrow text-primary">Старт</p>
           <h2 id="cta-heading" className="typo-h2 text-balance sm:text-4xl">
             Готовы начать путь в информационную безопасность?
           </h2>
           <p className="typo-body-muted text-pretty sm:text-lg">
-            Регистрация бесплатна. Первый модуль открывается сразу — прогресс, практика и сертификат в одном кабинете.
+            Регистрация бесплатна. Первый модуль открывается сразу — прогресс, практика и сертификат в одном
+            кабинете.
           </p>
         </div>
         <div className="flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
@@ -29,6 +29,6 @@ export function LandingCta() {
           </Button>
         </div>
       </div>
-    </section>
+    </CyberHero>
   );
 }

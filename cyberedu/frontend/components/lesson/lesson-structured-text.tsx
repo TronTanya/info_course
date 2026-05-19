@@ -1,7 +1,10 @@
 import type { ReactNode } from "react";
 import { LearningCallout } from "@/components/learn/learning-callout";
-import { LearningChecklist, type ChecklistItem } from "@/components/learn/learning-checklist";
-import { LearningCodeBlock } from "@/components/learn/learning-code-block";
+import { type ChecklistItem } from "@/components/learn/learning-checklist";
+import { Checklist } from "@/components/lesson/lesson-ui/checklist";
+import { InfoCard } from "@/components/lesson/lesson-ui/info-card";
+import { TerminalBlock } from "@/components/lesson/lesson-ui/terminal-block";
+import { WarningCard } from "@/components/lesson/lesson-ui/warning-card";
 import { cn } from "@/lib/utils";
 
 export type GlossaryEntry = { term: string; description: string };
@@ -303,12 +306,25 @@ function BlockShell({
   );
 }
 
-export function LessonStructuredText({ source, className }: { source: string; className?: string }) {
+type SegmentType = Segment["type"];
+
+export function LessonStructuredText({
+  source,
+  className,
+  skipTypes = [],
+}: {
+  source: string;
+  className?: string;
+  /** Не рендерить блоки (например mini_case — показывается отдельной карточкой) */
+  skipTypes?: SegmentType[];
+}) {
   const segments = parseLessonStructure(source);
+  const skip = new Set(skipTypes);
 
   return (
-    <article className={cn("lesson-reading space-y-6 text-pretty", prose, className)}>
+    <article className={cn("lesson-reading mx-auto max-w-prose space-y-7 text-pretty", prose, className)}>
       {segments.map((seg, i) => {
+        if (skip.has(seg.type)) return null;
         switch (seg.type) {
           case "h2":
             return (
@@ -330,15 +346,9 @@ export function LessonStructuredText({ source, className }: { source: string; cl
             );
           case "def":
             return (
-              <BlockShell
-                key={i}
-                className="border border-primary/25 bg-primary/[0.06] ring-1 ring-inset ring-primary/10"
-                label="Определение"
-                labelClass="text-primary"
-                title={seg.title}
-              >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-muted-foreground">{seg.body}</p>
-              </BlockShell>
+              <InfoCard key={i} title={seg.title} label="Термин">
+                <p className="whitespace-pre-wrap">{seg.body}</p>
+              </InfoCard>
             );
           case "ex":
             return (
@@ -378,21 +388,15 @@ export function LessonStructuredText({ source, className }: { source: string; cl
             );
           case "theory":
             return (
-              <BlockShell
-                key={i}
-                className="border border-border/70 bg-card ring-1 ring-inset ring-secondary/10"
-                label="Теория"
-                labelClass="text-muted-foreground"
-                title={seg.title}
-              >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90">{seg.body}</p>
-              </BlockShell>
+              <InfoCard key={i} title={seg.title} label="Теория" variant="accent">
+                <p className="whitespace-pre-wrap text-foreground/90">{seg.body}</p>
+              </InfoCard>
             );
           case "warning":
             return (
-              <LearningCallout key={i} variant="warning" title={seg.title} label="Ошибка новичка">
+              <WarningCard key={i} title={seg.title}>
                 <p className="whitespace-pre-wrap">{seg.body}</p>
-              </LearningCallout>
+              </WarningCard>
             );
           case "info":
             return (
@@ -408,14 +412,14 @@ export function LessonStructuredText({ source, className }: { source: string; cl
             );
           case "danger":
             return (
-              <LearningCallout key={i} variant="danger" title={seg.title}>
+              <WarningCard key={i} title={seg.title} security>
                 <p className="whitespace-pre-wrap">{seg.body}</p>
-              </LearningCallout>
+              </WarningCard>
             );
           case "code":
-            return <LearningCodeBlock key={i} language={seg.language || undefined} code={seg.body} />;
+            return <TerminalBlock key={i} language={seg.language || undefined} code={seg.body} />;
           case "checklist":
-            return <LearningChecklist key={i} items={seg.items} />;
+            return <Checklist key={i} items={seg.items} />;
           case "how":
             return (
               <BlockShell

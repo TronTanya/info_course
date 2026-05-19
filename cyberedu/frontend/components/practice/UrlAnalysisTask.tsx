@@ -11,6 +11,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { cyber } from "@/lib/design-system/cyber";
+import {
+  PracticeTaskBanner,
+  PracticeTaskResult,
+  practiceToggleClass,
+  type PracticeResultTone,
+} from "@/components/practice/practice-task-ui";
 import { cn } from "@/lib/utils";
 
 type Verdict = "" | "safe" | "unsafe";
@@ -26,6 +33,13 @@ type CheckResponse = {
 };
 
 const EXPL_MIN = 35;
+
+function urlResultTone(result: CheckResponse): PracticeResultTone {
+  if (result.saved || result.score >= 9) return "success";
+  if (result.passed) return "good";
+  if (result.score >= 7) return "retry";
+  return "fail";
+}
 
 function initialRows(): Record<string, RowState> {
   const o: Record<string, RowState> = {};
@@ -138,17 +152,12 @@ export function UrlAnalysisTask({ moduleId, practicalTaskId, disabled, onResult 
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-muted-foreground">
-        <span>
-          Все адреса вымышленные и служат только для учебного разбора. Сравнивайте протокол, написание домена и
-          структуру имени хоста.
-        </span>
-        <Badge variant="warning" className="shrink-0">
-          Учебные URL
-        </Badge>
-      </div>
+      <PracticeTaskBanner badge="Учебные URL">
+        Все адреса вымышленные и служат только для учебного разбора. Сравнивайте протокол, написание домена и
+        структуру имени хоста.
+      </PracticeTaskBanner>
 
-      <div className="overflow-x-auto rounded-2xl border border-border shadow-card">
+      <div className={cn(cyber.adminTable, "overflow-x-auto")}>
         <table className="w-full min-w-[640px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-border bg-muted/50 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -175,13 +184,7 @@ export function UrlAnalysisTask({ moduleId, practicalTaskId, disabled, onResult 
                           type="button"
                           disabled={lockedRow}
                           onClick={() => setVerdict(it.id, "safe")}
-                          className={cn(
-                            "rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors",
-                            r.verdict === "safe"
-                              ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-800 dark:text-emerald-200"
-                              : "border-border bg-card hover:bg-muted/50",
-                            lockedRow && "opacity-80",
-                          )}
+                          className={practiceToggleClass(r.verdict === "safe", lockedRow, "safe")}
                         >
                           Безопасно
                         </button>
@@ -189,13 +192,7 @@ export function UrlAnalysisTask({ moduleId, practicalTaskId, disabled, onResult 
                           type="button"
                           disabled={lockedRow}
                           onClick={() => setVerdict(it.id, "unsafe")}
-                          className={cn(
-                            "rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors",
-                            r.verdict === "unsafe"
-                              ? "border-danger/50 bg-danger/10 text-danger"
-                              : "border-border bg-card hover:bg-muted/50",
-                            lockedRow && "opacity-80",
-                          )}
+                          className={practiceToggleClass(r.verdict === "unsafe", lockedRow, "unsafe")}
                         >
                           Подозрительно
                         </button>
@@ -258,39 +255,28 @@ export function UrlAnalysisTask({ moduleId, practicalTaskId, disabled, onResult 
       {fetchError ? <p className="text-sm text-danger">{fetchError}</p> : null}
 
       {result && checked ? (
-        <div
-          className={cn(
-            "rounded-xl border px-4 py-3 text-sm",
+        <PracticeTaskResult
+          tone={urlResultTone(result)}
+          title={`Результат: ${result.score} из ${result.maxScore}${
             result.saved || result.score >= 9
-              ? "border-emerald-500/40 bg-emerald-500/10"
-              : result.passed
-                ? "border-sky-500/40 bg-sky-500/10"
-                : result.score >= 7
-                  ? "border-amber-500/40 bg-amber-500/10"
-                  : "border-destructive/30 bg-destructive/5",
-          )}
-        >
-          <p className="font-semibold text-foreground">
-            Результат: {result.score} из {result.maxScore}
-            {result.saved || result.score >= 9
               ? " — отлично"
               : result.passed
                 ? " — зачёт по критериям"
                 : result.score >= 7
                   ? " — почти зачёт"
-                  : " — нужно доработать"}
-          </p>
-          <p className="mt-2 text-muted-foreground">{result.feedback}</p>
-          {result.saved ? (
-            <p className="mt-2 text-xs font-medium text-emerald-700 dark:text-emerald-300">
-              Ответ зафиксирован в журнале отправок.
-            </p>
-          ) : result.passed && !result.saved ? (
-            <p className="mt-2 text-xs text-muted-foreground">
-              Для автоматического сохранения зачёта наберите не менее 9 баллов по ссылкам и корректное объяснение.
-            </p>
-          ) : null}
-        </div>
+                  : " — нужно доработать"
+          }`}
+          feedback={result.feedback}
+          footer={
+            result.saved ? (
+              <p className="text-xs font-medium text-success">Ответ зафиксирован в журнале отправок.</p>
+            ) : result.passed && !result.saved ? (
+              <p className="text-xs text-muted-foreground">
+                Для автоматического сохранения зачёта наберите не менее 9 баллов по ссылкам и корректное объяснение.
+              </p>
+            ) : null
+          }
+        />
       ) : null}
     </div>
   );
