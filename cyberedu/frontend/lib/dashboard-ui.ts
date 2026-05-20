@@ -1,6 +1,6 @@
 import type { ProfileCourseStats } from "@/lib/profile-course-stats";
 import type { CourseProgressModuleRow } from "@/lib/progress";
-import { getModuleAction, getUiStatus } from "@/lib/course-path-ui";
+import { getModuleAction, getUiStatus, moduleDifficultyByOrder } from "@/lib/course-path-ui";
 
 export type DashboardStepMetrics = {
   lessonsDone: number;
@@ -227,6 +227,38 @@ export type DashboardNextStepCard = {
   href: string;
   statusLabel: string;
   empty?: boolean;
+  difficultyLabel?: string;
+  /** Ориентир по шагам модуля (не жёсткий лимит). */
+  estimatedLabel?: string;
+};
+
+export type DashboardLastTestResult = {
+  testTitle: string;
+  moduleTitle: string;
+  percent: number;
+  passed: boolean;
+  at: string;
+  href: string;
+  reviewItems: string[];
+};
+
+export type DashboardAiRecommendation = {
+  message: string;
+  mentorHref: string;
+  actionLabel: string;
+};
+
+export type DashboardCertificateRequirement = {
+  label: string;
+  met: boolean;
+};
+
+export type DashboardCertificateEligibility = {
+  title: string;
+  description: string;
+  ctaHref: string;
+  ctaLabel: string;
+  requirements: DashboardCertificateRequirement[];
 };
 
 export type DashboardWeakTopic = {
@@ -246,6 +278,28 @@ function firstUpcomingByKind(
   kind: DashboardUpcomingTask["kind"],
 ): DashboardUpcomingTask | null {
   return buildUpcomingTasks(modules).find((t) => t.kind === kind) ?? null;
+}
+
+function practiceEstimateLabel(row: CourseProgressModuleRow): string {
+  const steps = row.requirements.totalSteps;
+  if (steps <= 0) return "Время по заданию";
+  const min = steps * 25;
+  const max = steps * 45;
+  return `~${min}–${max} мин`;
+}
+
+function enrichPracticeCard(
+  card: DashboardNextStepCard,
+  modules: CourseProgressModuleRow[],
+): DashboardNextStepCard {
+  const mod =
+    modules.find((m) => card.href.includes(m.module.id)) ?? findFocusModule(modules);
+  if (!mod) return card;
+  return {
+    ...card,
+    difficultyLabel: moduleDifficultyByOrder(mod.module.orderNumber),
+    estimatedLabel: card.empty ? undefined : practiceEstimateLabel(mod),
+  };
 }
 
 /** Карточка ближайшей лекции (или повтор материала перед тестом). */
@@ -323,67 +377,246 @@ export function getNextPracticeCard(modules: CourseProgressModuleRow[]): Dashboa
 
   const practice = firstUpcomingByKind(modules, "practice");
   if (practice) {
-    return {
-      kind: "practice",
-      title: "Практическая работа",
-      moduleTitle: practice.moduleTitle,
-      href: practice.href,
-      statusLabel: "Следующий шаг",
-    };
+    return enrichPracticeCard(
+      {
+        kind: "practice",
+        title: practice.title.replace(/^Выполнить /, "") || "Практическая работа",
+        moduleTitle: practice.moduleTitle,
+        href: practice.href,
+        statusLabel: "Следующий шаг",
+      },
+      modules,
+    );
   }
 
   const test = firstUpcomingByKind(modules, "test");
   if (test) {
-    return {
-      kind: "test",
-      title: "Контрольный тест",
-      moduleTitle: test.moduleTitle,
-      href: test.href,
-      statusLabel: "После лекции",
-    };
+    return enrichPracticeCard(
+      {
+        kind: "test",
+        title: "Контрольный тест",
+        moduleTitle: test.moduleTitle,
+        href: test.href,
+        statusLabel: "После лекции",
+      },
+      modules,
+    );
   }
 
   const focus = findFocusModule(modules);
   if (!focus) {
-    return {
-      kind: "practice",
-      title: "Практика недоступна",
-      moduleTitle: "Сначала откройте модуль в карте курса",
-      href: "/dashboard/course",
-      statusLabel: "Карта курса",
-      empty: true,
-    };
+    return enrichPracticeCard(
+      {
+        kind: "practice",
+        title: "Практика недоступна",
+        moduleTitle: "Сначала откройте модуль в карте курса",
+        href: "/dashboard/course",
+        statusLabel: "Карта курса",
+        empty: true,
+      },
+      modules,
+    );
   }
 
   if (!focus.requirements.practiceRequired) {
-    return {
-      kind: "practice",
-      title: "Без практики в модуле",
-      moduleTitle: focus.module.title,
-      href: `/dashboard/course/${focus.module.id}`,
-      statusLabel: "Перейти к модулю",
-      empty: true,
-    };
+    return enrichPracticeCard(
+      {
+        kind: "practice",
+        title: "Без практики в модуле",
+        moduleTitle: focus.module.title,
+        href: `/dashboard/course/${focus.module.id}`,
+        statusLabel: "Перейти к модулю",
+        empty: true,
+      },
+      modules,
+    );
   }
 
   if (focus.progress?.practiceCompleted) {
-    return {
+    return enrichPracticeCard(
+      {
+        kind: "practice",
+        title: "Практика сдана",
+        moduleTitle: focus.module.title,
+        href: `/dashboard/course/${focus.module.id}/practice`,
+        statusLabel: "Повторить лабораторию",
+      },
+      modules,
+    );
+  }
+
+  return enrichPracticeCard(
+    {
       kind: "practice",
-      title: "Практика сдана",
+      title: "Практика модуля",
       moduleTitle: focus.module.title,
       href: `/dashboard/course/${focus.module.id}/practice`,
-      statusLabel: "Повторить лабораторию",
+      statusLabel: "После теста",
+      empty: true,
+    },
+    modules,
+  );
+}
+
+export function getLastTestResultView(
+  stats: ProfileCourseStats,
+  modules: CourseProgressModuleRow[],
+): DashboardLastTestResult | null {
+  if (!stats.lastTest) return null;
+
+  const mod = findModuleByTitle(modules, stats.lastTest.moduleTitle);
+  const href = mod ? `/dashboard/course/${mod.module.id}/test` : "/dashboard/course";
+  const reviewItems: string[] = [];
+
+  if (!stats.lastTest.passed) {
+    reviewItems.push(`Результат ${stats.lastTest.percent}% — тест не зачтён, повторите после лекции`);
+  } else {
+    reviewItems.push(`Зачёт с результатом ${stats.lastTest.percent}%`);
+  }
+
+  if (stats.averageTestPercent != null && stats.averageTestPercent < 70) {
+    reviewItems.push(`Средний балл по попыткам: ${stats.averageTestPercent}% — имеет смысл закрепить тему`);
+  }
+
+  const nextTest = firstUpcomingByKind(modules, "test");
+  if (nextTest && !stats.lastTest.passed) {
+    reviewItems.push("Перед повторной попыткой пройдите материал лекции ещё раз");
+  }
+
+  return {
+    testTitle: stats.lastTest.testTitle,
+    moduleTitle: stats.lastTest.moduleTitle,
+    percent: stats.lastTest.percent,
+    passed: stats.lastTest.passed,
+    at: stats.lastTest.at,
+    href,
+    reviewItems,
+  };
+}
+
+export function buildAiRecommendation(
+  stats: ProfileCourseStats,
+  modules: CourseProgressModuleRow[],
+): DashboardAiRecommendation {
+  const mentorHref = getMentorHref(modules, stats);
+
+  if (stats.lastTest && !stats.lastTest.passed) {
+    return {
+      message: `Разберите ошибки теста «${stats.lastTest.testTitle}» с наставником — он объяснит тему проще, без спойлеров ответов.`,
+      mentorHref,
+      actionLabel: "Спросить AI",
+    };
+  }
+
+  if (stats.allModulesComplete) {
+    return {
+      message: stats.certificateIssued
+        ? "Курс и сертификат на месте. Спросите наставника, как перенести навыки в рабочие сценарии SOC."
+        : "Все модули закрыты — оформите сертификат и при необходимости повторите слабые темы с наставником.",
+      mentorHref: stats.currentModuleId
+        ? `/dashboard/course/${stats.currentModuleId}/lesson`
+        : "/dashboard/course",
+      actionLabel: "Спросить AI",
+    };
+  }
+
+  const focus = findFocusModule(modules);
+  if (focus) {
+    const upcoming = buildUpcomingTasks(modules)[0];
+    if (upcoming?.kind === "lesson") {
+      return {
+        message: `Сейчас в фокусе модуль «${focus.module.title}». Наставник поможет понять лекцию перед тестом.`,
+        mentorHref,
+        actionLabel: "Спросить AI",
+      };
+    }
+    if (upcoming?.kind === "practice") {
+      return {
+        message: `Готовьтесь к практике в модуле «${focus.module.title}» — наставник даст подсказки без готового решения.`,
+        mentorHref,
+        actionLabel: "Спросить AI",
+      };
+    }
+  }
+
+  return {
+    message: "Откройте лекцию текущего модуля — наставник ускорит понимание и проверит, усвоили ли вы материал.",
+    mentorHref,
+    actionLabel: "Спросить AI",
+  };
+}
+
+export function getCertificateEligibility(
+  stats: ProfileCourseStats,
+  metrics: DashboardStepMetrics,
+): DashboardCertificateEligibility {
+  const requirements: DashboardCertificateRequirement[] = [
+    {
+      label: `Модули: ${stats.completedModules} / ${stats.totalModules}`,
+      met: stats.allModulesComplete,
+    },
+    {
+      label:
+        metrics.lessonsTotal > 0
+          ? `Лекции: ${metrics.lessonsDone} / ${metrics.lessonsTotal}`
+          : "Лекции: не требуются",
+      met: metrics.lessonsTotal === 0 || metrics.lessonsDone >= metrics.lessonsTotal,
+    },
+    {
+      label:
+        metrics.testsTotal > 0 ? `Тесты: ${metrics.testsDone} / ${metrics.testsTotal}` : "Тесты: не требуются",
+      met: metrics.testsTotal === 0 || metrics.testsDone >= metrics.testsTotal,
+    },
+    {
+      label:
+        metrics.practiceTotal > 0
+          ? `Практика: ${metrics.practiceDone} / ${metrics.practiceTotal}`
+          : "Практика: не требуется",
+      met: metrics.practiceTotal === 0 || metrics.practiceDone >= metrics.practiceTotal,
+    },
+  ];
+
+  if (stats.certificateIssued) {
+    return {
+      title: "Сертификат выдан",
+      description: stats.certificateNumber
+        ? `Документ № ${stats.certificateNumber} — скачайте PDF и передайте ссылку на проверку.`
+        : "Сертификат доступен в разделе «Сертификат».",
+      ctaHref: "/dashboard/certificate",
+      ctaLabel: "Открыть сертификат",
+      requirements,
+    };
+  }
+
+  if (stats.allModulesComplete && stats.canGenerateCertificate) {
+    return {
+      title: "Можно получить сертификат",
+      description: "Все требования выполнены — сгенерируйте документ с QR и публичной проверкой.",
+      ctaHref: "/dashboard/certificate",
+      ctaLabel: "Получить сертификат",
+      requirements,
     };
   }
 
   return {
-    kind: "practice",
-    title: "Практика модуля",
-    moduleTitle: focus.module.title,
-    href: `/dashboard/course/${focus.module.id}/practice`,
-    statusLabel: "После теста",
-    empty: true,
+    title:
+      stats.modulesUntilCertificate > 0
+        ? `До сертификата: ${stats.modulesUntilCertificate} мод.`
+        : "Прогресс к сертификату",
+    description: "Завершите все модули программы — после этого откроется выдача сертификата.",
+    ctaHref: "/dashboard/certificate",
+    ctaLabel: "Условия сертификата",
+    requirements,
   };
+}
+
+/** Позиция студента в треке для шапки кабинета. */
+export function getCoursePositionLabel(stats: ProfileCourseStats, modules: CourseProgressModuleRow[]): string {
+  if (stats.allModulesComplete) return "Финиш программы";
+  const focus = findFocusModule(modules);
+  if (focus) return `Модуль ${focus.module.orderNumber} из ${stats.totalModules}`;
+  if (stats.currentModuleTitle) return stats.currentModuleTitle;
+  return stats.courseTitle;
 }
 
 /** Рекомендации на основе реальных неуспехов и очереди шагов (без выдуманных тем). */

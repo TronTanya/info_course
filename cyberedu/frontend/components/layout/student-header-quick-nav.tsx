@@ -2,28 +2,35 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { studentQuickNav } from "@/lib/design-system/nav-config";
+import { studentHeaderNavKeys, studentQuickNav } from "@/lib/design-system/nav-config";
 import { isStudentQuickNavActive, resolveStudentNavPaths } from "@/lib/nav-resolve";
 import { cn } from "@/lib/utils";
 
-/** Компактная горизонтальная навигация в шапке (lg+, когда sidebar скрыт на планшетах — md не показываем). */
+const navByKey = Object.fromEntries(studentQuickNav.map((item) => [item.key, item])) as Record<
+  (typeof studentHeaderNavKeys)[number],
+  (typeof studentQuickNav)[number]
+>;
+
+/** Компактная горизонтальная навигация в шапке кабинета (xl+). */
 export function StudentHeaderQuickNav() {
   const pathname = usePathname() ?? "";
   const paths = resolveStudentNavPaths(pathname);
 
   return (
     <nav
-      className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 xl:flex xl:gap-1"
+      className="hidden"
       aria-label="Разделы кабинета"
     >
-      {studentQuickNav.map((item) => {
-        const active = isStudentQuickNavActive(pathname, item.key);
+      {studentHeaderNavKeys.map((key) => {
+        const item = navByKey[key];
+        if (!item) return null;
+        const active = isStudentQuickNavActive(pathname, key);
         return (
           <Link
-            key={item.key}
-            href={paths[item.key]}
+            key={key}
+            href={paths[key]}
             className={cn(
-              "rounded-lg px-2 py-1.5 text-xs font-semibold transition-colors xl:px-2.5",
+              "shrink-0 rounded-lg px-2.5 py-2 text-xs font-semibold transition-colors",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               active
                 ? "bg-primary/12 text-primary ring-1 ring-primary/25"
@@ -31,8 +38,7 @@ export function StudentHeaderQuickNav() {
             )}
             aria-current={active ? "page" : undefined}
           >
-            <span className="hidden xl:inline">{item.label}</span>
-            <span className="xl:hidden">{item.label.split(/\s/)[0]}</span>
+            {item.label}
           </Link>
         );
       })}

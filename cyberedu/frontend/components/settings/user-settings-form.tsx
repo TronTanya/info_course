@@ -113,7 +113,7 @@ export function UserSettingsForm({ defaults, email }: { defaults: UserSettingsDe
   const topError = firstErrorMessage(state);
 
   return (
-    <form action={formAction} encType="multipart/form-data" className="space-y-8">
+    <form action={formAction} className="space-y-8">
       <input type="hidden" name="clearAvatar" value={clearAvatar ? "1" : "0"} />
       <input type="hidden" name="avatarUrl" value={hiddenAvatarUrl} />
 

@@ -1,6 +1,10 @@
 # CyberEdu — операционное руководство
 
-Полное описание проекта, цели, архитектура, безопасность и раздел для защиты: **[`../README.md`](../README.md)** (корень репозитория).
+| Аудитория | Документ |
+|-----------|----------|
+| **Portfolio / GitHub** | **[`../README.md`](../README.md)** (EN) · **[`../README.ru.md`](../README.ru.md)** (RU) |
+| **Защита / обзор (RU)** | Тот же корневой README + [`docs/DEFENSE_READINESS.md`](./docs/DEFENSE_READINESS.md) |
+| **Эксплуатация** | Этот файл + [`docs/OPERATIONS.md`](./docs/OPERATIONS.md) |
 
 ## Быстрый старт (development)
 

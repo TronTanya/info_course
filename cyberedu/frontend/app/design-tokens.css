@@ -1,6 +1,6 @@
 /**
- * CyberEdu Design System v2.1 — токены (цвета, типографика, радиусы, тени).
- * Стиль: premium edtech / dark cyber academy (без кислотного hacker-green).
+ * CyberEdu Design System v2.2 — токены (цвета, типографика, радиусы, тени, glow).
+ * Стиль: premium edtech / cybersecurity academy / dark SaaS (без кислотного hacker-green).
  * Тёмная тема по умолчанию через класс .dark на <html>.
  */
 
@@ -20,6 +20,18 @@
   --ce-text: #f4f2fa;
   --ce-text-secondary: #b8b3cc;
   --ce-text-muted: #7c7794;
+
+  /* Premium surfaces & glow (v2.2) */
+  --ce-glass-blur: 16px;
+  --ce-glass-saturate: 1.14;
+  --ce-glow-primary: 0 0 48px -12px color-mix(in oklab, var(--ce-accent) 42%, transparent);
+  --ce-glow-cyan: 0 0 40px -14px color-mix(in oklab, var(--ce-cyber-teal) 38%, transparent);
+  --ce-glow-mint: 0 0 36px -14px color-mix(in oklab, var(--ce-cyber-mint) 32%, transparent);
+  --ce-highlight-edge: linear-gradient(
+    180deg,
+    color-mix(in oklab, white 14%, transparent) 0%,
+    transparent 42%
+  );
 
   /* SOC-терминал (не зависит от light/dark страницы; чуть ярче UI-success) */
   --terminal-bg: #0d0b18;

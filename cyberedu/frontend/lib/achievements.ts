@@ -45,12 +45,79 @@ export const ACHIEVEMENT_CATALOG: {
     description: "Сертификат получен — поздравляем!",
     hintLocked: "Завершите все модули и выпустите сертификат в разделе курса или профиля.",
   },
+  {
+    kind: "AI_MENTOR_USED",
+    slug: "ai-mentor",
+    title: "Спросил наставника",
+    description: "Вы написали AI-наставнику — мудрое решение.",
+    hintLocked: "Откройте чат наставника на лекции или практике и задайте вопрос.",
+  },
+  {
+    kind: "COURSE_HALF_COMPLETE",
+    slug: "half-course",
+    title: "Ровно полпути",
+    description: "Половина модулей курса уже позади.",
+    hintLocked: "Завершите половину модулей — лекция, тест и практика в каждом.",
+  },
+  {
+    kind: "TEST_PERFECT_SCORE",
+    slug: "perfect-test",
+    title: "Идеальный зачёт",
+    description: "Тест сдан на 100% — без единой ошибки.",
+    hintLocked: "Пройдите любой модульный тест без потери баллов.",
+  },
 ];
 
 export type AchievementRow = (typeof ACHIEVEMENT_CATALOG)[number] & {
   unlocked: boolean;
   unlockedAt: string | null;
 };
+
+/** Добавлены после первого релиза achievements — на старом Prisma Client их нет. */
+const EXTENDED_ACHIEVEMENT_KINDS = new Set<AchievementKind>([
+  "AI_MENTOR_USED",
+  "COURSE_HALF_COMPLETE",
+  "TEST_PERFECT_SCORE",
+]);
+
+function isPrismaClientValidationError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    (error as { name: string }).name === "PrismaClientValidationError"
+  );
+}
+
+async function persistGrantedAchievements(userId: string, kinds: AchievementKind[]): Promise<AchievementKind[]> {
+  const batch = [...new Set(kinds)];
+  if (batch.length === 0) return [];
+
+  const run = async (kindsToGrant: AchievementKind[]) => {
+    const existing = await prisma.userAchievement.findMany({
+      where: { userId, kind: { in: kindsToGrant } },
+      select: { kind: true },
+    });
+    const have = new Set(existing.map((e) => e.kind));
+    const newlyGranted = kindsToGrant.filter((k) => !have.has(k));
+    if (newlyGranted.length === 0) return [];
+
+    await prisma.userAchievement.createMany({
+      data: newlyGranted.map((kind) => ({ userId, kind })),
+      skipDuplicates: true,
+    });
+    return newlyGranted;
+  };
+
+  try {
+    return await run(batch);
+  } catch (error) {
+    const hasExtended = batch.some((k) => EXTENDED_ACHIEVEMENT_KINDS.has(k));
+    if (!hasExtended || !isPrismaClientValidationError(error)) throw error;
+    const legacyOnly = batch.filter((k) => !EXTENDED_ACHIEVEMENT_KINDS.has(k));
+    return run(legacyOnly);
+  }
+}
 
 /**
  * Синхронизирует достижения с фактами в БД. Идемпотентно: повторные вызовы не создают дубликаты.
@@ -94,7 +161,9 @@ export async function reconcileUserAchievements(userId: string): Promise<Achieve
 
   const moduleIds = modules.map((m) => m.id);
 
-  const [progressRows, acceptedScenario, cert] = await Promise.all([
+  const halfThreshold = Math.ceil(modules.length / 2);
+
+  const [progressRows, acceptedScenario, cert, testAttempts] = await Promise.all([
     prisma.progress.findMany({
       where: { userId, moduleId: { in: moduleIds } },
       select: { moduleId: true, moduleCompleted: true },
@@ -111,7 +180,21 @@ export async function reconcileUserAchievements(userId: string): Promise<Achieve
       where: { userId_courseId: { userId, courseId: course.id } },
       select: { id: true },
     }),
+    prisma.testAttempt.findMany({
+      where: { userId, passed: true, maxScore: { gt: 0 } },
+      select: { score: true, maxScore: true },
+      take: 50,
+    }),
   ]);
+
+  let aiMessages = 0;
+  try {
+    aiMessages = await prisma.tutorChatMessage.count({
+      where: { thread: { userId }, role: "user" },
+    });
+  } catch {
+    aiMessages = 0;
+  }
 
   const completed = new Set(progressRows.filter((p) => p.moduleCompleted).map((p) => p.moduleId));
   const acceptedTypes = new Set(acceptedScenario.map((s) => s.practicalTask.taskType));
@@ -143,25 +226,19 @@ export async function reconcileUserAchievements(userId: string): Promise<Achieve
     toGrant.push("CERTIFICATE_EARNED");
   }
 
-  if (toGrant.length === 0) return [];
+  if (aiMessages > 0) {
+    toGrant.push("AI_MENTOR_USED");
+  }
 
-  const existing = await prisma.userAchievement.findMany({
-    where: { userId, kind: { in: toGrant } },
-    select: { kind: true },
-  });
-  const have = new Set(existing.map((e) => e.kind));
-  const newlyGranted = toGrant.filter((k) => !have.has(k));
-  if (newlyGranted.length === 0) return [];
+  if (completed.size >= halfThreshold) {
+    toGrant.push("COURSE_HALF_COMPLETE");
+  }
 
-  await prisma.userAchievement.createMany({
-    data: newlyGranted.map((kind) => ({
-      userId,
-      kind,
-    })),
-    skipDuplicates: true,
-  });
+  if (testAttempts.some((a) => a.score >= a.maxScore)) {
+    toGrant.push("TEST_PERFECT_SCORE");
+  }
 
-  return newlyGranted;
+  return persistGrantedAchievements(userId, toGrant);
 }
 
 export async function getUserAchievementRows(userId: string): Promise<AchievementRow[]> {

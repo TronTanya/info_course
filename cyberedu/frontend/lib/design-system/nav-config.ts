@@ -2,10 +2,12 @@ import type { LucideIcon } from "lucide-react";
 import {
   Award,
   BookOpen,
+  BookText,
   Bot,
   ClipboardCheck,
   ClipboardList,
   FlaskConical,
+  FolderOpen,
   LayoutDashboard,
   MessageSquare,
   Settings,
@@ -29,33 +31,69 @@ export type QuickNavItem = {
   description?: string;
 };
 
-/** Публичный сайт (лендинг, about, reviews). */
+/** Публичный маркетинговый сайт (лендинг, шапка гостя). */
 export const publicNavLinks: { href: string; label: string; external?: boolean }[] = [
-  { href: "/#what-you-learn", label: "Программа" },
-  { href: "/#modules", label: "Модули" },
-  { href: "/#how-it-works", label: "Обучение" },
-  { href: "/#practice-lab", label: "Практика" },
-  { href: "/reviews", label: "Отзывы" },
-  { href: "/about", label: "О проекте" },
-];
-
-export const guestNavLinks: { href: string; label: string }[] = [
   { href: "/", label: "Главная" },
+  { href: "/#what-you-learn", label: "Программа" },
+  { href: "/#practice-lab", label: "Практики" },
+  { href: "/#certificates", label: "Сертификат" },
+];
+
+export const guestAuthLinks = {
+  login: "/auth/login",
+  register: "/auth/register",
+  loginLabel: "Войти",
+  registerLabel: "Начать обучение",
+} as const;
+
+/** @deprecated Используйте publicNavLinks — сохранено для обратной совместимости. */
+export const guestNavLinks: { href: string; label: string }[] = [
+  ...publicNavLinks,
   { href: "/reviews", label: "Отзывы" },
   { href: "/about", label: "О проекте" },
 ];
 
-/** Основная навигация кабинета (sidebar + bottom bar). */
+export const landingFooterNavLinks: { href: string; label: string }[] = [
+  ...publicNavLinks,
+  { href: "/#how-it-works", label: "Обучение" },
+  { href: "/#ai-mentor", label: "AI-наставник" },
+  { href: "/reviews", label: "Отзывы" },
+  { href: "/about", label: "О проекте" },
+  { href: guestAuthLinks.login, label: guestAuthLinks.loginLabel },
+];
+
+/** Основная навигация студента (sidebar, drawer, command palette). */
 export const studentQuickNav: QuickNavItem[] = [
   { key: "dashboard", label: "Кабинет", icon: LayoutDashboard, description: "Обзор и прогресс" },
   { key: "course", label: "Курс", icon: BookOpen, description: "Модули программы" },
+  { key: "lessons", label: "Уроки", icon: BookText, description: "Лекции и материалы" },
   { key: "tests", label: "Тесты", icon: ClipboardCheck, description: "Контроль знаний" },
   { key: "practice", label: "Практика", icon: FlaskConical, description: "Лаборатории" },
-  { key: "mentor", label: "AI-наставник", icon: Bot, description: "Лекция и подсказки" },
+  { key: "mentor", label: "AI-наставник", icon: Bot, description: "Подсказки на лекции" },
   { key: "profile", label: "Профиль", icon: User, description: "Прогресс и достижения" },
 ];
 
-/** Дополнительные разделы кабинета. */
+/** Компактная шапка кабинета (xl): без перегруза на средних экранах. */
+export const studentHeaderNavKeys: StudentQuickNavKey[] = [
+  "dashboard",
+  "course",
+  "lessons",
+  "tests",
+  "practice",
+];
+
+/** Нижняя панель мобильного кабинета (< lg). */
+export const studentBottomNavKeys: StudentQuickNavKey[] = [
+  "dashboard",
+  "course",
+  "lessons",
+  "tests",
+  "practice",
+  "mentor",
+  "profile",
+];
+
+/** Дополнительные разделы кабинета (sidebar «Ещё»). */
 export const studentSecondaryNav: NavItem[] = [
   { href: "/dashboard/my-assignments", label: "Задания", icon: ClipboardList, description: "Отправки на проверку" },
   { href: "/dashboard/certificate", label: "Сертификат", icon: Award, description: "PDF и верификация" },
@@ -63,17 +101,33 @@ export const studentSecondaryNav: NavItem[] = [
   { href: "/dashboard/settings", label: "Настройки", icon: Settings, description: "Пароль и интересы" },
 ];
 
-export const adminNav: NavItem[] = [
-  { href: "/admin", label: "Обзор", icon: LayoutDashboard, description: "KPI и активность" },
-  { href: "/admin/users", label: "Пользователи", icon: Users, description: "Аккаунты и прогресс" },
-  { href: "/admin/modules", label: "Модули", icon: BookOpen, description: "Структура курса" },
-  { href: "/admin/lessons", label: "Лекции", icon: BookOpen, description: "Контент уроков" },
-  { href: "/admin/tests", label: "Тесты", icon: ClipboardCheck, description: "Вопросы и баллы" },
-  { href: "/admin/practical-tasks", label: "Практика", icon: FlaskConical, description: "Лаборатории" },
-  { href: "/admin/submissions", label: "Проверка", icon: ClipboardList, description: "Работы студентов" },
+/** Главные разделы админки (шапка, mobile chips, верх sidebar). */
+export const adminNavPrimary: NavItem[] = [
+  { href: "/admin", label: "Обзор", icon: LayoutDashboard, description: "Admin overview" },
+  { href: "/admin/users", label: "Студенты", icon: Users, description: "Аккаунты и прогресс" },
+  { href: "/admin/modules", label: "Контент", icon: FolderOpen, description: "Модули, лекции, тесты, практики" },
+  { href: "/admin/submissions", label: "Проверка практик", icon: ClipboardList, description: "Работы студентов" },
   { href: "/admin/certificates", label: "Сертификаты", icon: Award, description: "Реестр выдачи" },
+  { href: "/admin/profile", label: "Аудит", icon: Shield, description: "Безопасность платформы" },
+];
+
+/** Детальные ссылки контента (sidebar админки, drawer, palette). */
+export const adminNavContent: NavItem[] = [
+  { href: "/admin/modules", label: "Модули", icon: BookOpen, description: "Структура курса" },
+  { href: "/admin/lessons", label: "Лекции", icon: BookText, description: "Контент уроков" },
+  { href: "/admin/tests", label: "Тесты", icon: ClipboardCheck, description: "Вопросы и баллы" },
+  { href: "/admin/practical-tasks", label: "Практики", icon: FlaskConical, description: "Лаборатории" },
+];
+
+export const adminNavSecondary: NavItem[] = [
   { href: "/admin/reviews", label: "Отзывы", icon: MessageSquare, description: "Модерация" },
-  { href: "/admin/profile", label: "Security", icon: Shield, description: "Обзор платформы" },
+];
+
+/** Полный список админ-маршрутов (palette, drawer, обратная совместимость). */
+export const adminNav: NavItem[] = [
+  ...adminNavPrimary,
+  ...adminNavContent.filter((item) => !adminNavPrimary.some((p) => p.href === item.href)),
+  ...adminNavSecondary,
 ];
 
 export const commandPaletteStudentActions: NavItem[] = [

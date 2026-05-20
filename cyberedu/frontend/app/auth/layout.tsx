@@ -18,7 +18,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           ← На главную
         </Link>
       </header>
-      <main className="ce-app-auth-main relative flex w-full min-w-0 flex-1 flex-col">
+      <main id="main-content" tabIndex={-1} className="ce-app-auth-main relative flex w-full min-w-0 flex-1 flex-col">
         <AuthSplitLayout>{children}</AuthSplitLayout>
       </main>
     </div>

@@ -32,6 +32,8 @@ const baseStats = {
   lastPractice: null,
   lastActivitySummary: null,
   certificateDisplayState: "unavailable" as const,
+  recentTests: [],
+  recentSubmissions: [],
 } satisfies ProfileCourseStats;
 
 describe("profile-ui", () => {

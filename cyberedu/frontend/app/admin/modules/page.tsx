@@ -112,7 +112,7 @@ export default async function AdminModulesPage() {
                 </div>
               }
               desktop={
-                <AdminTable minWidth="720px">
+                <AdminTable minWidth="720px" caption="Модули курса">
                   <AdminTableHead>
                     <tr>
                       <th>№</th>

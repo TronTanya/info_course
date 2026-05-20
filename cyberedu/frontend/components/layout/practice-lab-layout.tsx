@@ -25,7 +25,7 @@ export function PracticeLabLayout({ breadcrumb, header, main, aside, className }
   return (
     <div
       className={cn(
-        "lab-shell hero-glow ce-learn-lab ce-practice-cyber-lab ce-border-beam ce-animate-in ce-immersive-mobile-pad min-w-0 overflow-x-clip",
+        "lab-shell hero-glow ce-learn-lab ce-practice-cyber-lab ce-animate-in ce-immersive-mobile-pad min-w-0 overflow-x-clip pb-24 sm:pb-0",
         className,
       )}
     >

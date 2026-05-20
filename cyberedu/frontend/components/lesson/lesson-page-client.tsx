@@ -9,6 +9,7 @@ import {
   extractKeyIdeas,
   extractLessonGoal,
   extractPracticeBlock,
+  extractRememberBlock,
   extractSelfCheckItems,
   getLessonDifficultyLabel,
 } from "@/lib/lesson-page-ui";
@@ -17,13 +18,11 @@ import { LessonAsidePanel } from "@/components/lesson/lesson-aside-panel";
 import { LessonFooterActions } from "@/components/lesson/lesson-footer-actions";
 import { LessonGlossary } from "@/components/lesson/lesson-glossary";
 import { LessonHeader } from "@/components/lesson/lesson-header";
-import { LessonKeyIdeas } from "@/components/lesson/lesson-key-ideas";
+import { LessonLearningBlocks } from "@/components/lesson/lesson-learning-blocks";
 import { LessonLayout } from "@/components/lesson/lesson-layout";
 import { useLessonReadingProgress } from "@/components/lesson/lesson-reading-progress";
-import { LessonSelfCheck } from "@/components/lesson/lesson-self-check";
 import { LessonStickyCta } from "@/components/lesson/lesson-sticky-cta";
 import { extractLessonGlossary, LessonStructuredText } from "@/components/lesson/lesson-structured-text";
-import { InfoCard } from "@/components/lesson/lesson-ui";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { Textarea } from "@/components/ui/textarea";
@@ -127,6 +126,7 @@ export function LessonPageClient({
   const keyIdeas = useMemo(() => extractKeyIdeas(lesson.content), [lesson.content]);
   const selfCheck = useMemo(() => extractSelfCheckItems(lesson.content), [lesson.content]);
   const practice = useMemo(() => extractPracticeBlock(lesson.content), [lesson.content]);
+  const remember = useMemo(() => extractRememberBlock(lesson.content), [lesson.content]);
   const difficulty = getLessonDifficultyLabel(moduleOrderNumber);
 
   const [contentTab, setContentTab] = useState<"lesson" | "ai" | "summary">("lesson");
@@ -193,7 +193,12 @@ export function LessonPageClient({
     openAiMentor();
   }
 
-  const skipTypes = practice ? (["mini_case", "how"] as const) : [];
+  const skipTypes = useMemo(() => {
+    const types: ("remember" | "mini_case" | "how")[] = [];
+    if (remember) types.push("remember");
+    if (practice) types.push("mini_case", "how");
+    return types;
+  }, [remember, practice]);
 
   const header = (
     <LessonHeader
@@ -205,6 +210,7 @@ export function LessonPageClient({
       lessonCompleted={lessonCompleted}
       difficulty={difficulty}
       readingPercent={readingPercent}
+      onAskMentor={lesson.allowAiAdaptation ? onAskMentor : undefined}
     />
   );
 
@@ -324,14 +330,12 @@ export function LessonPageClient({
             ) : null}
           </div>
 
-          <LessonKeyIdeas ideas={keyIdeas} />
-          <LessonSelfCheck items={selfCheck} />
-
-          {practice ? (
-            <InfoCard title={practice.title} label="Практика" variant="success">
-              <p className="whitespace-pre-wrap text-[15px] leading-relaxed">{practice.body}</p>
-            </InfoCard>
-          ) : null}
+          <LessonLearningBlocks
+            keyIdeas={keyIdeas}
+            remember={remember}
+            practice={practice}
+            selfCheck={selfCheck}
+          />
 
           <LessonGlossary terms={glossary} />
 
@@ -388,7 +392,7 @@ export function LessonPageClient({
       <AiMentorChat
         moduleId={moduleId}
         lessonId={lesson.id}
-        contextLabels={{ moduleTitle, lessonTitle: lesson.title }}
+        contextLabels={{ moduleTitle, lessonTitle: lesson.title, topic: lesson.title }}
         openSignal={mentorOpenSignal}
       />
     </>

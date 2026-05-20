@@ -23,8 +23,8 @@ export function TerminalBlock({
   return (
     <LabTerminal title={chromeTitle} chrome className={cn("shadow-card", className)}>
       {isShell ? <p className="ce-terminal-prompt mb-2">{prompt}</p> : null}
-      <pre className="m-0 whitespace-pre-wrap break-words">
-        <code>{code}</code>
+      <pre className="ce-code-scroll m-0 max-w-full overflow-x-auto whitespace-pre text-[13px] leading-relaxed">
+        <code className="font-mono">{code}</code>
       </pre>
     </LabTerminal>
   );

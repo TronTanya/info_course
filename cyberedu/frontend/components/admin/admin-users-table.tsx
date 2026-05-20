@@ -55,13 +55,23 @@ function UserRowMenu({ userId }: { userId: string }) {
   return (
     <AdminRowMenu
       items={[
-        { label: "Открыть", href: `/admin/users/${userId}` },
+        { label: "Просмотр", href: `/admin/users/${userId}` },
         { label: "Изменить роль", href: `/admin/users/${userId}` },
         { label: "Заблокировать", disabled: true },
         { label: "Удалить", disabled: true, variant: "danger" },
       ]}
     />
   );
+}
+
+function formatLastActivity(iso: string | null): string {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString("ru-RU", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function matchesSearch(row: AdminUserListRow, q: string): boolean {
@@ -79,7 +89,16 @@ function matchesSearch(row: AdminUserListRow, q: string): boolean {
   return hay.includes(q);
 }
 
-export function AdminUsersTable({ rows, embedded = false }: { rows: AdminUserListRow[]; embedded?: boolean }) {
+export function AdminUsersTable({
+  rows,
+  embedded = false,
+  dashboardView = false,
+}: {
+  rows: AdminUserListRow[];
+  embedded?: boolean;
+  /** Упрощённые колонки для главной LMS-панели. */
+  dashboardView?: boolean;
+}) {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [progressFilter, setProgressFilter] = useState<string>("all");
@@ -198,14 +217,31 @@ export function AdminUsersTable({ rows, embedded = false }: { rows: AdminUserLis
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <MobileField label="Email" value={r.email} />
-                    <MobileField label="Учебное заведение" value={r.educationalInstitution || "—"} />
-                    <MobileField label="Группа" value={r.studyGroup} />
-                    <MobileField label="Курс" value={r.studyCourseYear} />
-                    <MobileField label="Специальность" value={r.specialty || "—"} />
-                    <MobileField label="Регистрация" value={new Date(r.createdAt).toLocaleDateString("ru-RU")} />
+                    <MobileField label="Роль" value={r.role === "ADMIN" ? "Админ" : "Студент"} />
                     <MobileField label="Прогресс" value={r.role === "USER" ? `${r.overallProgressPercent}%` : "—"} />
-                    <MobileField label="Баллы" value={r.role === "USER" ? String(r.totalScore) : "—"} />
-                    <MobileField label="Отчёт курса" value={String(r.courseProgressRowCount)} />
+                    {dashboardView ? (
+                      <>
+                        <MobileField
+                          label="Тесты"
+                          value={r.role === "USER" ? `${r.testsPassedCount}/${r.testAttemptCount}` : "—"}
+                        />
+                        <MobileField
+                          label="Практика"
+                          value={r.role === "USER" ? String(r.practicesCompletedCount) : "—"}
+                        />
+                        <MobileField label="Активность" value={formatLastActivity(r.lastActivityAt)} />
+                      </>
+                    ) : (
+                      <>
+                        <MobileField label="Учебное заведение" value={r.educationalInstitution || "—"} />
+                        <MobileField label="Группа" value={r.studyGroup} />
+                        <MobileField label="Курс" value={r.studyCourseYear} />
+                        <MobileField label="Специальность" value={r.specialty || "—"} />
+                        <MobileField label="Регистрация" value={new Date(r.createdAt).toLocaleDateString("ru-RU")} />
+                        <MobileField label="Баллы" value={r.role === "USER" ? String(r.totalScore) : "—"} />
+                        <MobileField label="Отчёт курса" value={String(r.courseProgressRowCount)} />
+                      </>
+                    )}
                     <MobileField label="Сертификат" value={r.hasCertificate ? "Выдан" : "Нет"} />
                   </div>
                 </AdminMobileCard>
@@ -213,19 +249,38 @@ export function AdminUsersTable({ rows, embedded = false }: { rows: AdminUserLis
             </div>
           }
           desktop={
-            <AdminTable minWidth="1280px" density={density}>
+            <AdminTable
+              minWidth={dashboardView ? "960px" : "1280px"}
+              density={density}
+              caption={dashboardView ? "Студенты — краткий список" : "Пользователи платформы"}
+            >
               <AdminTableHead>
                 <tr>
                   <th>ФИО</th>
                   <th>Email</th>
-                  <th>Учебное заведение</th>
-                  <th>Группа</th>
-                  <th>Курс</th>
-                  <th>Специальность</th>
-                  <th>Регистрация</th>
+                  <th>Роль</th>
+                  {!dashboardView ? (
+                    <>
+                      <th>Учебное заведение</th>
+                      <th>Группа</th>
+                      <th>Курс</th>
+                      <th>Специальность</th>
+                      <th>Регистрация</th>
+                    </>
+                  ) : null}
                   <th>Прогресс</th>
-                  <th>Баллы</th>
-                  <th className="whitespace-normal">Отчёт курса</th>
+                  {dashboardView ? (
+                    <>
+                      <th>Тесты</th>
+                      <th>Практика</th>
+                      <th>Активность</th>
+                    </>
+                  ) : (
+                    <>
+                      <th>Баллы</th>
+                      <th className="whitespace-normal">Отчёт курса</th>
+                    </>
+                  )}
                   <th>Сертификат</th>
                   <th className="w-28" />
                 </tr>
@@ -233,22 +288,24 @@ export function AdminUsersTable({ rows, embedded = false }: { rows: AdminUserLis
               <AdminTableBody>
                 {displayRows.map((r) => (
                   <tr key={r.id}>
-                    <td>
-                      <div className="font-semibold text-foreground">{r.fullName}</div>
-                      {r.role === "ADMIN" ? (
-                        <Badge variant="outline" className="mt-1 text-[10px]">
-                          ADMIN
-                        </Badge>
-                      ) : null}
-                    </td>
+                    <td className="font-semibold text-foreground">{r.fullName}</td>
                     <td className="text-muted-foreground">{r.email}</td>
-                    <td className="max-w-[200px] text-muted-foreground">{r.educationalInstitution}</td>
-                    <td className="max-w-[100px] tabular-nums text-muted-foreground">{r.studyGroup}</td>
-                    <td className="w-16 tabular-nums text-muted-foreground">{r.studyCourseYear}</td>
-                    <td className="max-w-[160px] text-muted-foreground">{r.specialty}</td>
-                    <td className="tabular-nums text-muted-foreground">
-                      {new Date(r.createdAt).toLocaleDateString("ru-RU")}
+                    <td>
+                      <Badge variant={r.role === "ADMIN" ? "outline" : "secondary"} className="text-[10px]">
+                        {r.role === "ADMIN" ? "Админ" : "Студент"}
+                      </Badge>
                     </td>
+                    {!dashboardView ? (
+                      <>
+                        <td className="max-w-[200px] text-muted-foreground">{r.educationalInstitution}</td>
+                        <td className="max-w-[100px] tabular-nums text-muted-foreground">{r.studyGroup}</td>
+                        <td className="w-16 tabular-nums text-muted-foreground">{r.studyCourseYear}</td>
+                        <td className="max-w-[160px] text-muted-foreground">{r.specialty}</td>
+                        <td className="tabular-nums text-muted-foreground">
+                          {new Date(r.createdAt).toLocaleDateString("ru-RU")}
+                        </td>
+                      </>
+                    ) : null}
                     <td>
                       {r.role === "USER" ? (
                         <Badge variant={progressBadgeVariant(r.overallProgressPercent)} className="tabular-nums">
@@ -258,8 +315,24 @@ export function AdminUsersTable({ rows, embedded = false }: { rows: AdminUserLis
                         <span className="text-muted-foreground">—</span>
                       )}
                     </td>
-                    <td className="tabular-nums font-medium text-foreground">{r.role === "USER" ? r.totalScore : "—"}</td>
-                    <td className="tabular-nums text-muted-foreground">{r.courseProgressRowCount}</td>
+                    {dashboardView ? (
+                      <>
+                        <td className="tabular-nums text-sm text-muted-foreground">
+                          {r.role === "USER" ? `${r.testsPassedCount}/${r.testAttemptCount}` : "—"}
+                        </td>
+                        <td className="tabular-nums text-sm text-muted-foreground">
+                          {r.role === "USER" ? r.practicesCompletedCount : "—"}
+                        </td>
+                        <td className="whitespace-nowrap text-xs tabular-nums text-muted-foreground">
+                          {formatLastActivity(r.lastActivityAt)}
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="tabular-nums font-medium text-foreground">{r.role === "USER" ? r.totalScore : "—"}</td>
+                        <td className="tabular-nums text-muted-foreground">{r.courseProgressRowCount}</td>
+                      </>
+                    )}
                     <td>
                       {r.hasCertificate ? (
                         <span className="font-medium text-success">Выдан</span>

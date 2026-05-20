@@ -42,7 +42,7 @@ export function ProfileAchievementsPanel({ rows }: { rows: AchievementRow[] }) {
           ) : null}
         </motion.div>
         <div className="flex items-center gap-3">
-          <CircularProgress value={percent} size={72} strokeWidth={6} tone={percent >= 100 ? "success" : "cyan"} label="Доля открытых достижений" />
+          <CircularProgress value={percent} size={80} strokeWidth={6} tone={percent >= 100 ? "success" : "cyan"} label="Открыто" />
           <Badge variant="primary" className="tabular-nums">
             {unlockedCount}/{rows.length}
           </Badge>
@@ -76,7 +76,7 @@ export function ProfileAchievementsPanel({ rows }: { rows: AchievementRow[] }) {
                 </div>
               )}
               <div className="flex flex-1 flex-col gap-3">
-                <AchievementGlyph slug={a.slug} unlocked={a.unlocked} />
+                <AchievementGlyph slug={a.slug} unlocked={a.unlocked} variant="card" />
                 <div>
                   <p className="font-semibold leading-snug text-foreground">{a.title}</p>
                   <p className="mt-1 text-xs leading-relaxed text-muted-foreground">

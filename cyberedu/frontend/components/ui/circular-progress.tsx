@@ -4,11 +4,12 @@ import { cn } from "@/lib/utils";
 export type CircularProgressProps = {
   value: number;
   max?: number;
-  size?: number;
   strokeWidth?: number;
   className?: string;
   label?: string;
   tone?: "default" | "success" | "cyan" | "accent";
+  /** Мягкое свечение кольца */
+  glow?: boolean;
 };
 
 const toneClass: Record<NonNullable<CircularProgressProps["tone"]>, string> = {
@@ -18,6 +19,30 @@ const toneClass: Record<NonNullable<CircularProgressProps["tone"]>, string> = {
   accent: "text-accent-foreground",
 };
 
+function ringCenterLayout(size: number, label: string) {
+  const longLabel = label.length > 11;
+  const showLabel = !longLabel || size >= 104;
+
+  const valueClass =
+    size >= 120
+      ? "text-3xl"
+      : size >= 100
+        ? "text-2xl"
+        : size >= 88
+          ? "text-xl"
+          : size >= 72
+            ? "text-lg"
+            : "text-base";
+
+  return {
+    showLabel,
+    valueClass,
+    labelClass: longLabel
+      ? "max-w-[92%] text-[8px] font-medium leading-[1.15] tracking-normal normal-case line-clamp-2"
+      : "max-w-[88%] truncate text-[10px] font-medium uppercase tracking-wide",
+  };
+}
+
 export function CircularProgress({
   value,
   max = 100,
@@ -26,6 +51,7 @@ export function CircularProgress({
   className,
   label = "Прогресс",
   tone = "default",
+  glow = false,
 }: CircularProgressProps) {
   const pct = Math.min(100, Math.max(0, (value / max) * 100));
   const r = (size - strokeWidth) / 2;
@@ -33,10 +59,11 @@ export function CircularProgress({
   const cy = size / 2;
   const circumference = 2 * Math.PI * r;
   const dashOffset = circumference - (pct / 100) * circumference;
+  const center = ringCenterLayout(size, label);
 
   return (
     <div
-      className={cn("relative shrink-0", className)}
+      className={cn("relative shrink-0", glow && "ce-progress-ring-glow", className)}
       style={{ width: size, height: size }}
       role="img"
       aria-label={`${label}: ${Math.round(pct)}%`}
@@ -56,13 +83,18 @@ export function CircularProgress({
           cy={cy}
         />
       </svg>
-      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-        <span className="font-display text-2xl font-bold tabular-nums leading-none text-foreground sm:text-3xl">
+      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-0.5 px-1 text-center">
+        <span
+          className={cn(
+            "font-display font-bold tabular-nums leading-none text-foreground",
+            center.valueClass,
+          )}
+        >
           {Math.round(pct)}%
         </span>
-        <span className="mt-0.5 max-w-[80%] truncate text-[10px] font-medium uppercase tracking-wide text-subtle-foreground">
-          {label}
-        </span>
+        {center.showLabel ? (
+          <span className={cn("text-subtle-foreground", center.labelClass)}>{label}</span>
+        ) : null}
       </div>
     </div>
   );

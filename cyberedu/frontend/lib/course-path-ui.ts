@@ -4,6 +4,19 @@ import type { Badge } from "@/components/ui/badge";
 
 export type UiStatus = "locked" | "available" | "in_progress" | "completed";
 
+/** Статус узла на карте курса (включая текущий фокус). */
+export type RoadmapStatus = UiStatus | "current";
+
+export function getRoadmapStatus(
+  row: CourseProgressModuleRow,
+  focusModuleId?: string | null,
+): RoadmapStatus {
+  if (!row.unlocked) return "locked";
+  if (row.moduleCompleted) return "completed";
+  if (focusModuleId && row.module.id === focusModuleId) return "current";
+  return getUiStatus(row);
+}
+
 export function getUiStatus(row: CourseProgressModuleRow): UiStatus {
   if (!row.unlocked) return "locked";
   if (row.moduleCompleted) return "completed";
@@ -25,6 +38,14 @@ export const statusBadge: Record<
   available: { label: "Не начат", variant: "outline", className: "border-border text-muted-foreground" },
   in_progress: { label: "В процессе", variant: "primary" },
   completed: { label: "Завершён", variant: "success" },
+};
+
+export const roadmapStatusBadge: Record<
+  RoadmapStatus,
+  { label: string; variant: NonNullable<ComponentProps<typeof Badge>["variant"]>; className?: string }
+> = {
+  ...statusBadge,
+  current: { label: "Текущий", variant: "primary", className: "border-primary/40 bg-primary/15" },
 };
 
 export function getModuleAction(row: CourseProgressModuleRow): { href: string; label: string; disabled: boolean } {
@@ -148,6 +169,27 @@ export function getModuleContentMeta(row: CourseProgressModuleRow): ModuleConten
     testsLabel: formatTestCount(tests),
     practicesLabel: formatPracticeCount(practices),
   };
+}
+
+export function getPreviousModuleRow(
+  modules: CourseProgressModuleRow[],
+  currentModuleId: string,
+): CourseProgressModuleRow | null {
+  const idx = modules.findIndex((m) => m.module.id === currentModuleId);
+  if (idx <= 0) return null;
+  return modules[idx - 1] ?? null;
+}
+
+/** Подсказка, что нужно для разблокировки (без раскрытия контента модуля). */
+export function getLockedUnlockHint(row: CourseProgressModuleRow, modules: CourseProgressModuleRow[]): string {
+  const prev = getPreviousModuleRow(modules, row.module.id);
+  if (!prev) {
+    return "Завершите предыдущий модуль в треке, чтобы открыть этот блок.";
+  }
+  if (!prev.moduleCompleted) {
+    return `Сначала завершите модуль ${prev.module.orderNumber}: «${prev.module.title}».`;
+  }
+  return "Завершите предыдущий модуль в треке, чтобы открыть этот блок.";
 }
 
 /** Следующий модуль в треке (по orderNumber). */

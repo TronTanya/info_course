@@ -1,50 +1,37 @@
-import {
-  Binary,
-  Globe,
-  KeyRound,
-  Network,
-  Server,
-  Shield,
-  Terminal,
-} from "lucide-react";
+import { FileSearch, Globe, KeyRound, MailWarning, Shield, Siren } from "lucide-react";
 import { LandingFeatureCard } from "@/components/home/landing-feature-card";
 import { LandingSection } from "@/components/home/landing-section";
 
 const topics = [
   {
     icon: Shield,
-    title: "Основы ИБ и модель угроз",
-    description: "Конфиденциальность, целостность, доступность; роли атакующего и защитника.",
+    title: "Основы ИБ",
+    description: "CIA, модель угроз, роли атакующего и защитника — фундамент для SOC и Blue Team.",
   },
   {
-    icon: Network,
-    title: "Сети и периметр",
-    description: "TCP/IP, сегментация, firewall, типовые схемы корпоративной сети.",
-  },
-  {
-    icon: Terminal,
-    title: "Linux и командная строка",
-    description: "Права, процессы, журналы — база для анализа инцидентов.",
-  },
-  {
-    icon: Globe,
-    title: "Web-безопасность",
-    description: "OWASP Top 10, аутентификация, типовые уязвимости веб-приложений.",
+    icon: MailWarning,
+    title: "Фишинг",
+    description: "Признаки писем и ссылок, разбор заголовков, учебные кейсы социальной инженерии.",
   },
   {
     icon: KeyRound,
-    title: "Криптография на практике",
-    description: "Хеши, шифрование, сертификаты — без «магии», с учебными задачами.",
+    title: "Пароли и MFA",
+    description: "Политики, менеджеры паролей, MFA и типовые ошибки аутентификации.",
   },
   {
-    icon: Server,
-    title: "SOC и реагирование",
-    description: "Разбор логов, эскалация, фиксация фактов для защиты, а не атак.",
+    icon: Globe,
+    title: "Web threats",
+    description: "OWASP, XSS/CSRF, сессии и контроли на периметре веб-приложений.",
   },
   {
-    icon: Binary,
-    title: "Финальный проект",
-    description: "Сводный кейс: от симптома в журнале до выводов и рекомендаций.",
+    icon: FileSearch,
+    title: "Анализ логов",
+    description: "Журналы, корреляция событий, поиск аномалий в учебных потоках данных.",
+  },
+  {
+    icon: Siren,
+    title: "Incident response",
+    description: "Триаж, эскалация, фиксация фактов и рекомендации для защиты, не для атак.",
   },
 ] as const;
 
@@ -54,9 +41,13 @@ export function LandingWhatYouLearn() {
       id="what-you-learn"
       eyebrow="Программа"
       title="Что вы изучите"
-      description="Практический курс по информационной безопасности: от базовых концепций до защиты веб-сервисов и работы аналитика SOC."
+      description="Шесть опорных тем — от базовой модели угроз до реагирования на инциденты. Каждая тема закрепляется тестом и практикой."
+      accent
     >
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <span id="modules" className="sr-only">
+        Программа курса
+      </span>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {topics.map((topic) => {
           const Icon = topic.icon;
           return (

@@ -64,9 +64,9 @@ export function MobileDrawer({
         )}
       >
         <div className="flex min-h-11 items-center justify-between border-b border-border px-4 py-3">
-          <p id={titleId} className="text-base font-semibold text-foreground">
+          <h2 id={titleId} className="text-base font-semibold text-foreground">
             {title}
-          </p>
+          </h2>
           <Button type="button" variant="ghost" size="icon" onClick={() => onOpenChange(false)} aria-label="Закрыть">
             <X className="size-5" aria-hidden />
           </Button>

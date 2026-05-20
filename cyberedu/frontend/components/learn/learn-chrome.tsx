@@ -15,7 +15,7 @@ export function LearnAmbient() {
 }
 
 export function LearnPageShell({ children, className }: { children: ReactNode; className?: string }) {
-  return <CyberPageShell className={className}>{children}</CyberPageShell>;
+  return <CyberPageShell className={cn("min-w-0 overflow-x-clip", className)}>{children}</CyberPageShell>;
 }
 
 export function LearnSection({
@@ -37,7 +37,7 @@ export function LearnSection({
 export function LearnPanel({
   children,
   className,
-  beam = true,
+  beam = false,
 }: {
   children: ReactNode;
   className?: string;

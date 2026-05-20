@@ -1,65 +1,81 @@
+"use client";
+
 import Link from "next/link";
+import { Award, CheckCircle2, Circle } from "lucide-react";
 import type { ProfileCourseStats } from "@/lib/profile-course-stats";
+import { computeStepMetrics, getCertificateEligibility } from "@/lib/dashboard-ui";
+import type { CourseProgressModuleRow } from "@/lib/progress";
 import { Button } from "@/components/ui/button";
-import { GlassCard } from "@/components/ui/glass-card";
+import { PremiumCard } from "@/components/ui/premium-card";
 import { ProgressBar } from "@/components/ui/progress-bar";
-import { SectionHeader } from "@/components/ui/section-header";
+import { cn } from "@/lib/utils";
 
-export function DashboardCertificateProgress({ stats }: { stats: ProfileCourseStats }) {
+export function DashboardCertificateProgress({
+  stats,
+  modules,
+}: {
+  stats: ProfileCourseStats;
+  modules: CourseProgressModuleRow[];
+}) {
+  const metrics = computeStepMetrics(modules);
+  const eligibility = getCertificateEligibility(stats, metrics);
+
   const modulesDone = stats.completedModules;
-  const modulesTotal = stats.totalModules;
-  const modulesPct = modulesTotal > 0 ? Math.round((modulesDone / modulesTotal) * 100) : 0;
-
-  let title: string;
-  let description: string;
-  const ctaHref = "/dashboard/certificate";
-  let ctaLabel = "Открыть сертификат";
-
-  if (stats.certificateIssued) {
-    title = "Сертификат выдан";
-    description = `Номер ${stats.certificateNumber ?? "—"}. Скачайте PDF и передайте ссылку на проверку.`;
-    ctaLabel = "Скачать и проверить";
-  } else if (stats.allModulesComplete && stats.canGenerateCertificate) {
-    title = "Сертификат доступен";
-    description = "Все модули завершены — сгенерируйте документ в разделе сертификата.";
-    ctaLabel = "Получить сертификат";
-  } else {
-    title = `До сертификата: ${stats.modulesUntilCertificate} ${pluralModules(stats.modulesUntilCertificate)}`;
-    description = "Завершите оставшиеся модули курса — после этого откроется выдача сертификата.";
-    ctaLabel = "Смотреть прогресс";
-  }
+  const modulesTotal = stats.totalModules || 1;
 
   return (
-    <section className="space-y-4" aria-labelledby="dash-cert-heading">
-      <SectionHeader title="Прогресс к сертификату" description={description} />
-      <h2 id="dash-cert-heading" className="sr-only">
-        Прогресс к сертификату
-      </h2>
-      <GlassCard glow className="space-y-4 p-5 sm:p-6">
-        <p className="font-display text-lg font-semibold text-foreground">{title}</p>
-        {!stats.certificateIssued ? (
-          <ProgressBar
-            label="Модули до выдачи"
-            value={modulesDone}
-            max={modulesTotal || 1}
-            tone={stats.allModulesComplete ? "success" : "default"}
-          />
-        ) : (
-          <p className="text-sm text-success">100% программы пройдено</p>
-        )}
-        <p className="typo-caption">Завершено {modulesDone} из {modulesTotal} модулей ({modulesPct}%)</p>
-        <Button asChild variant={stats.certificateIssued || stats.canGenerateCertificate ? "primary" : "outline"}>
-          <Link href={ctaHref}>{ctaLabel}</Link>
-        </Button>
-      </GlassCard>
-    </section>
-  );
-}
+    <PremiumCard variant="glow" padding="md" className="flex h-full min-w-0 flex-col" aria-labelledby="dash-cert-heading">
+      <div className="flex items-start gap-3">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary">
+          <Award className="size-5" aria-hidden />
+        </span>
+        <div className="min-w-0">
+          <p id="dash-cert-heading" className="typo-eyebrow text-primary">
+            Certificate progress
+          </p>
+          <h3 className="mt-1 font-display text-lg font-semibold text-balance text-foreground">{eligibility.title}</h3>
+          <p className="mt-1 break-words text-sm text-pretty text-muted-foreground [overflow-wrap:anywhere]">
+            {eligibility.description}
+          </p>
+        </div>
+      </div>
 
-function pluralModules(n: number) {
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-  if (mod10 === 1 && mod100 !== 11) return "модуль";
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "модуля";
-  return "модулей";
+      {!stats.certificateIssued ? (
+        <ProgressBar
+          className="mt-4"
+          label="Модули программы"
+          value={modulesDone}
+          max={modulesTotal}
+          tone={stats.allModulesComplete ? "success" : "default"}
+        />
+      ) : (
+        <p className="mt-4 text-sm font-medium text-success">Все требования выполнены</p>
+      )}
+
+      <ul className="mt-4 space-y-2">
+        {eligibility.requirements.map((req) => (
+          <li key={req.label} className="flex min-w-0 items-start gap-2 text-sm">
+            {req.met ? (
+              <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
+            ) : (
+              <Circle className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+            )}
+            <span className={cn("min-w-0 break-words", req.met ? "text-foreground" : "text-muted-foreground")}>
+              {req.label}
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <div className="mt-auto pt-5">
+        <Button
+          asChild
+          variant={stats.certificateIssued || stats.canGenerateCertificate ? "primary" : "outline"}
+          className="w-full sm:w-auto"
+        >
+          <Link href={eligibility.ctaHref}>{eligibility.ctaLabel}</Link>
+        </Button>
+      </div>
+    </PremiumCard>
+  );
 }

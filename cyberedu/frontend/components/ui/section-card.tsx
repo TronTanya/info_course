@@ -8,7 +8,7 @@ const variants = {
     "border-primary/25 bg-linear-to-br from-primary/[0.06] via-card to-accent/[0.06] shadow-card ring-1 ring-inset ring-primary/12 hover:shadow-card-hover",
   workspace:
     "border-primary/25 ce-glass shadow-inner ring-1 ring-inset ring-primary/10 hover:border-primary/35",
-  lab: "ce-glass ce-border-beam border-primary/20 shadow-card ring-1 ring-primary/10 hover:border-primary/30",
+  lab: "ce-premium-card ce-premium-card--glow border-primary/20 ring-1 ring-primary/10 hover:border-primary/30",
 } as const;
 
 export type SectionCardProps = {

@@ -161,7 +161,7 @@ export default async function AdminSubmissionsPage({ searchParams }: Props) {
                 </div>
               }
               desktop={
-                <AdminTable minWidth="960px">
+                <AdminTable minWidth="960px" caption="Очередь проверки практических работ">
                   <AdminTableHead>
                     <tr>
                       <th>Студент</th>

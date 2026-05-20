@@ -57,7 +57,7 @@ CERTIFICATE_SIGNATORY_LINE=Директор учебного центра
 ### Формат и технологии
 
 - **@react-pdf/renderer** — React-компоненты → PDF.
-- Шрифт **Roboto** (кириллица): только **WOFF** из `@fontsource/roboto`.
+- Шрифт **DejaVu Sans** (TTF из npm `dejavu-fonts-ttf`): полная кириллица; WOFF-subset из `@fontsource` для PDF не использовать — ломается динамический текст.
 - QR: `qrcode` → data URL → `<Image src={qrDataUrl} />`.
 
 Для сложного дизайна (фоновая картинка, печать) добавьте полноразмерный PNG/JPEG фон:

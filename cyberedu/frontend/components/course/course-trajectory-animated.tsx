@@ -89,7 +89,7 @@ export function CourseTrajectoryAnimated({ modules }: { modules: CourseProgressM
   }
 
   return (
-    <div className="ce-learn-panel ce-border-beam ce-glass space-y-3 rounded-2xl p-4 shadow-(--shadow-card) sm:p-5">
+    <div className="ce-learn-panel ce-glass space-y-3 rounded-2xl p-4 shadow-(--shadow-card) sm:p-5">
       <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan/90">Learning path</p>
       <div className="overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch] md:overflow-visible">
         <div className="flex min-w-min items-center px-1 md:min-w-0">

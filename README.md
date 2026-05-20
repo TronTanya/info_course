@@ -1,46 +1,85 @@
-# CyberEdu
+# CyberEdu — Premium Cybersecurity Learning Platform
 
-**CyberEdu** — учебно-производственная веб-платформа курса по **информационной безопасности**: структурированные модули, лекции, тесты, практические лаборатории, AI-наставник с политикой безопасности, выдача сертификата и административная панель. Проект спроектирован с учётом разделения ролей, аудита чувствительных действий и сценария развёртывания в production.
+[![CI](https://github.com/TronTanya/info_course/actions/workflows/ci.yml/badge.svg)](https://github.com/TronTanya/info_course/actions/workflows/ci.yml)
 
-> Репозиторий: `info_course` · рабочий каталог приложения: [`cyberedu/`](./cyberedu/)
+**Русский:** [README.ru.md](./README.ru.md) · **CyberEdu** is a full-stack **LMS for information security education**: structured modules, lessons, graded tests, hands-on practice labs, an embedded **AI learning mentor**, PDF certificates with public verification, and an **admin operations dashboard**. The codebase is built for a realistic production posture—RBAC, CSRF on APIs, distributed rate limiting, security audit logging, and Docker-based deployment.
 
----
-
-## 1. Краткое описание
-
-Платформа объединяет LMS-функции и интерактивные учебные лаборатории (фишинг, URL, криптография, разбор логов и др.) в едином пользовательском пути: **регистрация → профиль с интересами → последовательное прохождение модулей → сертификат**. Отдельный акцент — **персонализация обучения**: AI адаптирует формулировки лекций под интересы студента (игры, спорт, дизайн и т.д.), не подменяя проверку знаний готовыми ответами на задания.
-
-Технически это **монолит с двумя runtime**: основная бизнес-логика — **Next.js + Prisma**; **FastAPI** обслуживает внутренний REST и отчётность. Данные — **PostgreSQL**; в production — **Redis** (rate limit), **Nginx** (TLS), persistent volume для загрузок.
+> Application root: [`cyberedu/`](./cyberedu/) · Deep docs: [`cyberedu/docs/`](./cyberedu/docs/)
 
 ---
 
-## 2. Цель проекта
+## Short description
 
-| Задача | Реализация |
-|--------|------------|
-| Дать студенту понятный траекторный курс ИБ | Модули с поэтапной разблокировкой, лекции, тесты, практика |
-| Закрепить материал практикой «как в поле» | Лаборатории и сценарии без выдачи эталонных решений в UI |
-| Повысить вовлечённость | AI-адаптация лекций по интересам из профиля |
-| Обеспечить проверяемый результат | Серверная проверка тестов, ручная/авто проверка практики, PDF-сертификат с публичной верификацией |
-| Поддержать администрирование | Админ-панель: пользователи, контент, проверка работ, отзывы, экспорт |
-| Продемонстрировать production-aware подход | Security headers, RBAC, audit log, rate limits, CI/E2E, docker prod stack |
+Students follow a linear course path (lessons → module test → practice), track progress in a learning cockpit, and can earn a verifiable certificate. Administrators manage content, review submissions, export users, and monitor platform health. An optional OpenAI-compatible API powers lesson adaptation and a guardrailed tutor that does **not** replace assessment integrity.
 
 ---
 
-## 3. Архитектура
+## Demo
+
+| Resource | Status |
+|----------|--------|
+| **Public demo URL** | Not shipped with this repository. Deploy to your own host using [`cyberedu/docs/DEPLOYMENT.md`](./cyberedu/docs/DEPLOYMENT.md) or run locally (below). |
+| **Screenshots** | Committed under [`cyberedu/docs/screenshots/`](./cyberedu/docs/screenshots/) (regenerate with `npm run screenshots` in `cyberedu/frontend`). |
+| **Video walkthrough** | *Placeholder — add a link to your Loom / YouTube demo when available.* |
+
+**Local preview (development only):**
+
+```bash
+cd cyberedu && RUN_SEED=1 docker compose up --build
+# → http://localhost:3100
+```
+
+After seed, use dev accounts `student@cyberedu.local` / `admin@cyberedu.local` (passwords from your local `.env` / seed config — **never commit or reuse in production**).
+
+---
+
+## Features
+
+| Area | What you get |
+|------|----------------|
+| **Course modules** | Ordered modules with unlock rules, lesson content, video hooks, progress sync |
+| **Tests** | Server-side grading; correct answers are not exposed to the client |
+| **Practice labs** | Text/file/combined tasks, phishing/URL/crypto/log scenarios, training console |
+| **AI mentor** | Contextual chat + lesson adaptation; moderation pipeline; no exam/practice spoilers by design |
+| **Student dashboard** | Continue learning, roadmap, weak topics, achievements, certificate progress |
+| **Certificate verification** | PDF issuance + public `/certificate/verify/[code]` (minimal PII on verify page) |
+| **Admin dashboard** | LMS overview (students, difficult topics, submission queue, certificates, audit events) |
+| **Security controls** | JWT sessions, RBAC, API guards, CSRF, rate limits, audit log, security headers, upload restrictions |
+
+---
+
+## Tech stack
+
+| Layer | Technologies |
+|-------|----------------|
+| **Frontend** | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4 |
+| **Auth & data access** | NextAuth v5, Prisma 6 |
+| **Database** | PostgreSQL 16 |
+| **Cache / rate limit** | Redis 7 (production; in-memory fallback in dev) |
+| **Backend service** | Python 3.12, FastAPI, SQLAlchemy 2 (health, internal REST, reporting hooks) |
+| **AI** | OpenAI-compatible HTTP API (configurable base URL + model) |
+| **PDF / QR** | `@react-pdf/renderer`, certificate verification codes |
+| **Quality** | Vitest (unit + security), Playwright (E2E smoke), ESLint |
+| **Ops** | Docker Compose (dev + prod), Nginx (TLS reverse proxy), optional Prometheus profile |
+
+---
+
+## Architecture
+
+Primary business logic lives in **Next.js** (UI, auth, course flow, AI routes, admin). **FastAPI** complements with internal APIs and health. **PostgreSQL** is the system of record (schema owned by **Prisma Migrate**). In production, **Nginx** terminates TLS and routes `/` to Next.js and `/api/v1/` to FastAPI.
 
 ```mermaid
 flowchart TB
   subgraph Client
-    Browser[Браузер]
+    Browser[Browser]
   end
-  subgraph Production_VPS
-    Nginx[Nginx TLS :443]
+  subgraph Production_host
+    Nginx[Nginx TLS]
     FE[Next.js :3000]
     BE[FastAPI :8000]
     PG[(PostgreSQL)]
     RD[(Redis)]
-    Vol[Volume uploads]
+    Vol[Uploads volume]
   end
   subgraph External
     LLM[OpenAI-compatible API]
@@ -55,357 +94,196 @@ flowchart TB
   BE --> PG
 ```
 
-### Разделение ответственности
+| Route zone | Paths | Access |
+|------------|-------|--------|
+| Marketing | `/`, public reviews | Guest |
+| Auth | `/auth/*` | Guest |
+| Student | `/dashboard/*` | `USER` (and `ADMIN` for learning) |
+| Admin | `/admin/*` | `ADMIN` only |
+| App API | `/api/*` | Per-route guard + CSRF |
+| Verify | `/certificate/verify/*` | Public + rate limit |
 
-| Компонент | Назначение |
-|-----------|------------|
-| **Next.js (frontend)** | UI, NextAuth, курс/тесты/практика, AI tutor, админка, Route Handlers, Prisma ORM |
-| **FastAPI (backend)** | Health, internal API (`course-progress`, read-only user), задел BFF |
-| **PostgreSQL** | Единая схема; **DDL владеет Prisma Migrate** |
-| **Redis** (prod) | Распределённый rate limit |
-| **Nginx** | TLS, reverse proxy, единая точка входа |
-
-### Маршруты (логические зоны)
-
-| Зона | Путь | Доступ |
-|------|------|--------|
-| Marketing | `/`, отзывы | Публично |
-| Auth | `/auth/*` | Публично |
-| Student | `/dashboard/*` | Сессия `USER` |
-| Admin | `/admin/*` | Сессия `ADMIN` |
-| API | `/api/*` | Per-route guard + CSRF |
-| Verify | `/certificate/verify/*` | Публично + rate limit |
-
-Подробнее: [`cyberedu/docs/ARCHITECTURE.md`](./cyberedu/docs/ARCHITECTURE.md) · БД: [`cyberedu/docs/DATABASE.md`](./cyberedu/docs/DATABASE.md)
-
-### Структура репозитория
+Details: [`cyberedu/docs/ARCHITECTURE.md`](./cyberedu/docs/ARCHITECTURE.md) · [`cyberedu/docs/DATABASE.md`](./cyberedu/docs/DATABASE.md) · [`cyberedu/docs/API.md`](./cyberedu/docs/API.md)
 
 ```text
 info_course/
-├── README.md                 # этот документ (обзор для защиты)
-├── .github/workflows/        # CI, release, Playwright smoke
+├── README.md                 ← portfolio overview (this file)
+├── .github/workflows/        ← CI, release, ops health
 └── cyberedu/
-    ├── frontend/             # Next.js, Prisma, e2e/
-    ├── backend/              # FastAPI
-    ├── deploy/               # nginx, prometheus, scripts
-    ├── docs/                 # SECURITY, DEPLOYMENT, API, checklists
-    ├── docker-compose.yml    # development
+    ├── frontend/             ← Next.js, Prisma, Vitest, Playwright
+    ├── backend/              ← FastAPI
+    ├── deploy/               ← Nginx, Prometheus, scripts
+    ├── docs/                 ← security, deployment, checklists, screenshots
+    ├── docker-compose.yml
     └── docker-compose.prod.yml
 ```
 
 ---
 
-## 4. Стек технологий
+## Security
 
-| Слой | Технологии |
-|------|------------|
-| **Frontend** | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4 |
-| **Auth & ORM** | NextAuth v5 (JWT sessions), Prisma 6, PostgreSQL 16 |
-| **Backend** | Python 3.12, FastAPI, SQLAlchemy 2, Pydantic |
-| **AI** | OpenAI-compatible HTTP API (настраиваемый endpoint и модель) |
-| **PDF** | `@react-pdf/renderer`, QR для верификации сертификата |
-| **Quality** | Vitest, Playwright (smoke), ESLint, GitHub Actions |
-| **Ops** | Docker Compose, Nginx, optional Prometheus profile |
+Implementation reference: [`cyberedu/docs/SECURITY.md`](./cyberedu/docs/SECURITY.md) · Checklist: [`cyberedu/docs/checklists/SECURITY_CHECKLIST.md`](./cyberedu/docs/checklists/SECURITY_CHECKLIST.md)
 
----
+| Control | Summary |
+|---------|---------|
+| **RBAC** | Roles `USER` / `ADMIN`; middleware + `requireAdmin`; permission matrix in `lib/security/rbac.ts` |
+| **CSRF** | Origin/Referer + double-submit cookie on mutating `/api/*` (excluding NextAuth routes) |
+| **Rate limiting** | Redis-backed in production (login, AI, uploads, certificate verify, admin export); fail-closed when Redis unavailable in prod |
+| **Audit log** | `SecurityAuditLog` for auth, admin actions, exports, AI refusals, etc. (`SECURITY_AUDIT_DB=0` disables DB persist) |
+| **HTTP headers** | CSP (report-only → enforce path), HSTS, frame denial, referrer policy |
+| **Upload restrictions** | Validated types/size; **local volume** on disk (`UPLOAD_STORAGE_DRIVER=local`) — see limitations |
 
-## 5. Основные возможности
-
-### Для студента
-
-- Регистрация и профиль (ФИО, ВУЗ, **интересы для AI**)
-- Курс с **линейной разблокировкой** модулей
-- Лекции (блоки контента, видео при наличии)
-- **AI-адаптация** лекции (упрощение, примеры, конспект)
-- Тесты с **серверной** проверкой (без раскрытия эталонов клиенту)
-- Практика: файлы, текст, комбинированные задания, интерактивные лаборатории
-- **AI-чат наставник** в контексте урока/практики
-- Прогресс, баллы, достижения
-- **Сертификат PDF** после завершения курса
-
-### Для администратора
-
-- Управление модулями, лекциями, тестами, практическими заданиями
-- Проверка отправок практики
-- Пользователи и **экспорт CSV** (аудируется)
-- Модерация отзывов (публикация/снятие)
-- Реестр сертификатов
-
-### Для эксплуатации
-
-- Docker dev/prod compose
-- Health endpoints (`/api/health`, `/api/v1/health`)
-- Миграции Prisma в CI и при деплое
-- Persistent volume для practice/avatar/certificate files
+Production must use `RUN_SEED=0`, `ENVIRONMENT=production`, and unique secrets from [`.env.prod.example`](./cyberedu/.env.prod.example) (never commit `.env.production`).
 
 ---
 
-## 6. Security features
+## Screenshots
 
-Реализация и чеклисты: [`cyberedu/docs/SECURITY.md`](./cyberedu/docs/SECURITY.md)
+Generated from seed data via Playwright (`cd cyberedu/frontend && npm run screenshots`). Copies for the marketing site live in `cyberedu/frontend/public/screenshots/`.
 
-| Область | Механизм |
-|---------|----------|
-| **Аутентификация** | Email + пароль, bcrypt-хеш, NextAuth JWT; secure cookies в production |
-| **Авторизация** | RBAC (`USER` / `ADMIN`), middleware, `requireAdmin`, permissions |
-| **API** | Централизованный `withApiGuard` (auth, rate limit, Zod, audit, safe errors) |
-| **CSRF** | Origin/Referer + double-submit для mutating `/api/*` |
-| **Rate limiting** | Redis (prod) / in-memory (dev): login, AI, upload, cert verify, admin export |
-| **HTTP headers** | CSP (report-only → enforce), HSTS, X-Frame-Options, Referrer-Policy, Permissions-Policy |
-| **Uploads** | Local volume `/app/uploads` (**single replica**); S3 — planned ([`cyberedu/docs/STORAGE.md`](./cyberedu/docs/STORAGE.md)) |
-| **Backend API** | `X-API-Key` (fail closed без ключа) |
-| **Audit** | `SecurityAuditLog`: login, admin export, role change, practice review, AI refusal и др. |
-| **Secrets** | Только runtime env; не в Docker build-args |
-| **Production seed** | Демо-учётки **запрещены** (`RUN_SEED=0`, `ENVIRONMENT=production`) |
+| | Screen | File |
+|---|--------|------|
+| Landing | Marketing home | [`01-landing.png`](./cyberedu/docs/screenshots/01-landing.png) |
+| Dashboard | Student cockpit | [`02-dashboard.png`](./cyberedu/docs/screenshots/02-dashboard.png) |
+| Course | Learning path / modules | [`03-course.png`](./cyberedu/docs/screenshots/03-course.png) |
+| Lesson | Lesson reader + AI tabs | [`04-lesson.png`](./cyberedu/docs/screenshots/04-lesson.png) |
+| Test | Module assessment | [`05-test.png`](./cyberedu/docs/screenshots/05-test.png) |
+| Practice | Practice lab | [`06-practice.png`](./cyberedu/docs/screenshots/06-practice.png) |
+| Admin | LMS admin overview | [`07-admin.png`](./cyberedu/docs/screenshots/07-admin.png) |
+| Certificate | Student certificate page | [`08-certificate.png`](./cyberedu/docs/screenshots/08-certificate.png) |
+| Auth | Login | [`09-login.png`](./cyberedu/docs/screenshots/09-login.png) |
 
----
+<p align="center">
+  <img src="./cyberedu/docs/screenshots/01-landing.png" alt="CyberEdu landing page" width="45%" />
+  <img src="./cyberedu/docs/screenshots/02-dashboard.png" alt="Student dashboard" width="45%" />
+</p>
+<p align="center">
+  <img src="./cyberedu/docs/screenshots/04-lesson.png" alt="Lesson view" width="45%" />
+  <img src="./cyberedu/docs/screenshots/05-test.png" alt="Module test" width="45%" />
+</p>
+<p align="center">
+  <img src="./cyberedu/docs/screenshots/06-practice.png" alt="Practice lab" width="45%" />
+  <img src="./cyberedu/docs/screenshots/08-certificate.png" alt="Certificate page" width="45%" />
+</p>
+<p align="center">
+  <img src="./cyberedu/docs/screenshots/07-admin.png" alt="Admin dashboard" width="45%" />
+</p>
 
-## 7. AI-наставник и ограничения
-
-### Возможности
-
-1. **Адаптация лекций** (`/api/ai/lesson-adapt`) — перефразирование с учётом интересов из профиля; оригинал в БД не перезаписывается.
-2. **Чат-наставник** (`/api/ai/chat`) — подсказки в контексте модуля/урока; история хранится **на сервере**, клиентская история не доверяется.
-
-### Pipeline (упрощённо)
-
-```text
-Ввод пользователя → pre-moderation → (server history) → LLM → post-moderation → ответ
-```
-
-### Ограничения (by design)
-
-| Правило | Зачем |
-|---------|--------|
-| Не выдавать **готовые ответы** на тесты и практику | Академическая честность |
-| Не включать в промпт **эталоны**, rubric, флаги `isCorrect` | Защита от утечки оценки |
-| Отказ при jailbreak / off-topic / injection | `moderation` + шаблоны отказа |
-| Rate limit per user / IP | Злоупотребление и cost control |
-| Аудит отказов **без** текста prompt/ответа в логах | Privacy & forensics |
-| Внешний LLM — **untrusted** boundary | Данные минимизируются, выход фильтруется |
-
-Конфигурация: `OPENAI_API_KEY`, `OPENAI_API_BASE_URL`, `OPENAI_MODEL` (см. `.env.example`, без коммита ключей).
+Regenerate: Postgres + seed, then `npm run dev` (port **3100**, same host as `AUTH_URL` in `.env`, usually `localhost`) and `npm run screenshots` in `cyberedu/frontend`. Use `npm run dev`, not `npm run start`, for local capture — production mode enables `Secure` session cookies that middleware cannot read over plain HTTP.
 
 ---
 
-## 8. Роли пользователей
+## Local development
 
-| Роль | Код | Возможности |
-|------|-----|-------------|
-| **Гость** | — | Главная, отзывы, вход/регистрация |
-| **Студент** | `USER` | Курс, тесты, практика, AI, профиль, сертификат, отзыв |
-| **Администратор** | `ADMIN` | Всё у студента + админ-панель, проверка работ, контент, экспорт |
-
-Матрица прав: `lib/security/rbac.ts` · экспорт и PII — только `ADMIN` с аудитом.
-
----
-
-## 9. Запуск (development)
-
-Официальный способ — **Docker Compose** из [`cyberedu/`](./cyberedu/).
+Official path: **Docker Compose** from [`cyberedu/`](./cyberedu/).
 
 ```bash
 cd cyberedu
 cp .env.example .env
-# при необходимости: cp frontend/.env.example frontend/.env (Prisma с хоста)
+# optional: cp frontend/.env.example frontend/.env
 
 docker compose up --build
 ```
 
-**Первый запуск с демо-данными курса** (только изолированная dev-среда):
+**First run with demo course data** (isolated dev only):
 
 ```bash
 RUN_SEED=1 docker compose up --build
 ```
 
-| Сервис | URL |
-|--------|-----|
-| Приложение | http://localhost:3100 |
-| Backend OpenAPI | http://localhost:18000/docs |
+| Service | URL |
+|---------|-----|
+| App | http://localhost:3100 |
+| FastAPI docs | http://localhost:18000/docs |
 | pgAdmin | http://127.0.0.1:15050 |
-| PostgreSQL (с хоста) | `127.0.0.1:15432` |
+| PostgreSQL (host) | `127.0.0.1:15432` |
 
-### Демо-учётки (только development)
-
-После `RUN_SEED=1` создаются учётные записи с email:
-
-| Роль | Email (dev) |
-|------|-------------|
-| Администратор | `admin@cyberedu.local` |
-| Студент | `student@cyberedu.local` |
-
-**Пароли в репозиторий не входят.** Задайте их локально при seed или смените после первого входа. Подсказки — в [`cyberedu/frontend/.env.example`](./cyberedu/frontend/.env.example) и [`cyberedu/.env.example`](./cyberedu/.env.example). Повторный seed **не перезаписывает** `passwordHash` существующих пользователей.
-
-Подробные команды, design-live, пересборка frontend: [`cyberedu/README.md`](./cyberedu/README.md)
+Frontend-only (hot reload): see [`cyberedu/README.md`](./cyberedu/README.md) (`./scripts/design-live.sh`).
 
 ---
 
-## 10. Запуск (production)
-
-Production — отдельный compose, **без seed**, внутренняя Docker-сеть, TLS на Nginx.
+## Production deployment
 
 ```bash
 cd cyberedu
 cp .env.prod.example .env.production
 chmod 600 .env.production
-# заполните секреты: AUTH_SECRET, POSTGRES_PASSWORD, INTERNAL_API_KEY, REDIS_PASSWORD, домены
+# Set AUTH_SECRET, POSTGRES_PASSWORD, INTERNAL_API_KEY, REDIS_PASSWORD, domains, etc.
 
 docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
 ```
 
-Обязательно:
+Required: `RUN_SEED=0`, `ENVIRONMENT=production`, `REDIS_URL`, `TRUSTED_PROXY=1` behind Nginx, persistent volume for uploads.
 
-- `RUN_SEED=0`, `ENVIRONMENT=production`
-- Уникальные секреты (`openssl rand -base64 32`)
-- `TRUSTED_PROXY=1` за Nginx
-- `REDIS_URL` для rate limit
-- Volume `frontend_uploads` для файлов
-
-Пошагово: [`cyberedu/docs/DEPLOYMENT.md`](./cyberedu/docs/DEPLOYMENT.md)
-
-**Операционная документация (canonical):**
-
-| Документ | Содержание |
-|----------|------------|
-| [`cyberedu/docs/OPERATIONS.md`](./cyberedu/docs/OPERATIONS.md) | Production checklist, env, PostgreSQL, Redis, migrations, seed, e2e, troubleshooting, screenshots |
-| [`cyberedu/docs/GO_LIVE_CHECKLIST.md`](./cyberedu/docs/GO_LIVE_CHECKLIST.md) | Go-live: CI, security tests, ops, остаточные риски |
-| [`cyberedu/docs/STORAGE.md`](./cyberedu/docs/STORAGE.md) | Uploads local volume / S3 roadmap |
-| [`cyberedu/docs/checklists/FINAL_CHECKLIST.md`](./cyberedu/docs/checklists/FINAL_CHECKLIST.md) | Полный pre-production |
-
-Индекс: [`cyberedu/docs/README.md`](./cyberedu/docs/README.md)
-
-### Production-like окружение локально
-
-```bash
-cd cyberedu
-docker compose up -d postgres redis
-cd frontend && cp .env.example .env
-# DATABASE_URL + REDIS_URL=redis://127.0.0.1:6379/0
-npm run test:e2e:prod:local   # migrate, seed (e2e only), playwright
-```
+| Guide | Purpose |
+|-------|---------|
+| [`docs/DEPLOYMENT.md`](./cyberedu/docs/DEPLOYMENT.md) | VPS, SSL, compose |
+| [`docs/OPERATIONS.md`](./cyberedu/docs/OPERATIONS.md) | Env, migrations, backup, admin creation, troubleshooting |
+| [`docs/GO_LIVE_CHECKLIST.md`](./cyberedu/docs/GO_LIVE_CHECKLIST.md) | Pre-launch checklist |
+| [`docs/checklists/FINAL_CHECKLIST.md`](./cyberedu/docs/checklists/FINAL_CHECKLIST.md) | Full pre-production |
 
 ---
 
-## 11. Скриншоты
-
-Каталог: [`cyberedu/docs/screenshots/`](./cyberedu/docs/screenshots/) — PNG генерируются Playwright из seed-учёток (без production-секретов).
+## Testing
 
 ```bash
 cd cyberedu/frontend
-# приложение на :3100 + seed
-npm run screenshots
-```
-
-| Файл | Экран |
-|------|--------|
-| `01-landing.png` | Landing |
-| `09-login.png` | Login |
-| `02-dashboard.png` | Student dashboard |
-| `03-course.png` | Course map |
-| `04-lesson.png` | Lesson |
-| `05-test.png` | Module test |
-| `07-admin.png` | Admin dashboard |
-
-![Landing](./cyberedu/docs/screenshots/01-landing.png)
-
-![Student dashboard](./cyberedu/docs/screenshots/02-dashboard.png)
-
-![Course map](./cyberedu/docs/screenshots/03-course.png)
-
-![Lesson](./cyberedu/docs/screenshots/04-lesson.png)
-
-![Module test](./cyberedu/docs/screenshots/05-test.png)
-
-![Admin dashboard](./cyberedu/docs/screenshots/07-admin.png)
-
-Инструкция: [`cyberedu/docs/screenshots/README.md`](./cyberedu/docs/screenshots/README.md) · [`cyberedu/docs/OPERATIONS.md`](./cyberedu/docs/OPERATIONS.md#ux-screenshots)
-
-Бренд-активы (SVG): [`cyberedu/frontend/public/brand/`](./cyberedu/frontend/public/brand/)
-
----
-
-## 12. Roadmap
-
-| Приоритет | Направление |
-|-----------|-------------|
-| **P0** | CSP `enforce` после анализа report-only; полное покрытие `withApiGuard` |
-| **P1** | S3-compatible storage для uploads (multi-replica) |
-| **P1** | Email-уведомления (верификация, сертификат) |
-| **P2** | Расширение лабораторий и сценариев IR / SOC (в учебных границах) |
-| **P2** | Вынос тяжёлой отчётности на FastAPI BFF |
-| **P3** | Sticky-less sessions / horizontal scale Next.js |
-| **P3** | Лидерборд с согласованием политики приватности |
-
-Текущая оценка готовности: [`cyberedu/docs/PRODUCTION_READINESS.md`](./cyberedu/docs/PRODUCTION_READINESS.md)
-
----
-
-## 13. Known limitations
-
-| Ограничение | Комментарий |
-|-------------|-------------|
-| **Single-node uploads** | `UPLOAD_STORAGE_DRIVER=local` + volume `frontend_uploads`; multi-replica → S3 ([`cyberedu/docs/STORAGE.md`](./cyberedu/docs/STORAGE.md)) |
-| **JWT sessions** | Без shared store — несколько реплик Next требуют sticky sessions |
-| **AI зависит от внешнего API** | Нужен ключ и сеть; есть graceful degradation при отсутствии ключа |
-| **Доменная логика в Next** | FastAPI пока узкий; не все операции вынесены на backend |
-| **Seed объёмный** | Много демо-студентов для отчётности; только dev |
-| **Ручная проверка TEXT-вопросов** | Часть практики требует администратора |
-| **Нет полноценных изолированных VM labs** | Учебные симуляции в браузере, не KVM/контейнеры на студента |
-
----
-
-## 14. Тесты и staging smoke
-
-```bash
-cd cyberedu/frontend
-npm run lint && npm run typecheck && npm test    # Vitest (в т.ч. security)
-npm run test:security                            # только security-фокус
-npm run test:e2e                                 # Playwright dev (app + seed)
+npm run lint
+npm run typecheck
+npm test                  # Vitest — unit + security (~260 tests)
+npm run test:security     # security-focused subset
+npm run test:e2e          # Playwright — requires app on :3100 + seed
 ```
 
 **Production-like** (Redis + `ENVIRONMENT=production`):
 
 ```bash
 cd cyberedu && docker compose up -d postgres redis
-cd frontend && REDIS_URL=redis://127.0.0.1:6379 npm run test:e2e:prod
-# или полный цикл:
 cd frontend && npm run smoke:staging:local
-# или:
-cd cyberedu && CHECK_REDIS=1 BASE_URL=http://127.0.0.1:3100 ./scripts/staging-smoke.sh
+# or: CHECK_REDIS=1 ./scripts/staging-smoke.sh  (from cyberedu/)
 ```
 
-Карта security-тестов: [`cyberedu/docs/SECURITY.md`](./cyberedu/docs/SECURITY.md#автоматические-тесты-vitest).
+E2E covers student login, dashboard, course, test/practice submit smoke, certificate verify page, admin users — see [`tests/e2e/smoke.spec.ts`](./cyberedu/frontend/tests/e2e/smoke.spec.ts).
+
+CI: [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) (lint, typecheck, unit tests, Playwright, Docker build).
 
 ---
 
-## 15. Security disclaimer
+## Known limitations & roadmap
 
-1. **CyberEdu — учебный проект.** Не используйте демо-конфигурацию, дефолтные секреты из примеров `.env.example` или seed-учётки в открытых сетях и production.
-2. **Не развёртывайте** с `RUN_SEED=1` или `ENVIRONMENT=development` на публичном VPS.
-3. **Персональные данные** обрабатываются в рамках демонстрации; для реального внедрения нужны политика конфиденциальности, сроки хранения audit/log и согласие субъектов ПДн.
-4. **AI-ответы** могут быть неточными; платформа ограничивает риски, но не заменяет преподавателя и официальные материалы курса.
-5. **Ответственность** за развёртывание, патчи, бэкапы БД и ротацию секретов несёт оператор системы.
-6. Сообщения об уязвимостях: укажите контакт maintainer в README вашего форка / организации (не публикуйте exploit в открытом доступе).
+Honest boundaries — do not treat this repo as a turnkey SaaS without addressing these:
 
----
+| Topic | Current state | Direction |
+|-------|---------------|-----------|
+| **Object storage (S3)** | Uploads on **local Docker volume** only; **not** multi-replica safe | S3-compatible driver planned — [`docs/STORAGE.md`](./cyberedu/docs/STORAGE.md) |
+| **Horizontal scaling** | JWT sessions without shared store; uploads pinned to one volume | Sticky sessions and/or external session store; S3 for files |
+| **Full VM labs** | Browser-based training scenarios, not per-student KVM/containers | Out of scope today; possible future integration |
+| **Monitoring** | Health endpoints + optional Prometheus profile; no bundled APM/dashboards | Expand observability (metrics, alerts, log aggregation) |
+| **FastAPI scope** | Narrow internal API; most domain logic in Next.js | Gradual BFF/reporting extraction |
+| **AI dependency** | Requires external LLM API; degraded mode without key | Documented in ops guides |
+| **Manual grading** | Some TEXT test/practice items need admin review | By design for open-ended tasks |
+| **Public demo** | No hosted instance in repository | Maintainer deploys separately |
 
-## Документация и CI
-
-| Документ | Назначение |
-|----------|------------|
-| [`cyberedu/README.md`](./cyberedu/README.md) | Операционный quick start |
-| [`cyberedu/docs/ARCHITECTURE.md`](./cyberedu/docs/ARCHITECTURE.md) | Архитектура |
-| [`cyberedu/docs/SECURITY.md`](./cyberedu/docs/SECURITY.md) | Модель безопасности |
-| [`cyberedu/docs/README.md`](./cyberedu/docs/README.md) | Индекс документации |
-| [`cyberedu/docs/OPERATIONS.md`](./cyberedu/docs/OPERATIONS.md) | Production / troubleshooting |
-| [`cyberedu/docs/GO_LIVE_CHECKLIST.md`](./cyberedu/docs/GO_LIVE_CHECKLIST.md) | Go-live checklist |
-| [`cyberedu/docs/DEPLOYMENT.md`](./cyberedu/docs/DEPLOYMENT.md) | Production deploy |
-| [`cyberedu/docs/STORAGE.md`](./cyberedu/docs/STORAGE.md) | Upload storage |
-| [`cyberedu/docs/API.md`](./cyberedu/docs/API.md) | HTTP API |
-| [`cyberedu/docs/checklists/`](./cyberedu/docs/checklists/) | Release / Security / Deploy |
-
-**CI:** [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) (lint, typecheck, unit tests, Playwright smoke, Docker build) · **Release:** [`.github/workflows/release.yml`](./.github/workflows/release.yml)
+Readiness notes: [`cyberedu/docs/PRODUCTION_READINESS.md`](./cyberedu/docs/PRODUCTION_READINESS.md) · Defense / pilot: [`cyberedu/docs/DEFENSE_READINESS.md`](./cyberedu/docs/DEFENSE_READINESS.md)
 
 ---
 
-*Документ подготовлен для дипломной / курсовой защиты и онбординга разработчиков. Актуальность инфраструктурных деталей сверяйте с `docker-compose*.yml` и `docs/`.*
+## License
+
+[MIT License](./LICENSE) — Copyright (c) 2026 CyberEdu contributors.
+
+---
+
+## Documentation index
+
+| Document | Description |
+|----------|-------------|
+| [`cyberedu/README.md`](./cyberedu/README.md) | Dev/prod quick start (RU) |
+| [`cyberedu/docs/README.md`](./cyberedu/docs/README.md) | Full documentation index |
+| [`cyberedu/docs/ARCHITECTURE.md`](./cyberedu/docs/ARCHITECTURE.md) | Components & data flows |
+| [`cyberedu/docs/SECURITY.md`](./cyberedu/docs/SECURITY.md) | Threat model & controls |
+| [`cyberedu/docs/screenshots/README.md`](./cyberedu/docs/screenshots/README.md) | Screenshot generation |
+
+---
+
+**Disclaimer:** CyberEdu is an educational engineering project. Do not expose development seeds, example secrets, or default credentials to the public internet. Operators are responsible for secrets rotation, backups, and compliance when handling real user data.

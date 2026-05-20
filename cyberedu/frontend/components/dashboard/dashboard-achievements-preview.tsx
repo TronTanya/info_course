@@ -19,7 +19,7 @@ export function DashboardAchievementsPreview({ rows }: { rows: AchievementRow[] 
 
   return (
     <motion.section
-      className="ce-learn-panel ce-border-beam ce-glass rounded-2xl p-5 shadow-card sm:p-6"
+      className="ce-learn-panel ce-glass rounded-2xl p-5 shadow-card sm:p-6"
       initial={reduce ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
@@ -29,13 +29,11 @@ export function DashboardAchievementsPreview({ rows }: { rows: AchievementRow[] 
         <div className="flex min-w-0 items-start gap-4">
           <span
             className={cn(
-              "flex size-14 shrink-0 items-center justify-center rounded-2xl ring-1",
-              highlight.unlocked
-                ? "bg-primary/12 text-primary ring-primary/25"
-                : "bg-muted/60 text-muted-foreground ring-border",
+              "flex size-16 shrink-0 items-center justify-center rounded-2xl p-0.5 ring-1",
+              highlight.unlocked ? "bg-primary/12 ring-primary/25" : "bg-muted/60 ring-border",
             )}
           >
-            <AchievementGlyph slug={highlight.slug} unlocked={highlight.unlocked} />
+            <AchievementGlyph slug={highlight.slug} unlocked={highlight.unlocked} size="lg" />
           </span>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
@@ -69,12 +67,12 @@ export function DashboardAchievementsPreview({ rows }: { rows: AchievementRow[] 
           <li
             key={a.kind}
             className={cn(
-              "flex size-11 shrink-0 items-center justify-center rounded-xl border transition-colors",
-              a.unlocked ? "border-primary/30 bg-primary/10" : "border-border/60 bg-muted/30 opacity-70",
+              "flex size-12 shrink-0 items-center justify-center rounded-xl border p-0.5 transition-colors",
+              a.unlocked ? "border-primary/30 bg-primary/10" : "border-border/60 bg-muted/30",
             )}
             title={a.title}
           >
-            <AchievementGlyph slug={a.slug} unlocked={a.unlocked} />
+            <AchievementGlyph slug={a.slug} unlocked={a.unlocked} size="sm" />
           </li>
         ))}
       </ul>

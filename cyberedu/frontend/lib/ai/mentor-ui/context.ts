@@ -32,5 +32,13 @@ export function buildContextChips(
     chips.push({ id: "task", label: "Практика" });
   }
 
+  if (labels.topic) {
+    chips.push({ id: "topic", label: labels.topic });
+  }
+
+  if (labels.testSummary) {
+    chips.push({ id: "test", label: labels.testSummary });
+  }
+
   return chips;
 }

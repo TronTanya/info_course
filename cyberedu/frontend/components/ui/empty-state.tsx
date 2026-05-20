@@ -27,7 +27,7 @@ export function EmptyState({
     return (
       <StateShell variant="empty" terminalLine={terminalLine} role="status" className={cn("ce-empty-state--compact", className)}>
         <div className="flex flex-col gap-4 px-4 py-6 sm:flex-row sm:items-center sm:px-5">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-muted/80 text-muted-foreground ring-1 ring-border">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-primary/15 bg-primary/8 text-muted-foreground ring-1 ring-primary/20">
             {icon ?? <Inbox className="size-5 opacity-70" aria-hidden />}
           </div>
           <div className="min-w-0 flex-1 text-left">
@@ -51,7 +51,7 @@ export function EmptyState({
       )}
     >
       <div className="flex flex-col items-center justify-center px-6 py-14 text-center">
-        <div className="mb-5 flex size-16 items-center justify-center rounded-2xl bg-muted/80 text-muted-foreground ring-1 ring-border shadow-sm">
+        <div className="mb-5 flex size-16 items-center justify-center rounded-2xl border border-primary/15 bg-primary/8 text-muted-foreground shadow-[var(--ce-glow-primary)] ring-1 ring-primary/20">
           {icon ?? <Inbox className="size-7 opacity-70" aria-hidden />}
         </div>
         <h3 className="typo-h3 text-balance">{title}</h3>

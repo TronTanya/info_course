@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, BookOpen, CheckCircle2, FlaskConical, RotateCcw } from "lucide-react";
+import { AlertTriangle, ArrowRight, BookOpen, CheckCircle2, FlaskConical, MessageSquare, RotateCcw, XCircle } from "lucide-react";
+import type { LearningStepLink } from "@/lib/learning-nav";
+import { Badge } from "@/components/ui/badge";
 import { AnswerFeedback } from "@/components/ui/answer-feedback";
 import { Button } from "@/components/ui/button";
 import { CircularProgress } from "@/components/ui/circular-progress";
@@ -30,7 +32,9 @@ export function TestResultView({
   correctCount,
   totalGraded,
   review,
+  nextStep = null,
   onRetry,
+  onAskMentor,
 }: {
   moduleId: string;
   title: string;
@@ -41,7 +45,9 @@ export function TestResultView({
   correctCount: number;
   totalGraded: number;
   review: TestReviewRow[];
+  nextStep?: LearningStepLink | null;
   onRetry: () => void;
+  onAskMentor?: () => void;
 }) {
   const lessonHref = `/dashboard/course/${moduleId}/lesson`;
   const practiceHref = `/dashboard/course/${moduleId}/practice`;
@@ -50,6 +56,8 @@ export function TestResultView({
   const wrong = review.filter((r) => r.isCorrect === false);
   const correct = review.filter((r) => r.isCorrect === true);
   const pendingManual = review.filter((r) => r.isCorrect === null);
+  const nextLesson =
+    nextStep && !nextStep.disabled && nextStep.href.includes("/lesson") ? nextStep : null;
 
   return (
     <div className="ce-test-result space-y-6">
@@ -58,15 +66,31 @@ export function TestResultView({
           <div className="flex flex-col items-center gap-2 sm:items-start">
             <p className={cyber.monoLabel}>Результат теста</p>
             <h2 className="text-center font-display text-xl font-semibold text-balance text-foreground sm:text-left">{title}</h2>
+            <Badge
+              variant={passed ? "success" : "danger"}
+              className="mt-1 w-fit gap-1.5 px-3 py-1 text-xs font-semibold uppercase tracking-wide"
+            >
+              {passed ? (
+                <>
+                  <CheckCircle2 className="size-3.5" aria-hidden />
+                  Пройден
+                </>
+              ) : (
+                <>
+                  <XCircle className="size-3.5" aria-hidden />
+                  Не пройден
+                </>
+              )}
+            </Badge>
             <p className={cn("text-sm font-medium", passed ? "text-success" : "text-danger")}>
-              {passed ? "Тест пройден — практика модуля доступна" : "Тест не пройден — повторите после лекции"}
+              {passed ? "Практика модуля доступна — закрепите материал в лаборатории." : "Повторите лекцию и пройдите тест снова."}
             </p>
           </div>
           <CircularProgress
             value={percent}
             size={120}
             strokeWidth={8}
-            label={`${percent}%`}
+            label={passed ? "Зачёт" : "Тест"}
             tone={passed ? "success" : "default"}
           />
         </div>
@@ -100,21 +124,71 @@ export function TestResultView({
 
       <SectionCard variant="default" flushTitle className="p-5 sm:p-6" title="Разбор ответов">
         <p className="mb-4 text-sm text-muted-foreground">
-          Ниже — все вопросы с результатом проверки. Правильные ответы и пояснения помогают закрепить материал.
+          Ниже — все вопросы с результатом проверки. Пояснения показаны только после отправки.
         </p>
-        <ul className="space-y-3">
-          {review.map((row, index) => (
-            <li key={row.questionId}>
-              <AnswerFeedback
-                variant={
-                  row.isCorrect === true ? "correct" : row.isCorrect === false ? "incorrect" : "neutral"
-                }
-                title={`${index + 1}. ${row.questionText} · ${row.pointsEarned}/${row.maxPoints} б.`}
-                explanation={row.explanation}
-              />
-            </li>
-          ))}
-        </ul>
+        {wrong.length > 0 ? (
+          <div className="mb-5 space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-danger">
+              Неверно · {wrong.length}
+            </p>
+            <ul className="space-y-3">
+              {wrong.map((row) => {
+                const index = review.findIndex((r) => r.questionId === row.questionId);
+                return (
+                  <li key={row.questionId}>
+                    <AnswerFeedback
+                      variant="incorrect"
+                      title={`${index + 1}. ${row.questionText} · ${row.pointsEarned}/${row.maxPoints} б.`}
+                      explanation={row.explanation}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : null}
+        {correct.length > 0 ? (
+          <div className="mb-5 space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-success">
+              Верно · {correct.length}
+            </p>
+            <ul className="space-y-3">
+              {correct.map((row) => {
+                const index = review.findIndex((r) => r.questionId === row.questionId);
+                return (
+                  <li key={row.questionId}>
+                    <AnswerFeedback
+                      variant="correct"
+                      title={`${index + 1}. ${row.questionText} · ${row.pointsEarned}/${row.maxPoints} б.`}
+                      explanation={row.explanation}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : null}
+        {pendingManual.length > 0 ? (
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              На проверке · {pendingManual.length}
+            </p>
+            <ul className="space-y-3">
+              {pendingManual.map((row) => {
+                const index = review.findIndex((r) => r.questionId === row.questionId);
+                return (
+                  <li key={row.questionId}>
+                    <AnswerFeedback
+                      variant="neutral"
+                      title={`${index + 1}. ${row.questionText} · ожидает проверки`}
+                      explanation={row.explanation}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : null}
       </SectionCard>
 
       {wrong.length > 0 ? (
@@ -156,39 +230,44 @@ export function TestResultView({
             </li>
           ) : null}
         </ul>
-        {correct.some((r) => r.explanation) ? (
-          <details className="mt-4 rounded-xl border border-border/60 bg-muted/20 p-3">
-            <summary className="flex min-h-11 cursor-pointer items-center text-sm font-medium text-foreground">
-              Пояснения к верным ответам ({correct.filter((r) => r.explanation).length})
-            </summary>
-            <ul className="mt-3 max-h-64 space-y-3 overflow-y-auto">
-              {correct
-                .filter((r) => r.explanation)
-                .map((row) => (
-                  <li key={row.questionId}>
-                    <AnswerFeedback variant="correct" title={row.questionText} explanation={row.explanation} />
-                  </li>
-                ))}
-            </ul>
-          </details>
-        ) : null}
       </SectionCard>
 
       <div className="grid gap-3 sm:grid-cols-2">
+        {onAskMentor ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            className="w-full gap-2 border-cyan/30 text-cyan hover:bg-cyan/10 sm:col-span-2"
+            onClick={onAskMentor}
+          >
+            <MessageSquare className="size-4" aria-hidden />
+            Разобрать с AI-наставником
+          </Button>
+        ) : null}
         <Button type="button" variant="outline" size="lg" className="w-full gap-2" onClick={onRetry}>
           <RotateCcw className="size-4" aria-hidden />
           Повторить тест
         </Button>
-        <Button asChild variant="outline" size="lg" className="w-full gap-2">
-          <Link href={lessonHref}>
-            <BookOpen className="size-4" aria-hidden />
-            К лекции
-          </Link>
-        </Button>
+        {nextLesson ? (
+          <Button asChild variant="outline" size="lg" className="w-full gap-2">
+            <Link href={nextLesson.href}>
+              <ArrowRight className="size-4" aria-hidden />
+              Следующий урок
+            </Link>
+          </Button>
+        ) : (
+          <Button asChild variant="outline" size="lg" className="w-full gap-2">
+            <Link href={lessonHref}>
+              <BookOpen className="size-4" aria-hidden />
+              К лекции
+            </Link>
+          </Button>
+        )}
         <Button asChild variant={passed ? "primary" : "secondary"} size="lg" className="w-full gap-2 sm:col-span-2">
           <Link href={practiceHref}>
             <FlaskConical className="size-4" aria-hidden />
-            {passed ? "Перейти к практике" : "Открыть практику (после зачёта)"}
+            {passed ? "Перейти к практике" : "Практика (после зачёта)"}
           </Link>
         </Button>
         <Button asChild variant="ghost" size="lg" className="w-full sm:col-span-2">

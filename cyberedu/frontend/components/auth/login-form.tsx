@@ -93,6 +93,7 @@ export function LoginForm() {
           placeholder="name@example.ru"
           required
           disabled={pending}
+          aria-invalid={error ? true : undefined}
           aria-describedby={error ? formErrorId : undefined}
         />
         <div className="space-y-2">
@@ -102,6 +103,7 @@ export function LoginForm() {
             name="password"
             required
             disabled={pending}
+            aria-invalid={error ? true : undefined}
             aria-describedby={error ? formErrorId : undefined}
           />
           <div className="flex justify-end">

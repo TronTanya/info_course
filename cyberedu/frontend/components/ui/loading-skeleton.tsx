@@ -1,4 +1,5 @@
 import * as React from "react";
+import { PremiumCard } from "@/components/ui/premium-card";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -7,10 +8,17 @@ export type LoadingSkeletonProps = {
   /** Количество строк-полос */
   lines?: number;
   showHeader?: boolean;
+  /** Обёртка в premium glass card */
+  variant?: "plain" | "card";
 };
 
-export function LoadingSkeleton({ className, lines = 4, showHeader = true }: LoadingSkeletonProps) {
-  return (
+export function LoadingSkeleton({
+  className,
+  lines = 4,
+  showHeader = true,
+  variant = "plain",
+}: LoadingSkeletonProps) {
+  const body = (
     <div className={cn("space-y-4", className)} aria-busy="true" aria-label="Загрузка">
       {showHeader ? (
         <div className="space-y-2">
@@ -26,4 +34,14 @@ export function LoadingSkeleton({ className, lines = 4, showHeader = true }: Loa
       </div>
     </div>
   );
+
+  if (variant === "card") {
+    return (
+      <PremiumCard padding="md" variant="flat" className={className}>
+        {body}
+      </PremiumCard>
+    );
+  }
+
+  return body;
 }

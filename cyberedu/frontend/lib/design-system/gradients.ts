@@ -6,4 +6,6 @@ export const gradients = {
   borderGlow: "border-glow",
   surfaceSubtle: "surface-subtle-gradient",
   glass: "ce-glass",
+  premiumCard: "ce-premium-card",
+  missionPanel: "ce-mission-panel",
 } as const;

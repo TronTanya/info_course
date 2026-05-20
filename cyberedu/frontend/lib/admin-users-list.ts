@@ -21,6 +21,11 @@ export type AdminUserListRow = {
   hasCertificate: boolean;
   /** Число строк в `course_progress`, привязанных к userId. */
   courseProgressRowCount: number;
+  testAttemptCount: number;
+  testsPassedCount: number;
+  practicesCompletedCount: number;
+  /** Последняя активность (тест, практика, прогресс) — proxy, не login session. */
+  lastActivityAt: string | null;
 };
 
 function formatFio(p: {
@@ -58,6 +63,60 @@ export async function getAdminUserListRows(): Promise<AdminUserListRow[]> {
     },
   });
 
+  const studentIds = users.filter((u) => u.role === "USER").map((u) => u.id);
+
+  const [testAttemptsByUser, testsPassedByUser, practiceDoneByUser, lastTest, lastSub, lastProgress] =
+    studentIds.length > 0
+      ? await Promise.all([
+          prisma.testAttempt.groupBy({
+            by: ["userId"],
+            where: { userId: { in: studentIds } },
+            _count: { _all: true },
+          }),
+          prisma.testAttempt.groupBy({
+            by: ["userId"],
+            where: { userId: { in: studentIds }, passed: true },
+            _count: { _all: true },
+          }),
+          prisma.progress.groupBy({
+            by: ["userId"],
+            where: { userId: { in: studentIds }, practiceCompleted: true },
+            _count: { _all: true },
+          }),
+          prisma.testAttempt.groupBy({
+            by: ["userId"],
+            where: { userId: { in: studentIds } },
+            _max: { createdAt: true },
+          }),
+          prisma.submission.groupBy({
+            by: ["userId"],
+            where: { userId: { in: studentIds }, status: { not: "DRAFT" } },
+            _max: { updatedAt: true },
+          }),
+          prisma.progress.groupBy({
+            by: ["userId"],
+            where: { userId: { in: studentIds } },
+            _max: { updatedAt: true },
+          }),
+        ])
+      : [[], [], [], [], [], []];
+
+  const testCountMap = new Map(testAttemptsByUser.map((r) => [r.userId, r._count._all]));
+  const passedMap = new Map(testsPassedByUser.map((r) => [r.userId, r._count._all]));
+  const practiceMap = new Map(practiceDoneByUser.map((r) => [r.userId, r._count._all]));
+
+  function lastActivityFor(userId: string): string | null {
+    const dates: Date[] = [];
+    const t = lastTest.find((r) => r.userId === userId)?._max.createdAt;
+    const s = lastSub.find((r) => r.userId === userId)?._max.updatedAt;
+    const p = lastProgress.find((r) => r.userId === userId)?._max.updatedAt;
+    if (t) dates.push(t);
+    if (s) dates.push(s);
+    if (p) dates.push(p);
+    if (dates.length === 0) return null;
+    return new Date(Math.max(...dates.map((d) => d.getTime()))).toISOString();
+  }
+
   const rows: AdminUserListRow[] = await Promise.all(
     users.map(async (u) => {
       let overallProgressPercent = 0;
@@ -89,6 +148,10 @@ export async function getAdminUserListRows(): Promise<AdminUserListRow[]> {
         totalScore,
         hasCertificate: u.certificates.length > 0,
         courseProgressRowCount: u._count.courseProgressRows,
+        testAttemptCount: u.role === "USER" ? (testCountMap.get(u.id) ?? 0) : 0,
+        testsPassedCount: u.role === "USER" ? (passedMap.get(u.id) ?? 0) : 0,
+        practicesCompletedCount: u.role === "USER" ? (practiceMap.get(u.id) ?? 0) : 0,
+        lastActivityAt: u.role === "USER" ? lastActivityFor(u.id) : null,
       };
     }),
   );

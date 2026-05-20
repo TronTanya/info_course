@@ -1,47 +1,9 @@
 "use client";
 
-import { Fragment, type ReactNode } from "react";
+import { Fragment } from "react";
 import { CodeBlock } from "@/components/ai/mentor/code-block";
+import { formatInlineMarkdown } from "@/lib/markdown-inline";
 import { cn } from "@/lib/utils";
-
-function inlineFormat(text: string): ReactNode[] {
-  const parts: ReactNode[] = [];
-  const re = /(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g;
-  let last = 0;
-  let m: RegExpExecArray | null;
-  let k = 0;
-  while ((m = re.exec(text)) !== null) {
-    if (m.index > last) parts.push(text.slice(last, m.index));
-    const token = m[0];
-    if (token.startsWith("**")) {
-      parts.push(
-        <strong key={k++} className="font-semibold text-foreground">
-          {token.slice(2, -2)}
-        </strong>,
-      );
-    } else if (token.startsWith("`")) {
-      parts.push(
-        <code key={k++} className="rounded bg-cyan/10 px-1 py-0.5 font-mono text-[0.85em] text-cyan">
-          {token.slice(1, -1)}
-        </code>,
-      );
-    } else {
-      const link = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(token);
-      if (link) {
-        parts.push(
-          <a key={k++} href={link[2]} className="text-cyan underline-offset-2 hover:underline" rel="noopener noreferrer" target="_blank">
-            {link[1]}
-          </a>,
-        );
-      } else {
-        parts.push(token);
-      }
-    }
-    last = m.index + token.length;
-  }
-  if (last < text.length) parts.push(text.slice(last));
-  return parts.length ? parts : [text];
-}
 
 type Block =
   | { type: "code"; lang: string; body: string }
@@ -114,12 +76,26 @@ function parseBlocks(source: string): Block[] {
   return blocks;
 }
 
-export function MentorMarkdown({ source, className }: { source: string; className?: string }) {
+export function MentorMarkdown({
+  source,
+  className,
+  compact = false,
+}: {
+  source: string;
+  className?: string;
+  compact?: boolean;
+}) {
   const blocks = parseBlocks(source.trim());
   if (!blocks.length) return null;
 
   return (
-    <div className={cn("ce-mentor-md space-y-2 text-sm leading-relaxed text-foreground/95", className)}>
+    <div
+      className={cn(
+        "ce-mentor-md min-w-0 text-foreground/95",
+        compact ? "space-y-1.5 text-xs leading-relaxed" : "space-y-2 text-sm leading-relaxed",
+        className,
+      )}
+    >
       {blocks.map((b, idx) => {
         switch (b.type) {
           case "code":
@@ -127,36 +103,64 @@ export function MentorMarkdown({ source, className }: { source: string; classNam
           case "h":
             if (b.level === 1) {
               return (
-                <h3 key={idx} className="mt-3 text-base font-semibold tracking-tight text-foreground first:mt-0">
-                  {inlineFormat(b.text)}
+                <h3
+                  key={idx}
+                  className={cn(
+                    "font-semibold tracking-tight text-foreground first:mt-0",
+                    compact ? "mt-2 text-sm" : "mt-3 text-base",
+                  )}
+                >
+                  {formatInlineMarkdown(b.text)}
                 </h3>
               );
             }
             if (b.level === 2) {
               return (
-                <h4 key={idx} className="mt-2.5 text-sm font-semibold text-foreground first:mt-0">
-                  {inlineFormat(b.text)}
+                <h4
+                  key={idx}
+                  className={cn(
+                    "font-semibold text-foreground first:mt-0",
+                    compact ? "mt-1.5 text-xs" : "mt-2.5 text-sm",
+                  )}
+                >
+                  {formatInlineMarkdown(b.text)}
                 </h4>
               );
             }
             return (
-              <h5 key={idx} className="mt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground first:mt-0">
-                {inlineFormat(b.text)}
+              <h5
+                key={idx}
+                className={cn(
+                  "font-semibold uppercase tracking-wide text-muted-foreground first:mt-0",
+                  compact ? "mt-1 text-[10px]" : "mt-2 text-xs",
+                )}
+              >
+                {formatInlineMarkdown(b.text)}
               </h5>
             );
           case "ul":
             return (
-              <ul key={idx} className="ml-4 list-disc space-y-1 text-foreground/90">
+              <ul
+                key={idx}
+                className={cn("ml-4 list-disc text-foreground/90", compact ? "space-y-0.5" : "space-y-1")}
+              >
                 {b.items.map((item, j) => (
-                  <li key={j}>{inlineFormat(item)}</li>
+                  <li key={j} className="pl-0.5">
+                    {formatInlineMarkdown(item)}
+                  </li>
                 ))}
               </ul>
             );
           case "ol":
             return (
-              <ol key={idx} className="ml-4 list-decimal space-y-1 text-foreground/90">
+              <ol
+                key={idx}
+                className={cn("ml-4 list-decimal text-foreground/90", compact ? "space-y-0.5" : "space-y-1")}
+              >
                 {b.items.map((item, j) => (
-                  <li key={j}>{inlineFormat(item)}</li>
+                  <li key={j} className="pl-0.5">
+                    {formatInlineMarkdown(item)}
+                  </li>
                 ))}
               </ol>
             );
@@ -168,7 +172,7 @@ export function MentorMarkdown({ source, className }: { source: string; classNam
                 {b.text.split("\n").map((ln, j) => (
                   <Fragment key={j}>
                     {j > 0 ? <br /> : null}
-                    {inlineFormat(ln)}
+                    {formatInlineMarkdown(ln)}
                   </Fragment>
                 ))}
               </p>

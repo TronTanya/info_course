@@ -6,13 +6,15 @@ import { motion, useReducedMotion } from "framer-motion";
 import { LogOut, Sparkles } from "lucide-react";
 import { logoutAction } from "@/lib/actions/logout";
 import {
-  adminNav,
+  adminNavContent,
+  adminNavPrimary,
+  adminNavSecondary,
   studentQuickNav,
   studentSecondaryNav,
   type NavItem,
 } from "@/lib/design-system/nav-config";
 import { motionPresets, motionWithReducedMotion } from "@/lib/design-system/motion";
-import { isNavHrefActive } from "@/lib/nav-active";
+import { isNavHrefActive, isAdminPrimaryActive } from "@/lib/nav-active";
 import { isStudentQuickNavActive, resolveStudentNavPaths } from "@/lib/nav-resolve";
 import { NavRailLink } from "@/components/layout/nav-rail-link";
 
@@ -37,7 +39,7 @@ export function AppSidebar({ variant }: { variant: AppSidebarVariant }) {
 
   return (
     <motion.aside
-      className="ce-sidebar hidden min-w-0 lg:block"
+      className="ce-sidebar hidden shrink-0 lg:block"
       {...motionWithReducedMotion(motionPresets.slideUp, reduce)}
       aria-label={variant === "admin" ? "Навигация админки" : "Навигация кабинета"}
     >
@@ -51,11 +53,37 @@ export function AppSidebar({ variant }: { variant: AppSidebarVariant }) {
         </p>
 
         {variant === "admin" ? (
-          <nav className="flex flex-1 flex-col gap-0.5">
-            {adminNav.map((item) => (
-              <AdminNavLink key={item.href} item={item} active={isNavHrefActive(pathname, item.href)} />
-            ))}
-          </nav>
+          <>
+            <nav className="flex flex-col gap-0.5" aria-label="Основные разделы">
+              {adminNavPrimary.map((item) => (
+                <AdminNavLink
+                  key={item.href}
+                  item={item}
+                  active={isAdminPrimaryActive(pathname, item.href)}
+                />
+              ))}
+            </nav>
+            <p className="mt-4 px-3 pb-1 font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Контент
+            </p>
+            <nav className="flex flex-col gap-0.5" aria-label="Управление контентом">
+              {adminNavContent.map((item) => (
+                <AdminNavLink key={item.href} item={item} active={isNavHrefActive(pathname, item.href)} />
+              ))}
+            </nav>
+            {adminNavSecondary.length > 0 ? (
+              <>
+                <p className="mt-4 px-3 pb-1 font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Ещё
+                </p>
+                <nav className="flex flex-1 flex-col gap-0.5" aria-label="Дополнительно">
+                  {adminNavSecondary.map((item) => (
+                    <AdminNavLink key={item.href} item={item} active={isNavHrefActive(pathname, item.href)} />
+                  ))}
+                </nav>
+              </>
+            ) : null}
+          </>
         ) : (
           <>
             <nav className="flex flex-col gap-0.5" aria-label="Основные разделы">
@@ -93,7 +121,7 @@ export function AppSidebar({ variant }: { variant: AppSidebarVariant }) {
               <p className="mt-1 leading-relaxed">
                 На лекции и в практике — плавающая кнопка справа внизу или{" "}
                 <Link href={paths.mentor} className="font-medium text-primary hover:underline">
-                  откройте лекцию
+                  откройте урок
                 </Link>
                 .
               </p>
@@ -104,7 +132,7 @@ export function AppSidebar({ variant }: { variant: AppSidebarVariant }) {
         <form action={logoutAction} className="mt-auto border-t border-border/60 pt-3">
           <button
             type="submit"
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex w-full min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <LogOut className="size-4 shrink-0" aria-hidden />
             Выйти

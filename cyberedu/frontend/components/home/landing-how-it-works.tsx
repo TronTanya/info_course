@@ -1,31 +1,31 @@
-import { Award, ClipboardList, FlaskConical, GraduationCap, UserPlus } from "lucide-react";
+import { Award, BookOpen, Brain, ClipboardList, FlaskConical } from "lucide-react";
 import { LandingSection } from "@/components/home/landing-section";
 import { cn } from "@/lib/utils";
 
 const steps = [
   {
     n: 1,
-    title: "Регистрация",
-    description: "Создайте аккаунт — первый модуль откроется сразу. Укажите интересы для персонализации примеров.",
-    icon: UserPlus,
+    title: "Урок",
+    description: "Структурированная теория с чек-листами, терминами и примерами из реальных SOC-процессов.",
+    icon: BookOpen,
   },
   {
     n: 2,
-    title: "Уроки",
-    description: "Лекции и материалы по модулям: теория человеческим языком, без перегруза терминами.",
-    icon: GraduationCap,
-  },
-  {
-    n: 3,
-    title: "Тесты",
-    description: "Короткие проверки после блоков — закрепляете знания и видите результат сразу.",
+    title: "Тест",
+    description: "Короткая проверка после блока — сразу видите пробелы и что повторить перед практикой.",
     icon: ClipboardList,
   },
   {
-    n: 4,
+    n: 3,
     title: "Практика",
-    description: "Лаборатории с реальными кейсами: часть проверяется автоматически, часть — преподавателем.",
+    description: "Лаборатория в браузере: разбор кейса, отправка ответа, автопроверка или ревью преподавателя.",
     icon: FlaskConical,
+  },
+  {
+    n: 4,
+    title: "AI-подсказка",
+    description: "Наставник объясняет сложное, даёт примеры и вопросы — без готовых ответов на задания.",
+    icon: Brain,
   },
   {
     n: 5,
@@ -42,8 +42,9 @@ export function LandingHowItWorks() {
     <LandingSection
       id="how-it-works"
       eyebrow="Как проходит обучение"
-      title="Понятный путь от старта до диплома"
-      description="Пять шагов — без хаоса в сроках и материалах. Каждый следующий модуль открывается после предыдущего."
+      title="Один трек — от урока до сертификата"
+      description="Каждый модуль выстраивается по циклу: теория, проверка, практика, поддержка наставника и зачёт в прогрессе."
+      accent
     >
       <div className="relative mx-auto max-w-5xl">
         <div

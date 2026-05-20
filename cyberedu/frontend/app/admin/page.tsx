@@ -1,60 +1,50 @@
 import type { Metadata } from "next";
+import { AdminLmsDashboard } from "@/components/admin/admin-lms-dashboard";
 import { AdminDashboardChartsLazy } from "@/components/admin/admin-dashboard-charts-lazy";
-import {
-  AdminDashboardContentOverview,
-  AdminDashboardKpiGrid,
-  AdminDashboardQuickActions,
-  AdminDashboardRecentActivity,
-  AdminDashboardSystemStatus,
-} from "@/components/admin/admin-dashboard-panels";
+import { AdminDashboardQuickActions } from "@/components/admin/admin-dashboard-panels";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { getAdminDashboardChartsData } from "@/lib/admin-dashboard-charts";
-import { getAdminDashboardExtended, getAdminDashboardStats } from "@/lib/admin-dashboard";
+import { getAdminLmsDashboardData } from "@/lib/admin-lms-dashboard";
+import { getAdminUserListRows } from "@/lib/admin-users-list";
 import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
-  title: "Админка · Обзор",
+  title: "Админка · LMS",
+  description: "Панель управления CyberEdu: студенты, практика, сертификаты, аудит.",
 };
 
 export default async function AdminHomePage() {
-  const [stats, extended, charts] = await Promise.all([
-    getAdminDashboardStats(),
-    getAdminDashboardExtended(),
+  const [lms, users, charts] = await Promise.all([
+    getAdminLmsDashboardData(),
+    getAdminUserListRows(),
     getAdminDashboardChartsData(),
   ]);
 
   return (
     <AdminShell>
-      <div className="space-y-6">
+      <div className="space-y-8">
         <AdminPageHeader
-          eyebrow="CyberEdu · админ"
-          title="Панель администратора"
-          description="Управление курсом, пользователями, проверкой практики и отчётами. Доступ только для роли ADMIN."
+          eyebrow="CyberEdu Academy · LMS"
+          title="Панель управления"
+          description="Обзор обучения, очередь проверки, сертификаты и события безопасности. Доступ только для ADMIN."
           meta={
             <>
-              <Badge variant={extended.systemOk ? "success" : "danger"}>
-                {extended.systemOk ? "Система готова" : "Требуется настройка курса"}
-              </Badge>
-              {stats.pendingWorkCount > 0 ? (
-                <Badge variant="warning">{stats.pendingWorkCount} на проверке</Badge>
-              ) : null}
+              <Badge variant="secondary">RBAC: ADMIN</Badge>
+              {lms.overview.pendingSubmissions > 0 ? (
+                <Badge variant="warning">{lms.overview.pendingSubmissions} на проверке</Badge>
+              ) : (
+                <Badge variant="success">Очередь пуста</Badge>
+              )}
             </>
           }
         />
 
-        <AdminDashboardKpiGrid stats={stats} />
+        <AdminLmsDashboard data={lms} users={users} />
 
-        <div className="grid gap-6 xl:grid-cols-3">
-          <div className="space-y-6 xl:col-span-2">
-            <AdminDashboardQuickActions />
-            <AdminDashboardChartsLazy data={charts} />
-          </div>
-          <div className="space-y-6">
-            <AdminDashboardSystemStatus systemOk={extended.systemOk} pendingWork={stats.pendingWorkCount} />
-            <AdminDashboardContentOverview content={extended.content} />
-            <AdminDashboardRecentActivity recent={extended.recent} />
-          </div>
+        <div className="grid gap-6 lg:grid-cols-[1fr_minmax(0,22rem)]">
+          <AdminDashboardChartsLazy data={charts} />
+          <AdminDashboardQuickActions />
         </div>
       </div>
     </AdminShell>

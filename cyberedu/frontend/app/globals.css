@@ -74,6 +74,15 @@ html:not(.dark) {
   color: var(--foreground);
 }
 
+/* Видимый фокус для ссылок вне UI-кнопок */
+a:focus-visible {
+  outline: none;
+  border-radius: var(--radius-sm);
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 4px var(--ring);
+}
+
 /* -------------------------------------------------------------------------- */
 /* Responsive layout utilities (CyberEdu): контейнеры, сетка дашборда, практика */
 /* -------------------------------------------------------------------------- */
@@ -177,6 +186,69 @@ html:not(.dark) {
     -webkit-overflow-scrolling: touch;
   }
 
+  /** Touch-friendly targets (WCAG 2.5.5 — min 44×44 CSS px). */
+  .ce-touch-target {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+
+  /** Горизонтальный скролл только внутри блоков кода / терминала. */
+  .ce-terminal-body,
+  .ce-terminal-body pre,
+  .lesson-prose pre,
+  .lesson-code-block pre,
+  .ce-mentor-code-pre {
+    max-width: 100%;
+  }
+
+  .ce-terminal-body pre,
+  .lesson-prose pre,
+  .lesson-code-block pre,
+  .ce-mentor-code-pre {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ce-test-taking {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  @media (max-width: 1023px) {
+    .ce-dashboard-main-pad .ce-ai-mentor-fab {
+      bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
+      right: max(1rem, env(safe-area-inset-right, 0px));
+    }
+
+    .ce-dashboard-main-pad .ce-ai-mentor-panel {
+      bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
+      max-height: min(72dvh, calc(100dvh - 7.5rem - env(safe-area-inset-bottom, 0px)));
+      border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+    }
+  }
+
+  @media (max-width: 639px) {
+    .ce-test-sticky-actions {
+      position: sticky;
+      bottom: 0;
+      z-index: 15;
+      margin-left: -1rem;
+      margin-right: -1rem;
+      padding: 0.75rem 1rem;
+      padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+      border-top: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+      background: color-mix(in oklab, var(--card) 94%, transparent);
+      backdrop-filter: blur(10px);
+    }
+  }
+
+  @media (max-width: 1023px) {
+    .ce-admin-shell {
+      padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+    }
+  }
+
   /** UI states — cyber feedback */
   .ce-ui-state-shell {
     min-width: 0;
@@ -230,25 +302,6 @@ html:not(.dark) {
     }
   }
 
-  /**
-   * Студенческий и админский дашборд: основная колонка контента (навигация в шапке).
-   */
-  .dashboard-grid--with-sidebar {
-    display: grid;
-    width: 100%;
-    min-width: 0;
-    flex: 1 1 auto;
-    grid-template-columns: 1fr;
-    align-items: start;
-    gap: 1rem;
-  }
-  @media (min-width: 1024px) {
-    .dashboard-grid--with-sidebar {
-      grid-template-columns: min(15.5rem, 22vw) minmax(0, 1fr);
-      gap: 1.25rem;
-    }
-  }
-
   .ce-sidebar-inner {
     border-radius: var(--radius-xl);
     border: 1px solid color-mix(in oklab, var(--border) 85%, var(--primary) 12%);
@@ -259,6 +312,7 @@ html:not(.dark) {
 
   :root {
     --header-height: 4.25rem;
+    --ce-sidebar-width: 16rem;
   }
 
   .dashboard-grid {
@@ -294,6 +348,33 @@ html:not(.dark) {
   @media (min-width: 2560px) {
     .dashboard-grid {
       max-width: min(100vw - 3rem, 128rem);
+    }
+  }
+
+  /**
+   * Кабинет / админка: боковое меню + основной контент (перекрывает flex у .dashboard-grid).
+   */
+  .dashboard-grid.dashboard-grid--with-sidebar {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 1rem;
+  }
+  @media (min-width: 1024px) {
+    .dashboard-grid.dashboard-grid--with-sidebar {
+      grid-template-columns: min(var(--ce-sidebar-width), 22vw) minmax(0, 1fr);
+      gap: 1.25rem;
+    }
+  }
+
+  .ce-sidebar {
+    width: 100%;
+    min-width: 0;
+    max-width: var(--ce-sidebar-width);
+  }
+  @media (min-width: 1024px) {
+    .ce-sidebar {
+      justify-self: start;
     }
   }
 
@@ -423,16 +504,18 @@ html:not(.dark) {
 
   /** Шапка и подвал: единый «продуктовый» стиль на всех маршрутах */
   .ce-app-header {
-    border-bottom: 1px solid color-mix(in oklab, var(--border) 82%, var(--primary) 18%);
+    border-bottom: 1px solid color-mix(in oklab, var(--border) 78%, var(--primary) 22%);
     background: linear-gradient(
       180deg,
-      color-mix(in oklab, var(--card) 92%, var(--foreground)) 0%,
-      color-mix(in oklab, var(--card) 88%, transparent) 100%
+      color-mix(in oklab, var(--card) 94%, var(--primary) 4%) 0%,
+      color-mix(in oklab, var(--card) 86%, transparent) 100%
     );
-    background-color: color-mix(in oklab, var(--card) 78%, transparent);
-    backdrop-filter: blur(18px) saturate(1.12);
+    background-color: color-mix(in oklab, var(--card) 76%, transparent);
+    backdrop-filter: blur(var(--ce-glass-blur, 16px)) saturate(var(--ce-glass-saturate, 1.14));
+    -webkit-backdrop-filter: blur(var(--ce-glass-blur, 16px)) saturate(var(--ce-glass-saturate, 1.14));
     box-shadow:
       0 1px 0 0 color-mix(in oklab, #fff 65%, transparent),
+      0 8px 32px -20px color-mix(in oklab, var(--primary) 28%, transparent),
       0 14px 36px -28px color-mix(in oklab, var(--secondary) 22%, transparent);
   }
 
@@ -618,6 +701,15 @@ html:not(.dark) {
   .lesson-reading :where(pre, code) {
     font-size: 0.875rem;
     line-height: 1.55;
+  }
+  .lesson-reading :where(h2 + h3, h2 + p, h3 + p) {
+    margin-top: 0.75rem;
+  }
+  .lesson-table-wrap {
+    -webkit-overflow-scrolling: touch;
+  }
+  .lesson-table-wrap table {
+    font-variant-numeric: tabular-nums;
   }
   .lesson-prose .lesson-reading {
     max-width: none;
@@ -866,11 +958,168 @@ html:not(.dark) {
       0 12px 40px -16px color-mix(in oklab, var(--accent) 22%, transparent);
   }
   .ce-glass {
-    border: 1px solid color-mix(in oklab, var(--border) 88%, var(--primary) 8%);
-    background: color-mix(in oklab, var(--card) 78%, transparent);
-    backdrop-filter: blur(14px) saturate(1.12);
-    -webkit-backdrop-filter: blur(14px) saturate(1.12);
+    border: 1px solid color-mix(in oklab, var(--border) 88%, var(--primary) 10%);
+    background: color-mix(in oklab, var(--card) 76%, transparent);
+    backdrop-filter: blur(var(--ce-glass-blur, 16px)) saturate(var(--ce-glass-saturate, 1.14));
+    -webkit-backdrop-filter: blur(var(--ce-glass-blur, 16px)) saturate(var(--ce-glass-saturate, 1.14));
     box-shadow: var(--shadow-card);
+  }
+
+  /** Premium card — glass + верхний блик + мягкий violet glow */
+  .ce-premium-card {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border-radius: var(--radius-2xl);
+    border: 1px solid color-mix(in oklab, var(--border) 80%, var(--primary) 14%);
+    background: color-mix(in oklab, var(--card) 82%, transparent);
+    backdrop-filter: blur(var(--ce-glass-blur, 16px)) saturate(var(--ce-glass-saturate, 1.14));
+    -webkit-backdrop-filter: blur(var(--ce-glass-blur, 16px)) saturate(var(--ce-glass-saturate, 1.14));
+    box-shadow: var(--shadow-card);
+  }
+  .ce-premium-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    background: var(--ce-highlight-edge);
+    pointer-events: none;
+    opacity: 0.85;
+  }
+  .ce-premium-card--glow {
+    box-shadow: var(--shadow-card), var(--ce-glow-primary);
+  }
+  .ce-premium-card--accent {
+    border-color: color-mix(in oklab, var(--primary) 28%, var(--border));
+    background: linear-gradient(
+      165deg,
+      color-mix(in oklab, var(--card) 90%, var(--primary) 10%) 0%,
+      color-mix(in oklab, var(--card) 94%, transparent) 100%
+    );
+  }
+  .ce-premium-card--interactive {
+    transition:
+      border-color var(--duration-normal) var(--ease-out-expo),
+      box-shadow var(--duration-normal) var(--ease-out-expo),
+      transform var(--duration-fast) var(--ease-out-expo);
+  }
+  .ce-premium-card--interactive:hover {
+    border-color: color-mix(in oklab, var(--primary) 32%, var(--border));
+    box-shadow: var(--shadow-card-hover), var(--ce-glow-primary);
+  }
+
+  /** Панель миссии / CTA в кабинете */
+  .ce-mission-panel {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border-radius: var(--radius-2xl);
+    border: 1px solid color-mix(in oklab, var(--primary) 22%, var(--border));
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--card) 88%, var(--primary) 12%) 0%,
+      color-mix(in oklab, var(--card) 92%, var(--cyan) 6%) 100%
+    );
+    box-shadow: var(--shadow-card), var(--ce-glow-primary);
+  }
+  .ce-mission-panel::after {
+    content: "";
+    position: absolute;
+    inset: -40% -20% auto auto;
+    width: 55%;
+    height: 70%;
+    background: radial-gradient(
+      circle at center,
+      color-mix(in oklab, var(--primary) 16%, transparent),
+      transparent 68%
+    );
+    pointer-events: none;
+  }
+
+  /** Компактная метрика */
+  /** Карточки кабинета: не даём flex/grid дочерним блокам наезжать друг на друга при сжатии. */
+  .dashboard-content .ce-premium-card,
+  .dashboard-content .ce-metric-card,
+  .dashboard-content .ce-section-card {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .ce-metric-card {
+    border-radius: var(--radius-2xl);
+    border: 1px solid color-mix(in oklab, var(--border) 82%, var(--primary) 10%);
+    background: color-mix(in oklab, var(--card) 80%, transparent);
+    box-shadow:
+      var(--shadow-card),
+      inset 0 0 0 1px color-mix(in oklab, var(--primary) 10%, transparent);
+    transition:
+      border-color var(--duration-normal) var(--ease-out-expo),
+      box-shadow var(--duration-normal) var(--ease-out-expo);
+  }
+  .ce-metric-card:hover {
+    border-color: color-mix(in oklab, var(--primary) 28%, var(--border));
+    box-shadow: var(--shadow-card-hover);
+  }
+  .ce-metric-card--accent {
+    border-color: color-mix(in oklab, var(--primary) 24%, var(--border));
+    background: linear-gradient(
+      160deg,
+      color-mix(in oklab, var(--card) 86%, var(--primary) 14%) 0%,
+      var(--card) 100%
+    );
+  }
+  .ce-metric-card--cyan {
+    border-color: color-mix(in oklab, var(--cyan) 28%, var(--border));
+    background: linear-gradient(
+      160deg,
+      color-mix(in oklab, var(--card) 88%, var(--cyan) 10%) 0%,
+      var(--card) 100%
+    );
+  }
+
+  /** Cyber badge — pill с мягким свечением */
+  .ce-cyber-badge {
+    box-shadow: 0 0 0 1px color-mix(in oklab, currentColor 12%, transparent);
+  }
+  .ce-cyber-badge--glow {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--primary) 18%, transparent),
+      0 0 20px -6px color-mix(in oklab, var(--primary) 35%, transparent);
+  }
+
+  /** Status pill — скруглённый статус */
+  .ce-status-pill {
+    border-radius: var(--radius-full);
+    padding-inline: 0.75rem;
+    padding-block: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  /** Акцентная линия у заголовка секции */
+  .ce-section-accent {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .ce-section-accent::before {
+    content: "";
+    width: 2.5rem;
+    height: 3px;
+    flex-shrink: 0;
+    border-radius: var(--radius-full);
+    background: linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--primary) 90%, var(--cyan)),
+      color-mix(in oklab, var(--cyan) 70%, transparent)
+    );
+    box-shadow: 0 0 12px -2px color-mix(in oklab, var(--primary) 45%, transparent);
+  }
+
+  /** Кольцо прогресса — мягкое свечение */
+  .ce-progress-ring-glow {
+    filter: drop-shadow(0 0 10px color-mix(in oklab, var(--primary) 35%, transparent));
   }
 
   /* --- Типографика (единая шкала) --- */
@@ -1581,6 +1830,14 @@ html:not(.dark) {
     box-shadow: var(--shadow-glow);
   }
 
+  .ce-cert-preview {
+    position: relative;
+  }
+
+  .ce-cert-verify-page {
+    background: var(--background);
+  }
+
   .ce-focus-ring:focus-visible {
     outline: none;
     box-shadow:
@@ -1588,7 +1845,7 @@ html:not(.dark) {
       0 0 0 4px var(--ring);
   }
 
-  /* --- Tech ambient 2026: grid, orbs, scanline, border beam --- */
+  /* --- Tech ambient 2026: grid, orbs, scanline --- */
   @keyframes ce-orb-drift-a {
     0%,
     100% {
@@ -1630,11 +1887,6 @@ html:not(.dark) {
     }
     100% {
       transform: translateY(100vh);
-    }
-  }
-  @keyframes ce-border-beam-spin {
-    to {
-      transform: rotate(360deg);
     }
   }
   @keyframes ce-text-shimmer {
@@ -1688,36 +1940,6 @@ html:not(.dark) {
     animation: ce-scan-sweep 14s linear infinite;
   }
 
-  .ce-border-beam {
-    position: relative;
-    isolation: isolate;
-  }
-  .ce-border-beam::before {
-    content: "";
-    position: absolute;
-    inset: -1px;
-    border-radius: inherit;
-    padding: 1px;
-    background: conic-gradient(
-      from var(--ce-beam-angle, 0deg),
-      transparent 0deg,
-      color-mix(in oklab, var(--cyan) 70%, transparent) 60deg,
-      color-mix(in oklab, var(--primary) 65%, transparent) 120deg,
-      transparent 180deg
-    );
-    -webkit-mask:
-      linear-gradient(#fff 0 0) content-box,
-      linear-gradient(#fff 0 0);
-    mask:
-      linear-gradient(#fff 0 0) content-box,
-      linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    animation: ce-border-beam-spin 8s linear infinite;
-    pointer-events: none;
-    opacity: 0.65;
-  }
-
   .ce-text-shimmer {
     background: linear-gradient(
       105deg,
@@ -1750,7 +1972,6 @@ html:not(.dark) {
     .ce-tech-grid,
     .ce-orb,
     .ce-tech-scanline,
-    .ce-border-beam::before,
     .ce-text-shimmer {
       animation: none !important;
       opacity: 1 !important;

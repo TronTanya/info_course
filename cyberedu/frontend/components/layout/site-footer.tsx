@@ -11,12 +11,11 @@ export function SiteFooter() {
             Учебная платформа. Материалы носят ознакомительный характер; интеграция AI и проверка практики настраиваются на
             следующих этапах.
           </p>
-          <p
-            className="mt-3 font-mono text-[11px] tabular-nums text-muted-foreground"
-            title="Значение задаётся при docker build; «local» — сборка без Docker"
-          >
-            Сборка: {DOCKER_IMAGE_BUILD_STAMP}
-          </p>
+          {DOCKER_IMAGE_BUILD_STAMP !== "local" ? (
+            <p className="mt-3 font-mono text-[11px] tabular-nums text-muted-foreground" title="Метка сборки Docker-образа">
+              Сборка: {DOCKER_IMAGE_BUILD_STAMP}
+            </p>
+          ) : null}
         </div>
         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
           <Link className="hover:text-primary" href="/dashboard/course">

@@ -25,6 +25,25 @@ export type ProfileLastPractice = {
   at: string;
 } | null;
 
+export type ProfileRecentTest = {
+  testTitle: string;
+  moduleTitle: string;
+  moduleId: string;
+  percent: number;
+  passed: boolean;
+  at: string;
+};
+
+export type ProfileRecentSubmission = {
+  taskTitle: string;
+  moduleTitle: string;
+  moduleId: string;
+  status: SubmissionStatus;
+  statusLabel: string;
+  outcome: "passed" | "needs_improvement" | "pending";
+  at: string;
+};
+
 /** Сводка «последняя активность» — самое свежее событие из лекции / теста / практики. */
 export type ProfileLastActivitySummary = {
   kind: "lesson" | "test" | "practice";
@@ -74,7 +93,15 @@ export type ProfileCourseStats = {
   lastPractice: ProfileLastPractice;
   lastActivitySummary: ProfileLastActivitySummary;
   certificateDisplayState: ProfileCertificateDisplayState;
+  recentTests: ProfileRecentTest[];
+  recentSubmissions: ProfileRecentSubmission[];
 };
+
+export function submissionOutcome(status: SubmissionStatus): "passed" | "needs_improvement" | "pending" {
+  if (status === "ACCEPTED") return "passed";
+  if (status === "REJECTED" || status === "NEEDS_REVISION") return "needs_improvement";
+  return "pending";
+}
 
 function submissionStatusLabel(s: SubmissionStatus): string {
   const m: Record<SubmissionStatus, string> = {
@@ -140,8 +167,17 @@ export async function getProfileCourseStats(userId: string): Promise<ProfileCour
     }
   }
 
-  const [progressRows, lastLessonProgress, lastAttempt, lastSubmission, certificate, canCert, testAttempts] =
-    await Promise.all([
+  const [
+    progressRows,
+    lastLessonProgress,
+    lastAttempt,
+    lastSubmission,
+    certificate,
+    canCert,
+    testAttempts,
+    recentAttemptRows,
+    recentSubmissionRows,
+  ] = await Promise.all([
     moduleIds.length
       ? prisma.progress.findMany({
           where: { userId, moduleId: { in: moduleIds } },
@@ -199,6 +235,36 @@ export async function getProfileCourseStats(userId: string): Promise<ProfileCour
       ? prisma.testAttempt.findMany({
           where: { userId, test: { moduleId: { in: moduleIds } } },
           select: { score: true, maxScore: true, passed: true },
+        })
+      : Promise.resolve([]),
+    moduleIds.length
+      ? prisma.testAttempt.findMany({
+          where: { userId, test: { moduleId: { in: moduleIds } } },
+          orderBy: { createdAt: "desc" },
+          take: 5,
+          select: {
+            createdAt: true,
+            passed: true,
+            score: true,
+            maxScore: true,
+            test: { select: { title: true, module: { select: { id: true, title: true } } } },
+          },
+        })
+      : Promise.resolve([]),
+    moduleIds.length
+      ? prisma.submission.findMany({
+          where: {
+            userId,
+            status: { not: "DRAFT" },
+            practicalTask: { moduleId: { in: moduleIds } },
+          },
+          orderBy: { createdAt: "desc" },
+          take: 5,
+          select: {
+            createdAt: true,
+            status: true,
+            practicalTask: { select: { title: true, module: { select: { id: true, title: true } } } },
+          },
         })
       : Promise.resolve([]),
   ]);
@@ -339,6 +405,25 @@ export async function getProfileCourseStats(userId: string): Promise<ProfileCour
       ? "available"
       : "unavailable";
 
+  const recentTests: ProfileRecentTest[] = recentAttemptRows.map((a) => ({
+    testTitle: a.test.title,
+    moduleTitle: a.test.module.title,
+    moduleId: a.test.module.id,
+    passed: a.passed,
+    percent: a.maxScore > 0 ? Math.round((a.score / a.maxScore) * 100) : 0,
+    at: a.createdAt.toISOString(),
+  }));
+
+  const recentSubmissions: ProfileRecentSubmission[] = recentSubmissionRows.map((s) => ({
+    taskTitle: s.practicalTask.title,
+    moduleTitle: s.practicalTask.module.title,
+    moduleId: s.practicalTask.module.id,
+    status: s.status,
+    statusLabel: submissionStatusLabel(s.status),
+    outcome: submissionOutcome(s.status),
+    at: s.createdAt.toISOString(),
+  }));
+
   return {
     courseId: course.id,
     courseTitle: course.title,
@@ -369,5 +454,7 @@ export async function getProfileCourseStats(userId: string): Promise<ProfileCour
     lastPractice,
     lastActivitySummary,
     certificateDisplayState,
+    recentTests,
+    recentSubmissions,
   };
 }

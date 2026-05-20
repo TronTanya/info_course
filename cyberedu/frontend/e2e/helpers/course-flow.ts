@@ -4,17 +4,7 @@ const RATE_LIMIT_ERROR = /слишком много отправок|слишк�
 
 export async function openFirstTestPage(page: Page): Promise<void> {
   await page.goto("/dashboard/course");
-
-  const continueHref = await page
-    .getByRole("link", { name: /Продолжить обучение/i })
-    .first()
-    .getAttribute("href");
-  const fromContinue = continueHref?.match(/^(\/dashboard\/course\/[^/]+)\/(lesson|practice)$/);
-  if (fromContinue) {
-    await page.goto(`${fromContinue[1]}/test`);
-    await expect(page).toHaveURL(/\/dashboard\/course\/[^/]+\/test/);
-    return;
-  }
+  await expect(page.locator("h1").first()).toBeVisible({ timeout: 20_000 });
 
   const testUrls = await page.evaluate(() =>
     Array.from(document.querySelectorAll<HTMLAnchorElement>("a[href]"))
@@ -28,7 +18,20 @@ export async function openFirstTestPage(page: Page): Promise<void> {
     return;
   }
 
-  await page.getByRole("link", { name: /Перейти к тесту|Пройти тест/i }).first().click();
+  const moduleRoot = await page.evaluate(() => {
+    const href = Array.from(document.querySelectorAll<HTMLAnchorElement>("a[href]"))
+      .map((a) => a.getAttribute("href"))
+      .find((h) => h?.match(/^\/dashboard\/course\/[^/]+$/));
+    return href ?? null;
+  });
+  if (moduleRoot) {
+    await page.goto(`${moduleRoot}/test`);
+    await expect(page).toHaveURL(/\/dashboard\/course\/[^/]+\/test/);
+    return;
+  }
+
+  const testLink = page.getByRole("link", { name: /Перейти к тесту|Пройти тест|Продолжить/i }).first();
+  await testLink.click({ timeout: 10_000 });
   await expect(page).toHaveURL(/\/dashboard\/course\/[^/]+\/test/);
 }
 
@@ -109,30 +112,25 @@ export async function submitModuleTest(page: Page): Promise<boolean> {
 /** Первая доступная лекция на карте курса (seed). */
 export async function openFirstLessonPage(page: Page): Promise<void> {
   await page.goto("/dashboard/course");
+  await expect(page.locator("h1").first()).toBeVisible({ timeout: 20_000 });
 
-  const lessonUrls = await page.evaluate(() =>
+  const lessonUrl = await page.evaluate(() =>
     Array.from(document.querySelectorAll<HTMLAnchorElement>("a[href]"))
       .map((a) => a.getAttribute("href"))
-      .filter((h): h is string => Boolean(h?.match(/^\/dashboard\/course\/[^/]+\/lesson/))),
+      .find((h): h is string => Boolean(h?.match(/^\/dashboard\/course\/[^/]+\/lesson$/))),
   );
-  if (lessonUrls[0]) {
-    await page.goto(lessonUrls[0]);
+  if (lessonUrl) {
+    await page.goto(lessonUrl);
     await expect(page).toHaveURL(/\/dashboard\/course\/[^/]+\/lesson/);
     return;
   }
 
-  const continueHref = await page
-    .getByRole("link", { name: /Продолжить обучение/i })
-    .first()
-    .getAttribute("href");
-  const moduleRoot =
-    continueHref?.match(/^(\/dashboard\/course\/[^/]+)/)?.[1] ??
-    (await page.evaluate(() => {
-      const href = Array.from(document.querySelectorAll<HTMLAnchorElement>("a[href]"))
-        .map((a) => a.getAttribute("href"))
-        .find((h) => h?.match(/^\/dashboard\/course\/[^/]+$/));
-      return href ?? null;
-    }));
+  const moduleRoot = await page.evaluate(() => {
+    const href = Array.from(document.querySelectorAll<HTMLAnchorElement>("a[href]"))
+      .map((a) => a.getAttribute("href"))
+      .find((h) => h?.match(/^\/dashboard\/course\/[^/]+$/));
+    return href ?? null;
+  });
 
   if (!moduleRoot) {
     throw new Error("Lesson: module id not found on course map — check seed");

@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Sparkles } from "lucide-react";
 import { LessonReadingProgressBar } from "@/components/lesson/lesson-reading-progress";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export type LessonHeaderProps = {
   moduleOrderNumber: number;
@@ -11,6 +13,7 @@ export type LessonHeaderProps = {
   lessonCompleted: boolean;
   difficulty: string;
   readingPercent: number;
+  onAskMentor?: () => void;
 };
 
 export function LessonHeader({
@@ -22,6 +25,7 @@ export function LessonHeader({
   lessonCompleted,
   difficulty,
   readingPercent,
+  onAskMentor,
 }: LessonHeaderProps) {
   return (
     <header className="space-y-4 border-b border-border/60 pb-6">
@@ -44,7 +48,7 @@ export function LessonHeader({
       ) : null}
 
       <div className="space-y-2">
-        <h1 className="font-display text-2xl font-semibold text-balance text-foreground sm:text-3xl lg:max-w-3xl">
+        <h1 className="font-display text-2xl font-semibold text-balance text-foreground sm:text-3xl lg:text-4xl lg:max-w-3xl">
           {lessonTitle}
         </h1>
         {description ? (
@@ -60,7 +64,21 @@ export function LessonHeader({
         </Badge>
       </div>
 
-      <LessonReadingProgressBar percent={readingPercent} lessonCompleted={lessonCompleted} className="max-w-xl" />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <LessonReadingProgressBar percent={readingPercent} lessonCompleted={lessonCompleted} className="max-w-xl flex-1" />
+        {onAskMentor ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="hidden shrink-0 gap-2 border-cyan/30 sm:inline-flex lg:size-default"
+            onClick={onAskMentor}
+          >
+            <Sparkles className="size-4 text-cyan" aria-hidden />
+            Спросить AI по этому уроку
+          </Button>
+        ) : null}
+      </div>
     </header>
   );
 }

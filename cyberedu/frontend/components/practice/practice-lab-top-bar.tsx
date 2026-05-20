@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { PracticeLabState } from "@/lib/practice-lab-ui";
-import { practiceLabStateMeta, practiceDifficultyLabel } from "@/lib/practice-lab-ui";
+import { formatPracticeDuration, practiceLabStateMeta, practiceDifficultyLabel } from "@/lib/practice-lab-ui";
 import { PracticeLabTimer } from "@/components/practice/practice-lab-timer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,21 +18,25 @@ const toneBadge: Record<PracticeLabState, string> = {
 
 export type PracticeLabTopBarProps = {
   taskTitle: string;
+  moduleTitle: string;
   moduleOrderNumber: number;
   maxScore: number;
   score: number | null;
   labState: PracticeLabState;
   moduleId: string;
+  estimatedMinutes?: number;
   showTimer?: boolean;
 };
 
 export function PracticeLabTopBar({
   taskTitle,
+  moduleTitle,
   moduleOrderNumber,
   maxScore,
   score,
   labState,
   moduleId,
+  estimatedMinutes,
   showTimer = true,
 }: PracticeLabTopBarProps) {
   const meta = practiceLabStateMeta[labState];
@@ -45,10 +49,18 @@ export function PracticeLabTopBar({
         <div className="min-w-0 space-y-2">
           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Лабораторная работа</p>
           <h1 className="font-display text-xl font-semibold leading-snug text-foreground sm:text-2xl">{taskTitle}</h1>
+          <p className="text-sm text-muted-foreground">
+            Модуль {moduleOrderNumber > 0 ? String(moduleOrderNumber).padStart(2, "0") : "—"} · {moduleTitle}
+          </p>
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline" className="border-primary/20 bg-primary/5 font-normal">
               {difficulty}
             </Badge>
+            {estimatedMinutes != null && estimatedMinutes > 0 ? (
+              <Badge variant="outline" className="font-mono text-[10px] font-normal tabular-nums">
+                {formatPracticeDuration(estimatedMinutes)}
+              </Badge>
+            ) : null}
             {showTimer && labState !== "passed" ? (
               <PracticeLabTimer active={labState === "in_progress" || labState === "not_started"} />
             ) : null}

@@ -1,15 +1,19 @@
 "use client";
 
+import { useId } from "react";
 import type { ClientTestQuestion } from "@/lib/test-grading";
 import type { QuestionType } from "@prisma/client";
 import { TestAnswerOption } from "@/components/test/test-answer-option";
 import { TestQuestionNav } from "@/components/test/test-question-nav";
 import { TestSubmitDialog } from "@/components/test/test-submit-dialog";
 import { Button } from "@/components/ui/button";
+import { ErrorCard } from "@/components/ui/error-card";
 import { FormFeedback } from "@/components/ui/form-feedback";
 import { PendingBanner } from "@/components/ui/pending-banner";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { Textarea } from "@/components/ui/textarea";
+import { useTestTakingKeyboard } from "@/lib/hooks/use-test-taking-keyboard";
+import { testKeyboardHints } from "@/lib/test-ui";
 import { cyber } from "@/lib/design-system/cyber";
 import { cn } from "@/lib/utils";
 
@@ -57,6 +61,7 @@ export function TestTakingView({
   onText,
   onRequestFinish,
   onConfirmSubmit,
+  onRetrySubmit,
   draftNote,
 }: {
   title: string;
@@ -77,13 +82,27 @@ export function TestTakingView({
   onText: (qid: string, text: string) => void;
   onRequestFinish: () => void;
   onConfirmSubmit: () => void;
+  onRetrySubmit?: () => void;
   draftNote?: boolean;
 }) {
   const total = questions.length;
   const q = questions[idx];
+  const questionHeadingId = useId();
+
+  useTestTakingKeyboard({
+    enabled: !pending && !submitOpen && Boolean(q),
+    question: q,
+    index: idx,
+    total,
+    onIndexChange,
+    onSingle,
+    onMultiToggle,
+  });
+
   if (!q) return null;
 
   const progressPct = total > 0 ? Math.round((answeredCount / total) * 100) : 0;
+  const positionPct = total > 0 ? Math.round(((idx + 1) / total) * 100) : 0;
   const unansweredIndexes = questions
     .map((qq, i) => (!answeredFlags[i] ? i + 1 : null))
     .filter((n): n is number => n != null);
@@ -115,7 +134,9 @@ export function TestTakingView({
             <span>
               Заполнено <span className="font-semibold tabular-nums text-foreground">{answeredCount}</span> / {total}
             </span>
-            <span className="tabular-nums">{progressPct}%</span>
+            <span className="tabular-nums" aria-live="polite">
+              {positionPct}% пройдено · ответы {progressPct}%
+            </span>
           </div>
           <TestQuestionNav
             total={total}
@@ -127,10 +148,21 @@ export function TestTakingView({
         </div>
       </header>
 
-      <div className="space-y-6 px-4 py-6 sm:px-6">
+      <div className="space-y-6 px-4 py-6 pb-8 sm:px-6 sm:pb-6">
         {pending ? <PendingBanner label="Проверка ответов на сервере…" /> : null}
-        <fieldset disabled={pending} className="m-0 min-w-0 space-y-6 border-0 p-0">
+        <fieldset disabled={pending} className="m-0 min-w-0 space-y-6 border-0 p-0" aria-labelledby={questionHeadingId}>
           <FormFeedback id="test-form-error" message={error} />
+          {error && onRetrySubmit ? (
+            <ErrorCard
+              title="Не удалось отправить тест"
+              description={error}
+              action={
+                <Button type="button" variant="primary" size="md" disabled={pending} onClick={onRetrySubmit}>
+                  Повторить отправку
+                </Button>
+              }
+            />
+          ) : null}
           {draftNote ? (
             <p className="text-xs text-muted-foreground" role="note">
               Ответы сохраняются автоматически в этом браузере — можно переключаться между вопросами.
@@ -146,7 +178,9 @@ export function TestTakingView({
                 {typeLabel(q.questionType)} · {q.points} б.
               </span>
             </div>
-            <h2 className="mt-4 text-lg font-medium leading-relaxed text-pretty text-foreground sm:text-xl">{q.questionText}</h2>
+            <h2 id={questionHeadingId} className="mt-4 text-lg font-medium leading-relaxed text-pretty text-foreground sm:text-xl">
+              {q.questionText}
+            </h2>
             {q.manualTextGrading ? (
               <p className="mt-2 text-xs text-muted-foreground">
                 Ответ проверяется вручную и не входит в автоматический зачёт.
@@ -197,7 +231,13 @@ export function TestTakingView({
             </ul>
           )}
 
-          <nav className="flex flex-col gap-3 border-t border-border/60 pt-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          {q.questionType !== "TEXT" && q.answers.length > 0 ? (
+            <p className="text-xs text-muted-foreground" id="test-keyboard-hint">
+              {testKeyboardHints}
+            </p>
+          ) : null}
+
+          <nav className="ce-test-sticky-actions flex flex-col gap-3 border-t border-border/60 pt-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <Button
               type="button"
               variant="outline"

@@ -1,4 +1,4 @@
-import type { SubmissionStatus } from "@prisma/client";
+import type { PracticalTaskType, SubmissionStatus } from "@prisma/client";
 import { moduleDifficultyByOrder } from "@/lib/course-path-ui";
 
 /** Визуальные статусы мини-лаборатории. */
@@ -52,6 +52,44 @@ export function practiceDifficultyLabel(moduleOrderNumber: number, maxScore: num
   const base = moduleDifficultyByOrder(moduleOrderNumber);
   if (maxScore >= 15) return `${base} · высокий балл`;
   return base;
+}
+
+/** Ориентир времени на лабораторию (минуты). */
+export function estimatePracticeMinutes(taskType: PracticalTaskType, maxScore: number): number {
+  const byType: Partial<Record<PracticalTaskType, number>> = {
+    PHISHING_ANALYSIS: 12,
+    URL_ANALYSIS: 15,
+    LOG_ANALYSIS: 18,
+    TRAINING_CONSOLE: 15,
+    INTERACTIVE: 12,
+    CRYPTO_TASK: 14,
+    FILE_UPLOAD: 20,
+    COMBINED: 25,
+    TEXT_ANSWER: 10,
+  };
+  const base = byType[taskType] ?? 12;
+  if (maxScore >= 20) return base + 5;
+  return base;
+}
+
+export function formatPracticeDuration(minutes: number): string {
+  if (minutes < 60) return `~${minutes} мин`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m > 0 ? `~${h} ч ${m} мин` : `~${h} ч`;
+}
+
+export const practiceHintLevelLabels = [
+  "Мягкая подсказка",
+  "Направление",
+  "Почти решение",
+] as const;
+
+export function practiceResultHeadline(status: SubmissionStatus | null, passed: boolean): string {
+  if (passed || status === "ACCEPTED") return "Зачёт";
+  if (status === "NEEDS_REVISION" || status === "REJECTED") return "Нужно улучшить";
+  if (status === "SUBMITTED" || status === "CHECKING") return "На проверке";
+  return "Результат";
 }
 
 export function statusRu(s: SubmissionStatus): string {

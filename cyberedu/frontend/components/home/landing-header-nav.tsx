@@ -4,9 +4,10 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
-import { publicNavLinks } from "@/lib/design-system/nav-config";
+import { guestAuthLinks, publicNavLinks } from "@/lib/design-system/nav-config";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { navLinkClass } from "@/components/layout/nav-link-styles";
 import { isNavHrefActive } from "@/lib/nav-active";
 import { cn } from "@/lib/utils";
 
@@ -59,19 +60,6 @@ export function LandingHeaderNav({ isAuthenticated, dashboardHref }: LandingHead
   const [open, setOpen] = React.useState(false);
   const close = () => setOpen(false);
 
-  const linkClass = (active: boolean, mobile?: boolean) =>
-    cn(
-      "rounded-xl font-medium transition-colors",
-      mobile
-        ? "flex min-h-11 items-center border px-4 py-3 text-base"
-        : "px-3 py-2 text-sm",
-      active
-        ? "border-primary/35 bg-primary/10 text-primary"
-        : mobile
-          ? "border-border/60 text-foreground hover:bg-muted"
-          : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-    );
-
   return (
     <>
       <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 lg:flex" aria-label="Навигация">
@@ -79,7 +67,7 @@ export function LandingHeaderNav({ isAuthenticated, dashboardHref }: LandingHead
           <Link
             key={item.href}
             href={item.href}
-            className={linkClass(isPublicLinkActive(pathname, item.href))}
+            className={navLinkClass(false, isPublicLinkActive(pathname, item.href))}
             aria-current={isPublicLinkActive(pathname, item.href) ? "page" : undefined}
           >
             {item.label}
@@ -92,23 +80,23 @@ export function LandingHeaderNav({ isAuthenticated, dashboardHref }: LandingHead
         <SecureModeBadge className="hidden md:inline-flex" />
 
         {isAuthenticated ? (
-          <Button asChild size="sm" variant="primary" className="hidden sm:inline-flex shadow-sm">
+          <Button asChild size="sm" variant="primary" className="hidden min-h-10 sm:inline-flex shadow-sm">
             <Link href={dashboardHref}>Кабинет</Link>
           </Button>
         ) : (
           <>
-            <Button asChild size="sm" variant="ghost" className="hidden sm:inline-flex">
-              <Link href="/auth/login">Войти</Link>
+            <Button asChild size="sm" variant="ghost" className="hidden min-h-10 sm:inline-flex">
+              <Link href={guestAuthLinks.login}>{guestAuthLinks.loginLabel}</Link>
             </Button>
-            <Button asChild size="sm" variant="primary" className="hidden sm:inline-flex shadow-sm">
-              <Link href="/auth/register">Начать</Link>
+            <Button asChild size="sm" variant="primary" className="hidden min-h-10 sm:inline-flex shadow-sm">
+              <Link href={guestAuthLinks.register}>{guestAuthLinks.registerLabel}</Link>
             </Button>
           </>
         )}
 
         <Dialog.Root open={open} onOpenChange={setOpen}>
           <Dialog.Trigger asChild>
-            <Button type="button" variant="outline" size="icon" className="lg:hidden" aria-label="Открыть меню">
+            <Button type="button" variant="outline" size="icon" className="min-h-11 min-w-11 lg:hidden" aria-label="Открыть меню">
               <MenuIcon />
             </Button>
           </Dialog.Trigger>
@@ -117,8 +105,11 @@ export function LandingHeaderNav({ isAuthenticated, dashboardHref }: LandingHead
             <Dialog.Content className="fixed inset-y-0 right-0 z-50 flex w-[min(100vw-1rem,20rem)] flex-col border-l border-border bg-card shadow-2xl outline-none">
               <div className="flex items-center justify-between border-b border-border px-4 py-3">
                 <Dialog.Title className="text-base font-semibold">Меню</Dialog.Title>
+                <Dialog.Description className="sr-only">
+                  Навигация по разделам сайта и вход в кабинет
+                </Dialog.Description>
                 <Dialog.Close asChild>
-                  <Button type="button" variant="ghost" size="icon" aria-label="Закрыть">
+                  <Button type="button" variant="ghost" size="icon" className="min-h-11 min-w-11" aria-label="Закрыть">
                     <CloseIcon />
                   </Button>
                 </Dialog.Close>
@@ -133,7 +124,7 @@ export function LandingHeaderNav({ isAuthenticated, dashboardHref }: LandingHead
                     <Link
                       href={item.href}
                       onClick={close}
-                      className={linkClass(isPublicLinkActive(pathname, item.href), true)}
+                      className={navLinkClass(true, isPublicLinkActive(pathname, item.href))}
                     >
                       {item.label}
                     </Link>
@@ -142,7 +133,7 @@ export function LandingHeaderNav({ isAuthenticated, dashboardHref }: LandingHead
                 <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
                   {isAuthenticated ? (
                     <Dialog.Close asChild>
-                      <Button asChild size="lg" className="w-full">
+                      <Button asChild size="lg" className="w-full min-h-11">
                         <Link href={dashboardHref} onClick={close}>
                           Кабинет
                         </Link>
@@ -151,16 +142,16 @@ export function LandingHeaderNav({ isAuthenticated, dashboardHref }: LandingHead
                   ) : (
                     <>
                       <Dialog.Close asChild>
-                        <Button asChild size="lg" variant="outline" className="w-full">
-                          <Link href="/auth/login" onClick={close}>
-                            Войти
+                        <Button asChild size="lg" variant="outline" className="w-full min-h-11">
+                          <Link href={guestAuthLinks.login} onClick={close}>
+                            {guestAuthLinks.loginLabel}
                           </Link>
                         </Button>
                       </Dialog.Close>
                       <Dialog.Close asChild>
-                        <Button asChild size="lg" className="w-full">
-                          <Link href="/auth/register" onClick={close}>
-                            Регистрация
+                        <Button asChild size="lg" className="w-full min-h-11">
+                          <Link href={guestAuthLinks.register} onClick={close}>
+                            {guestAuthLinks.registerLabel}
                           </Link>
                         </Button>
                       </Dialog.Close>

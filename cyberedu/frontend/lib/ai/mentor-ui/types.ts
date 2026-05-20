@@ -11,6 +11,10 @@ export type MentorContextLabels = {
   moduleTitle?: string;
   lessonTitle?: string;
   taskTitle?: string;
+  /** Тема / фокус (например название модуля или урока). */
+  topic?: string;
+  /** Краткий итог теста для контекста (без правильных ответов). */
+  testSummary?: string;
 };
 
 export type MentorContextKind = "lesson" | "practice" | "module" | "general";

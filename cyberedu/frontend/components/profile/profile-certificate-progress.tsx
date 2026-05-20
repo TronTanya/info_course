@@ -1,34 +1,37 @@
 import Link from "next/link";
-import { Award } from "lucide-react";
+import { Award, CheckCircle2, Circle } from "lucide-react";
 import type { ProfileCourseStats } from "@/lib/profile-course-stats";
 import { certificateProgressLabel } from "@/lib/profile-ui";
-import { CertificatePanel } from "@/components/certificate/certificate-panel";
+import { computeStepMetrics, getCertificateEligibility } from "@/lib/dashboard-ui";
+import type { CourseProgressModuleRow } from "@/lib/progress";
+import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { SectionCard } from "@/components/ui/section-card";
+import { cn } from "@/lib/utils";
 
-export function ProfileCertificateProgress({ stats }: { stats: ProfileCourseStats }) {
+export function ProfileCertificateProgress({
+  stats,
+  modules = [],
+}: {
+  stats: ProfileCourseStats;
+  modules?: CourseProgressModuleRow[];
+}) {
+  const metrics = computeStepMetrics(modules);
+  const eligibility = getCertificateEligibility(stats, metrics);
   const certPercent =
     stats.totalModules > 0 ? Math.round((stats.completedModules / stats.totalModules) * 100) : 0;
   const tone = stats.certificateIssued || stats.allModulesComplete ? "success" : "default";
-
-  const certificatePayload =
-    stats.certificateId && stats.certificateNumber && stats.issuedAt && stats.certificateVerifyUrl
-      ? {
-          id: stats.certificateId,
-          certificateNumber: stats.certificateNumber,
-          issuedAt: stats.issuedAt.toISOString(),
-          verifyUrl: stats.certificateVerifyUrl,
-        }
-      : null;
 
   return (
     <SectionCard variant="lab" flushTitle className="p-4 sm:p-6" aria-labelledby="profile-cert-heading">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 id="profile-cert-heading" className="font-display text-base font-semibold text-foreground sm:text-lg">
-            Прогресс до сертификата
+            Сертификат
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">{certificateProgressLabel(stats)}</p>
+          <p className="mt-1 text-sm font-medium text-foreground">{eligibility.title}</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">{eligibility.description}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{certificateProgressLabel(stats)}</p>
         </div>
         <Link
           href="/dashboard/certificate"
@@ -47,22 +50,23 @@ export function ProfileCertificateProgress({ stats }: { stats: ProfileCourseStat
         tone={tone}
       />
 
-      {stats.modulesUntilCertificate > 0 && !stats.certificateIssued ? (
-        <p className="mt-3 text-sm text-muted-foreground">
-          Осталось завершить{" "}
-          <span className="font-semibold text-foreground">{stats.modulesUntilCertificate}</span>{" "}
-          {stats.modulesUntilCertificate === 1 ? "модуль" : "модулей"}.
-        </p>
-      ) : null}
+      <ul className="mt-4 space-y-2">
+        {eligibility.requirements.map((req) => (
+          <li key={req.label} className="flex items-center gap-2 text-sm">
+            {req.met ? (
+              <CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden />
+            ) : (
+              <Circle className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+            )}
+            <span className={cn(req.met ? "text-foreground" : "text-muted-foreground")}>{req.label}</span>
+          </li>
+        ))}
+      </ul>
 
       <div className="mt-6 border-t border-border/60 pt-6">
-        <CertificatePanel
-          courseId={stats.courseId}
-          courseCompleted={stats.allModulesComplete}
-          certificate={certificatePayload}
-          generateButtonText="Получить сертификат"
-          downloadButtonText="Скачать сертификат"
-        />
+        <Button asChild variant={stats.certificateIssued || stats.canGenerateCertificate ? "primary" : "outline"}>
+          <Link href={eligibility.ctaHref}>{eligibility.ctaLabel}</Link>
+        </Button>
       </div>
     </SectionCard>
   );

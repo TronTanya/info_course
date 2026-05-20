@@ -1,14 +1,16 @@
 import Link from "next/link";
-import { BookOpen, ClipboardCheck, FlaskConical } from "lucide-react";
+import { ArrowRight, BookOpen, ClipboardCheck, FlaskConical, Lock } from "lucide-react";
 import type { CourseProgressModuleRow } from "@/lib/progress";
 import { ModuleInlineProgress, moduleStatusAccent } from "@/components/course/module-inline-progress";
 import {
+  getLockedUnlockHint,
   getModuleAction,
   getModuleContentMeta,
-  getUiStatus,
+  getNextModuleRow,
+  getRoadmapStatus,
   moduleDifficultyByOrder,
   moduleTimeEstimate,
-  statusBadge,
+  roadmapStatusBadge,
 } from "@/lib/course-path-ui";
 import { CompletedBadge } from "@/components/ui/completed-badge";
 import { InProgressBadge } from "@/components/ui/in-progress-badge";
@@ -18,39 +20,34 @@ import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { cn } from "@/lib/utils";
 
-function LockIcon({ className }: { className?: string }) {
-  return (
-    <svg className={cn("size-3.5 shrink-0", className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <rect x="5" y="11" width="14" height="10" rx="2" />
-      <path d="M7 11V8a5 5 0 0110 0v3" />
-    </svg>
-  );
-}
-
 export type CourseModuleCardProps = {
   row: CourseProgressModuleRow;
+  modules: CourseProgressModuleRow[];
   isNext?: boolean;
   index?: number;
 };
 
-export function CourseModuleCard({ row, isNext = false, index = 0 }: CourseModuleCardProps) {
-  const status = getUiStatus(row);
-  const badge = statusBadge[status];
+export function CourseModuleCard({ row, modules, isNext = false, index = 0 }: CourseModuleCardProps) {
+  const status = getRoadmapStatus(row, isNext ? row.module.id : null);
+  const badge = roadmapStatusBadge[status];
   const action = getModuleAction(row);
   const meta = getModuleContentMeta(row);
   const desc = row.module.description?.trim() || "Модуль киберлаборатории: теория, проверка знаний и практический сценарий.";
   const difficulty = moduleDifficultyByOrder(row.module.orderNumber);
   const hubHref = `/dashboard/course/${row.module.id}`;
   const estimate = moduleTimeEstimate(row.requirements);
+  const next = getNextModuleRow(modules, row.module.id);
+  const lockedHint = getLockedUnlockHint(row, modules);
 
   const card = (
     <article
       className={cn(
         "ce-course-module-card group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border shadow-card",
         "transition-[border-color,box-shadow,transform] duration-200",
-        moduleStatusAccent(status),
+        moduleStatusAccent(status === "current" ? "in_progress" : status),
         "hover:shadow-[var(--shadow-card-hover)] motion-safe:hover:-translate-y-0.5 motion-reduce:hover:translate-y-0",
-        isNext && "ring-2 ring-primary/30",
+        isNext && "ring-2 ring-primary/35",
+        status === "completed" && "border-success/30",
       )}
       style={{ animationDelay: `${(index % 6) * 40}ms` }}
     >
@@ -59,7 +56,7 @@ export function CourseModuleCard({ row, isNext = false, index = 0 }: CourseModul
           "h-1 w-full",
           status === "locked" && "bg-muted-foreground/25",
           status === "available" && "bg-primary/35",
-          status === "in_progress" && "bg-primary",
+          (status === "in_progress" || status === "current") && "bg-primary",
           status === "completed" && "bg-success",
         )}
         aria-hidden
@@ -67,7 +64,7 @@ export function CourseModuleCard({ row, isNext = false, index = 0 }: CourseModul
 
       {isNext ? (
         <span className="absolute right-3 top-3 z-[1] rounded-lg border border-primary/40 bg-primary/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary">
-          Следующий шаг
+          Текущая миссия
         </span>
       ) : null}
 
@@ -79,11 +76,11 @@ export function CourseModuleCard({ row, isNext = false, index = 0 }: CourseModul
             </span>
             {status === "completed" ? (
               <CompletedBadge />
-            ) : status === "in_progress" ? (
+            ) : status === "in_progress" || status === "current" ? (
               <InProgressBadge />
             ) : status === "locked" ? (
               <Badge variant={badge.variant} className={cn("shrink-0 gap-1", badge.className)}>
-                <LockIcon />
+                <Lock className="size-3" aria-hidden />
                 {badge.label}
               </Badge>
             ) : (
@@ -111,9 +108,15 @@ export function CourseModuleCard({ row, isNext = false, index = 0 }: CourseModul
           <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">{desc}</p>
         </header>
 
+        {status === "locked" ? (
+          <p className="rounded-lg border border-warning/25 bg-warning/5 px-3 py-2 text-xs text-pretty text-muted-foreground">
+            {lockedHint}
+          </p>
+        ) : null}
+
         <dl className="grid grid-cols-3 gap-2 text-center">
           <ContentStat icon={BookOpen} label="Уроки" value={meta.lessons} caption={meta.lessonsLabel} />
-          <ContentStat icon={ClipboardCheck} label="Тесты" value={meta.tests} caption={meta.testsLabel} />
+          <ContentStat icon={ClipboardCheck} label="Тест" value={meta.tests} caption={meta.testsLabel} />
           <ContentStat icon={FlaskConical} label="Практика" value={meta.practices} caption={meta.practicesLabel} />
         </dl>
 
@@ -137,10 +140,18 @@ export function CourseModuleCard({ row, isNext = false, index = 0 }: CourseModul
 
         <ModuleInlineProgress row={row} compact />
 
-        {row.unlocked && row.score > 0 ? (
-          <p className="text-xs text-muted-foreground">
-            Баллы: <span className="font-semibold tabular-nums text-foreground">{row.score}</span>
-          </p>
+        {status === "completed" ? (
+          <div className="rounded-xl border border-success/25 bg-success/5 px-3 py-2.5 text-sm">
+            <p className="text-muted-foreground">
+              Модуль завершён
+              {row.score > 0 ? (
+                <>
+                  {" "}
+                  · <span className="font-semibold tabular-nums text-success">{row.score} баллов</span>
+                </>
+              ) : null}
+            </p>
+          </div>
         ) : null}
       </div>
 
@@ -148,17 +159,26 @@ export function CourseModuleCard({ row, isNext = false, index = 0 }: CourseModul
         <div className="flex flex-col gap-2 sm:flex-row">
           {action.disabled ? (
             <Button variant="outline" className="w-full gap-2" type="button" disabled>
-              <LockIcon className="opacity-70" />
+              <Lock className="size-4 opacity-70" aria-hidden />
               Закрыт
             </Button>
           ) : (
             <>
               <Button variant={status === "completed" ? "outline" : "primary"} className="w-full sm:flex-1" asChild>
-                <Link href={action.href}>{action.label}</Link>
+                <Link href={action.href}>{status === "completed" ? "Повторить" : action.label}</Link>
               </Button>
-              <Button variant="ghost" className="w-full sm:w-auto" asChild>
-                <Link href={hubHref}>Обзор</Link>
-              </Button>
+              {status === "completed" && next?.unlocked ? (
+                <Button variant="ghost" className="w-full gap-1 sm:w-auto" asChild>
+                  <Link href={`/dashboard/course/${next.module.id}`}>
+                    Дальше
+                    <ArrowRight className="size-4" aria-hidden />
+                  </Link>
+                </Button>
+              ) : (
+                <Button variant="ghost" className="w-full sm:w-auto" asChild>
+                  <Link href={hubHref}>Обзор</Link>
+                </Button>
+              )}
             </>
           )}
         </div>
@@ -168,11 +188,7 @@ export function CourseModuleCard({ row, isNext = false, index = 0 }: CourseModul
 
   if (status === "locked") {
     return (
-      <LockedCard
-        locked
-        title="Модуль закрыт"
-        description="Завершите предыдущий модуль в треке, чтобы открыть доступ к лаборатории и тестам."
-      >
+      <LockedCard locked title="Модуль закрыт" description={lockedHint}>
         {card}
       </LockedCard>
     );

@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingIncludes: {
     "/api/certificates/**/*": [
-      "./node_modules/@fontsource/roboto/**/*",
+      "./node_modules/dejavu-fonts-ttf/**/*",
       "./node_modules/@react-pdf/**/*",
     ],
   },

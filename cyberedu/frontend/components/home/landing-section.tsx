@@ -9,6 +9,7 @@ export type LandingSectionProps = {
   title: string;
   description?: string;
   headerClassName?: string;
+  accent?: boolean;
   children: React.ReactNode;
 };
 
@@ -19,6 +20,7 @@ export function LandingSection({
   title,
   description,
   headerClassName,
+  accent,
   children,
 }: LandingSectionProps) {
   const headingId = id ? `${id}-heading` : undefined;
@@ -29,13 +31,10 @@ export function LandingSection({
         className={cn("mx-auto max-w-3xl flex-col items-center text-center", headerClassName)}
         eyebrow={eyebrow}
         title={title}
+        titleId={headingId}
         description={description}
+        accent={accent}
       />
-      {headingId ? (
-        <h2 id={headingId} className="sr-only">
-          {title}
-        </h2>
-      ) : null}
       {children}
     </section>
   );

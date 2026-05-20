@@ -20,7 +20,7 @@ export function DashboardContinueLearning({
   const modulePct = row?.progressPercent ?? stats.progressPercent;
 
   return (
-    <LearnPanel beam className="p-5 sm:p-6">
+    <LearnPanel className="p-5 sm:p-6">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 gap-4">
           <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-primary/25 bg-primary/10 text-primary">

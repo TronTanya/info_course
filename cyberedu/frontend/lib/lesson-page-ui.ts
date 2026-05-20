@@ -18,8 +18,19 @@ export function extractKeyIdeas(source: string, max = 6): string[] {
   const segments = parseLessonStructure(source);
   const ideas: string[] = [];
 
+  const hasRememberBlock = segments.some((s) => s.type === "remember");
+
   for (const seg of segments) {
-    if (seg.type === "remember" || seg.type === "outro") {
+    if (seg.type === "remember") {
+      if (!hasRememberBlock) {
+        if (seg.title && !["Запомни", "Важно запомнить"].includes(seg.title)) ideas.push(seg.title);
+        ideas.push(...bulletLines(seg.body));
+      } else if (seg.title && !["Запомни", "Важно запомнить", "Итог", "Вступление"].includes(seg.title)) {
+        ideas.push(seg.title);
+      }
+      continue;
+    }
+    if (seg.type === "outro") {
       if (seg.title && !["Запомни", "Итог", "Вступление"].includes(seg.title)) {
         ideas.push(seg.title);
       }
@@ -105,4 +116,22 @@ export function extractPracticeBlock(source: string): { title: string; body: str
 
 export function getLessonDifficultyLabel(moduleOrderNumber: number): string {
   return moduleDifficultyByOrder(moduleOrderNumber);
+}
+
+/** Блок «Важно запомнить» из сегментов :::remember. */
+export function extractRememberBlock(source: string): { title: string; items: string[] } | null {
+  const segments = parseLessonStructure(source);
+  const remember = segments.find((s) => s.type === "remember");
+  if (!remember || remember.type !== "remember") return null;
+
+  const items = bulletLines(remember.body);
+  if (remember.title && !["Запомни", "Важно запомнить"].includes(remember.title)) {
+    items.unshift(remember.title);
+  }
+  if (items.length === 0 && remember.body.trim()) {
+    items.push(remember.body.trim());
+  }
+  if (items.length === 0) return null;
+
+  return { title: remember.title === "Запомни" ? "Важно запомнить" : remember.title, items };
 }

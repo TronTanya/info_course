@@ -7,11 +7,16 @@ export function AdminTable({
   className,
   minWidth = "960px",
   density = "comfortable",
+  caption,
+  "aria-label": ariaLabel,
 }: {
   children: React.ReactNode;
   className?: string;
   minWidth?: string;
   density?: AdminTableDensity;
+  /** Видимое или скрытое имя таблицы (предпочтительнее `aria-label`). */
+  caption?: string;
+  "aria-label"?: string;
 }) {
   return (
     <table
@@ -21,7 +26,9 @@ export function AdminTable({
         className,
       )}
       style={{ minWidth }}
+      aria-label={caption ? undefined : ariaLabel}
     >
+      {caption ? <caption className="sr-only">{caption}</caption> : null}
       {children}
     </table>
   );

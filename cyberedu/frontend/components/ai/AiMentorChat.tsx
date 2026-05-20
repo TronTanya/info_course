@@ -4,11 +4,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Bot, Scan } from "lucide-react";
 import { MentorContextBar } from "@/components/ai/mentor/mentor-context-bar";
+import { MentorEmptyState } from "@/components/ai/mentor/mentor-empty-state";
+import { MentorErrorBanner } from "@/components/ai/mentor/mentor-error-banner";
+import { MentorGuardrailCallout } from "@/components/ai/mentor/mentor-guardrail-callout";
 import { MentorMarkdown } from "@/components/ai/mentor/mentor-markdown";
 import { MentorMemoryStrip } from "@/components/ai/mentor/mentor-memory-strip";
 import { MentorMessageMeta } from "@/components/ai/mentor/mentor-message-meta";
+import { MentorModesBar } from "@/components/ai/mentor/mentor-modes-bar";
 import { MentorSuggestedPrompts } from "@/components/ai/mentor/mentor-suggested-prompts";
 import { MentorTypingIndicator } from "@/components/ai/mentor/mentor-typing";
+import { buildMentorModePrompt, type MentorModeId } from "@/lib/ai/mentor-ui/modes";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { resolveMentorContextKind } from "@/lib/ai/mentor-ui/context";
@@ -53,6 +58,7 @@ export function AiMentorChat({
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryDraft, setRetryDraft] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const prevOpenSignal = useRef<number | null>(null);
@@ -117,18 +123,21 @@ export function AiMentorChat({
             module_id: moduleId ?? null,
             lesson_id: lessonId ?? null,
             practical_task_id: practicalTaskId ?? null,
+            practice_socratic_hints: contextKind === "practice",
           }),
         });
 
         const data = (await res.json()) as ChatApiResponse;
 
         if (!res.ok) {
+          setRetryDraft(trimmed);
           setError(data.error || `Ошибка ${res.status}`);
           return;
         }
 
         const reply = data.reply?.trim();
         if (!reply) {
+          setRetryDraft(trimmed);
           setError("Пустой ответ сервера.");
           return;
         }
@@ -139,14 +148,32 @@ export function AiMentorChat({
           { id: nextId(), role: "assistant", content: reply, meta: data.meta },
         ]);
         setDraft("");
+        setRetryDraft(null);
       } catch {
+        setRetryDraft(trimmed);
         setError("Не удалось связаться с сервером. Проверьте сеть и попробуйте снова.");
       } finally {
         setLoading(false);
       }
     },
-    [loading, moduleId, lessonId, practicalTaskId],
+    [loading, moduleId, lessonId, practicalTaskId, contextKind],
   );
+
+  const lastAssistant = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i]?.role === "assistant") return messages[i];
+    }
+    return null;
+  }, [messages]);
+
+  function handleModeSelect(modeId: MentorModeId) {
+    void sendMessage(buildMentorModePrompt(modeId, contextKind));
+  }
+
+  function handleRetry() {
+    const text = retryDraft ?? draft;
+    if (text.trim()) void sendMessage(text);
+  }
 
   function clearLocal() {
     setMessages([]);
@@ -165,7 +192,7 @@ export function AiMentorChat({
           setOpen((v) => !v);
         }}
         className={cn(
-          "ce-ai-mentor-fab fixed z-[60] flex size-14 items-center justify-center rounded-full",
+          "ce-ai-mentor-fab ce-touch-target fixed z-[60] flex size-14 min-h-14 min-w-14 items-center justify-center rounded-full",
           "bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-[max(1.25rem,env(safe-area-inset-right))]",
           "ce-mentor-fab-surface border border-cyan/40 text-cyan shadow-(--shadow-glow)",
           "transition hover:scale-[1.03] motion-reduce:hover:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan",
@@ -206,15 +233,15 @@ export function AiMentorChat({
               <div className="min-w-0">
                 <p id="ai-mentor-chat-title" className="flex items-center gap-2 text-sm font-semibold text-foreground">
                   <Scan className="size-4 text-cyan" aria-hidden />
-                  Cyber Mentor SOC
+                  AI-наставник CyberEdu
                 </p>
                 <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
-                  Учебный наставник: наводящие вопросы, без готовых ответов на тесты и практику.
+                  Встроенный учебный помощник: объяснения, примеры и подсказки без готовых ответов.
                 </p>
               </div>
               <button
                 type="button"
-                className="shrink-0 rounded-lg p-1.5 text-muted-foreground transition hover:bg-muted/40 hover:text-foreground"
+                className="ce-touch-target shrink-0 rounded-xl p-2.5 text-muted-foreground transition hover:bg-muted/40 hover:text-foreground"
                 aria-label="Закрыть"
                 onClick={() => setOpen(false)}
               >
@@ -226,17 +253,10 @@ export function AiMentorChat({
 
             <MentorContextBar kind={contextKind} labels={contextLabels} moduleId={moduleId} />
 
+            <MentorModesBar disabled={loading} onSelect={handleModeSelect} />
+
             <div ref={scrollRef} className="relative min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-3 py-3">
-              {messages.length === 0 && !loading ? (
-                <motion.div
-                  initial={reduce ? false : { opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="rounded-xl border border-dashed border-cyan/20 bg-cyan/5 px-3 py-3 text-xs leading-relaxed text-muted-foreground"
-                >
-                  Задайте вопрос по терминам, логике задания или защитным практикам. Наставник адаптирует сложность и
-                  не раскрывает атакующие сценарии.
-                </motion.div>
-              ) : null}
+              {messages.length === 0 && !loading ? <MentorEmptyState /> : null}
 
               {messages.map((m) => (
                 <motion.article
@@ -252,7 +272,7 @@ export function AiMentorChat({
                   )}
                 >
                   <p className="mb-1 font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
-                    {m.role === "user" ? "Operator" : "Mentor"}
+                    {m.role === "user" ? "Вы" : "Наставник"}
                   </p>
                   {m.role === "assistant" ? (
                     <>
@@ -267,24 +287,18 @@ export function AiMentorChat({
 
               {loading ? <MentorTypingIndicator /> : null}
 
-              {error ? (
-                <div className="rounded-lg border border-danger/35 bg-danger/10 px-3 py-2 text-xs text-danger" role="alert">
-                  {error}
-                </div>
+              {error ? <MentorErrorBanner message={error} onRetry={handleRetry} disabled={loading} /> : null}
+
+              {lastAssistant?.meta?.refused || lastAssistant?.meta?.refusalCode === "exam_spoiler" ? (
+                <MentorGuardrailCallout refusalCode={lastAssistant.meta?.refusalCode} />
               ) : null}
             </div>
 
-            {messages.length === 0 ? (
-              <MentorSuggestedPrompts prompts={suggested} disabled={loading} onSelect={(t) => void sendMessage(t)} />
-            ) : (
-              <MentorSuggestedPrompts
-                prompts={suggested.slice(0, 2)}
-                disabled={loading}
-                onSelect={(t) => {
-                  setDraft(t);
-                }}
-              />
-            )}
+            <MentorSuggestedPrompts
+              prompts={messages.length === 0 ? suggested : suggested.slice(0, 3)}
+              disabled={loading}
+              onSelect={(t) => void sendMessage(t)}
+            />
 
             <div className="border-t border-cyan/15 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
               <Textarea

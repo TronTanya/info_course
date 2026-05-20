@@ -2,6 +2,7 @@
   "name": "cyberedu-frontend",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "dev": "next dev --port 3100",
     "build": "next build",
@@ -35,6 +36,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "seed": "prisma db seed",
     "seed:verify-password": "tsx scripts/verify-seed-password-preservation.ts",
+    "certs:regenerate-pdf": "tsx scripts/regenerate-certificate-pdfs.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {
@@ -53,6 +55,7 @@
     "@tanstack/react-query": "^5.90.12",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
+    "dejavu-fonts-ttf": "^2.37.3",
     "dotenv": "^17.4.2",
     "framer-motion": "^11.15.0",
     "highlight.js": "^11.11.1",

@@ -1,13 +1,5 @@
 import Link from "next/link";
-
-const links = [
-  { href: "#what-you-learn", label: "Программа" },
-  { href: "#modules", label: "Модули" },
-  { href: "#practice-lab", label: "Практика" },
-  { href: "/reviews", label: "Отзывы" },
-  { href: "/about", label: "О проекте" },
-  { href: "/auth/login", label: "Войти" },
-] as const;
+import { landingFooterNavLinks } from "@/lib/design-system/nav-config";
 
 export function LandingFooter() {
   return (
@@ -18,7 +10,7 @@ export function LandingFooter() {
           <p className="mt-1 text-xs text-subtle-foreground">Cyber Lab · учебная платформа по ИБ</p>
         </div>
         <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground" aria-label="Подвал">
-          {links.map((item) => (
+          {landingFooterNavLinks.map((item) => (
             <Link
               key={item.href}
               href={item.href}

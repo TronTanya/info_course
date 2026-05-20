@@ -38,6 +38,13 @@ export function TestAnswerOption({
       aria-checked={selected}
       disabled={disabled}
       onClick={onSelect}
+      onKeyDown={(e) => {
+        if (disabled) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
       className={cn(
         "ce-test-option flex w-full min-h-[52px] items-start gap-3 rounded-xl border px-4 py-3.5 text-left text-base leading-snug",
         stateInteractiveClass,

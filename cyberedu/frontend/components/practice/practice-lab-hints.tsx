@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, Lightbulb } from "lucide-react";
 import { SectionCard } from "@/components/ui/section-card";
+import { practiceHintLevelLabels } from "@/lib/practice-lab-ui";
 import { cn } from "@/lib/utils";
 
 export function PracticeLabHints({
@@ -60,7 +61,7 @@ export function PracticeLabHints({
                   >
                     <span>
                       <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-primary">
-                        Уровень {index + 1}
+                        {practiceHintLevelLabels[index] ?? `Уровень ${index + 1}`}
                       </span>
                       {!open ? (
                         <span className="mt-1 block text-muted-foreground">Нажмите, чтобы раскрыть подсказку</span>

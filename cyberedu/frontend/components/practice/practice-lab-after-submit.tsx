@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { BookOpen, FlaskConical, RotateCcw } from "lucide-react";
 import type { SubmissionStatus } from "@prisma/client";
-import { practiceImprovementTips, statusRu } from "@/lib/practice-lab-ui";
+import { practiceImprovementTips, practiceResultHeadline, statusRu } from "@/lib/practice-lab-ui";
 import { AnswerFeedback } from "@/components/ui/answer-feedback";
 import { Button } from "@/components/ui/button";
 import { SectionCard } from "@/components/ui/section-card";
@@ -18,6 +18,7 @@ export function PracticeLabAfterSubmit({
   createdAt,
   onRetry,
   canRetry,
+  nextPracticeAnchor,
 }: {
   moduleId: string;
   status: SubmissionStatus;
@@ -28,17 +29,20 @@ export function PracticeLabAfterSubmit({
   createdAt: string;
   onRetry?: () => void;
   canRetry: boolean;
+  /** Якорь на следующую практику на странице (если есть). */
+  nextPracticeAnchor?: string | null;
 }) {
   const passed = status === "ACCEPTED";
   const pending = status === "SUBMITTED" || status === "CHECKING";
   const needsWork = status === "NEEDS_REVISION" || status === "REJECTED";
+  const headline = practiceResultHeadline(status, passed);
   const tips = practiceImprovementTips(status, adminComment);
   const lessonHref = `/dashboard/course/${moduleId}/lesson`;
 
   return (
     <SectionCard variant="lab" flushTitle className="scroll-mt-24 p-5 sm:p-6" aria-labelledby="practice-result-heading">
       <h2 id="practice-result-heading" className="font-display text-lg font-semibold text-foreground">
-        Результат отправки
+        {headline}
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
         {statusRu(status)}
@@ -95,7 +99,12 @@ export function PracticeLabAfterSubmit({
         {canRetry && onRetry ? (
           <Button type="button" variant="secondary" size="lg" className="gap-2" onClick={onRetry}>
             <RotateCcw className="size-4" aria-hidden />
-            Отправить снова
+            Попробовать ещё раз
+          </Button>
+        ) : null}
+        {nextPracticeAnchor ? (
+          <Button asChild variant="outline" size="lg" className="gap-2">
+            <a href={nextPracticeAnchor}>Следующая практика</a>
           </Button>
         ) : null}
         {passed ? (

@@ -1,6 +1,7 @@
 "use client";
 
 import { LayoutList, Rows3, Search, X } from "lucide-react";
+import { focusRing } from "@/lib/design-system/primitives";
 import { cn } from "@/lib/utils";
 
 export type AdminTableDensity = "comfortable" | "compact";
@@ -46,14 +47,21 @@ export function AdminTableToolbar({
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder={searchPlaceholder}
-          className="h-10 w-full rounded-xl border border-border/80 bg-background/90 pl-9 pr-9 text-sm text-foreground shadow-sm outline-none transition-[border-color,box-shadow] placeholder:text-muted-foreground focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring/30"
+          className={cn(
+            "h-11 min-h-11 w-full rounded-xl border border-border/80 bg-background/90 pl-9 pr-9 text-sm text-foreground shadow-sm",
+            "placeholder:text-muted-foreground transition-[border-color,box-shadow]",
+            focusRing,
+          )}
           aria-label={searchPlaceholder}
         />
         {search ? (
           <button
             type="button"
             onClick={() => onSearchChange("")}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            className={cn(
+              "absolute right-2 top-1/2 flex size-11 min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground",
+              focusRing,
+            )}
             aria-label="Очистить поиск"
           >
             <X className="size-4" />
@@ -68,11 +76,13 @@ export function AdminTableToolbar({
             type="button"
             onClick={() => onFilterChange?.(f.id)}
             className={cn(
-              "rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
+              "min-h-11 rounded-full border px-3 py-2.5 text-xs font-semibold transition-colors",
               activeFilter === f.id
                 ? "border-primary/40 bg-primary/12 text-primary"
                 : "border-border/70 bg-card/80 text-muted-foreground hover:border-border hover:text-foreground",
+              focusRing,
             )}
+            aria-pressed={activeFilter === f.id}
           >
             {f.label}
           </button>

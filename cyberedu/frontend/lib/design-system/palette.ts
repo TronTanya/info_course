@@ -1,5 +1,5 @@
 /**
- * CyberEdu design system — исходная палитра (синхронизировать с app/design-tokens.css).
+ * CyberEdu design system v2.2 — исходная палитра (синхронизировать с app/design-tokens.css).
  * Контраст (на #060712): primary #F4F2FA ~16:1, secondary #B8B3CC ~8:1, muted #7C7794 ~4.8:1.
  */
 export const palette = {

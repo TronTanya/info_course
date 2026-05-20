@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 export function DashboardAiHint() {
   return (
-    <LearnPanel beam className={cn("border-cyan/20 bg-linear-to-r from-cyan/[0.06] to-card p-4 sm:p-5")}>
+    <LearnPanel className={cn("border-cyan/20 bg-linear-to-r from-cyan/[0.06] to-card p-4 sm:p-5")}>
       <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 gap-3">
           <span

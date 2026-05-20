@@ -3,6 +3,9 @@ import { createElement } from "react";
 import QRCode from "qrcode";
 import { prisma } from "@/lib/db";
 import type { CertificatePdfPayload } from "@/lib/certificate-pdf";
+import { CERTIFICATE_PDF_TEMPLATE_REV } from "@/lib/certificate-pdf-fonts";
+import { getModuleRequirements, type ModuleForProgress } from "@/lib/progress";
+import type { DashboardStepMetrics } from "@/lib/dashboard-ui";
 import { reconcileUserAchievements } from "@/lib/achievements";
 import { getStorageService, namespaceDir } from "@/lib/storage";
 import { SECURITY_ACTIONS } from "@/lib/security/audit-actions";
@@ -16,6 +19,10 @@ export function certificateUploadDir(): string {
 
 export function certificateFileKey(certificateId: string): string {
   return `${certificateId}.pdf`;
+}
+
+function certificateRevKey(certificateId: string): string {
+  return `${certificateId}.rev`;
 }
 
 export function certificateDiskPath(certificateId: string): string {
@@ -46,13 +53,42 @@ async function getPrimaryCourseId(): Promise<string | null> {
   return c?.id ?? null;
 }
 
+type CourseModuleContext = {
+  modules: { id: string; title: string }[];
+  byModule: Map<
+    string,
+    {
+      moduleId: string;
+      moduleCompleted: boolean;
+      lessonCompleted: boolean;
+      videoCompleted: boolean;
+      testCompleted: boolean;
+      practiceCompleted: boolean;
+      score: number;
+      createdAt: Date;
+      updatedAt: Date;
+    }
+  >;
+  stepMetrics: DashboardStepMetrics;
+  totalPoints: number;
+  maxPossiblePoints: number;
+};
+
 /** Активные модули основного курса (первый курс в БД) и прогресс пользователя. */
-async function getActiveCourseModuleContext(userId: string, courseId: string) {
-  const modules = await prisma.module.findMany({
+async function getActiveCourseModuleContext(userId: string, courseId: string): Promise<CourseModuleContext> {
+  const modulesRaw = await prisma.module.findMany({
     where: { courseId, isActive: true },
     orderBy: { orderNumber: "asc" },
-    select: { id: true, title: true },
+    select: {
+      id: true,
+      title: true,
+      lessons: { select: { videoUrl: true } },
+      tests: { select: { id: true, questions: { select: { points: true, questionType: true, textManualGrading: true } } } },
+      practicalTasks: { select: { id: true, maxScore: true } },
+    },
   });
+
+  const modules = modulesRaw.map((m) => ({ id: m.id, title: m.title ?? "" }));
   const moduleIds = modules.map((m) => m.id);
   const progressRows =
     moduleIds.length > 0
@@ -61,6 +97,10 @@ async function getActiveCourseModuleContext(userId: string, courseId: string) {
           select: {
             moduleId: true,
             moduleCompleted: true,
+            lessonCompleted: true,
+            videoCompleted: true,
+            testCompleted: true,
+            practiceCompleted: true,
             score: true,
             createdAt: true,
             updatedAt: true,
@@ -68,7 +108,64 @@ async function getActiveCourseModuleContext(userId: string, courseId: string) {
         })
       : [];
   const byModule = new Map(progressRows.map((p) => [p.moduleId, p]));
-  return { modules, byModule };
+
+  let lessonsDone = 0;
+  let lessonsTotal = 0;
+  let testsDone = 0;
+  let testsTotal = 0;
+  let practiceDone = 0;
+  let practiceTotal = 0;
+  let totalPoints = 0;
+  let maxPossiblePoints = 0;
+
+  for (const m of modulesRaw) {
+    const lessons = m.lessons ?? [];
+    const tests = m.tests ?? [];
+    const practicalTasks = m.practicalTasks ?? [];
+    const req = getModuleRequirements({
+      id: m.id,
+      courseId,
+      orderNumber: 0,
+      isActive: true,
+      lessons,
+      tests: tests.map((t) => ({ id: t.id })),
+      practicalTasks: practicalTasks.map((pt) => ({ id: pt.id })),
+    } as ModuleForProgress);
+    const p = byModule.get(m.id);
+    totalPoints += p?.score ?? 0;
+
+    if (req.lessonRequired) {
+      lessonsTotal++;
+      if (p?.lessonCompleted) lessonsDone++;
+    }
+    if (req.testRequired) {
+      testsTotal++;
+      if (p?.testCompleted) testsDone++;
+    }
+    if (req.practiceRequired) {
+      practiceTotal++;
+      if (p?.practiceCompleted) practiceDone++;
+    }
+
+    for (const t of tests) {
+      for (const q of t.questions ?? []) {
+        const counts =
+          q.questionType !== "TEXT" || !q.textManualGrading ? q.points : 0;
+        maxPossiblePoints += counts;
+      }
+    }
+    for (const pt of practicalTasks) {
+      maxPossiblePoints += pt.maxScore ?? 0;
+    }
+  }
+
+  return {
+    modules,
+    byModule,
+    stepMetrics: { lessonsDone, lessonsTotal, testsDone, testsTotal, practiceDone, practiceTotal },
+    totalPoints,
+    maxPossiblePoints,
+  };
 }
 
 /**
@@ -138,6 +235,12 @@ export type CertificateDashboardState = {
   totalModules: number;
   incompleteModules: { id: string; title: string }[];
   courseCompleted: boolean;
+  canGenerate: boolean;
+  studentDisplayName: string;
+  stepMetrics: DashboardStepMetrics;
+  totalPoints: number;
+  maxPossiblePoints: number;
+  scoreSuccessPercent: number;
   certificate: null | {
     id: string;
     certificateNumber: string;
@@ -157,7 +260,8 @@ export async function getCertificateDashboardState(userId: string): Promise<Cert
   });
   if (!course) return null;
 
-  const { modules, byModule } = await getActiveCourseModuleContext(userId, courseId);
+  const { modules, byModule, stepMetrics, totalPoints, maxPossiblePoints } =
+    await getActiveCourseModuleContext(userId, courseId);
   const incompleteModules: { id: string; title: string }[] = [];
   let completed = 0;
   for (const m of modules) {
@@ -168,9 +272,20 @@ export async function getCertificateDashboardState(userId: string): Promise<Cert
   const total = modules.length;
   const progressPercent = total ? Math.round((completed / total) * 100) : 0;
   const courseCompleted = total > 0 && completed === total;
+  const scoreSuccessPercent =
+    maxPossiblePoints > 0 ? Math.min(100, Math.round((totalPoints / maxPossiblePoints) * 100)) : 0;
 
-  const cert = await getCertificateByUser(userId, courseId);
+  const [cert, profile] = await Promise.all([
+    getCertificateByUser(userId, courseId),
+    prisma.profile.findUnique({
+      where: { userId },
+      select: { lastName: true, firstName: true, middleName: true },
+    }),
+  ]);
   const verifyUrl = cert ? certificateVerifyUrl(cert.verificationCode) : "";
+  const studentDisplayName = profile
+    ? [profile.lastName, profile.firstName, profile.middleName].filter(Boolean).join(" ").trim() || "Участник"
+    : "Участник";
 
   return {
     courseId: course.id,
@@ -181,6 +296,12 @@ export async function getCertificateDashboardState(userId: string): Promise<Cert
     totalModules: total,
     incompleteModules,
     courseCompleted,
+    canGenerate: courseCompleted,
+    studentDisplayName,
+    stepMetrics,
+    totalPoints,
+    maxPossiblePoints,
+    scoreSuccessPercent,
     certificate: cert
       ? {
           id: cert.id,
@@ -273,10 +394,13 @@ async function buildPdfPayloadForCertificate(
 }
 
 export async function renderCertificatePdfToBuffer(payload: CertificatePdfPayload): Promise<Buffer> {
-  const [{ renderToBuffer }, { CertificatePdfDocument }] = await Promise.all([
-    import("@react-pdf/renderer"),
-    import("@/lib/certificate-pdf"),
-  ]);
+  const [{ renderToBuffer, Font }, { CertificatePdfDocument }, { registerCertificatePdfFonts }] =
+    await Promise.all([
+      import("@react-pdf/renderer"),
+      import("@/lib/certificate-pdf"),
+      import("@/lib/certificate-pdf-fonts"),
+    ]);
+  registerCertificatePdfFonts(Font);
   return renderToBuffer(
     // Корень — <Document> внутри CertificatePdfDocument; типы react-pdf ожидают именно DocumentProps.
     createElement(CertificatePdfDocument, payload) as Parameters<typeof renderToBuffer>[0],
@@ -296,11 +420,22 @@ export async function generateCertificatePdf(userId: string, courseId: string): 
 }
 
 export async function writeCertificatePdfFile(certificateId: string, buffer: Buffer): Promise<void> {
-  await getStorageService().write(CERT_NS, certificateFileKey(certificateId), buffer);
+  const storage = getStorageService();
+  await storage.write(CERT_NS, certificateFileKey(certificateId), buffer);
+  await storage.write(
+    CERT_NS,
+    certificateRevKey(certificateId),
+    Buffer.from(String(CERTIFICATE_PDF_TEMPLATE_REV), "utf8"),
+  );
 }
 
 export async function readCertificatePdfFile(certificateId: string): Promise<Buffer | null> {
-  return getStorageService().read(CERT_NS, certificateFileKey(certificateId));
+  const storage = getStorageService();
+  const rev = await storage.read(CERT_NS, certificateRevKey(certificateId));
+  if (!rev || rev.toString("utf8") !== String(CERTIFICATE_PDF_TEMPLATE_REV)) {
+    return null;
+  }
+  return storage.read(CERT_NS, certificateFileKey(certificateId));
 }
 
 /**

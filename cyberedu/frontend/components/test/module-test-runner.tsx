@@ -5,9 +5,12 @@ import { useCallback, useMemo, useState, useTransition } from "react";
 import { submitTestAttemptAction } from "@/lib/actions/test";
 import type { ClientTestQuestion, SubmittedAnswerPayload } from "@/lib/test-grading";
 import { computeTestMaxScore, estimateTestMinutes } from "@/lib/test-ui";
+import { TestExitDialog } from "@/components/test/test-exit-dialog";
 import { TestStartScreen } from "@/components/test/test-start-screen";
 import { TestResultView, type TestReviewRow } from "@/components/test/test-result-view";
 import { TestTakingView, type TestLocalAnswers } from "@/components/test/test-taking-view";
+import type { LearningStepLink } from "@/lib/learning-nav";
+import { useTestBeforeUnload } from "@/lib/hooks/use-test-session-guards";
 import { Button } from "@/components/ui/button";
 import { LoadingState } from "@/components/ui/loading-state";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -16,6 +19,8 @@ import { useToast } from "@/components/ui/toast";
 import { LearnEnter } from "@/components/learn/learn-chrome";
 import { useFormDraft } from "@/lib/hooks/use-form-draft";
 import { formatUserFacingError } from "@/lib/ux/format-user-error";
+import { AiMentorChat } from "@/components/ai/AiMentorChat";
+import { formatMentorTestSummary } from "@/lib/ai/mentor-ui/test-summary";
 
 export type ModuleTestRunnerProps = {
   moduleId: string;
@@ -26,6 +31,7 @@ export type ModuleTestRunnerProps = {
   minScore: number;
   questions: ClientTestQuestion[];
   lastAttempt: { score: number; maxScore: number; passed: boolean; percent: number; createdAt: string } | null;
+  nextStep?: LearningStepLink | null;
 };
 
 type Phase = "lobby" | "active" | "result";
@@ -69,12 +75,14 @@ export function ModuleTestRunner({
   minScore,
   questions,
   lastAttempt,
+  nextStep = null,
 }: ModuleTestRunnerProps) {
   const { toast } = useToast();
   const [phase, setPhase] = useState<Phase>("lobby");
   const [idx, setIdx] = useState(0);
   const [local, setLocal] = useState<TestLocalAnswers>(() => emptyLocal(questions));
   const [submitOpen, setSubmitOpen] = useState(false);
+  const [exitOpen, setExitOpen] = useState(false);
   const [result, setResult] = useState<{
     score: number;
     maxScore: number;
@@ -84,6 +92,7 @@ export function ModuleTestRunner({
     review: TestReviewRow[];
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [mentorOpenSeq, setMentorOpenSeq] = useState(0);
   const [pending, startTransition] = useTransition();
 
   const questionCount = questions.length;
@@ -109,6 +118,8 @@ export function ModuleTestRunner({
   const restoreDraft = useCallback((saved: TestLocalAnswers) => {
     setLocal(saved);
   }, []);
+
+  useTestBeforeUnload(phase === "active" && answeredCount > 0);
 
   const { clearDraft } = useFormDraft({
     storageKey: `ce-test-draft:${moduleId}:${testId}`,
@@ -222,6 +233,14 @@ export function ModuleTestRunner({
   }
 
   if (phase === "result" && result) {
+    const testSummary = formatMentorTestSummary({
+      title,
+      percent: result.percent,
+      passed: result.passed,
+      correctCount: result.correctCount,
+      totalGraded,
+    });
+
     return (
       <LearnEnter>
         <TestResultView
@@ -234,7 +253,18 @@ export function ModuleTestRunner({
           correctCount={result.correctCount}
           totalGraded={totalGraded}
           review={result.review}
+          nextStep={nextStep}
           onRetry={resetToLobby}
+          onAskMentor={() => setMentorOpenSeq((n) => n + 1)}
+        />
+        <AiMentorChat
+          moduleId={moduleId}
+          openSignal={mentorOpenSeq}
+          contextLabels={{
+            moduleTitle,
+            topic: moduleTitle,
+            testSummary,
+          }}
         />
       </LearnEnter>
     );
@@ -265,7 +295,21 @@ export function ModuleTestRunner({
             setSubmitOpen(true);
           }}
           onConfirmSubmit={submit}
+          onRetrySubmit={() => {
+            setError(null);
+            setSubmitOpen(true);
+          }}
           draftNote={isDraftDirty}
+        />
+        <TestExitDialog
+          open={exitOpen}
+          onOpenChange={setExitOpen}
+          answeredCount={answeredCount}
+          total={questionCount}
+          onConfirmExit={() => {
+            setExitOpen(false);
+            resetToLobby();
+          }}
         />
         {pending ? (
           <div className="absolute inset-0 z-20 flex items-center justify-center rounded-2xl bg-background/75 backdrop-blur-sm">
@@ -274,7 +318,7 @@ export function ModuleTestRunner({
         ) : null}
       </div>
       <div className="mt-4">
-        <Button type="button" variant="ghost" size="md" disabled={pending} onClick={resetToLobby}>
+        <Button type="button" variant="ghost" size="md" disabled={pending} onClick={() => setExitOpen(true)}>
           Выйти из теста
         </Button>
       </div>

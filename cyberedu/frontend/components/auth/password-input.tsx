@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { focusRing } from "@/lib/design-system/primitives";
 import { formControlClass, formControlErrorClass } from "@/lib/ui/form-control";
 import { cn } from "@/lib/utils";
 
@@ -46,7 +47,11 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
           />
           <button
             type="button"
-            className="absolute top-1/2 right-2 flex size-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:pointer-events-none"
+            className={cn(
+              "absolute top-1/2 right-2 flex size-11 min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors",
+              "hover:bg-muted/60 hover:text-foreground disabled:pointer-events-none",
+              focusRing,
+            )}
             onClick={() => setVisible((v) => !v)}
             disabled={disabled}
             aria-label={visible ? "Скрыть пароль" : "Показать пароль"}

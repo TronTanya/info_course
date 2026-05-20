@@ -1,3 +1,5 @@
+import { formatInlineMarkdown } from "@/lib/markdown-inline";
+
 /** Упрощённый рендер: блоки по пустым строкам, заголовки `#` / `##`, остальное — абзац с переносами. */
 export function LessonRichText({ source }: { source: string }) {
   const blocks = source.split(/\n{2,}/);
@@ -9,20 +11,20 @@ export function LessonRichText({ source }: { source: string }) {
         if (b.startsWith("## ") && !b.startsWith("### ")) {
           return (
             <h3 key={i} className="text-lg font-semibold tracking-tight text-foreground">
-              {b.slice(3)}
+              {formatInlineMarkdown(b.slice(3))}
             </h3>
           );
         }
         if (b.startsWith("# ")) {
           return (
             <h2 key={i} className="text-xl font-semibold tracking-tight text-foreground">
-              {b.slice(2)}
+              {formatInlineMarkdown(b.slice(2))}
             </h2>
           );
         }
         return (
           <p key={i} className="whitespace-pre-wrap text-pretty">
-            {b}
+            {formatInlineMarkdown(b)}
           </p>
         );
       })}

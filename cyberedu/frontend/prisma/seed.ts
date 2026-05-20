@@ -1311,6 +1311,109 @@ async function seedFictitiousDemoProgress(courseId: string): Promise<void> {
   );
 }
 
+/**
+ * Основной демо-аккаунт student@ — 100% курса с фактами в БД (тесты, практика),
+ * чтобы `recalculateModuleProgress` не сбрасывал флаги при входе в кабинет.
+ */
+async function seedPrimaryDemoStudentShowcase(courseId: string): Promise<void> {
+  const user = await prisma.user.findUnique({
+    where: { email: STUDENT_EMAIL },
+    select: { id: true, role: true },
+  });
+  if (!user || user.role !== Role.USER) return;
+
+  const modules = await prisma.module.findMany({
+    where: { courseId, isActive: true },
+    orderBy: { orderNumber: "asc" },
+    select: {
+      id: true,
+      tests: { select: { id: true } },
+      practicalTasks: { select: { id: true, maxScore: true } },
+    },
+  });
+  if (modules.length === 0) return;
+
+  const moduleIds = modules.map((m) => m.id);
+  const timeline = demoModuleCompletionTimeline(user.id, moduleIds);
+  const { recalculateModuleProgress } = await import("../lib/progress");
+
+  for (let i = 0; i < modules.length; i++) {
+    const mod = modules[i]!;
+    const completedAt = timeline[i]!;
+
+    for (const test of mod.tests) {
+      const passed = await prisma.testAttempt.findFirst({
+        where: { userId: user.id, testId: test.id, passed: true },
+        select: { id: true },
+      });
+      if (!passed) {
+        await prisma.testAttempt.create({
+          data: {
+            userId: user.id,
+            testId: test.id,
+            score: 100,
+            maxScore: 100,
+            passed: true,
+            createdAt: completedAt,
+          },
+        });
+      }
+    }
+
+    for (const task of mod.practicalTasks) {
+      const accepted = await prisma.submission.findFirst({
+        where: { userId: user.id, practicalTaskId: task.id, status: "ACCEPTED" },
+        select: { id: true },
+      });
+      if (!accepted) {
+        const pts = task.maxScore > 0 ? task.maxScore : 100;
+        await prisma.submission.create({
+          data: {
+            userId: user.id,
+            practicalTaskId: task.id,
+            textAnswer: "Демо-ответ для витрины CyberEdu (seed).",
+            score: pts,
+            status: "ACCEPTED",
+            createdAt: completedAt,
+            updatedAt: completedAt,
+            checkedAt: completedAt,
+          },
+        });
+      }
+    }
+
+    const score = demoScoreForModule(user.id, mod.id, i);
+    await prisma.progress.upsert({
+      where: { userId_moduleId: { userId: user.id, moduleId: mod.id } },
+      create: {
+        userId: user.id,
+        moduleId: mod.id,
+        lessonCompleted: true,
+        videoCompleted: true,
+        testCompleted: true,
+        practiceCompleted: true,
+        moduleCompleted: true,
+        score,
+        createdAt: completedAt,
+        updatedAt: completedAt,
+      },
+      update: {
+        lessonCompleted: true,
+        videoCompleted: true,
+        testCompleted: true,
+        practiceCompleted: true,
+        moduleCompleted: true,
+        score,
+        updatedAt: completedAt,
+      },
+    });
+
+    await recalculateModuleProgress(user.id, mod.id);
+  }
+
+  console.log(`Seed: ${STUDENT_EMAIL} — витрина 100% (${modules.length} модулей, тесты и практика).`);
+}
+
 /** Демо-сертификат только у завершивших все модули; у остальных сертификат и бейдж снимаются. */
 async function seedDemoCertificatesForGraduates(courseId: string): Promise<void> {
   const modules = await prisma.module.findMany({
@@ -1732,6 +1835,7 @@ async function main(): Promise<void> {
   }
 
   await seedFictitiousDemoProgress(course.id);
+  await seedPrimaryDemoStudentShowcase(course.id);
   await seedDemoCertificatesForGraduates(course.id);
 
   await seedPublishedReviewsFromCourseGraduates(course.id);

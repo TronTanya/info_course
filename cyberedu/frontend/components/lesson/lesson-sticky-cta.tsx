@@ -55,9 +55,17 @@ export function LessonStickyCta({
         </Button>
       )}
       {showMentor && onAskMentor ? (
-        <Button type="button" variant="outline" size="lg" className="w-full shrink-0 sm:w-auto" onClick={onAskMentor}>
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className="w-full shrink-0 gap-2 sm:w-auto"
+          onClick={onAskMentor}
+          aria-label="Спросить AI-наставника по этому уроку"
+        >
           <Sparkles className="size-4 text-cyan" aria-hidden />
-          AI
+          <span className="sm:hidden">AI</span>
+          <span className="hidden sm:inline">AI по уроку</span>
         </Button>
       ) : null}
     </div>

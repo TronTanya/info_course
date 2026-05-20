@@ -1,7 +1,8 @@
 import { createElement } from "react";
 import { describe, expect, it } from "vitest";
-import { renderToBuffer } from "@react-pdf/renderer";
+import { Font, renderToBuffer } from "@react-pdf/renderer";
 import { CertificatePdfDocument, type CertificatePdfPayload } from "@/lib/certificate-pdf";
+import { registerCertificatePdfFonts, resolveCertificatePdfFont } from "@/lib/certificate-pdf-fonts";
 
 function samplePayload(): CertificatePdfPayload {
   const now = new Date("2026-05-01T12:00:00.000Z");
@@ -24,7 +25,13 @@ function samplePayload(): CertificatePdfPayload {
 }
 
 describe("CertificatePdfDocument", () => {
+  it("resolves DejaVu TTF fonts on disk", () => {
+    expect(resolveCertificatePdfFont("regular")).toMatch(/DejaVuSans\.ttf$/);
+    expect(resolveCertificatePdfFont("bold")).toMatch(/DejaVuSans-Bold\.ttf$/);
+  });
+
   it("renders PDF buffer with Cyrillic (WOFF fonts, not WOFF2)", async () => {
+    registerCertificatePdfFonts(Font);
     const buf = await renderToBuffer(
       createElement(CertificatePdfDocument, samplePayload()) as Parameters<typeof renderToBuffer>[0],
     );

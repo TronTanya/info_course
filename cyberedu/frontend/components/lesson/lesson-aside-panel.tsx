@@ -86,7 +86,7 @@ export function LessonAsidePanel({
               disabled={aiBusy}
               onClick={onAskOpen}
             >
-              Задать вопрос
+              Спросить AI по этому уроку
             </Button>
           </div>
         </SectionCard>

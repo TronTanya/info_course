@@ -10,13 +10,15 @@ import { PracticeLabLayout } from "@/components/layout/practice-lab-layout";
 import { PracticeLabAside } from "@/components/practice/practice-lab-aside";
 import { PracticeLabResult } from "@/components/practice/practice-lab-result";
 import { PracticeLabAfterSubmit } from "@/components/practice/practice-lab-after-submit";
+import { PracticeLabAnswerArea } from "@/components/practice/practice-lab-answer-area";
+import { PracticeLabEvidence } from "@/components/practice/practice-lab-evidence";
 import { PracticeLabHints } from "@/components/practice/practice-lab-hints";
 import { PracticeLabScenario } from "@/components/practice/practice-lab-scenario";
 import { parsePracticeScenario } from "@/lib/practice-scenario-parse";
 import { PracticeLabSkeleton } from "@/components/practice/practice-lab-skeleton";
 import { PracticeLabTopBar } from "@/components/practice/practice-lab-top-bar";
 import { PracticeLabWorkspace } from "@/components/practice/practice-lab-workspace";
-import { getPracticeLabState } from "@/lib/practice-lab-ui";
+import { estimatePracticeMinutes, getPracticeLabState } from "@/lib/practice-lab-ui";
 import type { ChecklistItem } from "@/components/learn/learning-checklist";
 import { useToast } from "@/components/ui/toast";
 import { ScenarioPracticeBlock } from "@/components/practice/scenario-practice-forms";
@@ -240,12 +242,14 @@ export function PracticePageClient({ moduleId, moduleTitle, labContext, practice
 
   return (
     <div className="space-y-8">
-      {tasks.map((task) => (
+      {tasks.map((task, index) => (
         <PracticeLabSession
           key={task.id}
           moduleId={moduleId}
           labContext={labContext}
           task={task}
+          taskAnchorId={`practice-lab-${task.id}`}
+          nextPracticeAnchor={tasks[index + 1] ? `#practice-lab-${tasks[index + 1].id}` : null}
           onOpenAiChat={() => setChatOpenSeq((n) => n + 1)}
         />
       ))}
@@ -256,6 +260,7 @@ export function PracticePageClient({ moduleId, moduleTitle, labContext, practice
         contextLabels={{
           moduleTitle,
           taskTitle: tasks.length === 1 ? tasks[0].title : undefined,
+          topic: tasks.length === 1 ? tasks[0].title : moduleTitle,
         }}
       />
     </div>
@@ -266,11 +271,15 @@ function PracticeLabSession({
   moduleId,
   labContext,
   task,
+  taskAnchorId,
+  nextPracticeAnchor,
   onOpenAiChat,
 }: {
   moduleId: string;
   labContext: PracticeLabModuleContext;
   task: ClientPracticalTask;
+  taskAnchorId: string;
+  nextPracticeAnchor: string | null;
   onOpenAiChat: () => void;
 }) {
   const router = useRouter();
@@ -286,12 +295,15 @@ function PracticeLabSession({
   const accepted = sub?.status === "ACCEPTED";
   const lab = taskLabComponentLabel(task.taskType);
   const labState = getPracticeLabState(sub, { flash: checkFlash });
+  const estimatedMinutes = estimatePracticeMinutes(task.taskType, task.maxScore);
   const parsedScenario = parsePracticeScenario(
     task.description,
     task.instruction,
     task.consoleScenario,
     task.scenarioData,
+    task.taskType,
   );
+  const answerRequirements = criteriaBullets(task);
   const canRetry = !pendingReview && !accepted;
   const submissionExplanation =
     sub?.adminComment?.trim() ||
@@ -323,16 +335,18 @@ function PracticeLabSession({
   const header = (
     <PracticeLabTopBar
       taskTitle={task.title}
+      moduleTitle={labContext.moduleTitle}
       moduleOrderNumber={labContext.moduleOrderNumber}
       maxScore={task.maxScore}
       score={sub?.score ?? null}
       labState={labState}
       moduleId={moduleId}
+      estimatedMinutes={estimatedMinutes}
     />
   );
 
   const main = (
-    <div className="space-y-6">
+    <div id={taskAnchorId} className="scroll-mt-24 space-y-6">
       <PracticeLabResult
         labState={labState}
         error={error}
@@ -352,9 +366,12 @@ function PracticeLabSession({
 
       <PracticeLabScenario parsed={parsedScenario} contextNotes={task.description} />
 
+      <PracticeLabEvidence blocks={parsedScenario.evidence} taskType={task.taskType} />
+
       <PracticeLabHints levels={parsedScenario.hintLevels} />
 
       <PracticeLabWorkspace taskTypeLabel={taskTypeRu(task.taskType)} componentLabel={lab}>
+        <PracticeLabAnswerArea requirements={answerRequirements}>
         <div className="space-y-4">
           {task.taskType === "TEXT_ANSWER" ? (
             <TextAnswerForm
@@ -438,6 +455,7 @@ function PracticeLabSession({
             />
           ) : null}
         </div>
+        </PracticeLabAnswerArea>
       </PracticeLabWorkspace>
 
       {sub ? (
@@ -450,6 +468,7 @@ function PracticeLabSession({
           explanation={submissionExplanation}
           createdAt={sub.createdAt}
           canRetry={canRetry}
+          nextPracticeAnchor={nextPracticeAnchor}
           onRetry={
             canRetry
               ? () => {

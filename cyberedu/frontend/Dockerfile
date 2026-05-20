@@ -65,7 +65,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 # PDF-сертификат: в standalone не попадают шрифты и @react-pdf — без них renderToBuffer падает.
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@fontsource/roboto ./node_modules/@fontsource/roboto
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/dejavu-fonts-ttf ./node_modules/dejavu-fonts-ttf
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@react-pdf ./node_modules/@react-pdf
 # Исходники для `tsx prisma/seed.ts` (импорты `../lib/db`, `./lesson-content`)
 COPY --from=builder /app/prisma ./prisma

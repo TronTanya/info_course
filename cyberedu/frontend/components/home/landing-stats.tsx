@@ -8,7 +8,7 @@ export async function LandingStats() {
   return (
     <ScrollReveal>
       <section
-        className="ce-border-beam relative overflow-hidden rounded-3xl border border-border/90 bg-linear-to-br from-secondary/[0.07] via-card to-cyan/[0.06] px-6 py-12 shadow-card sm:px-10 sm:py-14"
+        className="relative overflow-hidden rounded-3xl border border-border/90 bg-linear-to-br from-secondary/[0.07] via-card to-cyan/[0.06] px-6 py-12 shadow-card sm:px-10 sm:py-14"
         aria-labelledby="stats-heading"
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,color-mix(in_oklab,var(--primary)_12%,transparent),transparent)]" />

@@ -38,7 +38,9 @@ export function Modal({ open, onOpenChange, title, description, children, footer
             <Dialog.Title className="font-display text-lg font-semibold text-foreground">{title}</Dialog.Title>
             {description ? (
               <Dialog.Description className="text-sm text-muted-foreground">{description}</Dialog.Description>
-            ) : null}
+            ) : (
+              <Dialog.Description className="sr-only">Диалоговое окно</Dialog.Description>
+            )}
           </div>
           <div className="mt-4 text-sm">{children}</div>
           {footer ? (

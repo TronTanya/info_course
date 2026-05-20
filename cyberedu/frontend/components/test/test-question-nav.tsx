@@ -30,7 +30,7 @@ export function TestQuestionNav({
                 disabled={disabled}
                 onClick={() => onSelect(i)}
                 className={cn(
-                  "flex size-9 min-w-9 items-center justify-center rounded-lg border text-xs font-semibold tabular-nums transition-colors",
+                  "flex size-11 min-h-11 min-w-11 items-center justify-center rounded-xl border text-xs font-semibold tabular-nums transition-colors",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   current && "border-primary bg-primary text-primary-foreground shadow-sm",
                   !current && answered && "border-success/40 bg-success/10 text-success",

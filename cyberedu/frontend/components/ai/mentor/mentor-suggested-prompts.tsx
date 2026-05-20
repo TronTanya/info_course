@@ -20,14 +20,14 @@ export function MentorSuggestedPrompts({
         <Sparkles className="size-3 text-cyan" aria-hidden />
         Быстрые запросы
       </p>
-      <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="ce-scroll-x-contained flex gap-2 pb-1">
         {prompts.map((p) => (
           <button
             key={p.id}
             type="button"
             disabled={disabled}
             onClick={() => onSelect(p.text)}
-            className="shrink-0 rounded-lg border border-cyan/20 bg-cyan/5 px-3 py-2 text-left text-xs text-foreground transition hover:border-cyan/40 hover:bg-cyan/10 disabled:opacity-50"
+            className="ce-touch-target shrink-0 rounded-xl border border-cyan/20 bg-cyan/5 px-3 py-2.5 text-left text-xs text-foreground transition hover:border-cyan/40 hover:bg-cyan/10 disabled:opacity-50"
           >
             <span className="block font-medium">{p.label}</span>
           </button>

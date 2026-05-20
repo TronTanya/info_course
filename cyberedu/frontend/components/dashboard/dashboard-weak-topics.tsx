@@ -52,10 +52,11 @@ export function DashboardWeakTopics({ items }: { items: DashboardWeakTopic[] }) 
               >
                 {item.tone === "warning" ? <AlertTriangle className="size-4" /> : <Info className="size-4" />}
               </span>
-              <span className="min-w-0">
+              <span className="min-w-0 flex-1">
                 <span className="block text-sm font-semibold text-foreground">{item.title}</span>
                 <span className="mt-0.5 block text-xs text-pretty text-muted-foreground">{item.reason}</span>
               </span>
+              <span className="shrink-0 text-xs font-semibold text-primary">Повторить</span>
             </Link>
           </li>
         ))}

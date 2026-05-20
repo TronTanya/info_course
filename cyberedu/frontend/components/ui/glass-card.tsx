@@ -1,21 +1,11 @@
 import * as React from "react";
-import { transitionBase } from "@/lib/design-system/primitives";
-import { cn } from "@/lib/utils";
+import { PremiumCard, type PremiumCardProps } from "@/components/ui/premium-card";
 
-export type GlassCardProps = React.HTMLAttributes<HTMLDivElement> & {
+export type GlassCardProps = Omit<PremiumCardProps, "variant"> & {
   glow?: boolean;
 };
 
-export function GlassCard({ className, glow = false, ...props }: GlassCardProps) {
-  return (
-    <div
-      className={cn(
-        "ce-glass rounded-2xl text-card-foreground",
-        transitionBase,
-        glow && "border-glow hover:shadow-[var(--shadow-glow)]",
-        className,
-      )}
-      {...props}
-    />
-  );
+/** @deprecated Предпочитайте PremiumCard. Сохранён для обратной совместимости. */
+export function GlassCard({ glow = false, ...props }: GlassCardProps) {
+  return <PremiumCard variant={glow ? "glow" : "default"} {...props} />;
 }

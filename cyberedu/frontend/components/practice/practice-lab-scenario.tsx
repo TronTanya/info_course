@@ -34,8 +34,12 @@ export function PracticeLabScenario({ parsed, contextNotes, className }: Practic
   const context = contextNotes?.trim();
 
   return (
-    <SectionCard variant="lab" className={cn("ce-practice-scenario relative space-y-6 overflow-hidden", className)}>
+    <SectionCard variant="lab" className={cn("ce-practice-scenario relative space-y-6 overflow-hidden p-5 sm:p-6", className)}>
       <div className="ce-tech-grid pointer-events-none absolute inset-0 opacity-[0.06]" aria-hidden />
+      <div className="relative space-y-1">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-primary">Сценарий</p>
+        <h2 className="font-display text-lg font-semibold text-foreground">Карточка миссии</h2>
+      </div>
 
       <ScenarioField step="01 · Роль" title="Ваша роль в лаборатории">
         <p className="whitespace-pre-wrap">{parsed.studentRole}</p>

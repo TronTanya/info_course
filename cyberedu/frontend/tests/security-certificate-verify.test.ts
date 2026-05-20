@@ -64,14 +64,19 @@ describe("security/certificate verify", () => {
 
   it("verify page shows safe not-found message (no internal leaks)", () => {
     const src = readFileSync(verifyPagePath, "utf8");
-    expect(src).toContain("Запись с таким кодом не найдена");
-    expect(src).toContain("Слишком много запросов");
+    expect(src).toContain("invalid");
+    expect(src).toContain("rate_limited");
     expect(src).not.toMatch(/PrismaClient|stack trace|DATABASE_URL/i);
+    expect(src).not.toContain("profile.lastName");
   });
 
-  it("verify page shows valid certificate status copy", () => {
-    const src = readFileSync(verifyPagePath, "utf8");
-    expect(src).toContain("Статус: действителен");
-    expect(src).toContain("Запись найдена");
+  it("verify page shows valid certificate status without exposing profile name", () => {
+    const viewSrc = readFileSync(
+      join(process.cwd(), "components/certificate/certificate-verify-view.tsx"),
+      "utf8",
+    );
+    expect(viewSrc).toContain("Статус: действителен");
+    expect(viewSrc).toMatch(/публикуются/);
+    expect(viewSrc).not.toMatch(/ФИО|lastName|firstName/);
   });
 });

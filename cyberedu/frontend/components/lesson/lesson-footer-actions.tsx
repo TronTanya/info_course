@@ -66,8 +66,10 @@ export function LessonFooterActions({
           <ActionTile
             href={nextStep.href}
             icon={ArrowRight}
-            title={nextStep.label}
-            description={nextStep.hint ?? "Следующий шаг модуля"}
+            title={nextStep.href.includes("/lesson") ? "Следующий урок" : nextStep.label}
+            description={
+              nextStep.hint ?? (nextStep.href.includes("/lesson") ? "Продолжить лекцию" : "Следующий шаг модуля")
+            }
             primary={!hasTest || lessonCompleted}
           />
         ) : null}

@@ -13,11 +13,11 @@ export function LandingCta() {
         <div className="space-y-4">
           <p className="typo-eyebrow text-primary">Старт</p>
           <h2 id="cta-heading" className="typo-h2 text-balance sm:text-4xl">
-            Готовы начать путь в информационную безопасность?
+            Готовы войти в практическую академию кибербезопасности?
           </h2>
           <p className="typo-body-muted text-pretty sm:text-lg">
-            Регистрация бесплатна. Первый модуль открывается сразу — прогресс, практика и сертификат в одном
-            кабинете.
+            Регистрация бесплатна. Первый модуль открывается сразу — теория, SOC-практики, тесты и сертификат в
+            одном кабинете.
           </p>
         </div>
         <div className="flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
@@ -25,7 +25,7 @@ export function LandingCta() {
             <Link href="/auth/register">Начать обучение</Link>
           </Button>
           <Button asChild size="lg" variant="outline" className="w-full border-primary/30 bg-card/90 sm:w-auto">
-            <Link href="/#modules">Посмотреть программу</Link>
+            <Link href="/#how-it-works">Посмотреть программу</Link>
           </Button>
         </div>
       </div>

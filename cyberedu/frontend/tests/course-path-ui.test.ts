@@ -3,8 +3,11 @@ import type { CourseProgressModuleRow, ProgressRow } from "@/lib/progress";
 import {
   formatTestCount,
   getAfterModulePreview,
+  getLockedUnlockHint,
   getModuleContentMeta,
   getNextModuleRow,
+  getPreviousModuleRow,
+  getRoadmapStatus,
   getUiStatus,
 } from "@/lib/course-path-ui";
 
@@ -79,5 +82,25 @@ describe("course-path-ui", () => {
     const modules = [moduleRow({ id: "m1", order: 1, moduleCompleted: true })];
     const preview = getAfterModulePreview(modules, "m1", true);
     expect(preview.kind).toBe("certificate");
+  });
+
+  it("getRoadmapStatus marks focus module as current", () => {
+    const row = moduleRow({ id: "m2", order: 2 });
+    expect(getRoadmapStatus(row, "m2")).toBe("current");
+    expect(getRoadmapStatus(row, "m1")).toBe("available");
+  });
+
+  it("getLockedUnlockHint references previous module title", () => {
+    const modules = [
+      moduleRow({ id: "m1", order: 1, moduleCompleted: false }),
+      moduleRow({ id: "m2", order: 2, unlocked: false }),
+    ];
+    const hint = getLockedUnlockHint(modules[1]!, modules);
+    expect(hint).toContain("модуль 1");
+  });
+
+  it("getPreviousModuleRow returns prior module", () => {
+    const modules = [moduleRow({ id: "m1", order: 1 }), moduleRow({ id: "m2", order: 2 })];
+    expect(getPreviousModuleRow(modules, "m2")?.module.id).toBe("m1");
   });
 });

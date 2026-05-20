@@ -7,6 +7,7 @@ import {
   getTestCardStatus,
   testAfterSubmitSteps,
   testDifficultyLabel,
+  testSessionRules,
   testStatusMeta,
   type TestCardStatus,
 } from "@/lib/test-ui";
@@ -79,6 +80,18 @@ export function TestStartScreen({
           </p>
         ) : null}
 
+        <SectionCard variant="default" flushTitle className="p-4 sm:p-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Правила прохождения</p>
+          <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+            {testSessionRules.map((line) => (
+              <li key={line} className="flex gap-2 text-pretty">
+                <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
+                {line}
+              </li>
+            ))}
+          </ul>
+        </SectionCard>
+
         <SectionCard variant="muted" flushTitle className="p-4 sm:p-5">
           <p className="text-xs font-semibold uppercase tracking-wide text-primary">После отправки</p>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
@@ -90,11 +103,6 @@ export function TestStartScreen({
             ))}
           </ul>
         </SectionCard>
-
-        <p className="text-xs text-muted-foreground">
-          Ответы сохраняются в браузере во время прохождения. Перед отправкой вы увидите предупреждение и сможете вернуться к
-          вопросам.
-        </p>
 
         <Button type="button" variant="primary" size="lg" className="w-full sm:w-auto" disabled={disabled} onClick={onStart}>
           {status === "passed" ? "Пройти снова" : "Начать тест"}

@@ -10,7 +10,10 @@ import { ModuleTestRunner } from "@/components/test/module-test-runner";
 import { AppPageShell } from "@/components/ui/page-shell";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { buildLearningPageContext } from "@/lib/learning-context";
+import { getModuleProgress } from "@/lib/progress";
 import { moduleStepBreadcrumbs } from "@/lib/student-nav";
+import { notFound } from "next/navigation";
 type Props = { params: Promise<{ moduleId: string }> };
 
 /** Перемешивание вариантов на сервере (без isCorrect — порядок из БД не подсказывает «правильный» индекс). */
@@ -140,6 +143,17 @@ export default async function TestPage({ params }: Props) {
     );
   }
 
+  const mp = await getModuleProgress(userId, moduleId);
+  if (!mp) notFound();
+
+  const learning = await buildLearningPageContext(
+    userId,
+    moduleId,
+    `/dashboard/course/${moduleId}/test`,
+    mp.requirements,
+    mp.progress,
+  );
+
   const testsPayload = await Promise.all(
     tests.map(async (t) => {
       const lastAttempt = await prisma.testAttempt.findFirst({
@@ -211,6 +225,7 @@ export default async function TestPage({ params }: Props) {
               minScore={row.minScore}
               questions={row.questions}
               lastAttempt={row.lastAttempt}
+              nextStep={learning.neighbors.next}
             />
           ))}
         </div>

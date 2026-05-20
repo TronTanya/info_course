@@ -4,11 +4,15 @@ import type { CourseProgressModuleRow, ProgressRow } from "@/lib/progress";
 import {
   buildRecentActivities,
   buildUpcomingTasks,
+  buildAiRecommendation,
   buildWeakTopicRecommendations,
   computeStepMetrics,
   countPendingTasks,
+  getCertificateEligibility,
   getContinueFromModules,
   getContinueTarget,
+  getCoursePositionLabel,
+  getLastTestResultView,
   getNextLessonCard,
   getNextPracticeCard,
   getQuickActionHrefs,
@@ -76,6 +80,8 @@ function baseStats(over: Partial<ProfileCourseStats> = {}): ProfileCourseStats {
     lastPractice: null,
     lastActivitySummary: null,
     certificateDisplayState: "unavailable",
+    recentTests: over.recentTests ?? [],
+    recentSubmissions: over.recentSubmissions ?? [],
     ...over,
   };
 }
@@ -196,5 +202,44 @@ describe("dashboard-ui", () => {
     );
     expect(hrefs.modules).toBe("/dashboard/course");
     expect(hrefs.mentor).toContain("/lesson");
+  });
+
+  it("getLastTestResultView returns review items for failed test", () => {
+    const view = getLastTestResultView(
+      baseStats({
+        lastTest: {
+          testTitle: "Контроль 1",
+          moduleTitle: "Module m1",
+          passed: false,
+          percent: 40,
+          at: "2026-05-01T00:00:00.000Z",
+        },
+      }),
+      [moduleRow({ id: "m1", module: { id: "m1", title: "Module m1", description: null, orderNumber: 1 } })],
+    );
+    expect(view?.percent).toBe(40);
+    expect(view?.reviewItems.length).toBeGreaterThan(0);
+    expect(view?.href).toContain("/test");
+  });
+
+  it("getNextPracticeCard includes difficulty from module order", () => {
+    const card = getNextPracticeCard([moduleRow({ id: "m1", module: { id: "m1", title: "M1", description: null, orderNumber: 1 } })]);
+    expect(card?.difficultyLabel).toBe("Начальный");
+  });
+
+  it("getCertificateEligibility lists module requirement", () => {
+    const eligibility = getCertificateEligibility(baseStats(), computeStepMetrics([]));
+    expect(eligibility.requirements.some((r) => r.label.includes("Модули"))).toBe(true);
+  });
+
+  it("buildAiRecommendation points to lesson mentor href", () => {
+    const rec = buildAiRecommendation(baseStats({ currentModuleId: "m1" }), [moduleRow({ id: "m1" })]);
+    expect(rec.mentorHref).toContain("/lesson");
+    expect(rec.actionLabel).toBe("Спросить AI");
+  });
+
+  it("getCoursePositionLabel shows module index", () => {
+    const label = getCoursePositionLabel(baseStats({ totalModules: 5 }), [moduleRow({ id: "m1" })]);
+    expect(label).toContain("Модуль 1");
   });
 });

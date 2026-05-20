@@ -99,7 +99,9 @@ describe("security suite / certificate verification", () => {
     const page = read("app/certificate/verify/[verificationCode]/page.tsx");
     expect(page).toMatch(/enforceRateLimit/);
     expect(page).toMatch(/RATE_LIMIT_POLICIES\.certVerify/);
-    expect(page).toMatch(/Запись с таким кодом не найдена/);
+    expect(page).toMatch(/status: "invalid"/);
+    const view = read("components/certificate/certificate-verify-view.tsx");
+    expect(view).toMatch(/не найден/i);
   });
 });
 

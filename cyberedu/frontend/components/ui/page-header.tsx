@@ -1,4 +1,5 @@
 import * as React from "react";
+import { cyber } from "@/lib/design-system/cyber";
 import { cn } from "@/lib/utils";
 
 export type PageHeaderProps = {
@@ -10,11 +11,30 @@ export type PageHeaderProps = {
   /** Навигация / хлебные крошки */
   breadcrumb?: React.ReactNode;
   actions?: React.ReactNode;
+  /** `panel` — glass hero strip (Cyber Lab) */
+  variant?: "default" | "panel";
 };
 
-export function PageHeader({ className, title, eyebrow, description, breadcrumb, actions }: PageHeaderProps) {
+export function PageHeader({
+  className,
+  title,
+  eyebrow,
+  description,
+  breadcrumb,
+  actions,
+  variant = "default",
+}: PageHeaderProps) {
+  const isPanel = variant === "panel";
+
   return (
-    <div className={cn("flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-start sm:justify-between", className)}>
+    <div
+      className={cn(
+        isPanel
+          ? cn(cyber.pageHeader, "mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between")
+          : "flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-start sm:justify-between",
+        className,
+      )}
+    >
       <div className="min-w-0 space-y-2">
         {breadcrumb ? <div className="typo-caption">{breadcrumb}</div> : null}
         <div>

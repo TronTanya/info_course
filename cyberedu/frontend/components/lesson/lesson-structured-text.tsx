@@ -1,5 +1,6 @@
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { LearningCallout } from "@/components/learn/learning-callout";
+import { formatInlineMarkdown } from "@/lib/markdown-inline";
 import { type ChecklistItem } from "@/components/learn/learning-checklist";
 import { Checklist } from "@/components/lesson/lesson-ui/checklist";
 import { InfoCard } from "@/components/lesson/lesson-ui/info-card";
@@ -26,6 +27,7 @@ type Segment =
   | { type: "terms"; title: string; items: GlossaryEntry[] }
   | { type: "quote"; lines: string[] }
   | { type: "ul"; items: string[] }
+  | { type: "table"; header: string[]; rows: string[][] }
   | { type: "code"; language: string; body: string }
   | { type: "checklist"; items: ChecklistItem[] }
   | { type: "info"; title: string; body: string }
@@ -53,6 +55,19 @@ type FenceName = (typeof FENCE_NAMES)[number];
 
 function isFenceName(s: string): s is FenceName {
   return (FENCE_NAMES as readonly string[]).includes(s);
+}
+
+function parseTableRow(line: string): string[] {
+  let inner = line.trim();
+  if (inner.startsWith("|")) inner = inner.slice(1);
+  if (inner.endsWith("|")) inner = inner.slice(0, -1);
+  return inner.split("|").map((c) => c.trim());
+}
+
+function isTableSeparator(line: string): boolean {
+  const t = line.trim();
+  if (!t.includes("|") && !t.includes("-")) return false;
+  return /^[\s|:\-]+$/.test(t) && /-{2,}/.test(t);
 }
 
 function parseTermsBody(bodyRaw: string, titleLine: string): { title: string; items: GlossaryEntry[] } {
@@ -173,6 +188,19 @@ function parsePlainBlocks(text: string, out: Segment[]) {
       continue;
     }
 
+    if (
+      nonEmpty.length >= 2 &&
+      nonEmpty.every((l) => l.includes("|")) &&
+      isTableSeparator(nonEmpty[1] ?? "")
+    ) {
+      const header = parseTableRow(nonEmpty[0] ?? "");
+      const rows = nonEmpty.slice(2).map(parseTableRow).filter((row) => row.some((c) => c.length > 0));
+      if (header.length > 0) {
+        out.push({ type: "table", header, rows });
+        continue;
+      }
+    }
+
     if (b.startsWith("```")) {
       const lines = b.split("\n");
       const lang = lines[0]?.slice(3).trim() ?? "";
@@ -182,6 +210,10 @@ function parsePlainBlocks(text: string, out: Segment[]) {
       continue;
     }
 
+    if (b.startsWith("### ")) {
+      out.push({ type: "h3", text: b.slice(4).trim() });
+      continue;
+    }
     if (b.startsWith("## ") && !b.startsWith("### ")) {
       out.push({ type: "h3", text: b.slice(3).trim() });
       continue;
@@ -278,6 +310,17 @@ export function extractLessonGlossary(source: string): GlossaryEntry[] {
 const prose =
   "text-[17px] leading-[1.75] tracking-[-0.01em] text-foreground/95 [&_p+p]:mt-4 [&_h2+p]:mt-3 [&_h3+p]:mt-2";
 
+function renderInlineText(text: string) {
+  const lines = text.split("\n");
+  if (lines.length === 1) return formatInlineMarkdown(text);
+  return lines.map((ln, j) => (
+    <Fragment key={j}>
+      {j > 0 ? <br /> : null}
+      {formatInlineMarkdown(ln)}
+    </Fragment>
+  ));
+}
+
 function BlockShell({
   className,
   label,
@@ -330,25 +373,25 @@ export function LessonStructuredText({
           case "h2":
             return (
               <h2 key={i} className="scroll-mt-28 border-b border-border/70 pb-2.5 pt-1 text-2xl font-semibold tracking-tight text-foreground">
-                {seg.text}
+                {renderInlineText(seg.text)}
               </h2>
             );
           case "h3":
             return (
-              <h3 key={i} className="text-lg font-semibold tracking-tight text-foreground">
-                {seg.text}
+              <h3 key={i} className="scroll-mt-28 text-xl font-semibold tracking-tight text-foreground">
+                {renderInlineText(seg.text)}
               </h3>
             );
           case "p":
             return (
               <p key={i} className="max-w-prose whitespace-pre-wrap">
-                {seg.text}
+                {renderInlineText(seg.text)}
               </p>
             );
           case "def":
             return (
               <InfoCard key={i} title={seg.title} label="Термин">
-                <p className="whitespace-pre-wrap">{seg.body}</p>
+                <p className="whitespace-pre-wrap">{renderInlineText(seg.body)}</p>
               </InfoCard>
             );
           case "ex":
@@ -356,11 +399,11 @@ export function LessonStructuredText({
               <BlockShell
                 key={i}
                 className="border border-border/80 bg-muted/35 ring-1 ring-inset ring-border/40"
-                label="Пример"
+                label="Пример из практики"
                 labelClass="text-muted-foreground"
                 title={seg.title}
               >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90">{seg.body}</p>
+                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90">{renderInlineText(seg.body)}</p>
               </BlockShell>
             );
           case "intro":
@@ -372,7 +415,7 @@ export function LessonStructuredText({
                 labelClass="text-violet-600 dark:text-violet-400"
                 title={seg.title}
               >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-muted-foreground">{seg.body}</p>
+                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-muted-foreground">{renderInlineText(seg.body)}</p>
               </BlockShell>
             );
           case "why":
@@ -384,37 +427,37 @@ export function LessonStructuredText({
                 labelClass="text-sky-700 dark:text-sky-400"
                 title={seg.title}
               >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-muted-foreground">{seg.body}</p>
+                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-muted-foreground">{renderInlineText(seg.body)}</p>
               </BlockShell>
             );
           case "theory":
             return (
               <InfoCard key={i} title={seg.title} label="Теория" variant="accent">
-                <p className="whitespace-pre-wrap text-foreground/90">{seg.body}</p>
+                <p className="whitespace-pre-wrap text-foreground/90">{renderInlineText(seg.body)}</p>
               </InfoCard>
             );
           case "warning":
             return (
               <WarningCard key={i} title={seg.title}>
-                <p className="whitespace-pre-wrap">{seg.body}</p>
+                <p className="whitespace-pre-wrap">{renderInlineText(seg.body)}</p>
               </WarningCard>
             );
           case "info":
             return (
               <LearningCallout key={i} variant="info" title={seg.title}>
-                <p className="whitespace-pre-wrap">{seg.body}</p>
+                <p className="whitespace-pre-wrap">{renderInlineText(seg.body)}</p>
               </LearningCallout>
             );
           case "success":
             return (
               <LearningCallout key={i} variant="success" title={seg.title}>
-                <p className="whitespace-pre-wrap">{seg.body}</p>
+                <p className="whitespace-pre-wrap">{renderInlineText(seg.body)}</p>
               </LearningCallout>
             );
           case "danger":
             return (
               <WarningCard key={i} title={seg.title} security>
-                <p className="whitespace-pre-wrap">{seg.body}</p>
+                <p className="whitespace-pre-wrap">{renderInlineText(seg.body)}</p>
               </WarningCard>
             );
           case "code":
@@ -430,7 +473,7 @@ export function LessonStructuredText({
                 labelClass="text-emerald-800 dark:text-emerald-400"
                 title={seg.title}
               >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90">{seg.body}</p>
+                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90">{renderInlineText(seg.body)}</p>
               </BlockShell>
             );
           case "mini_case":
@@ -442,20 +485,14 @@ export function LessonStructuredText({
                 labelClass="text-muted-foreground"
                 title={seg.title}
               >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90">{seg.body}</p>
+                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90">{renderInlineText(seg.body)}</p>
               </BlockShell>
             );
           case "remember":
             return (
-              <BlockShell
-                key={i}
-                className="border border-emerald-600/40 bg-emerald-600/[0.1] ring-1 ring-inset ring-emerald-600/25"
-                label="Запомни"
-                labelClass="text-emerald-800 dark:text-emerald-300"
-                title={seg.title}
-              >
-                <p className="whitespace-pre-wrap text-[15px] font-medium leading-relaxed text-foreground">{seg.body}</p>
-              </BlockShell>
+              <LearningCallout key={i} variant="success" title={seg.title} label="Важно запомнить">
+                <p className="whitespace-pre-wrap">{renderInlineText(seg.body)}</p>
+              </LearningCallout>
             );
           case "outro":
             return (
@@ -466,7 +503,7 @@ export function LessonStructuredText({
                 labelClass="text-primary"
                 title={seg.title}
               >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90">{seg.body}</p>
+                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90">{renderInlineText(seg.body)}</p>
               </BlockShell>
             );
           case "terms":
@@ -479,9 +516,9 @@ export function LessonStructuredText({
                 <dl className="mt-3 space-y-3">
                   {seg.items.map((it, j) => (
                     <div key={j} className="border-b border-border/50 pb-3 last:border-0 last:pb-0">
-                      <dt className="font-semibold text-foreground">{it.term}</dt>
+                      <dt className="font-semibold text-foreground">{renderInlineText(it.term)}</dt>
                       {it.description ? (
-                        <dd className="mt-1 text-[15px] leading-relaxed text-muted-foreground">{it.description}</dd>
+                        <dd className="mt-1 text-[15px] leading-relaxed text-muted-foreground">{renderInlineText(it.description)}</dd>
                       ) : null}
                     </div>
                   ))}
@@ -496,7 +533,7 @@ export function LessonStructuredText({
               >
                 {seg.lines.map((line, j) => (
                   <p key={j} className={j ? "mt-2 max-w-prose whitespace-pre-wrap" : "max-w-prose whitespace-pre-wrap"}>
-                    {line}
+                    {renderInlineText(line)}
                   </p>
                 ))}
               </div>
@@ -506,10 +543,37 @@ export function LessonStructuredText({
               <ul key={i} className="max-w-prose list-disc space-y-2.5 pl-5 text-[16px] leading-relaxed text-foreground/90 marker:text-primary">
                 {seg.items.map((item, j) => (
                   <li key={j} className="pl-1">
-                    {item}
+                    {renderInlineText(item)}
                   </li>
                 ))}
               </ul>
+            );
+          case "table":
+            return (
+              <div key={i} className="lesson-table-wrap -mx-1 overflow-x-auto rounded-xl border border-border/80 px-1">
+                <table className="w-full min-w-[18rem] border-collapse text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/40">
+                      {seg.header.map((cell, j) => (
+                        <th key={j} scope="col" className="px-3 py-2.5 font-semibold text-foreground">
+                          {renderInlineText(cell)}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {seg.rows.map((row, ri) => (
+                      <tr key={ri} className="border-b border-border/60 last:border-0 even:bg-muted/15">
+                        {row.map((cell, ci) => (
+                          <td key={ci} className="px-3 py-2.5 align-top text-foreground/90">
+                            {renderInlineText(cell)}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             );
           default:
             return null;

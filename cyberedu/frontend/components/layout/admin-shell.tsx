@@ -12,7 +12,7 @@ export function AdminShell({
   className?: string;
 }) {
   return (
-    <div className={cn("dashboard-grid dashboard-grid--with-sidebar flex-1", className)}>
+    <div className={cn("dashboard-grid dashboard-grid--with-sidebar min-w-0 flex-1 overflow-x-clip", className)}>
       <AppSidebar variant="admin" />
       <section className="dashboard-content ce-admin-shell ce-app-main-panel ce-lab-panel relative isolate overflow-x-clip p-3 pb-6 sm:p-6 lg:p-8">
         <div className="ce-learn-ambient pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]" aria-hidden>

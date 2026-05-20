@@ -1,8 +1,7 @@
-import { CourseContinueStrip } from "@/components/course/course-continue-strip";
 import { CourseModuleCard } from "@/components/course/course-module-card";
+import { CourseMissionRoadmap } from "@/components/course/course-mission-roadmap";
 import { CoursePathNav } from "@/components/course/course-path-nav";
 import { CourseTrackHero } from "@/components/course/course-track-hero";
-import { CourseTrajectoryMap } from "@/components/course/course-trajectory-map";
 import { findFocusModule } from "@/lib/dashboard-ui";
 import type { UserCourseProgressResult } from "@/lib/progress";
 import { ResponsiveGrid } from "@/components/ui/responsive-grid";
@@ -16,21 +15,21 @@ export function CourseLearningPath({ data }: { data: UserCourseProgressResult })
     <div className="ce-course-track-map space-y-6 overflow-x-hidden sm:space-y-8 lg:space-y-10">
       <CoursePathNav />
       <CourseTrackHero data={data} />
-      <CourseContinueStrip data={data} />
-      <CourseTrajectoryMap modules={data.modules} focusModuleId={focusId} />
+      <CourseMissionRoadmap modules={data.modules} focusModuleId={focusId} />
 
-      <section className="space-y-5" aria-labelledby="course-modules-heading">
+      <section className="space-y-5 border-t border-border/60 pt-8" aria-labelledby="course-modules-heading">
         <SectionHeader
-          eyebrow="Модули"
-          title="Учебная траектория"
-          description="Каждый модуль — лекция, тест и практика. Статусы: не начат, в процессе, завершён. Закрытые модули откроются после предыдущего."
+          eyebrow="Детали"
+          title="Карточки модулей"
+          description="Развёрнутый вид каждой миссии: шаги внутри модуля, баллы и быстрые действия."
         />
-        <ResponsiveGrid>
+        <ResponsiveGrid className="lg:grid-cols-2 xl:grid-cols-3">
           {data.modules.map((row, index) => (
             <CourseModuleCard
               key={row.module.id}
               row={row}
               index={index}
+              modules={data.modules}
               isNext={Boolean(focusId && row.module.id === focusId)}
             />
           ))}

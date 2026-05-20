@@ -81,7 +81,7 @@ export function StudentOnboarding() {
         >
           <motion.div className="absolute inset-0 bg-background/75 backdrop-blur-sm" onClick={finish} aria-hidden />
           <motion.div
-            className="ce-learn-panel ce-border-beam relative w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-(--shadow-glow)"
+            className="ce-learn-panel relative w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-(--shadow-glow)"
             initial={reduce ? false : { opacity: 0, y: 24, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16 }}

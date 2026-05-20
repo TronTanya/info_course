@@ -17,7 +17,7 @@ export function LabTerminal({
   ...props
 }: LabTerminalProps) {
   return (
-    <div className={cn("ce-terminal overflow-hidden rounded-2xl text-sm", glow && "ce-border-beam", className)} {...props}>
+    <div className={cn("ce-terminal overflow-hidden rounded-2xl text-sm", className)} {...props}>
       {chrome ? (
         <div className="ce-terminal-chrome flex items-center gap-2 border-b px-3 py-2.5">
           <span className="flex gap-1.5" aria-hidden>
@@ -33,7 +33,7 @@ export function LabTerminal({
           </span>
         </div>
       ) : null}
-      <div className="ce-terminal-body p-4 sm:p-5">{children}</div>
+      <div className="ce-terminal-body min-w-0 overflow-x-auto p-4 sm:p-5">{children}</div>
     </div>
   );
 }

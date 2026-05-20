@@ -33,14 +33,20 @@ describe("canGenerateCertificate", () => {
 
   it("false если не все активные модули завершены", async () => {
     prismaMock.course.findUnique.mockResolvedValueOnce({ id: "c1" });
-    prismaMock.module.findMany.mockResolvedValueOnce([{ id: "m1" }, { id: "m2" }]);
+    prismaMock.module.findMany.mockResolvedValueOnce([
+      { id: "m1", title: "A", lessons: [], tests: [], practicalTasks: [] },
+      { id: "m2", title: "B", lessons: [], tests: [], practicalTasks: [] },
+    ]);
     prismaMock.progress.findMany.mockResolvedValueOnce([{ moduleId: "m1", moduleCompleted: true }]);
     await expect(canGenerateCertificate("u1", "c1")).resolves.toBe(false);
   });
 
   it("true когда все активные модули завершены", async () => {
     prismaMock.course.findUnique.mockResolvedValueOnce({ id: "c1" });
-    prismaMock.module.findMany.mockResolvedValueOnce([{ id: "m1" }, { id: "m2" }]);
+    prismaMock.module.findMany.mockResolvedValueOnce([
+      { id: "m1", title: "A", lessons: [], tests: [], practicalTasks: [] },
+      { id: "m2", title: "B", lessons: [], tests: [], practicalTasks: [] },
+    ]);
     prismaMock.progress.findMany.mockResolvedValueOnce([
       { moduleId: "m1", moduleCompleted: true },
       { moduleId: "m2", moduleCompleted: true },

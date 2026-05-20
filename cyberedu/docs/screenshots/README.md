@@ -1,51 +1,56 @@
 # UX screenshots
 
-Реальные снимки интерфейса CyberEdu для README, защиты проекта и онбординга.
+Real CyberEdu UI captures for the **portfolio README**, thesis defense, and onboarding.
 
-## Автоматическая генерация (рекомендуется)
+**Portfolio README:** [`../../../README.md`](../../../README.md#screenshots)  
+**Regenerate:** `cd cyberedu/frontend && npm run screenshots`
 
-1. Поднять приложение с seed-данными:
+## Automated generation (recommended)
+
+1. Run the app with seed data:
 
    ```bash
    cd cyberedu
    RUN_SEED=1 docker compose up -d postgres
-   cd frontend && npm run db:seed   # при первом запуске
-   npm run build && npm run start
+   cd frontend && npm run db:seed   # first time
+   npm run dev   # port 3100; use dev, not `start`, for Playwright login (Secure cookies + HTTP)
    ```
 
-2. Сгенерировать PNG (1280×720, Playwright):
+2. Generate PNG (1280×720, Playwright):
 
    ```bash
    cd cyberedu/frontend
    npm run screenshots
    ```
 
-Скрипт: [`e2e/screenshots.spec.ts`](../../frontend/e2e/screenshots.spec.ts) · конфиг: `playwright.screenshots.config.ts`.
+Script: [`e2e/screenshots.spec.ts`](../../frontend/e2e/screenshots.spec.ts) · config: `playwright.screenshots.config.ts`.
 
-Учётные записи — seed/E2E (`E2E_USE_SEED_CREDENTIALS=1`), без production-секретов. Переопределение: `E2E_STUDENT_EMAIL`, `E2E_STUDENT_PASSWORD`, `E2E_ADMIN_*`.
+Credentials: seed/E2E (`E2E_USE_SEED_CREDENTIALS=1`). Override: `E2E_STUDENT_EMAIL`, `E2E_STUDENT_PASSWORD`, `E2E_ADMIN_*`.
 
-## Файлы
+Output is copied to `docs/screenshots/` and `frontend/public/screenshots/`.
 
-| Файл | Экран |
-|------|--------|
-| `01-landing.png` | Landing (`/`) |
-| `09-login.png` | Вход (`/auth/login`) |
-| `02-dashboard.png` | Кабинет студента (`/dashboard`) |
-| `03-course.png` | Карта курса (`/dashboard/course`) |
-| `04-lesson.png` | Лекция (`/dashboard/course/…/lesson`) |
-| `05-test.png` | Тест модуля (`/dashboard/course/…/test`) |
-| `07-admin.png` | Админ-панель (`/admin`) |
+## Files
 
-Опционально вручную: `06-practice.png`, `08-certificate.png`.
+| File | Screen | In portfolio README |
+|------|--------|---------------------|
+| `01-landing.png` | Landing (`/`) | Yes |
+| `09-login.png` | Login (`/auth/login`) | Yes |
+| `02-dashboard.png` | Student dashboard | Yes |
+| `03-course.png` | Course map | Yes |
+| `04-lesson.png` | Lesson | Yes |
+| `05-test.png` | Module test | Yes |
+| `06-practice.png` | Practice lab | Yes |
+| `07-admin.png` | Admin LMS dashboard | Yes |
+| `08-certificate.png` | Certificate (`/dashboard/certificate`) | Yes |
 
-## Требования к публикации
+## Publication rules
 
-- Формат PNG или WebP, ширина 1280–1920 px
-- Без реальных ПДн, API-ключей и секретов в URL
-- Единая тема (светлая/тёмная) в наборе
+- PNG or WebP, width 1280–1920 px
+- No real PII, API keys, or secrets in URLs
+- Consistent theme (light/dark) within a set
 
-## Ручная съёмка
+## Manual capture
 
-Если Playwright недоступен: войдите как `student@cyberedu.local` / `admin@cyberedu.local` (пароль из локального `.env`, не коммитить), пройдите экраны из таблицы и сохраните файлы с теми же именами.
+Log in as `student@cyberedu.local` / `admin@cyberedu.local` (password from local `.env`, never commit). Save files with the names above.
 
-Подробнее: [../OPERATIONS.md](../OPERATIONS.md#ux-screenshots).
+More: [../OPERATIONS.md](../OPERATIONS.md#ux-screenshots).

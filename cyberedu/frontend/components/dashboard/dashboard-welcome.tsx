@@ -26,7 +26,7 @@ export function DashboardWelcome({
   const tone = stats.progressPercent >= 100 ? "success" : "default";
 
   return (
-    <CyberHero className="ce-dashboard-hero ce-border-beam" padding="default">
+    <CyberHero className="ce-dashboard-hero" padding="default">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
         <motion.div className="space-y-4" {...motionPresets.slideUp}>
           <div className="flex flex-wrap items-center gap-2">

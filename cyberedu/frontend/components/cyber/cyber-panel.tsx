@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 export function CyberPanel({
   children,
   className,
-  beam = true,
+  beam = false,
   staticSurface = false,
 }: {
   children: ReactNode;

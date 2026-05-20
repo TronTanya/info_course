@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { LessonRichText } from "@/components/lesson/lesson-rich-text";
+import { MentorMarkdown } from "@/components/ai/mentor/mentor-markdown";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -83,21 +83,30 @@ export function PracticeSocraticHintPanel({ moduleId, practicalTaskId, className
         className,
       )}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div>
+      <div className="flex flex-col gap-3">
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-foreground">AI-наставник</p>
           <p className="mt-1 text-pretty text-xs leading-relaxed text-muted-foreground">
             Не ответ, а наводящие вопросы — чтобы вы сами дошли до решения.
           </p>
         </div>
-        <Button type="button" size="sm" variant={open ? "secondary" : "outline"} onClick={() => setOpen((v) => !v)}>
+        <Button
+          type="button"
+          size="sm"
+          variant={open ? "secondary" : "outline"}
+          className="w-full shrink-0"
+          onClick={() => setOpen((v) => !v)}
+        >
           {open ? "Свернуть" : "Нужна подсказка?"}
         </Button>
       </div>
 
       {open ? (
         <div className="mt-4 space-y-3 border-t border-border/60 pt-4">
-          <div ref={scrollRef} className="max-h-56 space-y-2 overflow-y-auto rounded-xl border border-border/50 bg-background/60 p-2">
+          <div
+            ref={scrollRef}
+            className="max-h-[min(40vh,18rem)] min-h-0 space-y-2.5 overflow-y-auto overscroll-contain rounded-xl border border-border/50 bg-background/60 p-3"
+          >
             {messages.length === 0 ? (
               <p className="text-pretty px-1 text-xs text-muted-foreground">
                 Опишите, на каком шаге застряли, или что уже проверили — наставник ответит вопросами.
@@ -107,11 +116,15 @@ export function PracticeSocraticHintPanel({ moduleId, practicalTaskId, className
               <div
                 key={m.id}
                 className={cn(
-                  "rounded-lg px-2.5 py-2 text-xs",
-                  m.role === "user" ? "ml-3 bg-primary/12 text-foreground" : "mr-2 bg-muted/90 text-foreground",
+                  "min-w-0 rounded-lg px-3 py-2.5",
+                  m.role === "user" ? "ml-2 bg-primary/12 text-foreground" : "mr-1 bg-muted/90 text-foreground",
                 )}
               >
-                {m.role === "assistant" ? <LessonRichText source={m.content} /> : <p className="whitespace-pre-wrap">{m.content}</p>}
+                {m.role === "assistant" ? (
+                  <MentorMarkdown source={m.content} compact />
+                ) : (
+                  <p className="whitespace-pre-wrap text-xs leading-relaxed">{m.content}</p>
+                )}
               </div>
             ))}
             {loading ? (

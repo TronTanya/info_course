@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { extractKeyIdeas, extractLessonGoal, extractSelfCheckItems } from "@/lib/lesson-page-ui";
+import {
+  extractKeyIdeas,
+  extractLessonGoal,
+  extractRememberBlock,
+  extractSelfCheckItems,
+} from "@/lib/lesson-page-ui";
 
 const SAMPLE = `
 :::intro
@@ -33,9 +38,16 @@ describe("lesson-page-ui", () => {
     expect(extractLessonGoal(SAMPLE)).toContain("цель");
   });
 
-  it("extractKeyIdeas collects remember bullets", () => {
+  it("extractKeyIdeas prefers checklist when remember is a dedicated block", () => {
     const ideas = extractKeyIdeas(SAMPLE);
-    expect(ideas.some((i) => i.includes("Первая"))).toBe(true);
+    expect(ideas.some((i) => i.includes("термин"))).toBe(true);
+    expect(ideas.some((i) => i.includes("Первая"))).toBe(false);
+  });
+
+  it("extractRememberBlock parses remember bullets", () => {
+    const block = extractRememberBlock(SAMPLE);
+    expect(block?.title).toBe("Важно запомнить");
+    expect(block?.items.some((i) => i.includes("Первая"))).toBe(true);
   });
 
   it("extractSelfCheckItems includes checklist and warning", () => {
