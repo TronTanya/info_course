@@ -122,18 +122,21 @@ info_course/
 
 ## Security
 
-Implementation reference: [`cyberedu/docs/SECURITY.md`](./cyberedu/docs/SECURITY.md) · Checklist: [`cyberedu/docs/checklists/SECURITY_CHECKLIST.md`](./cyberedu/docs/checklists/SECURITY_CHECKLIST.md)
+Threat model: [`cyberedu/docs/THREAT_MODEL.md`](./cyberedu/docs/THREAT_MODEL.md) · Implementation: [`cyberedu/docs/SECURITY.md`](./cyberedu/docs/SECURITY.md) · Platform overview (RU): [`cyberedu/docs/SECURITY_PLATFORM.md`](./cyberedu/docs/SECURITY_PLATFORM.md) · Checklist: [`cyberedu/docs/checklists/SECURITY_CHECKLIST.md`](./cyberedu/docs/checklists/SECURITY_CHECKLIST.md)
 
 | Control | Summary |
 |---------|---------|
 | **RBAC** | Roles `USER` / `ADMIN`; middleware + `requireAdmin`; permission matrix in `lib/security/rbac.ts` |
-| **CSRF** | Origin/Referer + double-submit cookie on mutating `/api/*` (excluding NextAuth routes) |
-| **Rate limiting** | Redis-backed in production (login, AI, uploads, certificate verify, admin export); fail-closed when Redis unavailable in prod |
+| **CSRF** | Origin/Referer on mutating `/api/*` (excluding NextAuth and CSP report); Server Actions use Next.js Origin check |
+| **Rate limiting** | Redis-backed in production (login, lockout, AI, uploads, certificate verify, admin export); fail-closed when Redis unavailable in prod |
+| **Sessions** | Hardened `__Secure-` cookies, `httpOnly`, `sameSite=lax`, configurable `AUTH_SESSION_MAX_AGE` |
 | **Audit log** | `SecurityAuditLog` for auth, admin actions, exports, AI refusals, etc. (`SECURITY_AUDIT_DB=0` disables DB persist) |
 | **HTTP headers** | CSP (report-only → enforce path), HSTS, frame denial, referrer policy |
 | **Upload restrictions** | Validated types/size; **local volume** on disk (`UPLOAD_STORAGE_DRIVER=local`) — see limitations |
 
 Production must use `RUN_SEED=0`, `ENVIRONMENT=production`, and unique secrets from [`.env.prod.example`](./cyberedu/.env.prod.example) (never commit `.env.production`).
+
+Public overview (no secrets): `/security` · Machine-readable: `/.well-known/security.txt`
 
 ---
 
