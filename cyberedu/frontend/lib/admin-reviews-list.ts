@@ -1,3 +1,4 @@
+import { assertAdminDataAccess } from "@/lib/admin-access";
 import { prisma } from "@/lib/db";
 
 export type AdminReviewRow = {
@@ -13,6 +14,7 @@ export type AdminReviewRow = {
 };
 
 export async function getAdminReviewRows(): Promise<AdminReviewRow[]> {
+  await assertAdminDataAccess();
   const rows = await prisma.review.findMany({
     orderBy: { createdAt: "desc" },
     select: {

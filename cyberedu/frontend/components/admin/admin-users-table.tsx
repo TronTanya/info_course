@@ -5,7 +5,9 @@ import { useMemo, useState } from "react";
 import { AdminDualTable } from "@/components/admin/admin-dual-table";
 import { AdminMobileCard } from "@/components/admin/admin-mobile-card";
 import { AdminRowMenu } from "@/components/admin/admin-row-menu";
-import { AdminTable, AdminTableBody, AdminTableHead } from "@/components/admin/admin-table";
+import { AdminTable, AdminTableBody, AdminTableHead, AdminTh } from "@/components/admin/admin-table";
+import { focusRing } from "@/lib/design-system/primitives";
+import { AdminResponsiveFilters } from "@/components/admin/admin-responsive-filters";
 import { AdminTableToolbar, type AdminTableDensity } from "@/components/admin/admin-table-toolbar";
 import type { AdminUserListRow } from "@/lib/admin-users-list";
 import { Badge } from "@/components/ui/badge";
@@ -143,23 +145,28 @@ export function AdminUsersTable({
         totalCount={rows.length}
       />
 
-      <div className="flex flex-wrap gap-2 border-b border-border/50 bg-muted/10 px-4 py-2 sm:px-5">
-        <span className="text-xs font-medium text-muted-foreground">Прогресс:</span>
-        {PROGRESS_FILTERS.map((f) => (
-          <button
-            key={f.id}
-            type="button"
-            onClick={() => setProgressFilter(f.id)}
-            className={cn(
-              "rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors",
-              progressFilter === f.id
-                ? "border-primary/40 bg-primary/12 text-primary"
-                : "border-border/70 bg-card/80 text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {f.label}
-          </button>
-        ))}
+      <div className="border-b border-border/50 bg-muted/10 px-4 py-3 sm:px-5">
+        <AdminResponsiveFilters label="Фильтр по прогрессу">
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Фильтр по прогрессу">
+            {PROGRESS_FILTERS.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setProgressFilter(f.id)}
+                aria-pressed={progressFilter === f.id}
+                className={cn(
+                  "min-h-11 rounded-full border px-3 py-2 text-xs font-semibold transition-colors",
+                  progressFilter === f.id
+                    ? "border-primary/40 bg-primary/12 text-primary"
+                    : "border-border/70 bg-card/80 text-muted-foreground hover:text-foreground",
+                  focusRing,
+                )}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </AdminResponsiveFilters>
       </div>
 
       {embedded && filtered.length > 12 ? (
@@ -256,33 +263,35 @@ export function AdminUsersTable({
             >
               <AdminTableHead>
                 <tr>
-                  <th>ФИО</th>
-                  <th>Email</th>
-                  <th>Роль</th>
+                  <AdminTh>ФИО</AdminTh>
+                  <AdminTh>Email</AdminTh>
+                  <AdminTh>Роль</AdminTh>
                   {!dashboardView ? (
                     <>
-                      <th>Учебное заведение</th>
-                      <th>Группа</th>
-                      <th>Курс</th>
-                      <th>Специальность</th>
-                      <th>Регистрация</th>
+                      <AdminTh>Учебное заведение</AdminTh>
+                      <AdminTh>Группа</AdminTh>
+                      <AdminTh>Курс</AdminTh>
+                      <AdminTh>Специальность</AdminTh>
+                      <AdminTh>Регистрация</AdminTh>
                     </>
                   ) : null}
-                  <th>Прогресс</th>
+                  <AdminTh>Прогресс</AdminTh>
                   {dashboardView ? (
                     <>
-                      <th>Тесты</th>
-                      <th>Практика</th>
-                      <th>Активность</th>
+                      <AdminTh>Тесты</AdminTh>
+                      <AdminTh>Практика</AdminTh>
+                      <AdminTh>Активность</AdminTh>
                     </>
                   ) : (
                     <>
-                      <th>Баллы</th>
-                      <th className="whitespace-normal">Отчёт курса</th>
+                      <AdminTh>Баллы</AdminTh>
+                      <AdminTh className="whitespace-normal">Отчёт курса</AdminTh>
                     </>
                   )}
-                  <th>Сертификат</th>
-                  <th className="w-28" />
+                  <AdminTh>Сертификат</AdminTh>
+                  <AdminTh className="w-28">
+                    <span className="sr-only">Действия</span>
+                  </AdminTh>
                 </tr>
               </AdminTableHead>
               <AdminTableBody>

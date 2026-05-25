@@ -4,7 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { AdminConfirmDialog } from "@/components/admin/admin-confirm-dialog";
+import { AdminLiveRegion } from "@/components/admin/admin-live-region";
+import { AdminActionError } from "@/components/admin/admin-states";
 import { deleteModuleAction } from "@/lib/actions/admin-modules";
+import { sanitizeAdminActionError } from "@/lib/admin-ui-states";
 import { Button } from "@/components/ui/button";
 
 export function AdminModuleDeleteButton({
@@ -21,6 +24,7 @@ export function AdminModuleDeleteButton({
 
   return (
     <>
+      <AdminLiveRegion message={error ? "Не удалось удалить модуль." : null} politeness="assertive" />
       <Button
         type="button"
         variant="danger"
@@ -45,7 +49,7 @@ export function AdminModuleDeleteButton({
           startTransition(async () => {
             const r = await deleteModuleAction(moduleId);
             if (r.error) {
-              setError(r.error);
+              setError(sanitizeAdminActionError(r.error));
               return;
             }
             setOpen(false);
@@ -54,7 +58,7 @@ export function AdminModuleDeleteButton({
           });
         }}
       />
-      {error ? <p className="text-xs text-danger">{error}</p> : null}
+      {error ? <AdminActionError message={error} /> : null}
     </>
   );
 }

@@ -1,3 +1,9 @@
+import { assertAdminDataAccess } from "@/lib/admin-access";
+import {
+  buildAdminStudentRecentActivity,
+  type AdminStudentActivityItem,
+} from "@/lib/admin-student-detail-logic";
+import { canGenerateCertificate, certificateVerifyUrl } from "@/lib/certificate";
 import { prisma } from "@/lib/db";
 import { getUserCourseProgress } from "@/lib/progress";
 
@@ -10,6 +16,7 @@ function formatFio(p: {
 }
 
 export async function getAdminUserDetail(userId: string) {
+  await assertAdminDataAccess();
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -39,7 +46,7 @@ export async function getAdminUserDetail(userId: string) {
           issuedAt: true,
           verificationCode: true,
           pdfUrl: true,
-          course: { select: { title: true } },
+          course: { select: { title: true, id: true } },
         },
       },
     },
@@ -65,27 +72,97 @@ export async function getAdminUserDetail(userId: string) {
       maxScore: true,
       passed: true,
       createdAt: true,
-      test: { select: { id: true, title: true, module: { select: { title: true } } } },
+      test: {
+        select: {
+          id: true,
+          title: true,
+          module: { select: { id: true, title: true } },
+        },
+      },
     },
   });
 
   const submissions = await prisma.submission.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
+    where: { userId, status: { not: "DRAFT" } },
+    orderBy: { updatedAt: "desc" },
     take: 50,
     select: {
       id: true,
       status: true,
       score: true,
-      textAnswer: true,
       fileUrl: true,
-      adminComment: true,
       createdAt: true,
+      updatedAt: true,
       practicalTask: {
-        select: { id: true, title: true, module: { select: { title: true } } },
+        select: {
+          id: true,
+          title: true,
+          module: { select: { id: true, title: true } },
+        },
       },
     },
   });
+
+  const certificates = user.certificates.map((c) => ({
+    id: c.id,
+    certificateNumber: c.certificateNumber,
+    issuedAt: c.issuedAt.toISOString(),
+    verificationCode: c.verificationCode,
+    pdfUrl: c.pdfUrl,
+    courseTitle: c.course.title,
+    courseId: c.course.id,
+    verifyHref: certificateVerifyUrl(c.certificateNumber),
+  }));
+
+  const mappedAttempts = testAttempts.map((a) => ({
+    id: a.id,
+    testId: a.test.id,
+    testTitle: a.test.title,
+    moduleId: a.test.module.id,
+    moduleTitle: a.test.module.title,
+    score: a.score,
+    maxScore: a.maxScore,
+    passed: a.passed,
+    createdAt: a.createdAt.toISOString(),
+  }));
+
+  const mappedSubmissions = submissions.map((s) => ({
+    id: s.id,
+    taskId: s.practicalTask.id,
+    taskTitle: s.practicalTask.title,
+    moduleId: s.practicalTask.module.id,
+    moduleTitle: s.practicalTask.module.title,
+    status: s.status,
+    score: s.score,
+    hasText: false,
+    hasFile: Boolean(s.fileUrl?.trim()),
+    createdAt: s.createdAt.toISOString(),
+    updatedAt: s.updatedAt.toISOString(),
+    reviewHref: `/admin/submissions/${s.id}`,
+  }));
+
+  const recentActivity: AdminStudentActivityItem[] = buildAdminStudentRecentActivity({
+    testAttempts: mappedAttempts,
+    submissions: mappedSubmissions.map((s) => ({
+      id: s.id,
+      taskTitle: s.taskTitle,
+      moduleTitle: s.moduleTitle,
+      status: s.status,
+      createdAt: s.updatedAt,
+      reviewHref: s.reviewHref,
+    })),
+    certificates: certificates.map((c) => ({
+      id: c.id,
+      courseTitle: c.courseTitle,
+      issuedAt: c.issuedAt,
+      verifyHref: c.verifyHref,
+    })),
+  });
+
+  const eligibleForCertificate =
+    user.role === "USER" && course != null && certificates.length === 0
+      ? await canGenerateCertificate(user.id, course.id)
+      : false;
 
   return {
     user: {
@@ -108,34 +185,11 @@ export async function getAdminUserDetail(userId: string) {
       : null,
     course: course ? { id: course.id, title: course.title } : null,
     courseProgress,
-    testAttempts: testAttempts.map((a) => ({
-      id: a.id,
-      testTitle: a.test.title,
-      moduleTitle: a.test.module.title,
-      score: a.score,
-      maxScore: a.maxScore,
-      passed: a.passed,
-      createdAt: a.createdAt.toISOString(),
-    })),
-    submissions: submissions.map((s) => ({
-      id: s.id,
-      taskTitle: s.practicalTask.title,
-      moduleTitle: s.practicalTask.module.title,
-      status: s.status,
-      score: s.score,
-      hasText: Boolean(s.textAnswer?.trim()),
-      hasFile: Boolean(s.fileUrl?.trim()),
-      adminComment: s.adminComment,
-      createdAt: s.createdAt.toISOString(),
-    })),
-    certificates: user.certificates.map((c) => ({
-      id: c.id,
-      certificateNumber: c.certificateNumber,
-      issuedAt: c.issuedAt.toISOString(),
-      verificationCode: c.verificationCode,
-      pdfUrl: c.pdfUrl,
-      courseTitle: c.course.title,
-    })),
+    testAttempts: mappedAttempts,
+    submissions: mappedSubmissions,
+    certificates,
+    recentActivity,
+    eligibleForCertificate,
   };
 }
 

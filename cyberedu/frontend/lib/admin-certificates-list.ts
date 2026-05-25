@@ -1,3 +1,6 @@
+import { assertAdminDataAccess } from "@/lib/admin-access";
+import { certificateVerifyUrl } from "@/lib/certificate";
+import { certificateRecordStatus, type CertificateRecordStatus } from "@/lib/certificate-registry";
 import { prisma } from "@/lib/db";
 
 export type AdminCertificateRow = {
@@ -9,6 +12,9 @@ export type AdminCertificateRow = {
   userEmail: string;
   fullName: string;
   courseTitle: string;
+  userId: string;
+  status: CertificateRecordStatus;
+  verifyHref: string;
 };
 
 function fullNameFromProfile(p: {
@@ -24,6 +30,7 @@ function fullNameFromProfile(p: {
 
 /** Список выданных сертификатов для админки (без PDF в теле ответа). */
 export async function getAdminCertificateRows(): Promise<AdminCertificateRow[]> {
+  await assertAdminDataAccess();
   const rows = await prisma.certificate.findMany({
     orderBy: { issuedAt: "desc" },
     take: 500,
@@ -47,5 +54,8 @@ export async function getAdminCertificateRows(): Promise<AdminCertificateRow[]> 
     userEmail: r.user.email,
     fullName: fullNameFromProfile(r.user.profile),
     courseTitle: r.course.title,
+    userId: r.userId,
+    status: certificateRecordStatus(r),
+    verifyHref: certificateVerifyUrl(r.certificateNumber),
   }));
 }

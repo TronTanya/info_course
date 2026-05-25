@@ -1,3 +1,4 @@
+import { assertAdminDataAccess } from "@/lib/admin-access";
 import { prisma } from "@/lib/db";
 
 export type AdminChartSlice = {
@@ -37,6 +38,7 @@ function bucketPercent(pct: number): string {
 }
 
 export async function getAdminDashboardChartsData(): Promise<AdminDashboardChartsData> {
+  await assertAdminDataAccess();
   const [submissionGroups, activeModuleCount, students, completedByUser] = await Promise.all([
     prisma.submission.groupBy({
       by: ["status"],

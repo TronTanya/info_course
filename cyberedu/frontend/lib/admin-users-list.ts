@@ -1,3 +1,4 @@
+import { assertAdminDataAccess } from "@/lib/admin-access";
 import { prisma } from "@/lib/db";
 import { parseProfileEducationalInstitution } from "@/lib/profile-school-parse";
 import { getUserCourseProgress } from "@/lib/progress";
@@ -37,6 +38,7 @@ function formatFio(p: {
 }
 
 export async function getAdminUserListRows(): Promise<AdminUserListRow[]> {
+  await assertAdminDataAccess();
   const course = await prisma.course.findFirst({
     orderBy: { createdAt: "asc" },
     select: { id: true },

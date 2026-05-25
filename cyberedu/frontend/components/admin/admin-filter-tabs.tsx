@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { focusRing } from "@/lib/design-system/primitives";
 import { cn } from "@/lib/utils";
 
 export type AdminFilterTab = {
@@ -30,6 +31,7 @@ export function AdminFilterTabs({ tabs, active, className }: { tabs: AdminFilter
               isActive
                 ? "bg-primary text-primary-foreground shadow-(--shadow-card) ring-1 ring-primary/30"
                 : "border border-primary/15 bg-card/90 text-foreground hover:border-primary/30 hover:bg-primary/5",
+              focusRing,
             )}
           >
             {t.label}

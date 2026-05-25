@@ -1,3 +1,4 @@
+import { assertAdminDataAccess } from "@/lib/admin-access";
 import { prisma } from "@/lib/db";
 
 export type AdminDashboardStats = {
@@ -72,9 +73,62 @@ async function countStudentsCompletedAllModules(courseId: string): Promise<numbe
 }
 
 /**
+ * Студенты USER с любой учебной активностью за последние `days` дней.
+ */
+const ACTIVE_PROGRESS_OR = [
+  { lessonCompleted: true },
+  { videoCompleted: true },
+  { testCompleted: true },
+  { practiceCompleted: true },
+  { moduleCompleted: true },
+  { score: { gt: 0 } },
+] as const;
+
+function activeStudentsWhere(since: Date, until?: Date) {
+  const progressUpdated =
+    until != null ? { gte: since, lt: until } : { gte: since };
+  const submissionUpdated =
+    until != null ? { gte: since, lt: until } : { gte: since };
+  const attemptCreated =
+    until != null ? { gte: since, lt: until } : { gte: since };
+
+  return {
+    role: "USER" as const,
+    OR: [
+      {
+        progress: {
+          some: {
+            updatedAt: progressUpdated,
+            OR: [...ACTIVE_PROGRESS_OR],
+          },
+        },
+      },
+      {
+        submissions: {
+          some: { updatedAt: submissionUpdated, status: { not: "DRAFT" as const } },
+        },
+      },
+      { testAttempts: { some: { createdAt: attemptCreated } } },
+    ],
+  };
+}
+
+export async function countActiveStudentsSinceDays(days: number): Promise<number> {
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+  return prisma.user.count({ where: activeStudentsWhere(since) });
+}
+
+/** Активные студенты USER в полуинтервале [from, to). */
+export async function countActiveStudentsInDateRange(from: Date, to: Date): Promise<number> {
+  return prisma.user.count({ where: activeStudentsWhere(from, to) });
+}
+
+/**
  * Метрики для главной админки. Не загружает passwordHash и прочие секреты.
  */
 export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
+  await assertAdminDataAccess();
   const course = await prisma.course.findFirst({
     orderBy: { createdAt: "asc" },
     select: { id: true },
@@ -132,6 +186,7 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
 }
 
 export async function getAdminDashboardExtended(): Promise<AdminDashboardExtended> {
+  await assertAdminDataAccess();
   const course = await prisma.course.findFirst({
     orderBy: { createdAt: "asc" },
     select: { id: true, title: true },

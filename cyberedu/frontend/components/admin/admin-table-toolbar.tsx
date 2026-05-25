@@ -41,8 +41,12 @@ export function AdminTableToolbar({
       )}
     >
       <div className="relative min-w-0 flex-1 sm:max-w-md">
+        <label htmlFor="admin-table-toolbar-search" className="sr-only">
+          {searchPlaceholder}
+        </label>
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
         <input
+          id="admin-table-toolbar-search"
           type="search"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
@@ -52,7 +56,6 @@ export function AdminTableToolbar({
             "placeholder:text-muted-foreground transition-[border-color,box-shadow]",
             focusRing,
           )}
-          aria-label={searchPlaceholder}
         />
         {search ? (
           <button
@@ -69,14 +72,14 @@ export function AdminTableToolbar({
         ) : null}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex min-w-0 flex-wrap items-center gap-2">
         {filters?.map((f) => (
           <button
             key={f.id}
             type="button"
             onClick={() => onFilterChange?.(f.id)}
             className={cn(
-              "min-h-11 rounded-full border px-3 py-2.5 text-xs font-semibold transition-colors",
+              "min-h-11 shrink-0 rounded-full border px-3 py-2.5 text-xs font-semibold transition-colors",
               activeFilter === f.id
                 ? "border-primary/40 bg-primary/12 text-primary"
                 : "border-border/70 bg-card/80 text-muted-foreground hover:border-border hover:text-foreground",
@@ -96,6 +99,7 @@ export function AdminTableToolbar({
               className={cn(
                 "rounded-lg p-2 transition-colors",
                 density === "comfortable" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground",
+                focusRing,
               )}
               aria-pressed={density === "comfortable"}
               aria-label="Обычная плотность таблицы"
@@ -109,6 +113,7 @@ export function AdminTableToolbar({
               className={cn(
                 "rounded-lg p-2 transition-colors",
                 density === "compact" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground",
+                focusRing,
               )}
               aria-pressed={density === "compact"}
               aria-label="Компактная плотность таблицы"

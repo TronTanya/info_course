@@ -4,5 +4,5 @@ import { cn } from "@/lib/utils";
 
 /** Карточка строки в мобильных списках админки (единый glass + hover). */
 export function AdminMobileCard({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn(cyber.adminMobileCard, className)}>{children}</div>;
+  return <div className={cn(cyber.adminMobileCard, "min-w-0 max-w-full", className)}>{children}</div>;
 }

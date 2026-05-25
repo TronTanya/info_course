@@ -5,10 +5,16 @@ import {
   Award,
   BookOpen,
   ClipboardList,
-  FlaskConical,
-  Shield,
   Users,
 } from "lucide-react";
+import {
+  AdminDashboardContentOverview,
+  AdminDashboardRecentActivity,
+  AdminDashboardSystemStatus,
+} from "@/components/admin/admin-dashboard-panels";
+import { AdminImportantEventsPanel } from "@/components/admin/admin-important-events-panel";
+import { AdminOverviewMetricsStrip } from "@/components/admin/admin-overview-metrics-strip";
+import { AdminSuspiciousEventsPanel } from "@/components/admin/admin-suspicious-events-panel";
 import { AdminUsersTable } from "@/components/admin/admin-users-table";
 import type { AdminLmsDashboardData } from "@/lib/admin-lms-dashboard";
 import type { AdminUserListRow } from "@/lib/admin-users-list";
@@ -42,36 +48,98 @@ export function AdminLmsDashboard({
   data: AdminLmsDashboardData;
   users: AdminUserListRow[];
 }) {
-  const { overview, difficult, submissionQueue, certificates, auditEvents } = data;
+  const {
+    overview,
+    difficult,
+    submissionQueue,
+    certificates,
+    auditEvents,
+    extended,
+    importantEvents,
+    suspiciousEvents,
+  } = data;
+
+  const auditTail = auditEvents.slice(0, 12);
+  const showAlerts =
+    overview.pendingSubmissions > 0 ||
+    suspiciousEvents.length > 0 ||
+    certificates.eligibleWithoutCert > 0;
 
   return (
     <div className="space-y-8">
+      {showAlerts ? (
+        <section
+          aria-label="Требует внимания"
+          className="rounded-2xl border border-warning/30 bg-warning/5 px-4 py-3 sm:px-5"
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            <AlertTriangle className="size-4 shrink-0 text-warning" aria-hidden />
+            <p className="text-sm font-medium text-foreground">Требует внимания</p>
+          </div>
+          <ul className="mt-2 flex flex-wrap gap-2 text-sm text-muted-foreground">
+            {overview.pendingSubmissions > 0 ? (
+              <li>
+                <Link href="/admin/submissions?filter=pending" className="text-primary hover:underline">
+                  {overview.pendingSubmissions} работ на проверке
+                </Link>
+              </li>
+            ) : null}
+            {suspiciousEvents.length > 0 ? (
+              <li>
+                <a href="#security-watch" className="text-primary hover:underline">
+                  {suspiciousEvents.length} событий безопасности
+                </a>
+              </li>
+            ) : null}
+            {certificates.eligibleWithoutCert > 0 ? (
+              <li>
+                <Link href="/admin/certificates" className="text-primary hover:underline">
+                  {certificates.eligibleWithoutCert} готовы к выдаче сертификата
+                </Link>
+              </li>
+            ) : null}
+          </ul>
+        </section>
+      ) : null}
+
       <section aria-labelledby="admin-overview-heading">
         <h2 id="admin-overview-heading" className="sr-only">
           Обзор LMS
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-          <OverviewKpi label="Студентов" value={overview.totalStudents} hint="роль USER" />
-          <OverviewKpi label="Активные" value={overview.activeStudents} hint="есть активность" tone="primary" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <OverviewKpi label="Студентов" value={overview.totalStudents} hint="зарегистрировано (USER)" />
+          <OverviewKpi label="Активные (всё)" value={overview.activeStudents} hint="когда-либо учились" />
+          <OverviewKpi
+            label="На проверке"
+            value={overview.pendingSubmissions}
+            hint="практика в очереди"
+            tone={overview.pendingSubmissions > 0 ? "warning" : "default"}
+          />
           <OverviewKpi
             label="Ср. прогресс"
             value={`${overview.averageProgressPercent}%`}
-            hint="по модулям курса"
-          />
-          <OverviewKpi
-            label="Ср. балл тестов"
-            value={overview.averageTestPercent != null ? `${overview.averageTestPercent}%` : "—"}
-            hint="по попыткам"
-          />
-          <OverviewKpi label="Практики сданы" value={overview.practicesCompleted} hint="модулей с зачётом" />
-          <OverviewKpi
-            label="Сертификаты"
-            value={overview.certificatesIssued}
-            hint={`${overview.studentsCompletedCourse} завершили курс`}
-            tone="success"
+            hint="по активным модулям"
           />
         </div>
+        <AdminOverviewMetricsStrip
+          overview={overview}
+          publishedReviewsCount={data.stats.publishedReviewsCount}
+          className="mt-4"
+        />
       </section>
+
+      <div className="grid gap-6 xl:grid-cols-[1fr_minmax(0,22rem)]">
+        <AdminImportantEventsPanel events={importantEvents} />
+        <div className="space-y-6">
+          <AdminDashboardContentOverview content={extended.content} />
+          <AdminDashboardSystemStatus
+            systemOk={extended.systemOk}
+            pendingWork={overview.pendingSubmissions}
+          />
+        </div>
+      </div>
+
+      <AdminDashboardRecentActivity recent={extended.recent} />
 
       <SectionCard variant="lab" flushTitle className="overflow-hidden" id="students">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-4 py-4 sm:px-6">
@@ -238,50 +306,45 @@ export function AdminLmsDashboard({
           </Button>
         </SectionCard>
 
-        <SectionCard variant="lab" flushTitle className="p-4 sm:p-6" id="audit">
+        <AdminSuspiciousEventsPanel
+          events={suspiciousEvents}
+          auditLogAvailable={process.env.SECURITY_AUDIT_DB !== "0"}
+        />
+
+        <SectionCard variant="default" flushTitle className="p-4 sm:p-6" id="audit">
           <div className="flex items-center gap-2">
-            <Shield className="size-5 text-cyan" aria-hidden />
-            <h2 className="font-display text-base font-semibold text-foreground">Audit / Security</h2>
+            <BookOpen className="size-5 text-muted-foreground" aria-hidden />
+            <h2 className="font-display text-base font-semibold text-foreground">Журнал аудита</h2>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">Последние события реестра (без PII в meta).</p>
-          {auditEvents.length === 0 ? (
+          <p className="mt-1 text-sm text-muted-foreground">Последние записи реестра (укороченный список).</p>
+          {auditTail.length === 0 ? (
             <EmptyState
               className="mt-4 py-6"
               title="Событий пока нет"
-              description="Аудит пишется в security_audit_log при действиях в системе."
+              description="Аудит пишется при действиях в системе (если SECURITY_AUDIT_DB ≠ 0)."
               terminalLine="audit --empty"
             />
           ) : (
             <ul className="mt-4 max-h-80 space-y-2 overflow-y-auto">
-              {auditEvents.map((e) => (
+              {auditTail.map((e) => (
                 <li
                   key={e.id}
                   className={cn(
                     "rounded-lg border px-3 py-2 text-xs",
-                    e.sensitive ? "border-warning/30 bg-warning/5" : "border-border/70 bg-muted/10",
+                    e.sensitive ? "border-warning/20 bg-muted/15" : "border-border/70 bg-muted/10",
                   )}
                 >
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono font-medium text-foreground">{e.action}</span>
+                    <span className="font-medium text-foreground">{e.actionLabel}</span>
                     <Badge variant={severityBadge(e.severity)}>{e.severity}</Badge>
-                    {e.sensitive ? (
-                      <Badge variant="outline" className="text-[10px]">
-                        sensitive
-                      </Badge>
-                    ) : null}
                   </div>
                   <p className="mt-1 text-muted-foreground">
-                    {formatAt(e.at)}
-                    {e.path ? ` · ${e.path}` : ""}
-                    {e.actorId ? ` · actor ${e.actorId.slice(0, 8)}…` : ""}
+                    {formatAt(e.at)} · {e.actorLabel}
                   </p>
                 </li>
               ))}
             </ul>
           )}
-          <Button asChild variant="ghost" size="sm" className="mt-4">
-            <Link href="/admin/profile">Security dashboard</Link>
-          </Button>
         </SectionCard>
       </div>
     </div>
@@ -297,10 +360,16 @@ function OverviewKpi({
   label: string;
   value: string | number;
   hint: string;
-  tone?: "default" | "primary" | "success";
+  tone?: "default" | "primary" | "success" | "warning";
 }) {
   const bar =
-    tone === "success" ? "from-success/80" : tone === "primary" ? "from-primary/80" : "from-cyan/60";
+    tone === "success"
+      ? "from-success/80"
+      : tone === "primary"
+        ? "from-primary/80"
+        : tone === "warning"
+          ? "from-warning/80"
+          : "from-cyan/60";
   return (
     <article className={cn(cyber.adminKpi, "overflow-hidden rounded-2xl border pt-0")}>
       <div className={cn("h-1 w-full bg-linear-to-r via-accent/40 to-transparent", bar)} aria-hidden />

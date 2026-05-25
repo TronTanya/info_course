@@ -38,6 +38,28 @@ export function AdminTableHead({ children, className }: { children: React.ReactN
   return <thead className={cn("ce-admin-table-head", className)}>{children}</thead>;
 }
 
+export function AdminTh({
+  children,
+  className,
+  scope = "col",
+}: {
+  children: React.ReactNode;
+  className?: string;
+  scope?: "col" | "row";
+}) {
+  return (
+    <th
+      scope={scope}
+      className={cn(
+        "px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground",
+        className,
+      )}
+    >
+      {children}
+    </th>
+  );
+}
+
 export function AdminTableBody({ children, className }: { children: React.ReactNode; className?: string }) {
   return <tbody className={cn("ce-admin-table-body", className)}>{children}</tbody>;
 }

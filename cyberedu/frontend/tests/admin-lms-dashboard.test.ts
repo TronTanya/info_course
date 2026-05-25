@@ -1,15 +1,9 @@
 import { describe, expect, it } from "vitest";
-
-const SENSITIVE_PREFIXES = ["auth.login", "admin.", "certificate.", "ai.safety"] as const;
-
-function isSensitiveAction(action: string): boolean {
-  return SENSITIVE_PREFIXES.some((p) => action.startsWith(p));
-}
+import { isSensitiveAuditAction } from "@/lib/admin-lms-audit";
 
 describe("admin-lms-dashboard helpers", () => {
-  it("flags sensitive audit actions", () => {
-    expect(isSensitiveAction("auth.login.failed")).toBe(true);
-    expect(isSensitiveAction("admin.user.role_change")).toBe(true);
-    expect(isSensitiveAction("content.publish")).toBe(false);
+  it("re-exports sensitive audit detection from admin-lms-audit", () => {
+    expect(isSensitiveAuditAction("ai.safety.refusal")).toBe(true);
+    expect(isSensitiveAuditAction("content.publish")).toBe(false);
   });
 });

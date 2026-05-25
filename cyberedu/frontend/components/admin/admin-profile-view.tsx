@@ -204,11 +204,10 @@ export function AdminProfileView({ email, displayName, initials, avatarUrl, subt
             accentClass="bg-linear-to-br from-primary/[0.07] via-transparent to-cyan/[0.05]"
           />
           <ActionCard
-            href="/api/admin/users/export"
-            external
+            href="/admin#admin-export"
             icon={Download}
             title="Выгрузка CSV"
-            description="Отчёт по пользователям для Excel, UTF-8."
+            description="Студенты, прогресс, отправки и сертификаты — без секретов в файле."
             delayClass="ce-admin-profile-rise--delay-4"
             accentClass="bg-linear-to-br from-cyan/[0.08] via-transparent to-primary/[0.05]"
           />

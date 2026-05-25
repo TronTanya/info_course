@@ -24,7 +24,7 @@ const QUICK_ACTIONS = [
   { href: "/admin/submissions?filter=pending", label: "Проверка работ", icon: ClipboardList, description: "Очередь отправок" },
   { href: "/admin/tests", label: "Тесты", icon: LayoutDashboard, description: "Контрольные" },
   { href: "/admin/practical-tasks", label: "Практика", icon: FlaskConical, description: "Лаборатории" },
-  { href: "/api/admin/users/export", label: "CSV отчёт", icon: FileDown, description: "Выгрузка Excel" },
+  { href: "/admin#admin-export", label: "CSV отчёт", icon: FileDown, description: "Экспорт в Excel" },
 ] as const;
 
 export function AdminDashboardKpiGrid({ stats }: { stats: AdminDashboardStats }) {

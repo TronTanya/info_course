@@ -1,10 +1,26 @@
 import { prisma } from "@/lib/db";
-import { getAdminDashboardStats, type AdminDashboardStats } from "@/lib/admin-dashboard";
+import {
+  countActiveStudentsSinceDays,
+  getAdminDashboardExtended,
+  getAdminDashboardStats,
+  type AdminDashboardExtended,
+  type AdminDashboardStats,
+  type AdminRecentActivityItem,
+} from "@/lib/admin-dashboard";
+import { assertAdminDataAccess } from "@/lib/admin-access";
+import {
+  auditActionLabelRu,
+  auditActorLabel,
+  isSensitiveAuditAction,
+  isSuspiciousAuditEvent,
+} from "@/lib/admin-lms-audit";
 import { certificateVerifyUrl } from "@/lib/certificate";
 
 export type AdminLmsOverview = {
   totalStudents: number;
   activeStudents: number;
+  /** Студенты с активностью за последние 30 дней. */
+  activeStudents30d: number;
   averageProgressPercent: number;
   averageTestPercent: number | null;
   practicesCompleted: number;
@@ -16,6 +32,7 @@ export type AdminLmsOverview = {
 export type AdminDifficultQuestion = {
   questionId: string;
   questionText: string;
+  moduleId: string;
   moduleTitle: string;
   wrongCount: number;
   gradedCount: number;
@@ -67,17 +84,31 @@ export type AdminCertificateSnapshot = {
 export type AdminAuditEvent = {
   id: string;
   action: string;
+  actionLabel: string;
   severity: string;
   at: string;
-  actorId: string | null;
+  actorLabel: string;
   path: string | null;
-  targetId: string | null;
   sensitive: boolean;
+  suspicious: boolean;
+};
+
+export type AdminImportantEvent = {
+  id: string;
+  kind: "submission" | "registration" | "security";
+  title: string;
+  subtitle: string;
+  at: string;
+  href: string;
+  tone: "default" | "warning";
 };
 
 export type AdminLmsDashboardData = {
   stats: AdminDashboardStats;
+  extended: AdminDashboardExtended;
   overview: AdminLmsOverview;
+  importantEvents: AdminImportantEvent[];
+  suspiciousEvents: AdminAuditEvent[];
   difficult: {
     questions: AdminDifficultQuestion[];
     modules: AdminLowCompletionModule[];
@@ -96,15 +127,33 @@ const STATUS_RU: Record<string, string> = {
   NEEDS_REVISION: "На доработку",
 };
 
-const SENSITIVE_PREFIXES = [
-  "auth.login",
-  "admin.",
-  "certificate.",
-  "ai.safety",
-] as const;
+function buildImportantEvents(
+  recent: AdminRecentActivityItem[],
+  suspicious: AdminAuditEvent[],
+): AdminImportantEvent[] {
+  const fromRecent: AdminImportantEvent[] = recent.map((r) => ({
+    id: r.id,
+    kind: r.kind === "user" ? "registration" : "submission",
+    title: r.title,
+    subtitle: r.subtitle,
+    at: r.at,
+    href: r.href,
+    tone: "default",
+  }));
 
-function isSensitiveAction(action: string): boolean {
-  return SENSITIVE_PREFIXES.some((p) => action.startsWith(p));
+  const fromSecurity: AdminImportantEvent[] = suspicious.slice(0, 4).map((e) => ({
+    id: `audit-${e.id}`,
+    kind: "security" as const,
+    title: e.actionLabel,
+    subtitle: `${e.actorLabel} · ${e.severity}`,
+    at: e.at,
+    href: "/admin/profile",
+    tone: "warning" as const,
+  }));
+
+  return [...fromRecent, ...fromSecurity]
+    .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
+    .slice(0, 8);
 }
 
 async function averageStudentProgressPercent(): Promise<number> {
@@ -140,7 +189,12 @@ async function averageTestPercent(): Promise<number | null> {
 }
 
 export async function getAdminLmsDashboardData(): Promise<AdminLmsDashboardData> {
-  const stats = await getAdminDashboardStats();
+  await assertAdminDataAccess();
+  const [stats, extended, activeStudents30d] = await Promise.all([
+    getAdminDashboardStats(),
+    getAdminDashboardExtended(),
+    countActiveStudentsSinceDays(30),
+  ]);
   const studentCount = await prisma.user.count({ where: { role: "USER" } });
 
   const [
@@ -219,7 +273,7 @@ export async function getAdminLmsDashboardData(): Promise<AdminLmsDashboardData>
       ? Promise.resolve([])
       : prisma.securityAuditLog.findMany({
           orderBy: { createdAt: "desc" },
-          take: 12,
+          take: 40,
           select: {
             id: true,
             action: true,
@@ -235,6 +289,7 @@ export async function getAdminLmsDashboardData(): Promise<AdminLmsDashboardData>
   const overview: AdminLmsOverview = {
     totalStudents: studentCount,
     activeStudents: stats.activeStudents,
+    activeStudents30d,
     averageProgressPercent,
     averageTestPercent: averageTestPercentVal,
     practicesCompleted,
@@ -252,7 +307,7 @@ export async function getAdminLmsDashboardData(): Promise<AdminLmsDashboardData>
           select: {
             id: true,
             questionText: true,
-            test: { select: { module: { select: { title: true } } } },
+            test: { select: { module: { select: { id: true, title: true } } } },
           },
         })
       : Promise.resolve([]),
@@ -274,6 +329,7 @@ export async function getAdminLmsDashboardData(): Promise<AdminLmsDashboardData>
       return {
         questionId: w.questionId,
         questionText: q.questionText.slice(0, 120),
+        moduleId: q.test.module.id,
         moduleTitle: q.test.module.title,
         wrongCount: w._count._all,
         gradedCount: gradedMap.get(w.questionId) ?? 0,
@@ -359,7 +415,7 @@ export async function getAdminLmsDashboardData(): Promise<AdminLmsDashboardData>
       certificateNumber: c.certificateNumber,
       courseTitle: c.course.title,
       issuedAt: c.issuedAt.toISOString(),
-      verifyHref: certificateVerifyUrl(c.verificationCode),
+      verifyHref: certificateVerifyUrl(c.certificateNumber),
       hasPdf: Boolean(c.pdfUrl),
     })),
   };
@@ -367,17 +423,24 @@ export async function getAdminLmsDashboardData(): Promise<AdminLmsDashboardData>
   const auditEvents: AdminAuditEvent[] = auditRows.map((row) => ({
     id: row.id,
     action: row.action,
+    actionLabel: auditActionLabelRu(row.action),
     severity: row.severity,
     at: row.createdAt.toISOString(),
-    actorId: row.actorId,
+    actorLabel: auditActorLabel(Boolean(row.actorId)),
     path: row.path,
-    targetId: row.targetId,
-    sensitive: isSensitiveAction(row.action),
+    sensitive: isSensitiveAuditAction(row.action),
+    suspicious: isSuspiciousAuditEvent(row.action, row.severity),
   }));
+
+  const suspiciousEvents = auditEvents.filter((e) => e.suspicious).slice(0, 8);
+  const importantEvents = buildImportantEvents(extended.recent, suspiciousEvents);
 
   return {
     stats,
+    extended,
     overview,
+    importantEvents,
+    suspiciousEvents,
     difficult: {
       questions: difficultQuestions,
       modules: difficultModules,
