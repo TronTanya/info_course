@@ -51,6 +51,18 @@ export function buildPageContextBlock(ctx: TutorPageContext): string {
     }
   }
 
+  if (ctx.testReviewHint?.trim()) {
+    parts.push("", "### Итог последнего теста (без правильных ответов)", ctx.testReviewHint.trim());
+  }
+
+  if (ctx.testDebriefTopics?.trim()) {
+    parts.push(
+      "",
+      "### Темы для повторения (без правильных ответов и без вариантов)",
+      sanitizeLessonContentForPrompt(ctx.testDebriefTopics.trim(), 2_000),
+    );
+  }
+
   if (ctx.practicalTask) {
     const pt = ctx.practicalTask;
     parts.push(

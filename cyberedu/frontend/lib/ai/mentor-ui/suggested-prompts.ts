@@ -1,24 +1,10 @@
+import { LESSON_MENTOR_SUGGESTED_PROMPTS } from "@/lib/lesson-mentor-panel";
+import { TEST_MENTOR_SUGGESTED_PROMPTS } from "@/lib/test-mentor-panel";
 import type { MentorContextKind } from "@/lib/ai/mentor-ui/types";
 
 export type SuggestedPrompt = { id: string; label: string; text: string };
 
-const LESSON: SuggestedPrompt[] = [
-  {
-    id: "l1",
-    label: "Суть лекции",
-    text: "Объясни главную идею этой лекции простыми словами и задай мне один проверочный вопрос.",
-  },
-  {
-    id: "l2",
-    label: "Пример из жизни",
-    text: "Приведи безопасный пример из повседневной жизни, связанный с темой лекции.",
-  },
-  {
-    id: "l3",
-    label: "Термины",
-    text: "Разбери 2–3 ключевых термина из лекции и как их применяет защитник.",
-  },
-];
+const LESSON = LESSON_MENTOR_SUGGESTED_PROMPTS;
 
 const PRACTICE: SuggestedPrompt[] = [
   {
@@ -37,6 +23,8 @@ const PRACTICE: SuggestedPrompt[] = [
     text: "Какие типичные ошибки студентов допускают в таких заданиях и как их избежать?",
   },
 ];
+
+const TEST = TEST_MENTOR_SUGGESTED_PROMPTS;
 
 const MODULE: SuggestedPrompt[] = [
   {
@@ -75,6 +63,8 @@ export function getSuggestedPrompts(kind: MentorContextKind): SuggestedPrompt[] 
       return LESSON;
     case "practice":
       return PRACTICE;
+    case "test":
+      return TEST;
     case "module":
       return MODULE;
     default:

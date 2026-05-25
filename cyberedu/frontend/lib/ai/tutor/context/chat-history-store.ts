@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/db";
-import { prepareTrustedChatHistory } from "@/lib/ai/tutor/moderation/history";
+import { moderateAiOutput, moderateUserPrompt } from "@/lib/security/ai-moderation";
+import { CHAT_HISTORY_LIMITS, prepareTrustedChatHistory } from "@/lib/ai/tutor/moderation/history";
+import { MENTOR_CHAT_HISTORY_UI_LIMIT } from "@/lib/ai/tutor/context/chat-history-policy";
+import type { MentorChatTurn } from "@/lib/ai/mentor-ui/types";
 import type { TutorChatTurn } from "@/lib/ai/tutor/types";
 
 export function buildTutorScopeKey(params: {
@@ -39,6 +42,60 @@ export async function loadTrustedChatHistory(
   }
 
   return prepareTrustedChatHistory(raw);
+}
+
+/**
+ * История для UI: id, timestamp, контент после модерации (без meta и без клиентского assistant).
+ */
+export async function loadMentorChatHistoryForDisplay(
+  userId: string,
+  scopeKey: string,
+): Promise<MentorChatTurn[]> {
+  const thread = await prisma.tutorChatThread.findUnique({
+    where: { userId_scopeKey: { userId, scopeKey } },
+    select: {
+      messages: {
+        orderBy: { createdAt: "desc" },
+        take: MENTOR_CHAT_HISTORY_UI_LIMIT,
+        select: { id: true, role: true, content: true, createdAt: true },
+      },
+    },
+  });
+
+  if (!thread?.messages.length) return [];
+
+  const out: MentorChatTurn[] = [];
+  const maxLen = CHAT_HISTORY_LIMITS.maxItemChars;
+  const chronological = [...thread.messages].reverse();
+
+  for (const m of chronological) {
+    if (m.role !== "user" && m.role !== "assistant") continue;
+    let content = m.content;
+    if (m.role === "user") {
+      const mod = moderateUserPrompt(content, maxLen);
+      if (!mod.ok) continue;
+      content = mod.text;
+    } else {
+      const mod = moderateAiOutput(content, 8, maxLen);
+      if (!mod.ok) continue;
+      content = mod.text;
+    }
+    out.push({
+      id: m.id,
+      role: m.role,
+      content,
+      createdAt: m.createdAt.toISOString(),
+    });
+  }
+
+  return out;
+}
+
+/** Удаляет серверную историю по scope (clear conversation). */
+export async function clearTrustedChatHistory(userId: string, scopeKey: string): Promise<void> {
+  await prisma.tutorChatThread.deleteMany({
+    where: { userId, scopeKey },
+  });
 }
 
 /**

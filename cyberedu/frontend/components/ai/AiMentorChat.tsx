@@ -1,26 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Bot, Scan } from "lucide-react";
-import { MentorContextBar } from "@/components/ai/mentor/mentor-context-bar";
-import { MentorEmptyState } from "@/components/ai/mentor/mentor-empty-state";
-import { MentorErrorBanner } from "@/components/ai/mentor/mentor-error-banner";
-import { MentorGuardrailCallout } from "@/components/ai/mentor/mentor-guardrail-callout";
-import { MentorMarkdown } from "@/components/ai/mentor/mentor-markdown";
-import { MentorMemoryStrip } from "@/components/ai/mentor/mentor-memory-strip";
-import { MentorMessageMeta } from "@/components/ai/mentor/mentor-message-meta";
-import { MentorModesBar } from "@/components/ai/mentor/mentor-modes-bar";
-import { MentorSuggestedPrompts } from "@/components/ai/mentor/mentor-suggested-prompts";
-import { MentorTypingIndicator } from "@/components/ai/mentor/mentor-typing";
-import { buildMentorModePrompt, type MentorModeId } from "@/lib/ai/mentor-ui/modes";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { resolveMentorContextKind } from "@/lib/ai/mentor-ui/context";
-import { getSuggestedPrompts } from "@/lib/ai/mentor-ui/suggested-prompts";
+import { Bot } from "lucide-react";
+import { AIMentorChatPanel } from "@/components/ai/ai-mentor-chat-panel";
+import type { MentorModeId } from "@/lib/ai/mentor-ui/modes";
+import { getMentorDisabledCopy, type MentorDisabledReason } from "@/lib/ai/mentor-ui/chat-state";
+import { MENTOR_UNAVAILABLE } from "@/lib/ai/mentor-ui/constants";
 import type { MentorChatTurn, MentorContextLabels } from "@/lib/ai/mentor-ui/types";
-import type { TutorPipelineMeta } from "@/lib/ai/tutor/types";
+import type { AIMentorContextInput } from "@/types/ai-mentor";
 import { useOverlayA11y } from "@/lib/hooks/use-overlay-a11y";
+import { useVisualViewportInset } from "@/lib/hooks/use-visual-viewport-inset";
+import { consumePendingMentorOpen } from "@/lib/ai/mentor-ui/open";
 import { cn } from "@/lib/utils";
 
 export type { MentorContextLabels, MentorChatTurn as ChatTurn };
@@ -30,39 +22,50 @@ export type AiMentorChatProps = {
   lessonId?: string | null;
   practicalTaskId?: string | null;
   contextLabels?: MentorContextLabels;
+  /** false — запросы к API отключены (нет ключа на сервере). */
+  aiConfigured?: boolean;
+  disabledReason?: MentorDisabledReason | null;
+  disabledHint?: string | null;
+  /** Темы для разбора после теста (без правильных ответов), с клиента. */
+  testDebriefTopics?: string | null;
   openSignal?: number;
-};
-
-function nextId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
-type ChatApiResponse = {
-  reply?: string;
-  error?: string;
-  meta?: TutorPipelineMeta;
+  /** При изменении `openSignal` — открыть чат и отправить режим (один раз на сигнал). */
+  bootModeId?: MentorModeId | null;
+  /** Явный текст первого сообщения (приоритет над bootModeId). */
+  bootPrompt?: string | null;
+  streamingSupported?: boolean;
+  mentorContext?: AIMentorContextInput | null;
 };
 
 /**
- * Плавающий SOC-панель AI cybersecurity mentor. Backend: POST /api/ai/chat без изменений.
+ * Плавающая кнопка + dialog с `AIMentorChatPanel`. Backend: POST /api/ai/chat.
  */
 export function AiMentorChat({
   moduleId,
   lessonId,
   practicalTaskId,
   contextLabels = {},
+  aiConfigured = true,
+  disabledReason = null,
+  disabledHint = null,
+  testDebriefTopics = null,
   openSignal,
+  bootModeId = null,
+  bootPrompt = null,
+  streamingSupported = false,
+  mentorContext = null,
 }: AiMentorChatProps) {
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<MentorChatTurn[]>([]);
-  const [draft, setDraft] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [retryDraft, setRetryDraft] = useState<string | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const prevOpenSignal = useRef<number | null>(null);
   const reduce = useReducedMotion();
+  const chatEnabled = aiConfigured && !disabledReason;
+  const keyboardInset = useVisualViewportInset(open);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useOverlayA11y({
     open,
@@ -70,115 +73,100 @@ export function AiMentorChat({
     containerRef: panelRef,
   });
 
-  const contextKind = useMemo(
-    () => resolveMentorContextKind({ moduleId, lessonId, practicalTaskId }),
-    [moduleId, lessonId, practicalTaskId],
-  );
-  const suggested = useMemo(() => getSuggestedPrompts(contextKind), [contextKind]);
-
-  const serverMemoryNote =
-    messages.length > 0
-      ? "сервер помнит последние реплики по этой странице"
-      : "контекст страницы передаётся при первом сообщении";
-
   useEffect(() => {
     function onOpenMentor() {
-      setError(null);
       setOpen(true);
     }
     window.addEventListener("cyberedu:open-mentor", onOpenMentor);
+    if (consumePendingMentorOpen()) {
+      queueMicrotask(() => setOpen(true));
+    }
     return () => window.removeEventListener("cyberedu:open-mentor", onOpenMentor);
   }, []);
 
   useEffect(() => {
     if (openSignal === undefined) return;
-    if (prevOpenSignal.current !== null && openSignal !== prevOpenSignal.current) {
-      setError(null);
-      setOpen(true);
+    const prev = prevOpenSignal.current;
+    const signalChanged = prev !== null && openSignal !== prev;
+    const pendingAfterLazyLoad = prev === null && openSignal > 0;
+    if (signalChanged || pendingAfterLazyLoad) {
+      queueMicrotask(() => setOpen(true));
     }
     prevOpenSignal.current = openSignal;
   }, [openSignal]);
 
   useEffect(() => {
     if (!open) return;
-    const el = scrollRef.current;
-    if (!el) return;
-    el.scrollTop = el.scrollHeight;
-  }, [open, messages, loading]);
+    const mq = window.matchMedia("(max-width: 1023px)");
+    if (!mq.matches) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
 
-  const sendMessage = useCallback(
-    async (text: string) => {
-      const trimmed = text.trim();
-      if (!trimmed || loading) return;
-
-      setError(null);
-      setLoading(true);
-
-      try {
-        const res = await fetch("/api/ai/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: trimmed,
-            module_id: moduleId ?? null,
-            lesson_id: lessonId ?? null,
-            practical_task_id: practicalTaskId ?? null,
-            practice_socratic_hints: contextKind === "practice",
-          }),
-        });
-
-        const data = (await res.json()) as ChatApiResponse;
-
-        if (!res.ok) {
-          setRetryDraft(trimmed);
-          setError(data.error || `Ошибка ${res.status}`);
-          return;
-        }
-
-        const reply = data.reply?.trim();
-        if (!reply) {
-          setRetryDraft(trimmed);
-          setError("Пустой ответ сервера.");
-          return;
-        }
-
-        setMessages((prev) => [
-          ...prev,
-          { id: nextId(), role: "user", content: trimmed },
-          { id: nextId(), role: "assistant", content: reply, meta: data.meta },
-        ]);
-        setDraft("");
-        setRetryDraft(null);
-      } catch {
-        setRetryDraft(trimmed);
-        setError("Не удалось связаться с сервером. Проверьте сеть и попробуйте снова.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [loading, moduleId, lessonId, practicalTaskId, contextKind],
-  );
-
-  const lastAssistant = useMemo(() => {
-    for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i]?.role === "assistant") return messages[i];
-    }
-    return null;
-  }, [messages]);
-
-  function handleModeSelect(modeId: MentorModeId) {
-    void sendMessage(buildMentorModePrompt(modeId, contextKind));
-  }
-
-  function handleRetry() {
-    const text = retryDraft ?? draft;
-    if (text.trim()) void sendMessage(text);
-  }
-
-  function clearLocal() {
-    setMessages([]);
-    setError(null);
-  }
+  const overlay = open ? (
+      <AnimatePresence>
+        <motion.button
+          type="button"
+          key="ai-mentor-backdrop"
+          aria-label="Закрыть AI-наставника"
+          className="ce-ai-mentor-backdrop fixed inset-0 z-[100] bg-background/55 backdrop-blur-[2px] lg:hidden"
+          initial={reduce ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={reduce ? undefined : { opacity: 0 }}
+          transition={{ duration: reduce ? 0 : 0.18 }}
+          onClick={() => setOpen(false)}
+        />
+        <motion.div
+          ref={panelRef}
+          key="ai-mentor-dialog"
+          id="ai-mentor-chat-panel"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="ai-mentor-chat-title"
+          initial={reduce ? false : { opacity: 0, y: 16, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={reduce ? undefined : { opacity: 0, y: 12, scale: 0.98 }}
+          transition={{ duration: reduce ? 0 : 0.22, ease: [0.22, 1, 0.36, 1] }}
+          style={
+            keyboardInset > 0
+              ? {
+                  bottom: keyboardInset,
+                  maxHeight: `min(88dvh, calc(100dvh - ${keyboardInset}px - env(safe-area-inset-top, 0px)))`,
+                }
+              : undefined
+          }
+          className={cn(
+            "ce-ai-mentor-dialog fixed z-[100] flex min-h-0 w-full max-w-[100vw] flex-col overflow-hidden overflow-x-clip",
+            "inset-x-0 bottom-0 max-h-[min(88dvh,calc(100dvh-env(safe-area-inset-top,0px)-0.5rem))]",
+            "rounded-t-2xl border-t border-border bg-card",
+            "sm:inset-x-auto sm:bottom-[calc(5.5rem+env(safe-area-inset-bottom))] sm:right-[max(1.25rem,env(safe-area-inset-right))]",
+            "sm:max-h-[min(78dvh,36rem)] sm:w-[min(100vw-2rem,28rem)] sm:rounded-2xl sm:border",
+          )}
+        >
+          <AIMentorChatPanel
+            moduleId={moduleId}
+            lessonId={lessonId}
+            practicalTaskId={practicalTaskId}
+            contextLabels={contextLabels}
+            aiConfigured={aiConfigured}
+            disabledReason={disabledReason}
+            disabledHint={disabledHint}
+            testDebriefTopics={testDebriefTopics}
+            openSignal={openSignal}
+            bootModeId={bootModeId}
+            bootPrompt={bootPrompt}
+            streamingSupported={streamingSupported}
+            mentorContext={mentorContext}
+            onClose={() => setOpen(false)}
+            showCloseButton
+            className="h-full max-h-[inherit] rounded-[inherit] border-0"
+          />
+        </motion.div>
+      </AnimatePresence>
+    ) : null;
 
   return (
     <>
@@ -186,17 +174,30 @@ export function AiMentorChat({
         type="button"
         aria-expanded={open}
         aria-controls="ai-mentor-chat-panel"
-        aria-label={open ? "Закрыть AI-наставника" : "Открыть AI-наставника"}
-        onClick={() => {
-          setError(null);
-          setOpen((v) => !v);
-        }}
+        aria-label={
+          chatEnabled
+            ? open
+              ? "Закрыть AI-наставника"
+              : "Открыть AI-наставника"
+            : "AI-наставник недоступен"
+        }
+        title={
+          chatEnabled
+            ? undefined
+            : disabledReason
+              ? getMentorDisabledCopy(disabledReason).title
+              : MENTOR_UNAVAILABLE
+        }
+        data-mentor-open={open && chatEnabled ? "true" : undefined}
+        onClick={() => setOpen((v) => !v)}
         className={cn(
-          "ce-ai-mentor-fab ce-touch-target fixed z-[60] flex size-14 min-h-14 min-w-14 items-center justify-center rounded-full",
+          "ce-ai-mentor-fab ce-touch-target fixed z-[100] flex size-12 min-h-12 min-w-12 items-center justify-center rounded-full",
           "bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-[max(1.25rem,env(safe-area-inset-right))]",
-          "ce-mentor-fab-surface border border-cyan/40 text-cyan shadow-(--shadow-glow)",
-          "transition hover:scale-[1.03] motion-reduce:hover:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan",
-          open && "ring-2 ring-cyan/60 ring-offset-2 ring-offset-background",
+          "border border-border bg-card text-foreground shadow-md",
+          "transition hover:bg-muted/80 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          !chatEnabled && "opacity-60",
+          open && chatEnabled && "ring-2 ring-ring/40 ring-offset-2 ring-offset-background",
+          open && "max-lg:invisible max-lg:pointer-events-none",
         )}
       >
         {open ? (
@@ -208,130 +209,7 @@ export function AiMentorChat({
         )}
       </button>
 
-      <AnimatePresence>
-        {open ? (
-          <motion.div
-            ref={panelRef}
-            id="ai-mentor-chat-panel"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="ai-mentor-chat-title"
-            initial={reduce ? false : { opacity: 0, y: 16, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={reduce ? undefined : { opacity: 0, y: 12, scale: 0.98 }}
-            transition={{ duration: reduce ? 0 : 0.22, ease: [0.22, 1, 0.36, 1] }}
-            className={cn(
-              "ce-ai-mentor-panel ce-mentor-soc fixed z-[60] flex flex-col overflow-hidden",
-              "inset-x-0 bottom-0 max-h-[min(88dvh,40rem)] w-full rounded-t-2xl border-t border-cyan/25",
-              "sm:inset-x-auto sm:bottom-[calc(5.5rem+env(safe-area-inset-bottom))] sm:right-[max(1.25rem,env(safe-area-inset-right))]",
-              "sm:max-h-[min(78dvh,36rem)] sm:w-[min(100vw-2rem,28rem)] sm:rounded-2xl sm:border",
-            )}
-          >
-            <div className="ce-mentor-scanline pointer-events-none absolute inset-0 opacity-[0.04]" aria-hidden />
-
-            <header className="ce-mentor-header relative flex items-start justify-between gap-2 border-b px-4 py-3">
-              <div className="min-w-0">
-                <p id="ai-mentor-chat-title" className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                  <Scan className="size-4 text-cyan" aria-hidden />
-                  AI-наставник CyberEdu
-                </p>
-                <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
-                  Встроенный учебный помощник: объяснения, примеры и подсказки без готовых ответов.
-                </p>
-              </div>
-              <button
-                type="button"
-                className="ce-touch-target shrink-0 rounded-xl p-2.5 text-muted-foreground transition hover:bg-muted/40 hover:text-foreground"
-                aria-label="Закрыть"
-                onClick={() => setOpen(false)}
-              >
-                <span className="text-lg leading-none" aria-hidden>
-                  ×
-                </span>
-              </button>
-            </header>
-
-            <MentorContextBar kind={contextKind} labels={contextLabels} moduleId={moduleId} />
-
-            <MentorModesBar disabled={loading} onSelect={handleModeSelect} />
-
-            <div ref={scrollRef} className="relative min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-3 py-3">
-              {messages.length === 0 && !loading ? <MentorEmptyState /> : null}
-
-              {messages.map((m) => (
-                <motion.article
-                  key={m.id}
-                  initial={reduce ? false : { opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: reduce ? 0 : 0.2 }}
-                  className={cn(
-                    "ce-mentor-bubble rounded-xl border px-3 py-2.5 text-sm",
-                    m.role === "user"
-                      ? "ml-6 border-primary/25 bg-primary/10"
-                      : "ce-mentor-bubble-assistant mr-1",
-                  )}
-                >
-                  <p className="mb-1 font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
-                    {m.role === "user" ? "Вы" : "Наставник"}
-                  </p>
-                  {m.role === "assistant" ? (
-                    <>
-                      <MentorMarkdown source={m.content} />
-                      <MentorMessageMeta meta={m.meta} />
-                    </>
-                  ) : (
-                    <p className="whitespace-pre-wrap text-foreground">{m.content}</p>
-                  )}
-                </motion.article>
-              ))}
-
-              {loading ? <MentorTypingIndicator /> : null}
-
-              {error ? <MentorErrorBanner message={error} onRetry={handleRetry} disabled={loading} /> : null}
-
-              {lastAssistant?.meta?.refused || lastAssistant?.meta?.refusalCode === "exam_spoiler" ? (
-                <MentorGuardrailCallout refusalCode={lastAssistant.meta?.refusalCode} />
-              ) : null}
-            </div>
-
-            <MentorSuggestedPrompts
-              prompts={messages.length === 0 ? suggested : suggested.slice(0, 3)}
-              disabled={loading}
-              onSelect={(t) => void sendMessage(t)}
-            />
-
-            <div className="border-t border-cyan/15 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-              <Textarea
-                label="Сообщение наставнику"
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                placeholder="Сформулируйте вопрос для наставника…"
-                rows={2}
-                className="ce-mentor-input min-h-[64px] resize-none text-sm sm:min-h-[72px]"
-                disabled={loading}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    void sendMessage(draft);
-                  }
-                }}
-              />
-              <div className="mt-2 flex justify-end gap-2">
-                <Button type="button" size="sm" loading={loading} disabled={!draft.trim()} onClick={() => void sendMessage(draft)}>
-                  Отправить
-                </Button>
-              </div>
-            </div>
-
-            <MentorMemoryStrip
-              localCount={messages.length}
-              serverNote={serverMemoryNote}
-              onClearLocal={clearLocal}
-              disabled={loading}
-            />
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+      {mounted && overlay ? createPortal(overlay, document.body) : null}
     </>
   );
 }

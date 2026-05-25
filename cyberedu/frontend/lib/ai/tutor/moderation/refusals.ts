@@ -1,3 +1,4 @@
+import { createAIMentorRefusal } from "@/lib/ai/safety/mentor-policy";
 import type { TutorRefusalCode, TutorTopic } from "@/lib/ai/tutor/types";
 import { topicLabelRu } from "@/lib/ai/tutor/classification/topics";
 import { getRefusalTemplate } from "@/lib/ai/tutor/moderation/refusal-templates";
@@ -31,19 +32,11 @@ export function evaluateRefusalPolicy(topic: TutorTopic): RefusalDecision | null
 }
 
 export function softRefusalAcademicIntegrity(): RefusalDecision {
+  const refusal = createAIMentorRefusal("test_answer");
   return {
     refuse: true,
-    code: "exam_spoiler",
-    reply: [
-      "Я не выдаю готовые ответы на тесты и практику — это часть учебной честности курса.",
-      "",
-      "Вместо этого давай разберём:",
-      "1) что именно в формулировке задания вызывает затруднение;",
-      "2) какие **критерии** «правильного» решения ты уже знаешь;",
-      "3) какой **первый шаг** ты можешь сделать сам(а) за 5 минут.",
-      "",
-      "Напиши, на каком шаге ты застрял(а).",
-    ].join("\n"),
+    code: refusal.code,
+    reply: refusal.message,
   };
 }
 

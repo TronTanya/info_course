@@ -8,6 +8,7 @@ import type { MentorContextLabels } from "@/lib/ai/mentor-ui/types";
 const kindLabel: Record<MentorContextKind, string> = {
   lesson: "Лекция",
   practice: "Практика",
+  test: "Результат теста",
   module: "Модуль",
   general: "Кабинет",
 };
@@ -36,7 +37,7 @@ export function MentorContextBar({
           {chips.map((c) => (
             <li
               key={c.id}
-              className="inline-flex max-w-full items-center gap-1 truncate rounded-md border border-cyan/20 bg-background/60 px-2 py-0.5 text-[11px] text-foreground/90"
+              className="ce-mentor-context-chip inline-flex max-w-full items-center gap-1 truncate rounded-md border px-2 py-0.5 text-[11px]"
               title={c.label}
             >
               <Crosshair className="size-3 shrink-0 text-cyan/70" aria-hidden />

@@ -6,7 +6,7 @@ export function MentorTypingIndicator() {
   const reduce = useReducedMotion();
 
   return (
-    <div className="ce-mentor-typing mr-2 flex items-center gap-2 rounded-xl border border-cyan/15 bg-muted/40 px-3 py-2.5" aria-live="polite" aria-busy="true">
+    <div className="ce-mentor-typing mr-2 flex items-center gap-2 rounded-xl border border-cyan/15 bg-muted/40 px-3 py-2.5" aria-hidden="true">
       <span className="sr-only">Наставник формирует ответ</span>
       <div className="flex items-center gap-1" aria-hidden>
         {[0, 1, 2].map((i) =>

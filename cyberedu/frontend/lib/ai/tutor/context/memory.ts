@@ -36,45 +36,49 @@ export async function buildLearnerMemory(
   let currentModuleProgress: LearnerMemorySnapshot["currentModuleProgress"];
 
   if (course) {
-    const modules = await prisma.module.findMany({
-      where: { courseId: course.id, isActive: true },
-      select: { id: true, orderNumber: true },
-      orderBy: { orderNumber: "asc" },
-    });
-    totalActiveModules = modules.length;
-    const moduleIds = modules.map((m) => m.id);
-
-    if (moduleIds.length) {
-      const progress = await prisma.progress.findMany({
-        where: { userId, moduleId: { in: moduleIds } },
-        select: {
-          moduleId: true,
+    const mid = pageContext.moduleId;
+    const [moduleCount, completedCount, currentRow, mod] = await Promise.all([
+      prisma.module.count({ where: { courseId: course.id, isActive: true } }),
+      prisma.progress.count({
+        where: {
+          userId,
           moduleCompleted: true,
-          lessonCompleted: true,
-          videoCompleted: true,
-          testCompleted: true,
-          practiceCompleted: true,
+          module: { courseId: course.id, isActive: true },
         },
-      });
-      completedModules = progress.filter((p) => p.moduleCompleted).length;
+      }),
+      mid
+        ? prisma.progress.findUnique({
+            where: { userId_moduleId: { userId, moduleId: mid } },
+            select: {
+              lessonCompleted: true,
+              videoCompleted: true,
+              testCompleted: true,
+              practiceCompleted: true,
+            },
+          })
+        : Promise.resolve(null),
+      mid
+        ? prisma.module.findUnique({
+            where: { id: mid },
+            select: { orderNumber: true, isActive: true, courseId: true },
+          })
+        : Promise.resolve(null),
+    ]);
 
-      const mid = pageContext.moduleId;
-      if (mid) {
-        const row = progress.find((p) => p.moduleId === mid);
-        if (row) {
-          currentModuleProgress = {
-            lessonDone: row.lessonCompleted,
-            videoDone: row.videoCompleted,
-            testDone: row.testCompleted,
-            practiceDone: row.practiceCompleted,
-          };
-        }
-      }
+    totalActiveModules = moduleCount;
+    completedModules = completedCount;
 
-      const mod = pageContext.moduleId
-        ? modules.find((m) => m.id === pageContext.moduleId)
-        : undefined;
-      if (mod) pageContext.moduleOrder = mod.orderNumber;
+    if (currentRow) {
+      currentModuleProgress = {
+        lessonDone: currentRow.lessonCompleted,
+        videoDone: currentRow.videoCompleted,
+        testDone: currentRow.testCompleted,
+        practiceDone: currentRow.practiceCompleted,
+      };
+    }
+
+    if (mod?.isActive && mod.courseId === course.id) {
+      pageContext.moduleOrder = mod.orderNumber;
     }
   }
 

@@ -8,7 +8,9 @@ import { auditTutorModerationRefusal, auditTutorOutputBlocked } from "@/lib/ai/t
 import { runPostLlmModeration, runPreLlmModeration } from "@/lib/ai/tutor/moderation/pipeline";
 import { refusalFooterHint } from "@/lib/ai/tutor/moderation/refusals";
 import { getRefusalTemplate, shouldPersistRefusalInHistory } from "@/lib/ai/tutor/moderation/refusal-templates";
-import { buildTutorSystemPrompt } from "@/lib/ai/tutor/prompts/system";
+import { buildMentorModeSystemBlock } from "@/lib/ai/mentor-ui/mode-policies";
+import { resolveMentorSurface } from "@/lib/ai/mentor-ui/surfaces";
+import { buildSafeMentorPrompt } from "@/lib/ai/safety/mentor-policy";
 import {
   appendRecommendationsBlock,
   buildLearningRecommendations,
@@ -75,6 +77,7 @@ export async function runTutorPipeline(input: RunTutorPipelineOptions): Promise<
         recommendations: [],
         refused: true,
         refusalCode: pre.refusalCode,
+        refusalKind: pre.refusalKind,
         moderationNotes: pre.notes,
       },
     };
@@ -90,10 +93,25 @@ export async function runTutorPipeline(input: RunTutorPipelineOptions): Promise<
 
   const recommendations = buildLearningRecommendations(topic, memory, input.pageContext);
 
-  const system = buildTutorSystemPrompt({
+  const surface =
+    input.mentorSurface ??
+    resolveMentorSurface({
+      lessonId: input.lessonId,
+      practicalTaskId: input.practicalTaskId,
+      moduleId: input.pageContext.moduleId,
+      labels: input.pageContext.testReviewHint
+        ? { testSummary: input.pageContext.testReviewHint }
+        : undefined,
+    });
+
+  const modeBlock =
+    input.mentorModeId != null ? buildMentorModeSystemBlock(input.mentorModeId, surface) : null;
+
+  const system = buildSafeMentorPrompt({
     difficulty,
     topic,
-    practiceSocraticHints: input.practiceSocraticHints,
+    practiceSocraticHints: input.practiceSocraticHints ?? surface === "practice",
+    modePolicyBlock: modeBlock ?? undefined,
   });
 
   const messages = buildMessages({
@@ -106,6 +124,7 @@ export async function runTutorPipeline(input: RunTutorPipelineOptions): Promise<
 
   const raw = await callOpenAiChatCompletions(messages, {
     temperature: temperatureForDifficulty(difficulty),
+    maxTokens: 1_100,
   });
 
   if (!raw) {

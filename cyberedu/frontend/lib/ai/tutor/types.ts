@@ -1,4 +1,6 @@
 import type { CheckType, PracticalTaskType } from "@prisma/client";
+import type { MentorSurface } from "@/lib/ai/mentor-ui/surfaces";
+import type { AIMentorMode } from "@/types/ai-mentor";
 
 /** Тематическая метка запроса (эвристика, без отдельного вызова LLM). */
 export type TutorTopic =
@@ -44,6 +46,10 @@ export type TutorPageContext = {
   practicalTask?: TutorPracticalContext;
   interestsLine: string;
   specialtyLine: string;
+  /** Краткий итог теста (процент, зачёт) — без правильных ответов. */
+  testReviewHint?: string;
+  /** Темы для повторения после теста (серверная обратная связь, без ключей). */
+  testDebriefTopics?: string;
 };
 
 /** Снимок прогресса ученика для адаптации и рекомендаций (без ПДн). */
@@ -70,6 +76,8 @@ export type TutorPipelineInput = {
   practiceSocraticHints?: boolean;
   lessonId?: string;
   practicalTaskId?: string;
+  mentorModeId?: AIMentorMode;
+  mentorSurface?: MentorSurface;
 };
 
 export type TutorPipelineMeta = {
@@ -78,6 +86,8 @@ export type TutorPipelineMeta = {
   recommendations: string[];
   refused: boolean;
   refusalCode?: TutorRefusalCode;
+  /** Категория отказа для UX (choose_option, test_answer, …). */
+  refusalKind?: import("@/lib/ai/safety/mentor-refusal-copy").MentorRefusalKind;
   moderationNotes?: string[];
 };
 

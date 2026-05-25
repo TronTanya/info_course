@@ -1,6 +1,6 @@
 import { stripControlChars, stripHtmlTags } from "@/lib/security/sanitize";
 
-const MAX_LESSON_EXCERPT = 12_000;
+const MAX_LESSON_EXCERPT = 8_000;
 const MAX_TASK_DESC = 5_000;
 
 /** Подозрительные разделители / «системные» вставки в учебном тексте. */
