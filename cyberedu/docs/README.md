@@ -19,7 +19,9 @@ Documentation index for the `info_course` repository (application in [`../`](../
 | [OPERATIONS.md](./OPERATIONS.md) | **Canonical ops**: env, PostgreSQL, Redis, migrations, **создание admin**, backup, staging smoke, тесты |
 | [DEFENSE_READINESS.md](./DEFENSE_READINESS.md) | **Защита / пилот**: автоматические команды + ручной UI |
 | [GO_LIVE_CHECKLIST.md](./GO_LIVE_CHECKLIST.md) | Чеклист перед выкладкой (CI, security tests, ops) |
-| [SECURITY.md](./SECURITY.md) | Модель безопасности + **карта Vitest-тестов** |
+| [THREAT_MODEL.md](./THREAT_MODEL.md) | **Threat model**: активы, границы доверия, угрозы, gaps |
+| [SECURITY.md](./SECURITY.md) | Реализация контролей + **карта Vitest-тестов** |
+| [SECURITY_PLATFORM.md](./SECURITY_PLATFORM.md) | Безопасность как **преимущество платформы** (витрина для защиты/портфолио) |
 | [STORAGE.md](./STORAGE.md) | Local uploads, **single replica**, S3 **NOT IMPLEMENTED** |
 | [CERTIFICATE.md](./CERTIFICATE.md) | PDF-сертификат, шаблон, скачивание |
 | [screenshots/](./screenshots/) | PNG для README (`npm run screenshots`) |
