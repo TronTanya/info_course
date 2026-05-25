@@ -2,6 +2,7 @@ import { ACHIEVEMENT_MEME_BY_SLUG } from "@/lib/achievement-memes";
 import { cn } from "@/lib/utils";
 
 const iconSizes = {
+  xs: "size-10",
   sm: "size-11",
   md: "size-14",
   lg: "size-16",
@@ -48,8 +49,8 @@ export function AchievementGlyph({
         loading="lazy"
         className={cn(
           iconSizes[size],
-          "shrink-0 rounded-xl object-cover object-center ring-2 transition",
-          unlocked ? "ring-primary/35 saturate-100" : "ring-border/80 opacity-60 saturate-[0.25]",
+          "ce-achievement-glyph-img shrink-0 rounded-xl object-cover object-center transition",
+          unlocked ? "saturate-100" : "opacity-60 saturate-[0.25]",
           className,
         )}
       />

@@ -14,15 +14,15 @@ export const ACHIEVEMENT_CATALOG: {
     kind: "FIRST_MODULE_COMPLETE",
     slug: "first-step",
     title: "Первый шаг",
-    description: "Вы завершили первый модуль курса — траектория запущена.",
-    hintLocked: "Завершите первый модуль: лекция, тест и практика по требованиям модуля.",
+    description: "Первый модуль курса закрыт.",
+    hintLocked: "Завершите первый модуль: лекция, тест и практика.",
   },
   {
     kind: "PHISHING_PRACTICE_PASSED",
     slug: "phishing-detective",
     title: "Детектив фишинга",
     description: "Практика по разбору фишинга успешно принята.",
-    hintLocked: "Пройдите учебную практику «Разбор фишингового письма» до статуса «Принято».",
+    hintLocked: "Сдайте практику «Разбор фишингового письма» со статусом «Принято».",
   },
   {
     kind: "PASSWORD_MODULE_COMPLETE",
@@ -35,21 +35,21 @@ export const ACHIEVEMENT_CATALOG: {
     kind: "LOG_INVESTIGATION_PASSED",
     slug: "log-analyst",
     title: "Аналитик логов",
-    description: "Итоговое расследование по журналам событий засчитано.",
-    hintLocked: "Успешно сдайте практику «Мини-SOC: анализ логов» или завершите модуль с этим заданием.",
+    description: "Расследование по журналам засчитано.",
+    hintLocked: "Сдайте практику «Мини-SOC: анализ логов».",
   },
   {
     kind: "CERTIFICATE_EARNED",
     slug: "course-complete",
     title: "Курс завершён",
     description: "Сертификат получен — поздравляем!",
-    hintLocked: "Завершите все модули и выпустите сертификат в разделе курса или профиля.",
+    hintLocked: "Завершите все модули и получите сертификат.",
   },
   {
     kind: "AI_MENTOR_USED",
     slug: "ai-mentor",
     title: "Спросил наставника",
-    description: "Вы написали AI-наставнику — мудрое решение.",
+    description: "Первый вопрос наставнику ИИ.",
     hintLocked: "Откройте чат наставника на лекции или практике и задайте вопрос.",
   },
   {
@@ -57,7 +57,7 @@ export const ACHIEVEMENT_CATALOG: {
     slug: "half-course",
     title: "Ровно полпути",
     description: "Половина модулей курса уже позади.",
-    hintLocked: "Завершите половину модулей — лекция, тест и практика в каждом.",
+    hintLocked: "Закройте половину модулей курса.",
   },
   {
     kind: "TEST_PERFECT_SCORE",
@@ -65,6 +65,69 @@ export const ACHIEVEMENT_CATALOG: {
     title: "Идеальный зачёт",
     description: "Тест сдан на 100% — без единой ошибки.",
     hintLocked: "Пройдите любой модульный тест без потери баллов.",
+  },
+  {
+    kind: "LESSON_STUDIED",
+    slug: "first-lecture",
+    title: "Первая лекция",
+    description: "Вы отметили хотя бы одну лекцию как изученную.",
+    hintLocked: "На странице урока нажмите «Отметить лекцию изученной».",
+  },
+  {
+    kind: "TEST_PASSED",
+    slug: "test-survivor",
+    title: "Тест выдержан",
+    description: "Модульный тест сдан с проходным баллом.",
+    hintLocked: "Пройдите любой тест модуля — не обязательно на 100%.",
+  },
+  {
+    kind: "TWO_MODULES_COMPLETE",
+    slug: "two-modules",
+    title: "Два модуля",
+    description: "Два модуля полностью закрыты.",
+    hintLocked: "Полностью завершите второй модуль.",
+  },
+  {
+    kind: "THREE_MODULES_COMPLETE",
+    slug: "three-modules",
+    title: "Три модуля",
+    description: "Три модуля уже в портфеле.",
+    hintLocked: "Полностью завершите три модуля.",
+  },
+  {
+    kind: "PRACTICE_SUBMITTED",
+    slug: "practice-sent",
+    title: "Практика ушла",
+    description: "Вы отправили практическое задание на проверку.",
+    hintLocked: "Отправьте любую практику (не оставляйте только черновик).",
+  },
+  {
+    kind: "MENTOR_CHAT_ACTIVE",
+    slug: "mentor-regular",
+    title: "Друг наставника",
+    description: "Три сообщения в чате наставника ИИ.",
+    hintLocked: "Задайте наставнику три вопроса на лекции или практике.",
+  },
+  {
+    kind: "TEST_RETRY",
+    slug: "test-retry",
+    title: "Второй заход",
+    description: "Вы пересдали тест — упорство вознаграждается.",
+    hintLocked: "Пройдите один и тот же модульный тест повторно.",
+  },
+  {
+    kind: "ALL_LESSONS_STUDIED",
+    slug: "all-lectures",
+    title: "Все лекции",
+    description: "Лекции изучены во всех модулях.",
+    hintLocked: "Отметьте лекцию изученной в каждом модуле.",
+  },
+  {
+    kind: "ONE_MODULE_REMAINING",
+    slug: "almost-done",
+    title: "Почти финиш",
+    description: "До сертификата остался один модуль.",
+    hintLocked: "Завершите все модули, кроме одного.",
   },
 ];
 
@@ -74,11 +137,16 @@ export type AchievementRow = (typeof ACHIEVEMENT_CATALOG)[number] & {
 };
 
 /** Добавлены после первого релиза achievements — на старом Prisma Client их нет. */
-const EXTENDED_ACHIEVEMENT_KINDS = new Set<AchievementKind>([
-  "AI_MENTOR_USED",
-  "COURSE_HALF_COMPLETE",
-  "TEST_PERFECT_SCORE",
-]);
+const EXTENDED_ACHIEVEMENT_KINDS = new Set<AchievementKind>(
+  ACHIEVEMENT_CATALOG.map((d) => d.kind).filter(
+    (k) =>
+      k !== "FIRST_MODULE_COMPLETE" &&
+      k !== "PHISHING_PRACTICE_PASSED" &&
+      k !== "PASSWORD_MODULE_COMPLETE" &&
+      k !== "LOG_INVESTIGATION_PASSED" &&
+      k !== "CERTIFICATE_EARNED",
+  ),
+);
 
 function isPrismaClientValidationError(error: unknown): boolean {
   return (
@@ -163,10 +231,14 @@ export async function reconcileUserAchievements(userId: string): Promise<Achieve
 
   const halfThreshold = Math.ceil(modules.length / 2);
 
-  const [progressRows, acceptedScenario, cert, testAttempts] = await Promise.all([
+  const [progressRows, acceptedScenario, cert, testAttempts, practiceSubmissions] = await Promise.all([
     prisma.progress.findMany({
       where: { userId, moduleId: { in: moduleIds } },
-      select: { moduleId: true, moduleCompleted: true },
+      select: {
+        moduleId: true,
+        moduleCompleted: true,
+        lessonCompleted: true,
+      },
     }),
     prisma.submission.findMany({
       where: {
@@ -181,9 +253,15 @@ export async function reconcileUserAchievements(userId: string): Promise<Achieve
       select: { id: true },
     }),
     prisma.testAttempt.findMany({
-      where: { userId, passed: true, maxScore: { gt: 0 } },
-      select: { score: true, maxScore: true },
-      take: 50,
+      where: { userId },
+      select: { testId: true, score: true, maxScore: true, passed: true },
+      take: 200,
+    }),
+    prisma.submission.count({
+      where: {
+        userId,
+        status: { not: "DRAFT" },
+      },
     }),
   ]);
 
@@ -234,8 +312,49 @@ export async function reconcileUserAchievements(userId: string): Promise<Achieve
     toGrant.push("COURSE_HALF_COMPLETE");
   }
 
-  if (testAttempts.some((a) => a.score >= a.maxScore)) {
+  if (testAttempts.some((a) => a.passed && a.maxScore > 0 && a.score >= a.maxScore)) {
     toGrant.push("TEST_PERFECT_SCORE");
+  }
+
+  if (progressRows.some((p) => p.lessonCompleted)) {
+    toGrant.push("LESSON_STUDIED");
+  }
+
+  if (testAttempts.some((a) => a.passed)) {
+    toGrant.push("TEST_PASSED");
+  }
+
+  if (completed.size >= 2) {
+    toGrant.push("TWO_MODULES_COMPLETE");
+  }
+
+  if (completed.size >= 3) {
+    toGrant.push("THREE_MODULES_COMPLETE");
+  }
+
+  if (practiceSubmissions > 0) {
+    toGrant.push("PRACTICE_SUBMITTED");
+  }
+
+  if (aiMessages >= 3) {
+    toGrant.push("MENTOR_CHAT_ACTIVE");
+  }
+
+  const attemptsPerTest = new Map<string, number>();
+  for (const a of testAttempts) {
+    attemptsPerTest.set(a.testId, (attemptsPerTest.get(a.testId) ?? 0) + 1);
+  }
+  if ([...attemptsPerTest.values()].some((n) => n >= 2)) {
+    toGrant.push("TEST_RETRY");
+  }
+
+  const lessonsStudiedCount = progressRows.filter((p) => p.lessonCompleted).length;
+  if (lessonsStudiedCount >= modules.length) {
+    toGrant.push("ALL_LESSONS_STUDIED");
+  }
+
+  if (!cert && completed.size === modules.length - 1 && modules.length > 1) {
+    toGrant.push("ONE_MODULE_REMAINING");
   }
 
   return persistGrantedAchievements(userId, toGrant);
