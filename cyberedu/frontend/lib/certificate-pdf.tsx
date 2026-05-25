@@ -16,17 +16,18 @@ import {
   Text,
   View,
 } from "@react-pdf/renderer";
+import { formatCertificateVerifyUrlForPdf } from "@/lib/certificate-pdf-format";
 
 const c = {
-  pageBg: "#e8eef4",
-  paper: "#fffef8",
+  pageBg: "#e2e8f0",
+  paper: "#fffef9",
   ink: "#0c1a2e",
-  muted: "#5c6b7a",
-  gold: "#b8860b",
-  goldLight: "#f5ecd4",
+  muted: "#64748b",
+  gold: "#a67c00",
+  goldLight: "#faf6eb",
   cyan: "#0e7490",
-  cyanLight: "#e0f7fa",
-  border: "#c5d0dc",
+  cyanLight: "#ecfeff",
+  border: "#cbd5e1",
   navy: "#0b1f33",
 } as const;
 
@@ -34,14 +35,13 @@ const styles = StyleSheet.create({
   page: {
     fontFamily: "CertificateSans",
     backgroundColor: c.pageBg,
-    padding: 14,
+    padding: 12,
   },
-  /** Один лист: без переноса блоков на 2-ю страницу */
   sheet: {
     flex: 1,
     borderWidth: 2,
     borderColor: c.gold,
-    borderRadius: 3,
+    borderRadius: 4,
     padding: 2,
     backgroundColor: c.gold,
   },
@@ -50,70 +50,72 @@ const styles = StyleSheet.create({
     backgroundColor: c.paper,
     borderWidth: 1,
     borderColor: c.border,
-    paddingTop: 18,
-    paddingBottom: 14,
-    paddingHorizontal: 22,
+    paddingTop: 16,
+    paddingBottom: 12,
+    paddingHorizontal: 20,
   },
   accentBar: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    height: 5,
+    height: 4,
     backgroundColor: c.cyan,
   },
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 10,
-    paddingTop: 4,
+    marginBottom: 8,
+    paddingTop: 2,
   },
   brandRow: {
     flexDirection: "row",
     alignItems: "center",
-    maxWidth: "62%",
+    maxWidth: "58%",
   },
   brandWord: {
-    marginLeft: 10,
+    marginLeft: 9,
   },
   brandName: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: 700,
     color: c.navy,
-    letterSpacing: 0.4,
+    letterSpacing: 0.5,
   },
   brandTag: {
-    fontSize: 8,
+    fontSize: 7.5,
     color: c.muted,
     marginTop: 2,
+    lineHeight: 1.25,
   },
   qrCol: {
     alignItems: "center",
-    width: 76,
+    width: 78,
   },
   qrBox: {
-    padding: 4,
+    padding: 3,
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: 4,
     backgroundColor: "#ffffff",
   },
   qr: {
-    width: 60,
-    height: 60,
+    width: 62,
+    height: 62,
   },
   qrHint: {
     fontSize: 6.5,
     color: c.muted,
     marginTop: 3,
     textAlign: "center",
-    maxWidth: 76,
+    lineHeight: 1.2,
+    maxWidth: 78,
   },
   hero: {
     alignItems: "center",
-    marginBottom: 10,
-    paddingVertical: 6,
+    marginBottom: 8,
+    paddingVertical: 7,
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: c.border,
@@ -121,152 +123,182 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     fontSize: 7,
-    letterSpacing: 2.2,
+    letterSpacing: 2.4,
     color: c.gold,
     textTransform: "uppercase",
-    marginBottom: 4,
+    marginBottom: 3,
   },
   title: {
-    fontSize: 22,
+    fontSize: 21,
     fontWeight: 700,
     color: c.navy,
     textTransform: "uppercase",
-    letterSpacing: 3,
+    letterSpacing: 2.8,
+    lineHeight: 1.1,
   },
   subtitle: {
-    fontSize: 9,
+    fontSize: 8.5,
     color: c.muted,
     marginTop: 4,
     textAlign: "center",
-    maxWidth: 400,
+    lineHeight: 1.35,
+    maxWidth: 420,
   },
   recipientLabel: {
-    fontSize: 8,
+    fontSize: 7.5,
     color: c.muted,
     textTransform: "uppercase",
-    letterSpacing: 1,
-    marginTop: 10,
-    marginBottom: 4,
+    letterSpacing: 1.2,
+    marginTop: 8,
+    marginBottom: 3,
+    textAlign: "center",
   },
   recipientName: {
-    fontSize: 20,
     fontWeight: 700,
     color: c.ink,
     textAlign: "center",
-    maxWidth: 480,
+    lineHeight: 1.15,
+    maxWidth: 500,
   },
   bodyLine: {
-    fontSize: 10,
+    fontSize: 9.5,
     color: c.muted,
-    marginTop: 6,
+    marginTop: 5,
+    textAlign: "center",
+    lineHeight: 1.3,
   },
   courseLine: {
-    fontSize: 12,
     fontWeight: 700,
     color: c.cyan,
     textAlign: "center",
-    marginTop: 4,
-    maxWidth: 460,
+    marginTop: 3,
+    lineHeight: 1.2,
+    maxWidth: 480,
   },
   chipsRow: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 10,
+    marginTop: 8,
   },
   chip: {
     borderWidth: 1,
     borderColor: c.border,
-    borderRadius: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    marginHorizontal: 8,
+    borderRadius: 5,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    marginHorizontal: 6,
     backgroundColor: c.cyanLight,
-    minWidth: 120,
+    minWidth: 118,
     alignItems: "center",
   },
   chipLabel: {
-    fontSize: 7,
+    fontSize: 6.5,
     color: c.muted,
     textTransform: "uppercase",
-    letterSpacing: 0.6,
+    letterSpacing: 0.5,
     marginBottom: 2,
   },
   chipValue: {
-    fontSize: 11,
+    fontSize: 10.5,
     fontWeight: 700,
     color: c.ink,
   },
   bottomRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-end",
-    marginTop: 8,
-    paddingTop: 8,
+    alignItems: "flex-start",
+    marginTop: 6,
+    paddingTop: 7,
     borderTopWidth: 1,
     borderTopColor: c.border,
   },
   metaCol: {
-    width: "48%",
+    width: "52%",
   },
   metaRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 4,
+    marginBottom: 3,
+    alignItems: "flex-start",
   },
   metaLabel: {
-    fontSize: 8,
+    fontSize: 7.5,
     color: c.muted,
-    width: "42%",
+    width: "40%",
+    lineHeight: 1.25,
   },
   metaValue: {
-    fontSize: 8,
+    fontSize: 7.5,
     color: c.ink,
-    width: "56%",
+    width: "58%",
     textAlign: "right",
+    lineHeight: 1.25,
   },
-  metaValueCode: {
-    fontSize: 7,
+  metaValueMono: {
+    fontSize: 6.5,
     color: c.ink,
-    width: "56%",
+    width: "58%",
     textAlign: "right",
+    lineHeight: 1.3,
   },
   signCol: {
-    width: "46%",
+    width: "44%",
     alignItems: "flex-end",
   },
   signTitle: {
-    fontSize: 7.5,
+    fontSize: 7,
     color: c.muted,
-    marginBottom: 3,
+    marginBottom: 2,
     textAlign: "right",
+    lineHeight: 1.25,
   },
   signOrg: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: 700,
     color: c.navy,
     textAlign: "right",
+    lineHeight: 1.2,
   },
   signLine: {
-    marginTop: 16,
+    marginTop: 14,
     borderTopWidth: 1,
     borderTopColor: c.gold,
-    width: 160,
+    width: 150,
     paddingTop: 4,
-    fontSize: 8,
+    fontSize: 7.5,
     color: c.muted,
     textAlign: "right",
   },
+  verifyBand: {
+    marginTop: 5,
+    paddingTop: 5,
+    borderTopWidth: 1,
+    borderTopColor: c.border,
+  },
+  verifyBandLabel: {
+    fontSize: 6.5,
+    color: c.muted,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    marginBottom: 2,
+  },
+  verifyBandUrl: {
+    fontSize: 7,
+    color: c.navy,
+    lineHeight: 1.35,
+  },
   regBar: {
-    marginTop: 8,
-    paddingTop: 6,
+    marginTop: 6,
+    paddingTop: 5,
     borderTopWidth: 1,
     borderTopColor: c.border,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
+    flexWrap: "wrap",
   },
   regText: {
-    fontSize: 8,
+    fontSize: 7.5,
     color: c.muted,
   },
   regNum: {
@@ -275,9 +307,15 @@ const styles = StyleSheet.create({
     color: c.navy,
     marginLeft: 4,
   },
+  regId: {
+    fontSize: 6.5,
+    color: c.muted,
+    marginLeft: 10,
+  },
 });
 
 export type CertificatePdfPayload = {
+  certificateId: string;
   fullName: string;
   courseTitle: string;
   courseHours: number;
@@ -285,7 +323,6 @@ export type CertificatePdfPayload = {
   courseCompletedAt: Date;
   totalScore: number;
   certificateNumber: string;
-  verificationCode: string;
   verifyUrl: string;
   issuedAt: Date;
   organizationLine: string;
@@ -300,18 +337,18 @@ function fmtDate(d: Date) {
 function courseFontSize(title: string): number {
   if (title.length > 72) return 9;
   if (title.length > 48) return 10;
-  return 12;
+  return 11.5;
 }
 
 function nameFontSize(name: string): number {
-  if (name.length > 42) return 16;
-  if (name.length > 28) return 18;
-  return 20;
+  if (name.length > 42) return 15;
+  if (name.length > 28) return 17;
+  return 19;
 }
 
 function CertificateBrandMarkPdf() {
   return (
-    <Svg width={40} height={40} viewBox="0 0 64 64">
+    <Svg width={38} height={38} viewBox="0 0 64 64">
       <Defs>
         <LinearGradient id="certSh" x1={18} y1={6} x2={46} y2={58} gradientUnits="userSpaceOnUse">
           <Stop stopColor="#0f2847" offset="0" />
@@ -338,34 +375,11 @@ function CertificateBrandMarkPdf() {
   );
 }
 
-function CornerOrnament({ flip }: { flip?: boolean }) {
-  return (
-    <Svg
-      width={28}
-      height={28}
-      viewBox="0 0 28 28"
-      style={{
-        position: "absolute",
-        bottom: 8,
-        ...(flip ? { right: 8 } : { left: 8 }),
-        opacity: 0.35,
-      }}
-    >
-      <Path
-        d={flip ? "M4 24 L24 24 L24 4" : "M4 4 L24 4 L4 24"}
-        stroke="#b8860b"
-        strokeWidth={1.2}
-        fill="none"
-      />
-    </Svg>
-  );
-}
-
-function MetaRow({ label, value, code }: { label: string; value: string; code?: boolean }) {
+function MetaRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <View style={styles.metaRow}>
       <Text style={styles.metaLabel}>{label}</Text>
-      <Text style={code ? styles.metaValueCode : styles.metaValue}>{value}</Text>
+      <Text style={mono ? styles.metaValueMono : styles.metaValue}>{value}</Text>
     </View>
   );
 }
@@ -373,6 +387,7 @@ function MetaRow({ label, value, code }: { label: string; value: string; code?: 
 export function CertificatePdfDocument(p: CertificatePdfPayload) {
   const courseSize = courseFontSize(p.courseTitle);
   const nameSize = nameFontSize(p.fullName);
+  const verifyLine = formatCertificateVerifyUrlForPdf(p.verifyUrl);
 
   return (
     <Document>
@@ -386,7 +401,7 @@ export function CertificatePdfDocument(p: CertificatePdfPayload) {
                 <CertificateBrandMarkPdf />
                 <View style={styles.brandWord}>
                   <Text style={styles.brandName}>CyberEdu Academy</Text>
-                  <Text style={styles.brandTag}>Информационная безопасность</Text>
+                  <Text style={styles.brandTag}>Программа по информационной безопасности</Text>
                 </View>
               </View>
               <View style={styles.qrCol} wrap={false}>
@@ -394,14 +409,16 @@ export function CertificatePdfDocument(p: CertificatePdfPayload) {
                   {/* eslint-disable-next-line jsx-a11y/alt-text */}
                   <Image src={p.qrDataUrl} style={styles.qr} />
                 </View>
-                <Text style={styles.qrHint}>Проверка по QR</Text>
+                <Text style={styles.qrHint}>Сканируйте для проверки подлинности</Text>
               </View>
             </View>
 
             <View style={styles.hero} wrap={false}>
               <Text style={styles.eyebrow}>Официальный документ</Text>
               <Text style={styles.title}>Сертификат</Text>
-              <Text style={styles.subtitle}>об успешном прохождении образовательной программы</Text>
+              <Text style={styles.subtitle}>
+                о успешном прохождении образовательной программы CyberEdu Academy
+              </Text>
             </View>
 
             <Text style={styles.recipientLabel}>Настоящим подтверждается, что</Text>
@@ -422,10 +439,15 @@ export function CertificatePdfDocument(p: CertificatePdfPayload) {
 
             <View style={styles.bottomRow} wrap={false}>
               <View style={styles.metaCol}>
+                <MetaRow label="ID записи" value={p.certificateId} mono />
+                <MetaRow label="Номер в реестре" value={p.certificateNumber} />
+                <MetaRow label="Дата выдачи" value={fmtDate(p.issuedAt)} />
                 <MetaRow label="Начало обучения" value={fmtDate(p.courseStartedAt)} />
                 <MetaRow label="Завершение" value={fmtDate(p.courseCompletedAt)} />
-                <MetaRow label="Дата выдачи" value={fmtDate(p.issuedAt)} />
-                <MetaRow label="Код проверки" value={p.verificationCode} code />
+                <View style={styles.verifyBand}>
+                  <Text style={styles.verifyBandLabel}>Публичная проверка</Text>
+                  <Text style={styles.verifyBandUrl}>{verifyLine}</Text>
+                </View>
               </View>
               <View style={styles.signCol}>
                 <Text style={styles.signTitle}>Подпись уполномоченного лица</Text>
@@ -435,12 +457,10 @@ export function CertificatePdfDocument(p: CertificatePdfPayload) {
             </View>
 
             <View style={styles.regBar} wrap={false}>
-              <Text style={styles.regText}>Регистрационный номер:</Text>
+              <Text style={styles.regText}>Реестр CyberEdu ·</Text>
               <Text style={styles.regNum}>{p.certificateNumber}</Text>
+              <Text style={styles.regId}>ID: {p.certificateId}</Text>
             </View>
-
-            <CornerOrnament />
-            <CornerOrnament flip />
           </View>
         </View>
       </Page>

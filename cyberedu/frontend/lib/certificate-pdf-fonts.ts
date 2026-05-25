@@ -9,11 +9,22 @@ const FONT_FILES = {
 } as const;
 
 /** Версия шаблона: при смене старые PDF на диске пересобираются при скачивании. */
-export const CERTIFICATE_PDF_TEMPLATE_REV = 5;
+export const CERTIFICATE_PDF_TEMPLATE_REV = 7;
+
+/** Шрифты DejaVu на диске — без них серверная генерация PDF невозможна. */
+export function isCertificatePdfFontsReady(): boolean {
+  try {
+    resolveCertificatePdfFont("regular");
+    resolveCertificatePdfFont("bold");
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 let fontsRegistered = false;
 
-type PdfFontModule = {
+export type PdfFontModule = {
   register: (descriptor: {
     family: string;
     fonts: { src: string; fontWeight: number | string }[];

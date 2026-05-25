@@ -3,13 +3,35 @@ import { createElement } from "react";
 import QRCode from "qrcode";
 import { prisma } from "@/lib/db";
 import type { CertificatePdfPayload } from "@/lib/certificate-pdf";
-import { CERTIFICATE_PDF_TEMPLATE_REV } from "@/lib/certificate-pdf-fonts";
+import {
+  CERTIFICATE_PDF_TEMPLATE_REV,
+  isCertificatePdfFontsReady,
+} from "@/lib/certificate-pdf-fonts";
+import { certificateVerifyUrl } from "@/lib/certificate-verify-url";
 import { getModuleRequirements, type ModuleForProgress } from "@/lib/progress";
 import type { DashboardStepMetrics } from "@/lib/dashboard-ui";
 import { reconcileUserAchievements } from "@/lib/achievements";
 import { getStorageService, namespaceDir } from "@/lib/storage";
 import { SECURITY_ACTIONS } from "@/lib/security/audit-actions";
 import { logSecurityEvent } from "@/lib/security/audit";
+import {
+  resolveCertificateLifecyclePhase,
+  type CertificateLifecyclePhase,
+} from "@/lib/certificate-eligibility";
+import { resolveCertificateUserFlow, type CertificateUserFlow } from "@/lib/certificate-flow";
+import { certificateRecordStatus } from "@/lib/certificate-registry";
+
+export type { CertificateLifecyclePhase } from "@/lib/certificate-eligibility";
+export type { CertificateUserFlow } from "@/lib/certificate-flow";
+
+export async function buildCertificateQrDataUrl(verifyUrl: string): Promise<string> {
+  return QRCode.toDataURL(verifyUrl, {
+    errorCorrectionLevel: "M",
+    margin: 1,
+    width: 160,
+    color: { dark: "#0f172a", light: "#ffffff" },
+  });
+}
 
 const CERT_NS = "certificates" as const;
 
@@ -33,17 +55,7 @@ export async function ensureCertificateUploadDir(): Promise<void> {
   await getStorageService().ensureNamespace(CERT_NS);
 }
 
-export function publicAppBaseUrl(): string {
-  const explicit = process.env.NEXT_PUBLIC_APP_URL?.trim();
-  if (explicit) return explicit.replace(/\/$/, "");
-  const vercel = process.env.VERCEL_URL?.trim();
-  if (vercel) return `https://${vercel.replace(/\/$/, "")}`;
-  return "http://localhost:3100";
-}
-
-export function certificateVerifyUrl(verificationCode: string): string {
-  return `${publicAppBaseUrl()}/certificate/verify/${encodeURIComponent(verificationCode)}`;
-}
+export { certificateVerifyPath, certificateVerifyUrl, publicAppBaseUrl } from "@/lib/certificate-verify-url";
 
 async function getPrimaryCourseId(): Promise<string | null> {
   const c = await prisma.course.findFirst({
@@ -236,6 +248,8 @@ export type CertificateDashboardState = {
   incompleteModules: { id: string; title: string }[];
   courseCompleted: boolean;
   canGenerate: boolean;
+  lifecyclePhase: CertificateLifecyclePhase;
+  userFlow: CertificateUserFlow;
   studentDisplayName: string;
   stepMetrics: DashboardStepMetrics;
   totalPoints: number;
@@ -245,9 +259,15 @@ export type CertificateDashboardState = {
     id: string;
     certificateNumber: string;
     issuedAt: string;
-    verificationCode: string;
     verifyUrl: string;
+    qrDataUrl: string;
+    registryStatus: "active" | "revoked";
+    revokedAt?: string;
+    /** Скачивание PDF доступно (шрифты на сервере, сертификат не отозван). */
+    pdfReady: boolean;
   };
+  /** Сервер может собрать PDF (@react-pdf + DejaVu TTF). */
+  pdfInfrastructureReady: boolean;
 };
 
 export async function getCertificateDashboardState(userId: string): Promise<CertificateDashboardState | null> {
@@ -282,10 +302,48 @@ export async function getCertificateDashboardState(userId: string): Promise<Cert
       select: { lastName: true, firstName: true, middleName: true },
     }),
   ]);
-  const verifyUrl = cert ? certificateVerifyUrl(cert.verificationCode) : "";
+  const verifyUrl = cert ? certificateVerifyUrl(cert.certificateNumber) : "";
   const studentDisplayName = profile
     ? [profile.lastName, profile.firstName, profile.middleName].filter(Boolean).join(" ").trim() || "Участник"
     : "Участник";
+
+  const canGenerate = courseCompleted;
+  const pdfInfrastructureReady = isCertificatePdfFontsReady();
+  if (cert) {
+    await syncCertificatePdfUrlIfFileOnDisk(cert.id, cert.pdfUrl);
+  }
+  const certRevoked = cert?.revokedAt != null;
+  const certPdfReady = Boolean(cert) && pdfInfrastructureReady && !certRevoked;
+  const lifecyclePhase = resolveCertificateLifecyclePhase({
+    certificate: cert
+      ? {
+          id: cert.id,
+          certificateNumber: cert.certificateNumber,
+          issuedAt: cert.issuedAt.toISOString(),
+          verifyUrl,
+          qrDataUrl: "",
+          registryStatus: certificateRecordStatus(cert),
+          revokedAt: cert.revokedAt?.toISOString(),
+          pdfReady: certPdfReady,
+        }
+      : null,
+    canGenerate,
+    completedModules: completed,
+    totalModules: total,
+  });
+  const userFlow = resolveCertificateUserFlow(lifecyclePhase);
+  const certificatePayload = cert
+    ? {
+        id: cert.id,
+        certificateNumber: cert.certificateNumber,
+        issuedAt: cert.issuedAt.toISOString(),
+        verifyUrl,
+        qrDataUrl: await buildCertificateQrDataUrl(verifyUrl),
+        registryStatus: certificateRecordStatus(cert),
+        revokedAt: cert.revokedAt?.toISOString(),
+        pdfReady: certPdfReady,
+      }
+    : null;
 
   return {
     courseId: course.id,
@@ -296,28 +354,63 @@ export async function getCertificateDashboardState(userId: string): Promise<Cert
     totalModules: total,
     incompleteModules,
     courseCompleted,
-    canGenerate: courseCompleted,
+    canGenerate,
+    lifecyclePhase,
+    userFlow,
     studentDisplayName,
     stepMetrics,
     totalPoints,
     maxPossiblePoints,
     scoreSuccessPercent,
-    certificate: cert
-      ? {
-          id: cert.id,
-          certificateNumber: cert.certificateNumber,
-          issuedAt: cert.issuedAt.toISOString(),
-          verificationCode: cert.verificationCode,
-          verifyUrl,
-        }
-      : null,
+    certificate: certificatePayload,
+    pdfInfrastructureReady,
   };
+}
+
+export type RevokeCertificateOptions = {
+  /** Необязательная причина — только audit metadata, не публичная verify. */
+  reason?: string;
+};
+
+/**
+ * Отзыв сертификата (soft: revokedAt, запись не удаляется). Публичная verify покажет revoked.
+ */
+export async function revokeCertificate(
+  certificateId: string,
+  options?: RevokeCertificateOptions,
+): Promise<void> {
+  const cert = await prisma.certificate.findUnique({
+    where: { id: certificateId },
+    select: { id: true, revokedAt: true, userId: true, courseId: true, certificateNumber: true },
+  });
+  if (!cert) {
+    throw new Error("NOT_FOUND");
+  }
+  if (cert.revokedAt) {
+    throw new Error("ALREADY_REVOKED");
+  }
+  await prisma.certificate.update({
+    where: { id: certificateId },
+    data: { revokedAt: new Date() },
+  });
+  const metadata: Record<string, unknown> = {
+    courseId: cert.courseId,
+    certificateNumber: cert.certificateNumber,
+  };
+  if (options?.reason) metadata.revokeReason = options.reason;
+
+  logSecurityEvent({
+    userId: cert.userId,
+    action: SECURITY_ACTIONS.CERTIFICATE_REVOKE,
+    targetId: cert.id,
+    metadata,
+  });
 }
 
 async function buildPdfPayloadForCertificate(
   userId: string,
   courseId: string,
-  cert: { certificateNumber: string; verificationCode: string; issuedAt: Date },
+  cert: { id: string; certificateNumber: string; issuedAt: Date },
 ): Promise<CertificatePdfPayload> {
   const [profile, course, { modules, byModule }] = await Promise.all([
     prisma.profile.findUnique({
@@ -364,7 +457,7 @@ async function buildPdfPayloadForCertificate(
     ? new Date(Math.min(...progressDates.map((r) => r.createdAt.getTime())))
     : course.createdAt;
 
-  const verifyUrl = certificateVerifyUrl(cert.verificationCode);
+  const verifyUrl = certificateVerifyUrl(cert.certificateNumber);
   const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
     errorCorrectionLevel: "M",
     margin: 1,
@@ -377,6 +470,7 @@ async function buildPdfPayloadForCertificate(
     process.env.CERTIFICATE_SIGNATORY_LINE?.trim() || "Руководитель образовательной платформы";
 
   return {
+    certificateId: cert.id,
     fullName,
     courseTitle: course.title,
     courseHours: course.hours,
@@ -384,7 +478,6 @@ async function buildPdfPayloadForCertificate(
     courseCompletedAt,
     totalScore,
     certificateNumber: cert.certificateNumber,
-    verificationCode: cert.verificationCode,
     verifyUrl,
     issuedAt: cert.issuedAt,
     organizationLine,
@@ -400,7 +493,7 @@ export async function renderCertificatePdfToBuffer(payload: CertificatePdfPayloa
       import("@/lib/certificate-pdf"),
       import("@/lib/certificate-pdf-fonts"),
     ]);
-  registerCertificatePdfFonts(Font);
+  registerCertificatePdfFonts(Font as import("@/lib/certificate-pdf-fonts").PdfFontModule);
   return renderToBuffer(
     // Корень — <Document> внутри CertificatePdfDocument; типы react-pdf ожидают именно DocumentProps.
     createElement(CertificatePdfDocument, payload) as Parameters<typeof renderToBuffer>[0],
@@ -438,6 +531,60 @@ export async function readCertificatePdfFile(certificateId: string): Promise<Buf
   return storage.read(CERT_NS, certificateFileKey(certificateId));
 }
 
+function certificateDownloadPath(certificateId: string): string {
+  return `/api/certificates/download/${certificateId}`;
+}
+
+/** Если PDF уже на диске, но pdfUrl в БД пуст — синхронизируем. */
+export async function syncCertificatePdfUrlIfFileOnDisk(
+  certificateId: string,
+  pdfUrl: string | null,
+): Promise<string | null> {
+  if (pdfUrl) return pdfUrl;
+  const buf = await readCertificatePdfFile(certificateId);
+  if (!buf) return null;
+  const url = certificateDownloadPath(certificateId);
+  await prisma.certificate.update({
+    where: { id: certificateId },
+    data: { pdfUrl: url },
+  });
+  return url;
+}
+
+/**
+ * Возвращает PDF для скачивания: читает с диска или генерирует и сохраняет.
+ * Обновляет pdfUrl в БД при первой успешной сборке.
+ */
+export async function ensureCertificatePdfDownload(cert: {
+  id: string;
+  userId: string;
+  courseId: string;
+  pdfUrl: string | null;
+}): Promise<Buffer> {
+  let buf = await readCertificatePdfFile(cert.id);
+  if (buf) {
+    if (!cert.pdfUrl) {
+      await prisma.certificate.update({
+        where: { id: cert.id },
+        data: { pdfUrl: certificateDownloadPath(cert.id) },
+      });
+    }
+    return buf;
+  }
+
+  if (!isCertificatePdfFontsReady()) {
+    throw new Error("PDF_FONTS_NOT_READY");
+  }
+
+  buf = await generateCertificatePdf(cert.userId, cert.courseId);
+  await writeCertificatePdfFile(cert.id, buf);
+  await prisma.certificate.update({
+    where: { id: cert.id },
+    data: { pdfUrl: certificateDownloadPath(cert.id) },
+  });
+  return buf;
+}
+
 /**
  * Создаёт запись сертификата, генерирует PDF и сохраняет файл на диск.
  * Требует: курс полностью пройден, записи ещё нет.
@@ -465,8 +612,8 @@ export async function issueCertificate(userId: string, courseId: string) {
 
   try {
     const payload = await buildPdfPayloadForCertificate(userId, courseId, {
+      id: cert.id,
       certificateNumber: cert.certificateNumber,
-      verificationCode: cert.verificationCode,
       issuedAt: cert.issuedAt,
     });
     const buffer = await renderCertificatePdfToBuffer(payload);

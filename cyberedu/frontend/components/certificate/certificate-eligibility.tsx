@@ -4,6 +4,8 @@ import type { CertificateDashboardState } from "@/lib/certificate";
 import {
   buildCertificateRemainingItems,
   buildCertificateRequirements,
+  CERTIFICATE_ELIGIBILITY_RULE,
+  CERTIFICATE_LIFECYCLE_LABELS,
   type CertificateRequirementRow,
 } from "@/lib/certificate-ui";
 import { Badge } from "@/components/ui/badge";
@@ -12,15 +14,9 @@ import { SectionCard } from "@/components/ui/section-card";
 import { cn } from "@/lib/utils";
 
 export function CertificateEligibility({ state }: { state: CertificateDashboardState }) {
-  const requirements = buildCertificateRequirements(
-    state,
-    state.stepMetrics,
-    state.scoreSuccessPercent,
-    state.maxPossiblePoints,
-  );
+  const requirements = buildCertificateRequirements(state, state.stepMetrics);
   const remaining = buildCertificateRemainingItems(state, requirements);
-  const allMet = requirements.every((r) => r.met);
-  const progressTone = state.courseCompleted ? "success" : "default";
+  const progressTone = state.certificate || state.canGenerate ? "success" : "default";
 
   return (
     <div className="space-y-5">
@@ -31,12 +27,18 @@ export function CertificateEligibility({ state }: { state: CertificateDashboardS
             <h2 id="cert-eligibility-heading" className="mt-1 font-display text-lg font-semibold text-foreground">
               Требования для получения
             </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Сертификат выдаётся после полного прохождения программы CyberEdu Academy.
-            </p>
+            <p className="mt-1 text-sm text-pretty text-muted-foreground">{CERTIFICATE_ELIGIBILITY_RULE}</p>
           </div>
-          <Badge variant={state.certificate ? "success" : allMet ? "primary" : "secondary"}>
-            {state.certificate ? "Выдан" : allMet ? "Готово к выдаче" : "В процессе"}
+          <Badge
+            variant={
+              state.lifecyclePhase === "issued"
+                ? "success"
+                : state.lifecyclePhase === "ready_to_issue"
+                  ? "primary"
+                  : "secondary"
+            }
+          >
+            {CERTIFICATE_LIFECYCLE_LABELS[state.lifecyclePhase]}
           </Badge>
         </div>
 

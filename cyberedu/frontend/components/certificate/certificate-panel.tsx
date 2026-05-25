@@ -1,64 +1,89 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import type { CertificateDashboardState } from "@/lib/certificate";
 import { CertificateActions } from "@/components/certificate/certificate-actions";
+import { CertificateFlowReady } from "@/components/certificate/certificate-flow-ready";
+import { CertificateIssuedGuide } from "@/components/certificate/certificate-issued-guide";
+import { CertificateIssueSuccess } from "@/components/certificate/certificate-issue-success";
 import { CertificatePreviewCard } from "@/components/certificate/certificate-preview-card";
-import { useToast } from "@/components/ui/toast";
+import { useCertificateIssue } from "@/components/certificate/use-certificate-issue";
+import { mapDashboardStateToCertificateProgressViewModel } from "@/lib/certificate-view-model";
 
 export type CertificatePanelProps = {
   state: CertificateDashboardState;
   generateButtonText?: string;
 };
 
-export function CertificatePanel({ state, generateButtonText = "Получить сертификат" }: CertificatePanelProps) {
-  const router = useRouter();
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
+/**
+ * Панель документа на странице сертификата.
+ * В состоянии ready делегирует выдачу в {@link CertificateFlowReady}.
+ */
+export function CertificatePanel({ state }: CertificatePanelProps) {
   const cert = state.certificate;
-  const downloadHref = cert ? `/api/certificates/download/${cert.id}` : null;
+  const isReady = state.userFlow === "ready" && !cert;
 
-  async function handleGenerate() {
-    setError(null);
-    setLoading(true);
-    try {
-      const res = await fetch("/api/certificates/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ courseId: state.courseId }),
-      });
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) {
-        const msg = data.error ?? "Не удалось создать сертификат.";
-        setError(msg);
-        toast({ title: "Ошибка", description: msg, variant: "error" });
-        return;
-      }
-      toast({ title: "Сертификат готов", description: "Документ создан и доступен для скачивания.", variant: "success" });
-      router.refresh();
-    } catch {
-      setError("Сетевая ошибка. Попробуйте позже.");
-    } finally {
-      setLoading(false);
-    }
+  if (isReady) {
+    const progress = mapDashboardStateToCertificateProgressViewModel(state);
+    return (
+      <CertificateFlowReady
+        progress={progress}
+        courseId={state.courseId}
+        previewState={state}
+      />
+    );
+  }
+
+  return <CertificatePanelIssuedOrProgress state={state} cert={cert} />;
+}
+
+function CertificatePanelIssuedOrProgress({
+  state,
+  cert,
+}: {
+  state: CertificateDashboardState;
+  cert: CertificateDashboardState["certificate"];
+}) {
+  const downloadHref =
+    cert?.pdfReady && cert.registryStatus !== "revoked"
+      ? `/api/certificates/download/${cert.id}`
+      : null;
+  const canIssue = state.canGenerate && !cert;
+  const { phase, loading, errorMessage, successPayload, issue, resetError } = useCertificateIssue({
+    courseId: state.courseId,
+    canIssue,
+  });
+
+  if (phase === "success" && successPayload) {
+    return (
+      <div className="space-y-6">
+        <CertificateIssueSuccess payload={successPayload} />
+        <CertificatePreviewCard state={state} />
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
+      {cert ? (
+        <CertificateIssuedGuide
+          certificateId={cert.id}
+          certificateNumber={cert.certificateNumber}
+          issuedAt={cert.issuedAt}
+          verifyUrl={cert.verifyUrl}
+        />
+      ) : null}
+
       <CertificatePreviewCard state={state} />
 
-      {error ? (
+      {errorMessage ? (
         <p className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger" role="alert">
-          {error}
+          {errorMessage}
         </p>
       ) : null}
 
       {!state.courseCompleted && !cert ? (
         <p className="text-sm text-muted-foreground">
-          Выполните все требования выше — после этого откроется генерация официального PDF с QR-кодом проверки.
+          Выполните все требования — после этого откроется выдача официального PDF с QR-кодом проверки.
         </p>
       ) : null}
 
@@ -66,17 +91,14 @@ export function CertificatePanel({ state, generateButtonText = "Получить
         courseId={state.courseId}
         verifyUrl={cert?.verifyUrl ?? null}
         downloadHref={downloadHref}
-        showGenerate={!cert}
+        showGenerate={!cert && state.userFlow !== "ready"}
         courseCompleted={state.canGenerate}
         loading={loading}
-        onGenerate={() => void handleGenerate()}
+        onGenerate={() => {
+          resetError();
+          void issue();
+        }}
       />
-
-      {!cert && state.courseCompleted ? (
-        <p className="text-xs text-muted-foreground">
-          {generateButtonText}: номер реестра, дата и публичная ссылка проверки появятся после генерации.
-        </p>
-      ) : null}
     </div>
   );
 }

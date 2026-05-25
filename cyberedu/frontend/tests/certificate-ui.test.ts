@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   buildCertificateRemainingItems,
   buildCertificateRequirements,
-  CERTIFICATE_MIN_SCORE_PERCENT,
 } from "@/lib/certificate-ui";
 import type { CertificateDashboardState } from "@/lib/certificate";
 
@@ -16,6 +15,8 @@ const baseState = {
   incompleteModules: [{ id: "m5", title: "Модуль 5" }],
   courseCompleted: false,
   canGenerate: false,
+  lifecyclePhase: "in_progress" as const,
+  userFlow: "progress" as const,
   studentDisplayName: "Иванов Иван",
   stepMetrics: {
     lessonsDone: 4,
@@ -29,27 +30,29 @@ const baseState = {
   maxPossiblePoints: 100,
   scoreSuccessPercent: 40,
   certificate: null,
+  pdfInfrastructureReady: true,
 } satisfies CertificateDashboardState;
 
 describe("certificate-ui", () => {
-  it("builds five eligibility requirements including min score", () => {
-    const reqs = buildCertificateRequirements(baseState, baseState.stepMetrics, 40, 100);
-    expect(reqs).toHaveLength(5);
-    expect(reqs.find((r) => r.id === "min_score")?.met).toBe(false);
-    expect(CERTIFICATE_MIN_SCORE_PERCENT).toBe(70);
+  it("builds four eligibility requirements (aligned with server)", () => {
+    const reqs = buildCertificateRequirements(baseState, baseState.stepMetrics);
+    expect(reqs).toHaveLength(4);
+    expect(reqs.find((r) => r.id === "modules")?.met).toBe(false);
   });
 
   it("lists remaining modules and steps", () => {
-    const reqs = buildCertificateRequirements(baseState, baseState.stepMetrics, 40, 100);
+    const reqs = buildCertificateRequirements(baseState, baseState.stepMetrics);
     const remaining = buildCertificateRemainingItems(baseState, reqs);
     expect(remaining.some((r) => r.includes("Модуль 5"))).toBe(true);
   });
 
-  it("marks ready when course completed", () => {
+  it("marks all requirements met when course completed", () => {
     const done = {
       ...baseState,
       courseCompleted: true,
       canGenerate: true,
+      lifecyclePhase: "ready_to_issue" as const,
+      userFlow: "ready" as const,
       progressPercent: 100,
       completedModules: 8,
       totalModules: 8,
@@ -64,7 +67,7 @@ describe("certificate-ui", () => {
       },
       scoreSuccessPercent: 85,
     };
-    const reqs = buildCertificateRequirements(done, done.stepMetrics, 85, 100);
+    const reqs = buildCertificateRequirements(done, done.stepMetrics);
     expect(reqs.every((r) => r.met)).toBe(true);
   });
 });

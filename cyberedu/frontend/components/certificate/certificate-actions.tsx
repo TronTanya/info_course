@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { ArrowLeft, Download, Share2 } from "lucide-react";
+import { ArrowLeft, Check, Copy, Download, ExternalLink, Share2 } from "lucide-react";
+import { useCertificateShare } from "@/components/certificate/use-certificate-share";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/toast";
 
 export function CertificateActions({
   courseId,
@@ -23,29 +22,7 @@ export function CertificateActions({
   loading?: boolean;
   onGenerate?: () => void;
 }) {
-  const { toast } = useToast();
-  const [sharing, setSharing] = useState(false);
-
-  async function handleShare() {
-    if (!verifyUrl) return;
-    setSharing(true);
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: "CyberEdu — проверка сертификата",
-          text: "Проверьте подлинность сертификата CyberEdu Academy",
-          url: verifyUrl,
-        });
-        return;
-      }
-      await navigator.clipboard.writeText(verifyUrl);
-      toast({ title: "Ссылка скопирована", description: "URL проверки в буфере обмена.", variant: "success" });
-    } catch {
-      toast({ title: "Не удалось поделиться", variant: "error" });
-    } finally {
-      setSharing(false);
-    }
-  }
+  const share = useCertificateShare(verifyUrl ?? "");
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -73,17 +50,42 @@ export function CertificateActions({
       ) : null}
 
       {verifyUrl ? (
-        <Button
-          type="button"
-          variant="outline"
-          size="lg"
-          className="gap-2 border-primary/25"
-          disabled={sharing}
-          onClick={() => void handleShare()}
-        >
-          <Share2 className="size-4" aria-hidden />
-          Поделиться ссылкой
-        </Button>
+        <>
+          <Button variant="outline" size="lg" className="gap-2 border-primary/25" asChild>
+            <a href={share.shareUrl} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="size-4" aria-hidden />
+              Открыть страницу проверки
+            </a>
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            className="gap-2"
+            disabled={share.copying}
+            onClick={() => void share.copyVerifyLink()}
+          >
+            {share.copySucceeded ? (
+              <Check className="size-4 text-success" aria-hidden />
+            ) : (
+              <Copy className="size-4" aria-hidden />
+            )}
+            {share.copying ? "Копирование…" : share.copySucceeded ? "Скопировано" : "Скопировать ссылку проверки"}
+          </Button>
+          {share.canNativeShare ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="lg"
+              className="gap-2"
+              disabled={share.sharing}
+              onClick={() => void share.shareVerifyLink()}
+            >
+              <Share2 className="size-4" aria-hidden />
+              Поделиться
+            </Button>
+          ) : null}
+        </>
       ) : null}
 
       <Button variant="ghost" size="lg" className="gap-2" asChild>
