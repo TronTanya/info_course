@@ -169,6 +169,49 @@ export function buildSubmittedMap(list: SubmittedAnswerPayload[]): Map<string, S
   return m;
 }
 
+/** Проверка формата и принадлежности выбранных id к вопросу (не оценка правильности). */
+export function validateSubmissionForQuestion(
+  q: Question & { answers: Answer[] },
+  submission: SubmittedAnswerPayload | undefined,
+): { ok: true } | { ok: false; error: string } {
+  if (!submission || submission.questionId !== q.id) {
+    return { ok: false, error: "Некорректный формат ответов." };
+  }
+
+  const validAnswerIds = new Set(q.answers.map((a) => a.id));
+
+  switch (q.questionType) {
+    case "SINGLE_CHOICE":
+    case "TRUE_FALSE":
+    case "SITUATION": {
+      if (submission.kind !== "single") return { ok: false, error: "Некорректный формат ответов." };
+      if (!submission.answerId || !validAnswerIds.has(submission.answerId)) {
+        return { ok: false, error: "Некорректный выбор варианта ответа." };
+      }
+      return { ok: true };
+    }
+    case "MULTIPLE_CHOICE":
+    case "MATCHING": {
+      if (submission.kind !== "multi") return { ok: false, error: "Некорректный формат ответов." };
+      const uniq = [...new Set(submission.answerIds)];
+      if (uniq.length === 0) return { ok: false, error: "Ответьте на все вопросы." };
+      if (uniq.some((id) => !validAnswerIds.has(id))) {
+        return { ok: false, error: "Некорректный выбор варианта ответа." };
+      }
+      return { ok: true };
+    }
+    case "TEXT": {
+      if (submission.kind !== "text") return { ok: false, error: "Некорректный формат ответов." };
+      const text = submission.text.trim();
+      if (!text) return { ok: false, error: "Ответьте на все вопросы." };
+      if (text.length > 8000) return { ok: false, error: "Слишком длинный текстовый ответ." };
+      return { ok: true };
+    }
+    default:
+      return { ok: false, error: "Некорректный формат ответов." };
+  }
+}
+
 /** Расчёт итога попытки (без записи в БД). Используется в server action и в тестах. */
 export function calculateTestScore(args: {
   questions: (Question & { answers: Answer[] })[];

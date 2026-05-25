@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 export type CircularProgressProps = {
   value: number;
   max?: number;
+  size?: number;
   strokeWidth?: number;
   className?: string;
   label?: string;
@@ -61,17 +62,23 @@ export function CircularProgress({
   const dashOffset = circumference - (pct / 100) * circumference;
   const center = ringCenterLayout(size, label);
 
+  const valueText = `${label}: ${Math.round(pct)}%`;
+
   return (
     <div
       className={cn("relative shrink-0", glow && "ce-progress-ring-glow", className)}
       style={{ width: size, height: size }}
-      role="img"
-      aria-label={`${label}: ${Math.round(pct)}%`}
+      role="progressbar"
+      aria-valuenow={Math.round(pct)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuetext={valueText}
+      aria-label={valueText}
     >
-      <svg width={size} height={size} className="block -rotate-90" aria-hidden>
+      <svg width={size} height={size} className="block -rotate-90 motion-reduce:transition-none" aria-hidden>
         <circle className="stroke-muted/80" fill="none" strokeWidth={strokeWidth} r={r} cx={cx} cy={cy} />
         <circle
-          className={cn(transitionBase, toneClass[tone])}
+          className={cn(transitionBase, "motion-reduce:transition-none", toneClass[tone])}
           fill="none"
           stroke="currentColor"
           strokeWidth={strokeWidth}

@@ -1,24 +1,32 @@
 "use client";
 
+import { useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { DashboardAchievementsPreview } from "@/components/dashboard/dashboard-achievements-preview";
-import { DashboardAiRecommendation } from "@/components/dashboard/dashboard-ai-recommendation";
 import { DashboardCertificateProgress } from "@/components/dashboard/dashboard-certificate-progress";
-import { DashboardCockpitHeader } from "@/components/dashboard/dashboard-cockpit-header";
-import { DashboardContinueHero } from "@/components/dashboard/dashboard-continue-hero";
-import { DashboardCourseProgress } from "@/components/dashboard/dashboard-course-progress";
+import { DashboardContinueLearningCard } from "@/components/dashboard/dashboard-continue-learning-card";
+import { OverallProgressPanel } from "@/components/dashboard/overall-progress-panel";
+import { buildDashboardProgressFromStats } from "@/lib/overall-progress-panel";
 import { DashboardEmpty } from "@/components/dashboard/dashboard-empty";
-import { DashboardLastTestResult } from "@/components/dashboard/dashboard-last-test-result";
-import { DashboardNextPractice } from "@/components/dashboard/dashboard-next-practice";
-import { DashboardQuickActions } from "@/components/dashboard/dashboard-quick-actions";
-import { DashboardMentorHost } from "@/components/dashboard/dashboard-mentor-host";
-import { DashboardWeakTopics } from "@/components/dashboard/dashboard-weak-topics";
+import { DashboardNotStartedBanner } from "@/components/dashboard/dashboard-page-states";
 import {
-  buildAiRecommendation,
-  buildWeakTopicRecommendations,
-  getLastTestResultView,
-  getNextPracticeCard,
-} from "@/lib/dashboard-ui";
+  hasDashboardLearningProgress,
+  shouldShowDashboardNotStarted,
+} from "@/lib/dashboard-page-state-ui";
+import { DashboardPendingPractices } from "@/components/dashboard/dashboard-pending-practices";
+import { RecentActivityFeed } from "@/components/dashboard/recent-activity-feed";
+import { buildRecentActivityFeedItems } from "@/lib/recent-activity-feed";
+import { RoadmapPreview } from "@/components/dashboard/roadmap-preview";
+import { buildRoadmapPreviewItems } from "@/lib/roadmap-preview";
+import { DashboardWelcomeHeader } from "@/components/dashboard/dashboard-welcome-header";
+import {
+  DashboardMentorSection,
+  DashboardMentorWidgetSlot,
+} from "@/components/dashboard/dashboard-mentor-section";
+import { StudentNavModuleSync } from "@/components/layout/student-nav-module-sync";
+import { WeakTopicsPanel } from "@/components/course/weak-topics-panel";
+import { getPendingPracticeReviews } from "@/lib/dashboard-ui";
+import { buildWeakTopicPanelItems } from "@/lib/weak-topics-panel";
 import { motionPresets, motionWithReducedMotion } from "@/lib/design-system/motion";
 import type { AchievementRow } from "@/lib/achievements";
 import type { ProfileCourseStats } from "@/lib/profile-course-stats";
@@ -29,13 +37,19 @@ export function DashboardHome({
   displayName,
   achievements,
   modules,
+  aiMentorConfigured = true,
 }: {
   stats: ProfileCourseStats | null;
   displayName: string;
   achievements: AchievementRow[];
   modules: CourseProgressModuleRow[];
+  aiMentorConfigured?: boolean;
 }) {
   const reduce = useReducedMotion();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, []);
 
   if (!stats) {
     return (
@@ -45,40 +59,71 @@ export function DashboardHome({
     );
   }
 
-  const practiceCard = getNextPracticeCard(modules);
-  const lastTest = getLastTestResultView(stats, modules);
-  const weakTopics = buildWeakTopicRecommendations(stats, modules);
-  const aiRecommendation = buildAiRecommendation(stats, modules);
+  const pendingPractices = getPendingPracticeReviews(stats, modules);
+  const recentActivity = buildRecentActivityFeedItems(stats, modules);
+  const weakTopics = buildWeakTopicPanelItems(stats, modules);
+  const learningStarted = hasDashboardLearningProgress(stats);
+  const notStarted = shouldShowDashboardNotStarted(stats, modules);
+  const courseComplete = stats.progressPercent >= 100 || stats.allModulesComplete;
+  const showContinueCard = !(stats.allModulesComplete && stats.certificateIssued);
 
   return (
-    <motion.div
-      className="min-w-0 space-y-5 overflow-x-clip pb-2 sm:space-y-6 sm:pb-4"
-      {...motionWithReducedMotion(motionPresets.fadeIn, reduce)}
-    >
-      <DashboardCockpitHeader displayName={displayName} stats={stats} modules={modules} />
+    <DashboardMentorSection stats={stats} modules={modules} aiConfigured={aiMentorConfigured}>
+      <StudentNavModuleSync stats={stats} modules={modules} />
+      <motion.div
+        className="ce-dashboard-cockpit min-w-0 overflow-x-clip pb-2"
+        {...motionWithReducedMotion(motionPresets.fadeIn, reduce)}
+      >
+        <div className="ce-dashboard-cockpit__layout flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(16.5rem,20rem)] lg:items-start lg:gap-4">
+          <div className="flex min-w-0 flex-col gap-3">
+            <DashboardWelcomeHeader displayName={displayName} stats={stats} modules={modules} />
 
-      <DashboardContinueHero stats={stats} modules={modules} />
+            {notStarted ? <DashboardNotStartedBanner /> : null}
 
-      <div className="grid min-w-0 grid-cols-1 gap-5 xl:grid-cols-2 xl:gap-5">
-        <DashboardCourseProgress stats={stats} modules={modules} />
-        <DashboardCertificateProgress stats={stats} modules={modules} />
-      </div>
+            {showContinueCard ? (
+              <DashboardContinueLearningCard stats={stats} modules={modules} />
+            ) : null}
 
-      <div className="grid min-w-0 grid-cols-1 gap-5 xl:grid-cols-2 xl:gap-5">
-        <DashboardNextPractice card={practiceCard} />
-        <DashboardLastTestResult result={lastTest} />
-      </div>
+            <OverallProgressPanel
+              progress={buildDashboardProgressFromStats(stats, modules)}
+              modulesUntilCertificate={stats.modulesUntilCertificate}
+              learningStarted={learningStarted}
+              compact={courseComplete}
+            />
 
-      <div className="grid min-w-0 grid-cols-1 gap-5 xl:grid-cols-2 xl:gap-5">
-        <DashboardWeakTopics items={weakTopics} />
-        <DashboardAiRecommendation recommendation={aiRecommendation} />
-      </div>
+            <RoadmapPreview
+              compact={courseComplete}
+              items={buildRoadmapPreviewItems(modules, stats.currentModuleId)}
+            />
 
-      {achievements.length > 0 ? <DashboardAchievementsPreview rows={achievements} /> : null}
+            {pendingPractices.length > 0 ? (
+              <DashboardPendingPractices items={pendingPractices} />
+            ) : null}
 
-      <DashboardQuickActions modules={modules} stats={stats} />
+            {weakTopics.length > 0 ? (
+              <WeakTopicsPanel items={weakTopics} className="p-4 sm:p-5" />
+            ) : null}
 
-      <DashboardMentorHost stats={stats} modules={modules} />
-    </motion.div>
+            {!courseComplete ? (
+              <DashboardAchievementsPreview rows={achievements} stats={stats} modules={modules} />
+            ) : null}
+          </div>
+
+          <aside
+            aria-label="Сертификат, AI-наставник и недавняя активность"
+            className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-[calc(var(--header-height,4.5rem)+0.75rem)] lg:max-h-[calc(100dvh-var(--header-height,4.5rem)-1.5rem)] lg:overflow-y-auto lg:overscroll-contain"
+          >
+            <DashboardCertificateProgress stats={stats} modules={modules} compact={courseComplete} />
+            <DashboardMentorWidgetSlot
+              stats={stats}
+              modules={modules}
+              aiConfigured={aiMentorConfigured}
+              compact={courseComplete}
+            />
+            {recentActivity.length > 0 ? <RecentActivityFeed items={recentActivity} compact /> : null}
+          </aside>
+        </div>
+      </motion.div>
+    </DashboardMentorSection>
   );
 }

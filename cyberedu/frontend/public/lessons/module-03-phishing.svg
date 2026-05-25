@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" role="img" aria-label="Фишинг и социальная инженерия">
+  <defs>
+    <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1c1917"/>
+      <stop offset="100%" stop-color="#7f1d1d"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="400" fill="url(#bg3)"/>
+  <rect x="220" y="90" width="360" height="220" rx="12" fill="#292524" stroke="#f87171" stroke-width="2"/>
+  <rect x="240" y="110" width="320" height="36" rx="6" fill="#44403c"/>
+  <text x="260" y="134" fill="#fca5a5" font-family="system-ui,sans-serif" font-size="14">⚠ Срочно: подтвердите вход</text>
+  <rect x="240" y="160" width="200" height="12" rx="4" fill="#57534e"/>
+  <rect x="240" y="182" width="280" height="12" rx="4" fill="#57534e"/>
+  <rect x="240" y="220" width="120" height="36" rx="8" fill="#dc2626"/>
+  <text x="300" y="244" text-anchor="middle" fill="#fff" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Перейти</text>
+  <path d="M580 280 Q620 200 700 160" fill="none" stroke="#fbbf24" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="700" cy="155" r="28" fill="#fbbf24" opacity="0.2"/>
+  <path d="M685 155 L700 170 L720 140" fill="none" stroke="#fbbf24" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="400" y="360" text-anchor="middle" fill="#fecaca" font-family="system-ui,sans-serif" font-size="18">Модуль 3 — Фишинг</text>
+</svg>

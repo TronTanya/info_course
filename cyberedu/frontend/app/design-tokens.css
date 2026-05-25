@@ -6,20 +6,21 @@
 
 /* --- Примитивы палитры (не использовать в компонентах напрямую) --- */
 :root {
-  --ce-bg-base: #060712;
-  --ce-bg-elevated: #0c0f1c;
-  --ce-bg-surface: #12152a;
-  --ce-border: rgb(255 255 255 / 0.09);
-  --ce-accent: #7c5cff;
-  --ce-accent-soft: #9b87ff;
-  --ce-violet-deep: #1a1033;
-  --ce-cyber-mint: #4cc9a0;
-  --ce-cyber-teal: #5eead4;
+  /* Deep navy base — Linear/Vercel-like, not acid hacker green */
+  --ce-bg-base: #04050c;
+  --ce-bg-elevated: #080b16;
+  --ce-bg-surface: #0e1222;
+  --ce-border: rgb(255 255 255 / 0.08);
+  --ce-accent: #6d5ce8;
+  --ce-accent-soft: #8b7cf8;
+  --ce-violet-deep: #14102a;
+  --ce-cyber-mint: #34d399;
+  --ce-cyber-teal: #4fd1c5;
   --ce-warning: #e8b84a;
   --ce-danger: #f0527a;
-  --ce-text: #f4f2fa;
-  --ce-text-secondary: #b8b3cc;
-  --ce-text-muted: #7c7794;
+  --ce-text: #f6f4fc;
+  --ce-text-secondary: #c4bfd6;
+  --ce-text-muted: #8b859c;
 
   /* Premium surfaces & glow (v2.2) */
   --ce-glass-blur: 16px;

@@ -84,7 +84,7 @@ export function ProfileProgressPortfolio({ stats, achievements, modules }: Profi
       <div className="grid gap-4 lg:grid-cols-2">
         <ProfileCompletedModules modules={stats.completedModuleRows} />
         <SectionCard variant="default" flushTitle className="overflow-hidden p-0" id="achievements">
-          <ProfileAchievementsPanel rows={achievements} />
+          <ProfileAchievementsPanel rows={achievements} stats={stats} modules={modules} />
         </SectionCard>
       </div>
 

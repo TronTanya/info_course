@@ -2,19 +2,29 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { SubmissionStatus } from "@prisma/client";
+import { mapReviewIntentToStatus } from "@/lib/admin-submission-review-intent";
 import { prisma } from "@/lib/db";
 import { updatePracticeStatusAfterAdminReview } from "@/lib/practice-progress-engine";
 import { requireAdmin } from "@/lib/permissions";
+import { logAdminSecurityEvent } from "@/lib/security/audit";
+import { SECURITY_ACTIONS } from "@/lib/security/audit-actions";
 import { parseReviewSubmissionScore } from "@/lib/submission-review-score";
 
-export type AdminSubmissionReviewState = { error?: string };
+export type AdminSubmissionReviewState = { error?: string; saved?: boolean };
 
-const REVIEW_STATUSES = new Set<SubmissionStatus>(["ACCEPTED", "REJECTED", "NEEDS_REVISION"]);
-
-function parseStatus(raw: string): SubmissionStatus | null {
-  const v = raw.trim() as SubmissionStatus;
-  return REVIEW_STATUSES.has(v) ? v : null;
+function revalidateAfterSubmissionReview(
+  submissionId: string,
+  userId: string,
+  moduleId: string,
+) {
+  revalidatePath("/admin/submissions");
+  revalidatePath("/admin");
+  revalidatePath(`/admin/users/${userId}`);
+  revalidatePath(`/admin/submissions/${submissionId}`);
+  revalidatePath(`/dashboard/course/${moduleId}/practice`);
+  revalidatePath(`/dashboard/course/${moduleId}`);
+  revalidatePath("/dashboard/course");
+  revalidatePath("/dashboard/profile");
 }
 
 export async function reviewSubmissionAction(
@@ -26,11 +36,15 @@ export async function reviewSubmissionAction(
   const submissionId = String(formData.get("submissionId") ?? "").trim();
   if (!submissionId) return { error: "Не указана отправка." };
 
-  const status = parseStatus(String(formData.get("status") ?? ""));
-  if (!status) return { error: "Выберите статус: принято, отклонено или на доработку." };
+  const status = mapReviewIntentToStatus(String(formData.get("intent") ?? ""));
+  if (!status) return { error: "Выберите действие: принять, отклонить или отправить на доработку." };
 
   const adminCommentRaw = String(formData.get("adminComment") ?? "");
   const adminComment = adminCommentRaw.trim() === "" ? null : adminCommentRaw.trim();
+
+  if (status === "NEEDS_REVISION" && !adminComment) {
+    return { error: "Для доработки укажите комментарий для студента." };
+  }
 
   const scoreRaw = String(formData.get("score") ?? "").trim();
 
@@ -60,14 +74,54 @@ export async function reviewSubmissionAction(
     adminComment,
   });
 
-  revalidatePath("/admin/submissions");
-  revalidatePath("/admin");
-  revalidatePath(`/admin/users/${sub.userId}`);
-  revalidatePath(`/admin/submissions/${submissionId}`);
-  revalidatePath(`/dashboard/course/${sub.practicalTask.moduleId}/practice`);
-  revalidatePath(`/dashboard/course/${sub.practicalTask.moduleId}`);
-  revalidatePath("/dashboard/course");
-  revalidatePath("/dashboard/profile");
+  revalidateAfterSubmissionReview(submissionId, sub.userId, sub.practicalTask.moduleId);
 
   redirect(`/admin/submissions/${submissionId}`);
+}
+
+/** Сохраняет комментарий для студента без смены статуса и без audit review. */
+export async function saveSubmissionReviewCommentAction(
+  _prev: AdminSubmissionReviewState | null,
+  formData: FormData,
+): Promise<AdminSubmissionReviewState> {
+  const session = await requireAdmin();
+
+  const submissionId = String(formData.get("submissionId") ?? "").trim();
+  if (!submissionId) return { error: "Не указана отправка." };
+
+  const adminCommentRaw = String(formData.get("adminComment") ?? "");
+  const adminComment = adminCommentRaw.trim() === "" ? null : adminCommentRaw.trim();
+
+  const sub = await prisma.submission.findUnique({
+    where: { id: submissionId },
+    select: {
+      userId: true,
+      status: true,
+      practicalTask: { select: { moduleId: true } },
+    },
+  });
+
+  if (!sub) return { error: "Отправка не найдена." };
+  if (sub.status === "DRAFT") return { error: "Черновик нельзя редактировать." };
+
+  await prisma.submission.update({
+    where: { id: submissionId },
+    data: { adminComment },
+  });
+
+  logAdminSecurityEvent(
+    session.user.id,
+    SECURITY_ACTIONS.ADMIN_PRACTICE_REVIEW,
+    submissionId,
+    { commentOnly: true },
+    { path: "/admin/submissions" },
+  );
+
+  revalidateAfterSubmissionReview(
+    submissionId,
+    sub.userId,
+    sub.practicalTask.moduleId,
+  );
+
+  return { saved: true };
 }

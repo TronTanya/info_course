@@ -3,11 +3,13 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export function PracticeLabWorkspace({
+  id,
   taskTypeLabel,
   componentLabel,
   children,
   className,
 }: {
+  id?: string;
   taskTypeLabel: string;
   componentLabel: { en: string; ru: string };
   children: ReactNode;
@@ -15,8 +17,9 @@ export function PracticeLabWorkspace({
 }) {
   return (
     <section
+      id={id}
       className={cn(
-        "ce-practice-workspace relative overflow-hidden rounded-2xl border border-primary/20 bg-card/90 p-5 shadow-card ring-1 ring-primary/10 sm:p-6",
+        "ce-practice-workspace relative min-w-0 overflow-x-clip rounded-2xl border border-primary/20 bg-card/90 p-4 shadow-card ring-1 ring-primary/10 sm:p-6",
         className,
       )}
     >

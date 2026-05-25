@@ -12,7 +12,7 @@ const payload = {
   totalScore: 100,
   certificateNumber: "CE-2026-TEST",
   verificationCode: "abc123",
-  verifyUrl: "http://localhost:3100/certificate/verify/abc",
+  verifyUrl: "http://localhost:3100/verify/CE-2026-TESTPDF1",
   issuedAt: new Date("2026-05-01"),
   organizationLine: "CyberEdu Academy",
   signatoryLine: "Руководитель платформы",

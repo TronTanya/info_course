@@ -57,7 +57,11 @@ export function moduleStatusAccent(status: UiStatus): string {
     case "in_progress":
       return "border-primary/35 bg-primary/5";
     case "available":
-      return "border-border/80 bg-card";
+      return "border-cyan/25 bg-card";
+    case "pending_review":
+      return "border-warning/30 bg-warning/5";
+    case "needs_retry":
+      return "border-danger/30 bg-danger/5";
     default:
       return "border-border/60 bg-muted/20 opacity-95";
   }

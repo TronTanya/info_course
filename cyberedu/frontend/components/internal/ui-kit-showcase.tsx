@@ -11,29 +11,37 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { CertificatePreview } from "@/components/certificate/certificate-preview";
+import { CERTIFICATE_PREVIEW_PLACEHOLDERS } from "@/lib/certificate-preview-model";
 import { UiKitInteractive } from "@/components/ui/ui-kit-interactive";
 import { cn } from "@/lib/utils";
+import type { CertificatePreviewModel } from "@/types/certificate-preview";
 
-function CertificatePreviewDemo() {
-  return (
-    <div className="flex h-full min-h-[5.5rem] flex-col justify-between">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-cyan">Certificate</p>
-          <p className="mt-1 text-sm font-semibold text-foreground">CyberEdu</p>
-          <p className="text-[11px] text-muted-foreground">Основы ИБ · PDF</p>
-        </div>
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-primary/30 bg-primary/10 text-xs font-bold text-primary">
-          PDF
-        </div>
-      </div>
-      <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-2">
-        <span className="font-mono text-[10px] text-muted-foreground">№ CE-2026-****</span>
-        <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">Подпись</span>
-      </div>
-    </div>
-  );
-}
+const previewPlaceholderModel: CertificatePreviewModel = {
+  mode: "placeholder",
+  status: "preview",
+  studentName: CERTIFICATE_PREVIEW_PLACEHOLDERS.studentName,
+  courseTitle: "Основы информационной безопасности",
+  courseHours: 120,
+  issuedAtLabel: CERTIFICATE_PREVIEW_PLACEHOLDERS.issuedAt,
+  certificateIdLabel: CERTIFICATE_PREVIEW_PLACEHOLDERS.certificateId,
+  verifyUrlDisplay: CERTIFICATE_PREVIEW_PLACEHOLDERS.verifyUrl,
+  verifyHref: null,
+  qrDataUrl: null,
+};
+
+const previewIssuedModel: CertificatePreviewModel = {
+  mode: "issued",
+  status: "valid",
+  studentName: "Иванов Иван",
+  courseTitle: "Основы информационной безопасности",
+  courseHours: 120,
+  issuedAtLabel: "1 мая 2026 г.",
+  certificateIdLabel: "CE-2026-DEMO",
+  verifyUrlDisplay: "app.example/verify/CE-2026-DEMO",
+  verifyHref: "https://app.example/verify/CE-2026-DEMO",
+  qrDataUrl: null,
+};
 
 function CourseCardDemo() {
   return (
@@ -326,9 +334,12 @@ export function UiKitShowcase({ variant = "admin" }: { variant?: "admin" | "dev"
 
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-foreground">Certificate preview</h2>
-        <p className="text-sm text-muted-foreground">Компактный блок превью сертификата (лендинг / дашборд).</p>
-        <div className="max-w-md rounded-2xl border border-border/80 bg-linear-to-r from-card via-muted/20 to-card p-4 shadow-card ring-1 ring-inset ring-white/50">
-          <CertificatePreviewDemo />
+        <p className="text-sm text-muted-foreground">
+          Превью до выдачи (dark) и выданный документ (light, печатный вариант).
+        </p>
+        <div className="grid gap-6 xl:grid-cols-2">
+          <CertificatePreview model={previewPlaceholderModel} variant="dark" />
+          <CertificatePreview model={previewIssuedModel} variant="light" />
         </div>
       </section>
     </div>

@@ -2,43 +2,39 @@ import type { Metadata } from "next";
 import { LandingAiMentor } from "@/components/home/landing-ai-mentor";
 import { LandingCertificates } from "@/components/home/landing-certificates";
 import { LandingCta } from "@/components/home/landing-cta";
+import { LandingFaq } from "@/components/home/landing-faq";
+import { LandingForWhom } from "@/components/home/landing-for-whom";
 import { LandingHero } from "@/components/home/landing-hero";
 import { LandingHowItWorks } from "@/components/home/landing-how-it-works";
+import { LandingModules } from "@/components/home/landing-modules";
+import { LandingPlatformSecurity } from "@/components/home/landing-platform-security";
 import { LandingPracticeLab } from "@/components/home/landing-practice-lab";
-import { LandingTrustMetrics } from "@/components/home/landing-trust-metrics";
-import { LandingWhatYouLearn } from "@/components/home/landing-what-you-learn";
+import { LandingTrustStrip } from "@/components/home/landing-trust-strip";
+import { LandingReviews } from "@/components/home/landing-reviews";
 import { LandingShell } from "@/components/layout/landing-shell";
-import { buildPublicMetadata } from "@/lib/seo/build-page-metadata";
 import { JsonLd, homePageJsonLd } from "@/components/seo/json-ld";
+import { buildHomePageMetadata } from "@/lib/seo/home-page-metadata";
+import { siteBaseUrl } from "@/lib/seo/build-page-metadata";
 
 export const dynamic = "force-dynamic";
 
-const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3100";
-
-export const metadata: Metadata = {
-  ...buildPublicMetadata({
-    title: "CyberEdu — практическая академия кибербезопасности",
-    description:
-      "Теория, SOC-практики, тесты, AI-наставник и сертификат в одном интерактивном треке. Пошаговая программа по информационной безопасности.",
-    path: "/",
-  }),
-  title: {
-    default: "CyberEdu — практическая академия кибербезопасности",
-    template: "%s · CyberEdu",
-  },
-};
+export const metadata: Metadata = buildHomePageMetadata();
 
 export default function HomePage() {
   return (
     <LandingShell>
-      <JsonLd data={homePageJsonLd(appUrl)} />
+      <JsonLd data={homePageJsonLd(siteBaseUrl())} />
       <LandingHero />
-      <LandingTrustMetrics />
-      <LandingWhatYouLearn />
+      <LandingTrustStrip />
+      <LandingForWhom />
       <LandingHowItWorks />
+      <LandingModules />
       <LandingPracticeLab />
       <LandingAiMentor />
+      <LandingPlatformSecurity />
       <LandingCertificates />
+      <LandingReviews />
+      <LandingFaq />
       <LandingCta />
     </LandingShell>
   );

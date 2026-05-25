@@ -49,7 +49,7 @@ export async function getLessonAiSnapshots(
   const rows = await prisma.aiAdaptation.findMany({
     where: { userId, lessonId },
     orderBy: { createdAt: "desc" },
-    take: 80,
+    take: 24,
     select: {
       id: true,
       adaptedContent: true,
@@ -75,14 +75,6 @@ export async function getLessonAiSnapshots(
   return { explanation, summary };
 }
 
-async function assertLessonBelongsToModule(lessonId: string, moduleId: string) {
-  const ok = await prisma.lesson.findFirst({
-    where: { id: lessonId, moduleId },
-    select: { id: true },
-  });
-  return Boolean(ok);
-}
-
 /**
  * Генерация AI-текста и запись в `AiAdaptation` (оригинал лекции дублируется в строке для аудита).
  */
@@ -93,31 +85,25 @@ export async function runLessonAiPipeline(input: {
   action: LessonAiAction;
   question?: string;
 }) {
-  const access = await checkModuleAccessForApi(input.userId, input.moduleId);
+  const [access, lesson, user] = await Promise.all([
+    checkModuleAccessForApi(input.userId, input.moduleId),
+    prisma.lesson.findFirst({
+      where: { id: input.lessonId, moduleId: input.moduleId },
+      select: { id: true, title: true, content: true, allowAiAdaptation: true },
+    }),
+    prisma.user.findUnique({
+      where: { id: input.userId },
+      select: { id: true, profile: true },
+    }),
+  ]);
+
   if (!access.ok) {
     throw new ProgressAccessError(access.code, access.message);
   }
-  const belongs = await assertLessonBelongsToModule(input.lessonId, input.moduleId);
-  if (!belongs) {
-    throw new Error("LESSON_NOT_IN_MODULE");
-  }
-
-  const lesson = await prisma.lesson.findUnique({
-    where: { id: input.lessonId },
-    select: { id: true, title: true, content: true, allowAiAdaptation: true },
-  });
   if (!lesson) throw new Error("LESSON_NOT_FOUND");
   if (!lesson.allowAiAdaptation) {
     throw new Error("AI_DISABLED_FOR_LESSON");
   }
-
-  const user = await prisma.user.findUnique({
-    where: { id: input.userId },
-    select: {
-      id: true,
-      profile: true,
-    },
-  });
   const rawLine = user?.profile ? formatInterestsDisplay(parseProfileInterests(user.profile.interests)) : "—";
   const interestsLine = rawLine === "—" ? "не указаны" : rawLine;
   const spec = user?.profile?.specialty?.trim();

@@ -19,7 +19,7 @@ export function DashboardCockpitHeader({
   return (
     <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0 space-y-2">
-        <p className="typo-eyebrow text-primary">Learning cockpit</p>
+        <p className="typo-eyebrow text-primary">Центр обучения</p>
         <h1 className="font-display text-2xl font-semibold text-balance text-foreground sm:text-3xl">
           Здравствуйте, {displayName}
         </h1>

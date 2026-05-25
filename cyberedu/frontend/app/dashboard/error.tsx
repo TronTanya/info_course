@@ -1,24 +1,26 @@
 "use client";
 
-import { RouteErrorView } from "@/components/ui/route-error-view";
+import { DashboardPageLoadError } from "@/components/dashboard/dashboard-page-states";
+import { DashboardShell } from "@/components/layout/dashboard-shell";
+import { logError } from "@/lib/log/structured";
+import { useEffect } from "react";
 
 export default function DashboardError({
   error,
-  reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    logError("dashboard_route_error", {
+      digest: error.digest,
+      code: error.message?.slice(0, 120),
+    });
+  }, [error]);
+
   return (
-    <RouteErrorView
-      error={error}
-      reset={reset}
-      logTag="dashboard"
-      title="Не удалось загрузить кабинет"
-      description="Похоже, произошла временная ошибка. Проверьте соединение и попробуйте снова."
-      homeHref="/"
-      homeLabel="На главную"
-      className="max-w-lg"
-    />
+    <DashboardShell>
+      <DashboardPageLoadError kind="dashboard" />
+    </DashboardShell>
   );
 }

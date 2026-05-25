@@ -66,7 +66,9 @@ async function answerVisibleQuestion(page: Page): Promise<void> {
 }
 
 async function testAnswerProgress(page: Page): Promise<{ answered: number; total: number } | null> {
-  const text = await page.getByText(/Прогресс по ответам:/i).first().textContent();
+  const progress = page.getByText(/Прогресс по ответам:/i).first();
+  if (!(await progress.isVisible({ timeout: 2_000 }).catch(() => false))) return null;
+  const text = await progress.textContent();
   const m = text?.match(/(\d+)\s*\/\s*(\d+)/);
   if (!m) return null;
   return { answered: Number(m[1]), total: Number(m[2]) };
@@ -74,7 +76,22 @@ async function testAnswerProgress(page: Page): Promise<{ answered: number; total
 
 /** Ответить на все вопросы и отправить тест; false — если тест уже сдан и повтор недоступен в UI. */
 export async function submitModuleTest(page: Page): Promise<boolean> {
+  const retake = page.getByRole("button", { name: /Пройти тест ещё раз/i });
+  const hasResult = await page
+    .getByText(/Тест уже пройден|Результат:|Статус:/i)
+    .first()
+    .isVisible({ timeout: 3_000 })
+    .catch(() => false);
+
+  if (hasResult && !(await retake.isVisible().catch(() => false))) {
+    return false;
+  }
+
   await startTestAttempt(page);
+
+  if (!(await page.getByText(/Прогресс по ответам:/i).first().isVisible({ timeout: 5_000 }).catch(() => false))) {
+    return false;
+  }
 
   const finishBtn = page.getByRole("button", { name: /Завершить тест/i });
   const maxSteps = 40;

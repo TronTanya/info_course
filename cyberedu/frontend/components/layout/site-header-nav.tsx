@@ -15,7 +15,8 @@ import {
 import { logoutAction } from "@/lib/actions/logout";
 import { Button } from "@/components/ui/button";
 import { isNavHrefActive, isAdminPrimaryActive } from "@/lib/nav-active";
-import { isStudentQuickNavActive, resolveStudentNavPaths, type StudentQuickNavKey } from "@/lib/nav-resolve";
+import { isStudentQuickNavActive, type StudentQuickNavKey } from "@/lib/nav-resolve";
+import { useStudentNavPaths } from "@/lib/hooks/use-student-nav-paths";
 import { navLinkClass } from "@/components/layout/nav-link-styles";
 import { UserMenu, type UserMenuUser } from "@/components/layout/user-menu";
 import { cn } from "@/lib/utils";
@@ -39,7 +40,7 @@ function CloseIcon() {
 }
 
 function isPublicLinkActive(pathname: string, href: string): boolean {
-  if (href.startsWith("/#")) return pathname === "/";
+  if (href.startsWith("/#")) return false;
   return isNavHrefActive(pathname, href);
 }
 
@@ -54,7 +55,7 @@ export function SiteHeaderNav({
   const [open, setOpen] = React.useState(false);
   const isGuest = variant === "guest";
   const isAdmin = variant === "admin";
-  const paths = resolveStudentNavPaths(pathname);
+  const paths = useStudentNavPaths();
   const close = () => setOpen(false);
 
   type DrawerLink = { href: string; label: string; key?: StudentQuickNavKey; icon?: React.ComponentType<{ className?: string }> };
@@ -153,7 +154,7 @@ export function SiteHeaderNav({
                     <div className="pb-1">
                       <Dialog.Close asChild>
                         <Button asChild variant="primary" className="w-full min-h-11">
-                          <a href="/api/admin/users/export" onClick={close} title="CSV для Excel">
+                          <a href="/admin#admin-export" onClick={close} title="Экспорт CSV для Excel">
                             Выгрузка CSV
                           </a>
                         </Button>

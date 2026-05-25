@@ -16,12 +16,12 @@ export function LandingFeatureCard({ className, icon, title, description, childr
       variant="default"
       flushTitle
       className={cn(
-        "ce-card-glow group h-full transition-[transform,box-shadow,border-color] duration-200 motion-reduce:transition-none hover:-translate-y-0.5",
+        "ce-card-glow ce-landing-feature-card ce-landing-glass-tile group h-full motion-reduce:transition-none",
         className,
       )}
     >
       {icon ? (
-        <div className="mb-3 flex size-11 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary ring-1 ring-primary/15 transition-colors group-hover:border-primary/35 group-hover:bg-primary/15">
+        <div className="mb-3 flex size-11 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary ring-1 ring-primary/15 transition-[border-color,background-color,box-shadow] duration-200 group-hover:border-cyan/30 group-hover:bg-primary/12 group-hover:shadow-[0_0_24px_-10px_color-mix(in_oklab,var(--cyan)_35%,transparent)]">
           {icon}
         </div>
       ) : null}

@@ -1,88 +1,46 @@
-import type { ComponentProps } from "react";
 import type { CourseProgressModuleRow, ModuleRequirements } from "@/lib/progress";
-import type { Badge } from "@/components/ui/badge";
+import {
+  buildRoadmapInnerSteps,
+  COURSE_LOCKED_MODULE_REASON,
+  getInnerStepEntityStatus,
+  getLockedUnlockHint,
+  getModuleContinueCta,
+  getModuleEntityStatus,
+  getRoadmapDisplayEntityStatus,
+  getRoadmapEntityStatus,
+  getStatusBadgeConfig,
+  isRoadmapFocusModule,
+  moduleStatusShellClass,
+  type CourseEntityUiStatus,
+  type CourseInnerStepKind,
+  type CourseRoadmapFocusStatus,
+} from "@/lib/course-ui-status";
 
-export type UiStatus = "locked" | "available" | "in_progress" | "completed";
+export type { CourseEntityUiStatus as UiStatus, CourseRoadmapFocusStatus as RoadmapStatus } from "@/lib/course-ui-status";
+export type { RoadmapInnerStep, CourseInnerStepKind as RoadmapInnerStepKind } from "@/lib/course-ui-status";
+export { COURSE_LOCKED_MODULE_REASON, buildRoadmapInnerSteps, isRoadmapFocusModule, moduleStatusShellClass as moduleStatusAccent };
 
-/** Статус узла на карте курса (включая текущий фокус). */
-export type RoadmapStatus = UiStatus | "current";
+export const getUiStatus = getModuleEntityStatus;
+export const getRoadmapStatus = getRoadmapEntityStatus;
+export const getRoadmapDisplayStatus = getRoadmapDisplayEntityStatus;
 
-export function getRoadmapStatus(
-  row: CourseProgressModuleRow,
-  focusModuleId?: string | null,
-): RoadmapStatus {
-  if (!row.unlocked) return "locked";
-  if (row.moduleCompleted) return "completed";
-  if (focusModuleId && row.module.id === focusModuleId) return "current";
-  return getUiStatus(row);
-}
-
-export function getUiStatus(row: CourseProgressModuleRow): UiStatus {
-  if (!row.unlocked) return "locked";
-  if (row.moduleCompleted) return "completed";
-  const p = row.progress;
-  const started =
-    Boolean(p?.lessonCompleted) ||
-    Boolean(p?.videoCompleted) ||
-    Boolean(p?.testCompleted) ||
-    Boolean(p?.practiceCompleted) ||
-    row.progressPercent > 0;
-  return started ? "in_progress" : "available";
-}
-
-export const statusBadge: Record<
-  UiStatus,
-  { label: string; variant: NonNullable<ComponentProps<typeof Badge>["variant"]>; className?: string }
-> = {
-  locked: { label: "Закрыт", variant: "outline", className: "border-muted-foreground/40 text-muted-foreground" },
-  available: { label: "Не начат", variant: "outline", className: "border-border text-muted-foreground" },
-  in_progress: { label: "В процессе", variant: "primary" },
-  completed: { label: "Завершён", variant: "success" },
+export const statusBadge: Record<CourseEntityUiStatus, ReturnType<typeof getStatusBadgeConfig>> = {
+  locked: getStatusBadgeConfig("locked"),
+  available: getStatusBadgeConfig("available"),
+  in_progress: getStatusBadgeConfig("in_progress"),
+  completed: getStatusBadgeConfig("completed"),
+  pending_review: getStatusBadgeConfig("pending_review"),
+  needs_retry: getStatusBadgeConfig("needs_retry"),
 };
 
-export const roadmapStatusBadge: Record<
-  RoadmapStatus,
-  { label: string; variant: NonNullable<ComponentProps<typeof Badge>["variant"]>; className?: string }
-> = {
+export const roadmapStatusBadge: Record<CourseRoadmapFocusStatus, ReturnType<typeof getStatusBadgeConfig>> = {
   ...statusBadge,
-  current: { label: "Текущий", variant: "primary", className: "border-primary/40 bg-primary/15" },
+  current: getStatusBadgeConfig("current"),
 };
 
 export function getModuleAction(row: CourseProgressModuleRow): { href: string; label: string; disabled: boolean } {
-  const id = row.module.id;
-  const base = `/dashboard/course/${id}`;
-  if (!row.unlocked) {
-    return { href: "#", label: "Завершите предыдущий модуль", disabled: true };
-  }
-
-  const p = row.progress;
-  const req = row.requirements;
-
-  if (row.moduleCompleted) {
-    return { href: base, label: "Повторить", disabled: false };
-  }
-
-  const lessonDone = !req.lessonRequired || Boolean(p?.lessonCompleted);
-  const videoDone = !req.videoRequired || Boolean(p?.videoCompleted);
-  const testDone = !req.testRequired || Boolean(p?.testCompleted);
-  const practiceDone = !req.practiceRequired || Boolean(p?.practiceCompleted);
-
-  const started = Boolean(p?.lessonCompleted || p?.videoCompleted || p?.testCompleted || p?.practiceCompleted);
-
-  if (!lessonDone) {
-    return { href: `${base}/lesson`, label: started ? "Продолжить" : "Начать", disabled: false };
-  }
-  if (!videoDone) {
-    return { href: `${base}/lesson`, label: "Продолжить", disabled: false };
-  }
-  if (!testDone) {
-    return { href: `${base}/test`, label: "Продолжить", disabled: false };
-  }
-  if (!practiceDone) {
-    return { href: `${base}/practice`, label: "Продолжить", disabled: false };
-  }
-
-  return { href: base, label: "Продолжить", disabled: false };
+  const cta = getModuleContinueCta(row);
+  return { href: cta.href ?? "#", label: cta.label, disabled: cta.disabled };
 }
 
 /** Уровень сложности по порядку модуля в треке (1–10). */
@@ -91,6 +49,18 @@ export function moduleDifficultyByOrder(orderNumber: number): string {
   if (orderNumber <= 5) return "Средний";
   if (orderNumber <= 8) return "Продвинутый";
   return "Экспертный";
+}
+
+/** Краткая строка «навык» для карточки модуля (из описания или уровня сложности). */
+export function getModuleSkillLine(row: CourseProgressModuleRow): string {
+  const raw = row.module.description?.trim();
+  if (raw) {
+    const first = raw.split(/[.!?\n]/)[0]?.trim();
+    if (first && first.length >= 12) {
+      return first.length > 96 ? `${first.slice(0, 93)}…` : first;
+    }
+  }
+  return `Уровень: ${moduleDifficultyByOrder(row.module.orderNumber)}`;
 }
 
 export type UserTrackLevel = {
@@ -180,19 +150,8 @@ export function getPreviousModuleRow(
   return modules[idx - 1] ?? null;
 }
 
-/** Подсказка, что нужно для разблокировки (без раскрытия контента модуля). */
-export function getLockedUnlockHint(row: CourseProgressModuleRow, modules: CourseProgressModuleRow[]): string {
-  const prev = getPreviousModuleRow(modules, row.module.id);
-  if (!prev) {
-    return "Завершите предыдущий модуль в треке, чтобы открыть этот блок.";
-  }
-  if (!prev.moduleCompleted) {
-    return `Сначала завершите модуль ${prev.module.orderNumber}: «${prev.module.title}».`;
-  }
-  return "Завершите предыдущий модуль в треке, чтобы открыть этот блок.";
-}
+export { getLockedUnlockHint };
 
-/** Следующий модуль в треке (по orderNumber). */
 export function getNextModuleRow(
   modules: CourseProgressModuleRow[],
   currentModuleId: string,
@@ -207,7 +166,6 @@ export type AfterModulePreview =
   | { kind: "certificate"; href: string }
   | { kind: "none" };
 
-/** Превью «что после модуля» на основе данных прогресса (без новых API). */
 export function getAfterModulePreview(
   modules: CourseProgressModuleRow[],
   currentModuleId: string,
@@ -260,26 +218,152 @@ export function moduleDifficultyLabel(req: ModuleRequirements): string {
   return n <= 1 ? "Краткий модуль" : "Стандарт";
 }
 
+export type CourseTrackSummary = {
+  totalModules: number;
+  completedModules: number;
+  lockedModules: number;
+  inProgressModules: number;
+  remainingToCertificate: number;
+  allModulesComplete: boolean;
+  focusModuleId: string | null;
+  focusOrder: number | null;
+  focusTitle: string | null;
+  positionLabel: string;
+  certificateHint: string;
+};
+
+export function getCourseTrackSummary(
+  modules: CourseProgressModuleRow[],
+  focusModuleId?: string | null,
+): CourseTrackSummary {
+  const totalModules = modules.length;
+  const completedModules = modules.filter((m) => m.moduleCompleted).length;
+  const lockedModules = modules.filter((m) => !m.unlocked).length;
+  const inProgressModules = modules.filter(
+    (m) => m.unlocked && !m.moduleCompleted && getModuleEntityStatus(m) === "in_progress",
+  ).length;
+  const remainingToCertificate = Math.max(0, totalModules - completedModules);
+  const allModulesComplete = totalModules > 0 && completedModules === totalModules;
+
+  const focus =
+    (focusModuleId ? modules.find((m) => m.module.id === focusModuleId) : null) ??
+    modules.find((m) => m.unlocked && !m.moduleCompleted) ??
+    null;
+
+  let positionLabel = "Курс без модулей";
+  if (totalModules > 0) {
+    if (allModulesComplete) {
+      positionLabel = `Все ${totalModules} модулей завершены`;
+    } else if (focus) {
+      positionLabel = `Сейчас: модуль ${focus.module.orderNumber} из ${totalModules}`;
+    } else {
+      positionLabel = `Пройдено ${completedModules} из ${totalModules} модулей`;
+    }
+  }
+
+  let certificateHint = "Завершите модули курса, чтобы открыть сертификат";
+  if (allModulesComplete) {
+    certificateHint = "Курс пройден — оформите сертификат в кабинете";
+  } else if (remainingToCertificate === 1) {
+    certificateHint = "Остался 1 модуль до сертификата";
+  } else if (remainingToCertificate > 1) {
+    certificateHint = `Осталось ${remainingToCertificate} модулей до сертификата`;
+  }
+
+  return {
+    totalModules,
+    completedModules,
+    lockedModules,
+    inProgressModules,
+    remainingToCertificate,
+    allModulesComplete,
+    focusModuleId: focus?.module.id ?? null,
+    focusOrder: focus?.module.orderNumber ?? null,
+    focusTitle: focus?.module.title ?? null,
+    positionLabel,
+    certificateHint,
+  };
+}
+
+export type NextRoadmapStep = {
+  kind: CourseInnerStepKind;
+  label: string;
+  stepLabel: string;
+  href: string;
+  blockedHint?: string;
+};
+
+export function getNextRoadmapStep(row: CourseProgressModuleRow): NextRoadmapStep | null {
+  if (!row.unlocked || row.moduleCompleted) return null;
+  const steps = buildRoadmapInnerSteps(row);
+  const priority: CourseEntityUiStatus[] = ["needs_retry", "pending_review", "in_progress", "available"];
+  for (const want of priority) {
+    const match = steps.find((s) => s.status === want && s.href);
+    if (match?.href) {
+      return {
+        kind: match.kind,
+        label: match.label,
+        stepLabel: match.label,
+        href: match.href,
+        blockedHint: match.blockedHint,
+      };
+    }
+  }
+  const locked = steps.find((s) => s.status === "locked");
+  if (locked) {
+    return {
+      kind: locked.kind,
+      label: locked.label,
+      stepLabel: locked.label,
+      href: `/dashboard/course/${row.module.id}`,
+      blockedHint: locked.blockedHint ?? COURSE_LOCKED_MODULE_REASON,
+    };
+  }
+  return {
+    kind: "lesson",
+    label: "Модуль",
+    stepLabel: "Обзор модуля",
+    href: `/dashboard/course/${row.module.id}`,
+  };
+}
+
+export function roadmapModuleAnchorId(moduleId: string): string {
+  return `course-module-${moduleId}`;
+}
+
 export function buildModuleTrackSteps(row: CourseProgressModuleRow): { key: string; label: string; done: boolean }[] {
-  const { requirements: req, progress: p } = row;
-  const locked = !row.unlocked;
-  if (locked) return [];
+  const { requirements: req } = row;
+  if (!row.unlocked) return [];
 
   const steps: { key: string; label: string; done: boolean }[] = [];
 
   if (req.lessonRequired || req.videoRequired) {
-    const lessonOk = !req.lessonRequired || Boolean(p?.lessonCompleted);
-    const videoOk = !req.videoRequired || Boolean(p?.videoCompleted);
-    const label =
-      req.videoRequired && req.lessonRequired ? "Лекция и видео" : req.videoRequired ? "Видео к лекции" : "Лекция";
-    steps.push({ key: "prep", label, done: lessonOk && videoOk });
+    steps.push({
+      key: "prep",
+      label: req.videoRequired && req.lessonRequired ? "Лекция и видео" : req.videoRequired ? "Видео" : "Лекция",
+      done: getInnerStepEntityStatus(row, "lesson") === "completed",
+    });
   }
   if (req.testRequired) {
-    steps.push({ key: "test", label: "Тест", done: Boolean(p?.testCompleted) });
+    steps.push({ key: "test", label: "Тест", done: getInnerStepEntityStatus(row, "test") === "completed" });
   }
   if (req.practiceRequired) {
-    steps.push({ key: "practice", label: "Практика", done: Boolean(p?.practiceCompleted) });
+    steps.push({
+      key: "practice",
+      label: "Практика",
+      done: getInnerStepEntityStatus(row, "practice") === "completed",
+    });
   }
 
   return steps;
 }
+
+export {
+  moduleHasPracticeReview,
+  moduleHasPracticeRetry,
+  moduleHasTestRetry,
+  getInnerStepEntityStatus,
+  getModuleEntityStatus,
+} from "@/lib/course-ui-status";
+
+export { getModuleStatusPresentation, getInnerStepPresentation, getStatusBadgeConfig } from "@/lib/course-ui-status";

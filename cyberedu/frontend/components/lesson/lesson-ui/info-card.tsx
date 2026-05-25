@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export type InfoCardProps = {
+  id?: string;
   title: string;
   children: ReactNode;
   label?: string;
@@ -21,11 +22,12 @@ const labelTone = {
   accent: "text-cyan",
 } as const;
 
-export function InfoCard({ title, children, label = "Информация", className, variant = "info" }: InfoCardProps) {
+export function InfoCard({ id, title, children, label = "Информация", className, variant = "info" }: InfoCardProps) {
   return (
     <section
+      id={id}
       className={cn(
-        "rounded-2xl border px-5 py-4 shadow-sm ring-1 ring-inset",
+        "scroll-mt-28 rounded-2xl border px-5 py-4 shadow-sm ring-1 ring-inset",
         variants[variant],
         className,
       )}

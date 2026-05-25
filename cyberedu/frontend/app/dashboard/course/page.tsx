@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { CourseEmpty } from "@/components/course/course-empty";
 import { CourseLearningPath } from "@/components/course/course-learning-path";
 import { CoursePageShell } from "@/components/course/course-page-shell";
+import {
+  CourseNotFoundEmpty,
+  CoursePageLoadError,
+  CourseUnauthorizedState,
+} from "@/components/course/course-page-states";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { Alert } from "@/components/ui/alert";
-import { getDefaultCourseForDashboard, syncAndGetUserCourseProgress } from "@/lib/progress";
-import { requireAuth } from "@/lib/permissions";
+import { auth } from "@/lib/auth";
+import { loadCoursePageData } from "@/lib/course-page-load";
 
 export const metadata: Metadata = {
   title: "Курс",
@@ -15,19 +18,31 @@ export const metadata: Metadata = {
 type Props = { searchParams: Promise<{ locked?: string }> };
 
 export default async function CoursePage({ searchParams }: Props) {
-  const session = await requireAuth();
-  const course = await getDefaultCourseForDashboard();
-  if (!course) {
+  const session = await auth();
+  if (!session?.user?.id) {
     return (
       <DashboardShell wide>
-        <CourseEmpty />
+        <CourseUnauthorizedState />
       </DashboardShell>
     );
   }
 
-  const data = await syncAndGetUserCourseProgress(session.user.id, course.id);
-  if (!data) {
-    redirect("/dashboard");
+  const result = await loadCoursePageData(session.user.id);
+
+  if (result.status === "empty") {
+    return (
+      <DashboardShell wide>
+        <CourseNotFoundEmpty />
+      </DashboardShell>
+    );
+  }
+
+  if (result.status === "error") {
+    return (
+      <DashboardShell wide>
+        <CoursePageLoadError kind={result.kind} />
+      </DashboardShell>
+    );
   }
 
   const sp = await searchParams;
@@ -43,7 +58,11 @@ export default async function CoursePage({ searchParams }: Props) {
         ) : null}
 
         <CoursePageShell>
-          <CourseLearningPath data={data} />
+          <CourseLearningPath
+            data={result.data}
+            certState={result.certState}
+            stats={result.stats}
+          />
         </CoursePageShell>
       </>
     </DashboardShell>

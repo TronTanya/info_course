@@ -7,6 +7,7 @@ import {
   MINI_SOC_LOG_LINES,
   type MiniSocIncidentId,
 } from "@/lib/log-analysis-mini-soc-score";
+import { PracticeSubmissionSubmitFlow } from "@/components/practice/practice-submission-submit-flow";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +17,7 @@ import {
   PracticeTaskStep,
   type PracticeResultTone,
 } from "@/components/practice/practice-task-ui";
+import { buildLogAnalysisSubmitSummary } from "@/lib/practice-submit-confirmation-ui";
 
 type CheckResponse = {
   score: number;
@@ -35,70 +37,96 @@ export type LogAnalysisTaskProps = {
   moduleId: string;
   practicalTaskId: string;
   disabled?: boolean;
+  practiceTitle?: string;
+  allowsResubmitOnRevision?: boolean;
   onResult: (error: string | null, success: string | null) => void;
 };
 
-export function LogAnalysisTask({ moduleId, practicalTaskId, disabled, onResult }: LogAnalysisTaskProps) {
-  const [incidentType, setIncidentType] = useState<MiniSocIncidentId | "">("");
-  const [conclusion, setConclusion] = useState("");
+export function LogAnalysisTask({
+  moduleId,
+  practicalTaskId,
+  disabled,
+  practiceTitle = "Анализ журнала",
+  allowsResubmitOnRevision = true,
+  onResult,
+}: LogAnalysisTaskProps) {
+  const [suspiciousEvents, setSuspiciousEvents] = useState("");
+  const [possibleCause, setPossibleCause] = useState<MiniSocIncidentId | "">("");
+  const [recommendation, setRecommendation] = useState("");
   const [checked, setChecked] = useState(false);
   const [result, setResult] = useState<CheckResponse | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const formComplete = useMemo(() => {
-    return Boolean(incidentType) && conclusion.trim().length >= MINI_SOC_CONCLUSION_MIN;
-  }, [incidentType, conclusion]);
+  const conclusionPayload = useMemo(() => {
+    const parts = [
+      suspiciousEvents.trim() ? `Подозрительные события: ${suspiciousEvents.trim()}` : "",
+      possibleCause.trim() ? `Возможная причина: ${MINI_SOC_INCIDENT_OPTIONS.find((o) => o.id === possibleCause)?.label ?? possibleCause}` : "",
+      recommendation.trim() ? `Рекомендация: ${recommendation.trim()}` : "",
+    ].filter(Boolean);
+    return parts.join("\n\n");
+  }, [suspiciousEvents, possibleCause, recommendation]);
 
-  const runCheck = useCallback(() => {
+  const formComplete = useMemo(() => {
+    return (
+      suspiciousEvents.trim().length > 0 &&
+      Boolean(possibleCause) &&
+      recommendation.trim().length > 0 &&
+      conclusionPayload.length >= MINI_SOC_CONCLUSION_MIN
+    );
+  }, [suspiciousEvents, possibleCause, recommendation, conclusionPayload]);
+
+  const performCheck = useCallback(async (): Promise<string | null> => {
     setFetchError(null);
     onResult(null, null);
-    startTransition(async () => {
-      try {
-        const res = await fetch("/api/practice/log-analysis/check", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            moduleId,
-            practicalTaskId,
-            incidentType,
-            conclusion,
-          }),
-        });
-        const data = (await res.json()) as CheckResponse & { error?: string };
-        if (!res.ok) {
-          setFetchError(data.error || "Ошибка проверки");
-          onResult(data.error || "Ошибка проверки", null);
-          return;
-        }
-        setResult({
-          score: data.score,
-          maxScore: data.maxScore,
-          passed: data.passed,
-          feedback: data.feedback,
-          saved: data.saved,
-        });
-        setChecked(true);
-        if (data.saved) {
-          onResult(null, "Результат сохранён. Задание засчитано.");
-        } else {
-          onResult(null, null);
-        }
-      } catch {
-        const msg = "Сеть недоступна. Попробуйте позже.";
+    try {
+      const res = await fetch("/api/practice/log-analysis/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          moduleId,
+          practicalTaskId,
+          incidentType: possibleCause,
+          conclusion: conclusionPayload,
+        }),
+      });
+      const data = (await res.json()) as CheckResponse & { error?: string };
+      if (!res.ok) {
+        const msg = data.error || "Ошибка проверки";
         setFetchError(msg);
         onResult(msg, null);
+        return msg;
       }
-    });
-  }, [moduleId, practicalTaskId, onResult, incidentType, conclusion]);
+      setResult({
+        score: data.score,
+        maxScore: data.maxScore,
+        passed: data.passed,
+        feedback: data.feedback,
+        saved: data.saved,
+      });
+      setChecked(true);
+      if (data.saved) {
+        onResult(null, "Результат сохранён. Задание засчитано.");
+      } else {
+        onResult(null, null);
+      }
+      return null;
+    } catch {
+      const msg = "Сеть недоступна. Попробуйте позже.";
+      setFetchError(msg);
+      onResult(msg, null);
+      return msg;
+    }
+  }, [moduleId, practicalTaskId, onResult, possibleCause, conclusionPayload]);
 
   const canRetry = checked && result && !result.saved;
 
   function resetAttempt() {
     setChecked(false);
     setResult(null);
-    setIncidentType("");
-    setConclusion("");
+    setSuspiciousEvents("");
+    setPossibleCause("");
+    setRecommendation("");
     setFetchError(null);
   }
 
@@ -115,18 +143,20 @@ export function LogAnalysisTask({ moduleId, practicalTaskId, disabled, onResult 
         </pre>
       </PracticeTaskStep>
 
-      <PracticeTaskStep title="1. Подозрительное поведение">
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Опишите в выводе ниже, что смущает аналитика: последовательность событий, учётная запись, типы сообщений
-          журнала. Сформулируйте нейтрально, с позиции мониторинга и реагирования.
-        </p>
-      </PracticeTaskStep>
+      <Textarea
+        label="Подозрительные события"
+        hint="Перечислите строки журнала или последовательность, которая вызывает опасения."
+        value={suspiciousEvents}
+        onChange={(e) => setSuspiciousEvents(e.target.value)}
+        rows={4}
+        disabled={disabled || checked}
+      />
 
-      <PracticeTaskStep title="2. Тип возможного инцидента">
+      <PracticeTaskStep title="Возможная причина">
         <Select
           disabled={disabled || checked}
-          value={incidentType}
-          onChange={(e) => setIncidentType(e.target.value as MiniSocIncidentId | "")}
+          value={possibleCause}
+          onChange={(e) => setPossibleCause(e.target.value as MiniSocIncidentId | "")}
           className="text-sm"
         >
           <option value="">Выберите вариант…</option>
@@ -139,18 +169,44 @@ export function LogAnalysisTask({ moduleId, practicalTaskId, disabled, onResult 
       </PracticeTaskStep>
 
       <Textarea
-        label="3. Краткий вывод"
-        hint={`Не менее ${MINI_SOC_CONCLUSION_MIN} символов. Включите формулировки про несколько неудачных попыток, успешный вход, подозрительность, учётную запись admin и сброс пароля (можно написать «password reset» или «сброс пароля»).`}
-        value={conclusion}
-        onChange={(e) => setConclusion(e.target.value)}
-        rows={7}
+        label="Рекомендация"
+        hint={`Что сделать аналитику или администратору. Совокупный ответ — не менее ${MINI_SOC_CONCLUSION_MIN} символов.`}
+        value={recommendation}
+        onChange={(e) => setRecommendation(e.target.value)}
+        rows={4}
         disabled={disabled || checked}
       />
+      <p className="font-mono text-[11px] tabular-nums text-muted-foreground" aria-live="polite">
+        {conclusionPayload.length} / {MINI_SOC_CONCLUSION_MIN} символов (итог для проверки на сервере)
+      </p>
 
       <div className="flex flex-wrap gap-2">
-        <Button type="button" loading={pending} disabled={disabled || !formComplete || checked} onClick={runCheck}>
-          Проверить
-        </Button>
+        <PracticeSubmissionSubmitFlow
+          practiceTitle={practiceTitle}
+          allowsResubmitOnRevision={allowsResubmitOnRevision}
+          label="Проверить"
+          pending={pending}
+          disabled={Boolean(disabled) || !formComplete || checked}
+          startTransition={startTransition}
+          getSummary={() =>
+            buildLogAnalysisSubmitSummary(
+              {
+                suspiciousEvents,
+                possibleCause: possibleCause
+                  ? (MINI_SOC_INCIDENT_OPTIONS.find((o) => o.id === possibleCause)?.label ?? possibleCause)
+                  : "",
+                recommendation,
+              },
+              conclusionPayload.length,
+            )
+          }
+          validateBeforeOpen={() =>
+            !formComplete ? "Заполните все поля анализа журнала." : null
+          }
+          onValidationError={setFetchError}
+          onClearError={() => setFetchError(null)}
+          onSubmit={performCheck}
+        />
         {canRetry ? (
           <Button type="button" variant="outline" onClick={resetAttempt}>
             Попробовать снова

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { CyberHero } from "@/components/cyber/cyber-hero";
 import { findFocusModule, getContinueFromModules } from "@/lib/dashboard-ui";
-import { formatLessonCount, formatPracticeCount, getUserTrackLevel } from "@/lib/course-path-ui";
+import { formatLessonCount, formatPracticeCount, getCourseTrackSummary, getUserTrackLevel } from "@/lib/course-path-ui";
 import type { UserCourseProgressResult } from "@/lib/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ export function CourseTrackHero({ data }: { data: UserCourseProgressResult }) {
   const level = getUserTrackLevel(doneCount, totalCount);
   const cta = getContinueFromModules(modules, data.course.title);
   const allDone = totalCount > 0 && doneCount === totalCount;
+  const trackSummary = getCourseTrackSummary(modules, focus?.module.id);
 
   const lessonsTotal = modules.reduce((a, m) => a + m.contentCounts.lessons, 0);
   const practiceTotal = modules.reduce((a, m) => a + m.contentCounts.practices, 0);
@@ -91,7 +92,8 @@ export function CourseTrackHero({ data }: { data: UserCourseProgressResult }) {
             label={`Модули: ${doneCount} / ${totalCount}`}
             tone={allDone ? "success" : "default"}
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground">{trackSummary.certificateHint}</p>
+          <p className="text-[10px] text-subtle-foreground">
             {formatLessonCount(lessonsTotal)} · {formatPracticeCount(practiceTotal)} · {level.hint}
           </p>
         </aside>

@@ -7,6 +7,8 @@ export type ProgressBarProps = {
   className?: string;
   label?: string;
   tone?: "default" | "success" | "warning" | "danger";
+  /** false — перенос длинной подписи; по умолчанию одна строка с ellipsis */
+  labelTruncate?: boolean;
 };
 
 const toneBar: Record<NonNullable<ProgressBarProps["tone"]>, string> = {
@@ -16,15 +18,32 @@ const toneBar: Record<NonNullable<ProgressBarProps["tone"]>, string> = {
   danger: "bg-danger",
 };
 
-export function ProgressBar({ value, max = 100, className, label, tone = "default" }: ProgressBarProps) {
+export function ProgressBar({
+  value,
+  max = 100,
+  className,
+  label,
+  tone = "default",
+  labelTruncate = true,
+}: ProgressBarProps) {
   const pct = Math.min(100, Math.max(0, (value / max) * 100));
+  const progressLabel = label?.trim() || `Прогресс: ${Math.round(pct)}%`;
 
   return (
     <div className={cn("w-full space-y-1.5", className)}>
       {label ? (
         <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span className="min-w-0 truncate">{label}</span>
-          <span className="shrink-0 tabular-nums text-foreground">{Math.round(pct)}%</span>
+          <span
+            className={cn(
+              "min-w-0",
+              labelTruncate ? "truncate" : "text-pretty leading-snug wrap-break-word",
+            )}
+          >
+            {label}
+          </span>
+          <span className="shrink-0 tabular-nums text-foreground" aria-hidden>
+            {Math.round(pct)}%
+          </span>
         </div>
       ) : null}
       <div
@@ -33,10 +52,11 @@ export function ProgressBar({ value, max = 100, className, label, tone = "defaul
         aria-valuenow={Math.round(pct)}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label={label}
+        aria-valuetext={`${Math.round(pct)}%`}
+        aria-label={progressLabel}
       >
         <div
-          className={cn("h-full rounded-full", transitionBase, toneBar[tone])}
+          className={cn("h-full rounded-full motion-reduce:transition-none", transitionBase, toneBar[tone])}
           style={{ width: `${pct}%` }}
         />
       </div>

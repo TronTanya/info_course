@@ -7,6 +7,7 @@ import {
   URL_ANALYSIS_REASON_LABELS,
   type UrlAnalysisReasonId,
 } from "@/lib/url-analysis-score";
+import { PracticeSubmissionSubmitFlow } from "@/components/practice/practice-submission-submit-flow";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
@@ -18,6 +19,12 @@ import {
   practiceToggleClass,
   type PracticeResultTone,
 } from "@/components/practice/practice-task-ui";
+import { buildUrlAnalysisSubmitSummary } from "@/lib/practice-submit-confirmation-ui";
+import {
+  buildUrlAnalysisExplanation,
+  validateUrlAnalysisReport,
+  type UrlAnalysisReportFields,
+} from "@/lib/practice-submission-form";
 import { cn } from "@/lib/utils";
 
 type Verdict = "" | "safe" | "unsafe";
@@ -53,12 +60,26 @@ export type UrlAnalysisTaskProps = {
   moduleId: string;
   practicalTaskId: string;
   disabled?: boolean;
+  practiceTitle?: string;
+  allowsResubmitOnRevision?: boolean;
   onResult: (error: string | null, success: string | null) => void;
 };
 
-export function UrlAnalysisTask({ moduleId, practicalTaskId, disabled, onResult }: UrlAnalysisTaskProps) {
+export function UrlAnalysisTask({
+  moduleId,
+  practicalTaskId,
+  disabled,
+  practiceTitle = "Анализ ссылок",
+  allowsResubmitOnRevision = true,
+  onResult,
+}: UrlAnalysisTaskProps) {
   const [rows, setRows] = useState<Record<string, RowState>>(initialRows);
-  const [explanation, setExplanation] = useState("");
+  const [report, setReport] = useState<UrlAnalysisReportFields>({
+    suspiciousSigns: "",
+    risk: "",
+    explanation: "",
+    safeActions: "",
+  });
   const [checked, setChecked] = useState(false);
   const [result, setResult] = useState<CheckResponse | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -81,64 +102,77 @@ export function UrlAnalysisTask({ moduleId, practicalTaskId, disabled, onResult 
     }));
   }, []);
 
+  const fullExplanation = useMemo(
+    () => buildUrlAnalysisExplanation(report),
+    [report],
+  );
+
   const formComplete = useMemo(() => {
     for (const it of URL_ANALYSIS_ITEMS) {
       const r = rows[it.id];
       if (!r || !r.verdict) return false;
       if (r.verdict === "unsafe" && !r.reason) return false;
     }
-    return explanation.trim().length >= EXPL_MIN;
-  }, [rows, explanation]);
+    return !validateUrlAnalysisReport(report, EXPL_MIN);
+  }, [rows, report]);
 
-  const runCheck = useCallback(() => {
+  const rowsFilled = useMemo(() => {
+    return URL_ANALYSIS_ITEMS.filter((it) => {
+      const r = rows[it.id];
+      return r?.verdict && (r.verdict !== "unsafe" || r.reason);
+    }).length;
+  }, [rows]);
+
+  const performCheck = useCallback(async (): Promise<string | null> => {
     setFetchError(null);
     onResult(null, null);
-    startTransition(async () => {
-      try {
-        const payloadRows = URL_ANALYSIS_ITEMS.map((it) => {
-          const r = rows[it.id];
-          return {
-            id: it.id,
-            verdict: r?.verdict === "safe" ? "safe" : "unsafe",
-            reason: r?.verdict === "unsafe" && r.reason ? r.reason : null,
-          };
-        });
-        const res = await fetch("/api/practice/url-analysis/check", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            moduleId,
-            practicalTaskId,
-            rows: payloadRows,
-            explanation,
-          }),
-        });
-        const data = (await res.json()) as CheckResponse & { error?: string };
-        if (!res.ok) {
-          setFetchError(data.error || "Ошибка проверки");
-          onResult(data.error || "Ошибка проверки", null);
-          return;
-        }
-        setResult({
-          score: data.score,
-          maxScore: data.maxScore,
-          passed: data.passed,
-          feedback: data.feedback,
-          saved: data.saved,
-        });
-        setChecked(true);
-        if (data.saved) {
-          onResult(null, "Результат сохранён. Задание засчитано.");
-        } else {
-          onResult(null, null);
-        }
-      } catch {
-        const msg = "Сеть недоступна. Попробуйте позже.";
+    try {
+      const payloadRows = URL_ANALYSIS_ITEMS.map((it) => {
+        const r = rows[it.id];
+        return {
+          id: it.id,
+          verdict: r?.verdict === "safe" ? "safe" : "unsafe",
+          reason: r?.verdict === "unsafe" && r.reason ? r.reason : null,
+        };
+      });
+      const res = await fetch("/api/practice/url-analysis/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          moduleId,
+          practicalTaskId,
+          rows: payloadRows,
+          explanation: fullExplanation,
+        }),
+      });
+      const data = (await res.json()) as CheckResponse & { error?: string };
+      if (!res.ok) {
+        const msg = data.error || "Ошибка проверки";
         setFetchError(msg);
         onResult(msg, null);
+        return msg;
       }
-    });
-  }, [moduleId, practicalTaskId, onResult, rows, explanation]);
+      setResult({
+        score: data.score,
+        maxScore: data.maxScore,
+        passed: data.passed,
+        feedback: data.feedback,
+        saved: data.saved,
+      });
+      setChecked(true);
+      if (data.saved) {
+        onResult(null, "Результат сохранён. Задание засчитано.");
+      } else {
+        onResult(null, null);
+      }
+      return null;
+    } catch {
+      const msg = "Сеть недоступна. Попробуйте позже.";
+      setFetchError(msg);
+      onResult(msg, null);
+      return msg;
+    }
+  }, [moduleId, practicalTaskId, onResult, rows, fullExplanation]);
 
   const canRetry = checked && result && !result.saved;
 
@@ -146,7 +180,7 @@ export function UrlAnalysisTask({ moduleId, practicalTaskId, disabled, onResult 
     setChecked(false);
     setResult(null);
     setRows(initialRows());
-    setExplanation("");
+    setReport({ suspiciousSigns: "", risk: "", explanation: "", safeActions: "" });
     setFetchError(null);
   }
 
@@ -156,6 +190,41 @@ export function UrlAnalysisTask({ moduleId, practicalTaskId, disabled, onResult 
         Все адреса вымышленные и служат только для учебного разбора. Сравнивайте протокол, написание домена и
         структуру имени хоста.
       </PracticeTaskBanner>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Textarea
+          label="Подозрительные признаки"
+          hint="Что настораживает в ссылках или письме?"
+          value={report.suspiciousSigns}
+          onChange={(e) => setReport((r) => ({ ...r, suspiciousSigns: e.target.value }))}
+          rows={3}
+          disabled={disabled || checked}
+        />
+        <Textarea
+          label="Риск"
+          hint="Кратко опишите уровень и последствия."
+          value={report.risk}
+          onChange={(e) => setReport((r) => ({ ...r, risk: e.target.value }))}
+          rows={3}
+          disabled={disabled || checked}
+        />
+        <Textarea
+          label="Объяснение"
+          hint={`Минимум ${EXPL_MIN} символов в итоговом отчёте. Упомяните протокол и домен.`}
+          value={report.explanation}
+          onChange={(e) => setReport((r) => ({ ...r, explanation: e.target.value }))}
+          rows={3}
+          disabled={disabled || checked}
+        />
+        <Textarea
+          label="Безопасные действия"
+          hint="Что должен сделать сотрудник?"
+          value={report.safeActions}
+          onChange={(e) => setReport((r) => ({ ...r, safeActions: e.target.value }))}
+          rows={3}
+          disabled={disabled || checked}
+        />
+      </div>
 
       <div className={cn(cyber.adminTable, "ce-scroll-x-contained -mx-1 min-w-0 px-1")}>
         <table className="w-full min-w-[640px] border-collapse text-sm">
@@ -232,19 +301,25 @@ export function UrlAnalysisTask({ moduleId, practicalTaskId, disabled, onResult 
         </table>
       </div>
 
-      <Textarea
-        label="Короткое объяснение"
-        hint={`Минимум ${EXPL_MIN} символов. Упомяните домен, протокол http/https или признаки подозрительной ссылки.`}
-        value={explanation}
-        onChange={(e) => setExplanation(e.target.value)}
-        rows={4}
-        disabled={disabled || checked}
-      />
-
       <div className="flex flex-wrap gap-2">
-        <Button type="button" loading={pending} disabled={disabled || !formComplete || checked} onClick={runCheck}>
-          Проверить
-        </Button>
+        <PracticeSubmissionSubmitFlow
+          practiceTitle={practiceTitle}
+          allowsResubmitOnRevision={allowsResubmitOnRevision}
+          label="Проверить"
+          pending={pending}
+          disabled={Boolean(disabled) || !formComplete || checked}
+          startTransition={startTransition}
+          getSummary={() =>
+            buildUrlAnalysisSubmitSummary(report, rowsFilled, URL_ANALYSIS_ITEMS.length)
+          }
+          validateBeforeOpen={() =>
+            validateUrlAnalysisReport(report, EXPL_MIN) ??
+            (!formComplete ? "Заполните таблицу ссылок и отчёт." : null)
+          }
+          onValidationError={setFetchError}
+          onClearError={() => setFetchError(null)}
+          onSubmit={performCheck}
+        />
         {canRetry ? (
           <Button type="button" variant="outline" onClick={resetAttempt}>
             Попробовать снова

@@ -11,8 +11,11 @@ import {
 } from "@/lib/practice-progress-engine";
 import { STRUCTURED_SCENARIO_TASK_TYPES, verifyStructuredPractice } from "@/lib/practice-scenario-verify";
 import { guardPracticeSubmission } from "@/lib/practice-submit-guard";
+import { loadLatestPracticeSubmissionView } from "@/lib/practice-submission-server";
+import { buildPracticeStructuredSubmitPayload, buildPracticeTextSubmitPayload } from "@/lib/practice-submission-client";
 import { enforceServerActionRateLimit } from "@/lib/security/server-action-rate-limit";
 import { securityLog } from "@/lib/security-log";
+import type { PracticeSubmissionView } from "@/types/practice-view-model";
 
 function revalidatePractice(moduleId: string) {
   revalidatePath(`/dashboard/course/${moduleId}/practice`);
@@ -30,6 +33,8 @@ export type PracticeActionState = {
   fallbackManual?: boolean;
   /** Ответ принят, но ожидает ручной доработки (смешанная проверка) */
   pendingReview?: boolean;
+  /** Безопасный статус отправки для UI (без solution / answerKey). */
+  submission?: PracticeSubmissionView;
 };
 
 function logPracticeSubmit(userId: string, practicalTaskId: string, channel: string) {
@@ -41,20 +46,26 @@ export async function submitPracticeTextAction(input: {
   practicalTaskId: string;
   text: string;
 }): Promise<PracticeActionState> {
+  const payload = buildPracticeTextSubmitPayload(input);
   const session = await auth();
-  const g = await guardPracticeSubmission(session?.user?.id, input.moduleId, input.practicalTaskId, ["TEXT_ANSWER"]);
+  const g = await guardPracticeSubmission(
+    session?.user?.id,
+    payload.moduleId,
+    payload.practicalTaskId,
+    ["TEXT_ANSWER"],
+  );
   if (!g.ok) return { error: g.message };
 
   const textRl = await enforceServerActionRateLimit("practiceText", g.userId);
   if (!textRl.allowed) return { error: textRl.error };
 
   const task = await prisma.practicalTask.findUnique({
-    where: { id: input.practicalTaskId },
+    where: { id: payload.practicalTaskId },
     select: { minLength: true, checkType: true, maxScore: true, expectedAnswerPattern: true },
   });
   const minLen = Math.min(50_000, Math.max(1, task?.minLength ?? 10));
 
-  const body = input.text.trim();
+  const body = payload.text;
   if (body.length < minLen) {
     return { error: `Ответ слишком короткий (минимум ${minLen} символов).` };
   }
@@ -72,15 +83,20 @@ export async function submitPracticeTextAction(input: {
 
   await persistPracticeSubmission({
     userId: g.userId,
-    moduleId: input.moduleId,
-    practicalTaskId: input.practicalTaskId,
+    moduleId: payload.moduleId,
+    practicalTaskId: payload.practicalTaskId,
     textAnswer: body,
     status: plan.status,
     score: plan.score,
   });
-  revalidatePractice(input.moduleId);
-  logPracticeSubmit(g.userId, input.practicalTaskId, "text");
-  return { ok: true, pendingReview: plan.pendingReview };
+  revalidatePractice(payload.moduleId);
+  logPracticeSubmit(g.userId, payload.practicalTaskId, "text");
+  const submission = await loadLatestPracticeSubmissionView(
+    g.userId,
+    payload.practicalTaskId,
+    task?.maxScore ?? 0,
+  );
+  return { ok: true, pendingReview: plan.pendingReview, submission };
 }
 
 function buildInteractiveTextAnswer(parts: string[]): string {
@@ -234,11 +250,12 @@ export async function submitPracticeStructuredAction(input: {
   practicalTaskId: string;
   payload: string;
 }): Promise<PracticeActionState> {
+  const payload = buildPracticeStructuredSubmitPayload(input);
   const session = await auth();
   const g = await guardPracticeSubmission(
     session?.user?.id,
-    input.moduleId,
-    input.practicalTaskId,
+    payload.moduleId,
+    payload.practicalTaskId,
     STRUCTURED_SCENARIO_TASK_TYPES,
   );
   if (!g.ok) return { error: g.message };
@@ -247,7 +264,7 @@ export async function submitPracticeStructuredAction(input: {
   if (!structuredRl.allowed) return { error: structuredRl.error };
 
   const task = await prisma.practicalTask.findUnique({
-    where: { id: input.practicalTaskId },
+    where: { id: payload.practicalTaskId },
     select: {
       taskType: true,
       scenarioData: true,
@@ -261,7 +278,7 @@ export async function submitPracticeStructuredAction(input: {
   }
 
   const existing = await prisma.submission.findFirst({
-    where: { userId: g.userId, practicalTaskId: input.practicalTaskId, status: "ACCEPTED" },
+    where: { userId: g.userId, practicalTaskId: payload.practicalTaskId, status: "ACCEPTED" },
     select: { id: true },
   });
   if (existing) {
@@ -271,7 +288,7 @@ export async function submitPracticeStructuredAction(input: {
   const outcome = verifyStructuredPractice(
     task.taskType,
     task.scenarioData,
-    input.payload,
+    payload.payload,
     task.minLength,
   );
   if (outcome.decision === "reject") {
@@ -285,20 +302,25 @@ export async function submitPracticeStructuredAction(input: {
 
   await persistPracticeSubmission({
     userId: g.userId,
-    moduleId: input.moduleId,
-    practicalTaskId: input.practicalTaskId,
+    moduleId: payload.moduleId,
+    practicalTaskId: payload.practicalTaskId,
     textAnswer: outcome.textAnswer,
     status: plan.status,
     score: plan.score,
   });
-  revalidatePractice(input.moduleId);
+  revalidatePractice(payload.moduleId);
   logPracticeSubmit(
     g.userId,
-    input.practicalTaskId,
+    payload.practicalTaskId,
     plan.pendingReview ? "structured_pending" : plan.status === "ACCEPTED" ? "structured_auto" : "structured_manual",
   );
+  const submission = await loadLatestPracticeSubmissionView(
+    g.userId,
+    payload.practicalTaskId,
+    task.maxScore ?? 0,
+  );
   if (plan.pendingReview) {
-    return { ok: true, pendingReview: true };
+    return { ok: true, pendingReview: true, submission };
   }
-  return { ok: true };
+  return { ok: true, submission };
 }

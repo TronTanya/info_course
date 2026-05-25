@@ -2,39 +2,55 @@ import type { Metadata } from "next";
 import { DashboardHome } from "@/components/dashboard/dashboard-home";
 import { DashboardClientExtras } from "@/components/layout/dashboard-client-extras";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
-import { achievementNoticesFromKinds, getUserAchievementRows, reconcileUserAchievements } from "@/lib/achievements";
-import { getProfileCourseStats } from "@/lib/profile-course-stats";
-import { requireAuth } from "@/lib/permissions";
-import { syncAndGetUserCourseProgress } from "@/lib/progress";
+import {
+  DashboardEmptyState,
+  DashboardPageLoadError,
+  DashboardUnauthorizedState,
+} from "@/components/dashboard/dashboard-page-states";
+import { auth } from "@/lib/auth";
+import { buildDashboardHomeMetadata } from "@/lib/dashboard-metadata";
+import { loadDashboardPageData } from "@/lib/dashboard-page-load";
 
-export const metadata: Metadata = {
-  title: "Кабинет",
-};
+export const metadata: Metadata = buildDashboardHomeMetadata();
 
 export default async function DashboardHomePage() {
-  const session = await requireAuth();
-  const [stats, newUnlocks] = await Promise.all([
-    getProfileCourseStats(session.user.id),
-    reconcileUserAchievements(session.user.id),
-  ]);
-  const progress =
-    stats?.courseId != null
-      ? await syncAndGetUserCourseProgress(session.user.id, stats.courseId)
-      : null;
-  const modules = progress?.modules ?? [];
-  const achievements = await getUserAchievementRows(session.user.id);
-  const displayName = session.user.name?.trim() || session.user.email?.split("@")[0] || "студент";
-  const achievementUnlocks = achievementNoticesFromKinds(newUnlocks);
+  const session = await auth();
+  const result = await loadDashboardPageData(session?.user?.id, session);
+
+  if (result.status === "unauthorized") {
+    return (
+      <DashboardShell>
+        <DashboardUnauthorizedState />
+      </DashboardShell>
+    );
+  }
+
+  if (result.status === "empty") {
+    return (
+      <DashboardShell>
+        <DashboardEmptyState kind="course_unavailable" />
+      </DashboardShell>
+    );
+  }
+
+  if (result.status === "error") {
+    return (
+      <DashboardShell>
+        <DashboardPageLoadError kind={result.kind} />
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell>
       <DashboardHome
-        stats={stats}
-        displayName={displayName}
-        achievements={achievements}
-        modules={modules}
+        stats={result.stats}
+        displayName={result.displayName}
+        achievements={result.achievements}
+        modules={result.modules}
+        aiMentorConfigured={result.aiMentorConfigured}
       />
-      <DashboardClientExtras achievementUnlocks={achievementUnlocks} />
+      <DashboardClientExtras achievementUnlocks={result.achievementUnlocks} />
     </DashboardShell>
   );
 }

@@ -1,10 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import {
-  simulateTrainingCommand,
-  trainingCommandsMatch,
-} from "@/lib/training-console-sim";
+import { simulateTrainingCommand } from "@/lib/training-console-sim";
 import { verifyPracticeInteractiveAction } from "@/lib/actions/practice";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,10 +16,10 @@ const WELCOME_LINES = [
 export type TrainingConsoleStructuredPractice = {
   moduleId: string;
   practicalTaskId: string;
-  /** Ожидаемая команда (как в задании); сравнение только по нормализованной строке, без shell */
-  expectedCommand: string | null;
-  /** Regex для проверки объяснения на сервере; пусто — объяснение не требуется */
-  expectedAnswerPattern: string | null;
+  /** Требуется шаг с командой в консоли (эталон не показывается). */
+  needsCommand: boolean;
+  /** Требуется текстовое объяснение (проверка на сервере). */
+  needsExplanation: boolean;
   minLength: number;
   /** Как в InteractiveForm: (error, successMessage) */
   onSubmitResult: (error: string | null, successMessage: string | null) => void;
@@ -35,8 +32,8 @@ export type TrainingConsoleProps = {
   /** Вызывается при «записываемой» учебной команде (ping, nslookup, whoami, ipconfig), не для help/clear */
   onRecordedCommand?: (normalizedCommand: string) => void;
   /**
-   * Встроенная проверка практики: совпадение с expectedCommand, поле объяснения,
-   * отправка verifyPracticeInteractiveAction (серверная валидация, без исполнения команд).
+   * Встроенная проверка практики: учебные команды в песочнице и отправка
+   * verifyPracticeInteractiveAction (серверная валидация, без исполнения команд).
    */
   structuredPractice?: TrainingConsoleStructuredPractice;
 };
@@ -52,19 +49,18 @@ export function TrainingConsole({
   const [draft, setDraft] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const [expectedCommandDone, setExpectedCommandDone] = useState(false);
+  const [commandStepDone, setCommandStepDone] = useState(false);
+  const [lastRecordedCommand, setLastRecordedCommand] = useState("");
   const [explanation, setExplanation] = useState("");
   const [submitPending, startSubmitTransition] = useTransition();
 
-  const ec = structuredPractice?.expectedCommand?.trim() ?? "";
-  const ep = structuredPractice?.expectedAnswerPattern?.trim() ?? "";
-  const needsCommand = Boolean(ec);
-  const needsExplanation = Boolean(ep);
+  const needsCommand = Boolean(structuredPractice?.needsCommand);
+  const needsExplanation = Boolean(structuredPractice?.needsExplanation);
   const explanationMin = structuredPractice
     ? Math.max(12, structuredPractice.minLength)
     : 12;
 
-  const commandReady = !needsCommand || expectedCommandDone;
+  const commandReady = !needsCommand || commandStepDone;
   const canSubmitStructured =
     Boolean(structuredPractice) &&
     commandReady &&
@@ -77,7 +73,8 @@ export function TrainingConsole({
   const applyClear = useCallback(() => {
     setLines([...WELCOME_LINES]);
     setCommandHistory([]);
-    setExpectedCommandDone(false);
+    setCommandStepDone(false);
+    setLastRecordedCommand("");
     setExplanation("");
   }, []);
 
@@ -107,14 +104,13 @@ export function TrainingConsole({
 
       if (res.recordedCommand) {
         onRecordedCommand?.(res.recordedCommand);
-        if (structuredPractice && needsCommand && ec) {
-          if (trainingCommandsMatch(ec, res.recordedCommand)) {
-            setExpectedCommandDone(true);
-          }
+        setLastRecordedCommand(res.recordedCommand);
+        if (structuredPractice && needsCommand) {
+          setCommandStepDone(true);
         }
       }
     },
-    [append, applyClear, ec, needsCommand, onRecordedCommand, structuredPractice],
+    [append, applyClear, needsCommand, onRecordedCommand, structuredPractice],
   );
 
   return (
@@ -222,15 +218,17 @@ export function TrainingConsole({
         <div className="space-y-3 rounded-xl border border-border bg-card/40 p-4">
           {needsCommand ? (
             <p className="break-words text-xs text-muted-foreground">
-              {expectedCommandDone ? (
-                <span className="ce-terminal-success font-medium">Команда выполнена — можно отправить ответ.</span>
+              {commandStepDone ? (
+                <span className="ce-terminal-success font-medium">
+                  Учебная команда зафиксирована — можно отправить ответ на проверку сервером.
+                </span>
               ) : (
-                <span>Выполните нужную команду в консоли выше (эталон не показывается до проверки).</span>
+                <span>Выполните команду по заданию в консоли выше. Эталонная команда не отображается.</span>
               )}
             </p>
           ) : null}
 
-          {needsExplanation && (needsCommand ? expectedCommandDone : true) ? (
+          {needsExplanation && (needsCommand ? commandStepDone : true) ? (
             <Textarea
               label="Объясните, что показывает результат команды"
               hint={`Минимум ${explanationMin} символов. Опишите строки вывода (TTL, время, IP и т.д.). Проверка — на сервере.`}
@@ -253,7 +251,7 @@ export function TrainingConsole({
                 const res = await verifyPracticeInteractiveAction({
                   moduleId: structuredPractice.moduleId,
                   practicalTaskId: structuredPractice.practicalTaskId,
-                  command: needsCommand && expectedCommandDone ? ec : "",
+                  command: needsCommand ? lastRecordedCommand : "",
                   explanation: needsExplanation ? explanation : "",
                 });
                 if (res.error) structuredPractice.onSubmitResult(res.error, null);

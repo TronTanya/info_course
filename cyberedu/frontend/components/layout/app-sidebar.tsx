@@ -15,7 +15,8 @@ import {
 } from "@/lib/design-system/nav-config";
 import { motionPresets, motionWithReducedMotion } from "@/lib/design-system/motion";
 import { isNavHrefActive, isAdminPrimaryActive } from "@/lib/nav-active";
-import { isStudentQuickNavActive, resolveStudentNavPaths } from "@/lib/nav-resolve";
+import { isStudentQuickNavActive } from "@/lib/nav-resolve";
+import { useStudentNavPaths } from "@/lib/hooks/use-student-nav-paths";
 import { NavRailLink } from "@/components/layout/nav-rail-link";
 
 export type AppSidebarVariant = "student" | "admin";
@@ -34,7 +35,7 @@ function AdminNavLink({ item, active }: { item: NavItem; active: boolean }) {
 
 export function AppSidebar({ variant }: { variant: AppSidebarVariant }) {
   const pathname = usePathname() ?? "";
-  const paths = resolveStudentNavPaths(pathname);
+  const paths = useStudentNavPaths();
   const reduce = useReducedMotion();
 
   return (
@@ -44,10 +45,6 @@ export function AppSidebar({ variant }: { variant: AppSidebarVariant }) {
       aria-label={variant === "admin" ? "Навигация админки" : "Навигация кабинета"}
     >
       <div className="ce-sidebar-inner sticky top-[calc(var(--header-height,4.5rem)+1rem)] flex max-h-[calc(100dvh-var(--header-height,4.5rem)-2rem)] flex-col gap-1 overflow-y-auto p-3">
-        <div className="mb-2 flex items-center justify-between gap-2 px-2">
-          <span className="ce-hud-chip">lab online</span>
-          <span className="font-mono text-[10px] text-muted-foreground">v2026</span>
-        </div>
         <p className="px-3 pb-2 typo-eyebrow text-primary/90">
           {variant === "admin" ? "Администрирование" : "Обучение"}
         </p>
@@ -113,15 +110,15 @@ export function AppSidebar({ variant }: { variant: AppSidebarVariant }) {
                 />
               ))}
             </nav>
-            <div className="mt-3 rounded-xl border border-cyan/20 bg-cyan/5 p-3 text-xs text-muted-foreground">
+            <div className="ce-sidebar-mentor-hint mt-3 rounded-xl border p-3 text-xs text-muted-foreground">
               <p className="flex items-center gap-1.5 font-medium text-foreground">
                 <Sparkles className="size-3.5 text-cyan" aria-hidden />
                 AI-наставник
               </p>
               <p className="mt-1 leading-relaxed">
-                На лекции и в практике — плавающая кнопка справа внизу или{" "}
-                <Link href={paths.mentor} className="font-medium text-primary hover:underline">
-                  откройте урок
+                На лекции и в практике — кнопка справа внизу или{" "}
+                <Link href={paths.mentor} className="font-medium text-cyan hover:underline">
+                  страница наставника
                 </Link>
                 .
               </p>

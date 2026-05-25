@@ -1,12 +1,16 @@
 import { describe, expect, it } from "vitest";
 import type { CourseProgressModuleRow, ProgressRow } from "@/lib/progress";
 import {
+  buildRoadmapInnerSteps,
   formatTestCount,
   getAfterModulePreview,
   getLockedUnlockHint,
   getModuleContentMeta,
   getNextModuleRow,
   getPreviousModuleRow,
+  getCourseTrackSummary,
+  getNextRoadmapStep,
+  getRoadmapDisplayStatus,
   getRoadmapStatus,
   getUiStatus,
 } from "@/lib/course-path-ui";
@@ -84,6 +88,24 @@ describe("course-path-ui", () => {
     expect(preview.kind).toBe("certificate");
   });
 
+  it("getCourseTrackSummary counts modules and certificate hint", () => {
+    const modules = [
+      moduleRow({ id: "m1", order: 1, moduleCompleted: true }),
+      moduleRow({ id: "m2", order: 2, unlocked: false }),
+    ];
+    const s = getCourseTrackSummary(modules, "m2");
+    expect(s.completedModules).toBe(1);
+    expect(s.remainingToCertificate).toBe(1);
+    expect(s.certificateHint).toContain("1 модуль");
+  });
+
+  it("getNextRoadmapStep points to lesson when not started", () => {
+    const row = moduleRow({ id: "m1", progressPercent: 0 });
+    const step = getNextRoadmapStep(row);
+    expect(step?.kind).toBe("lesson");
+    expect(step?.href).toContain("/lesson");
+  });
+
   it("getRoadmapStatus marks focus module as current", () => {
     const row = moduleRow({ id: "m2", order: 2 });
     expect(getRoadmapStatus(row, "m2")).toBe("current");
@@ -97,10 +119,39 @@ describe("course-path-ui", () => {
     ];
     const hint = getLockedUnlockHint(modules[1]!, modules);
     expect(hint).toContain("модуль 1");
+    expect(hint).not.toContain("«");
   });
 
   it("getPreviousModuleRow returns prior module", () => {
     const modules = [moduleRow({ id: "m1", order: 1 }), moduleRow({ id: "m2", order: 2 })];
     expect(getPreviousModuleRow(modules, "m2")?.module.id).toBe("m1");
+  });
+
+  it("getRoadmapDisplayStatus maps current to in_progress", () => {
+    const row = moduleRow({ id: "m2", order: 2 });
+    expect(getRoadmapDisplayStatus(row, "m2")).toBe("in_progress");
+  });
+
+  it("buildRoadmapInnerSteps locks test until lesson done", () => {
+    const steps = buildRoadmapInnerSteps(moduleRow({ id: "m1" }));
+    const test = steps.find((s) => s.kind === "test");
+    expect(test?.status).toBe("locked");
+    expect(test?.href).toBeNull();
+    expect(test?.blockedHint).toMatch(/урок/i);
+  });
+
+  it("buildRoadmapInnerSteps marks lesson in_progress when unlocked", () => {
+    const steps = buildRoadmapInnerSteps(
+      moduleRow({
+        progress: {
+          lessonCompleted: false,
+          videoCompleted: false,
+          testCompleted: false,
+          practiceCompleted: false,
+          moduleCompleted: false,
+        } as ProgressRow,
+      }),
+    );
+    expect(steps.find((s) => s.kind === "lesson")?.status).toBe("in_progress");
   });
 });

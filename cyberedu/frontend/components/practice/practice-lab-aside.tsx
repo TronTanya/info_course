@@ -1,8 +1,8 @@
 import Link from "next/link";
 import type { PracticeLabState } from "@/lib/practice-lab-ui";
 import { LearningChecklist, type ChecklistItem } from "@/components/learn/learning-checklist";
-import { PracticeSocraticHintPanel } from "@/components/practice/practice-socratic-hint";
-import { Button } from "@/components/ui/button";
+import { PracticeAIMentorPanel } from "@/components/practice/practice-ai-mentor-panel";
+import type { PracticeMentorChatBoot, PracticeMentorSafeContext } from "@/lib/practice-mentor-panel";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { cn } from "@/lib/utils";
 
@@ -14,19 +14,24 @@ export type PracticeLabAsideProps = {
   attemptCount: number;
   recommendations: string[];
   moduleProgress: { percent: number; completed: number; total: number };
-  onOpenAiChat: () => void;
+  mentorContext: PracticeMentorSafeContext;
+  aiMentorConfigured: boolean;
+  onOpenMentorChat: (boot: PracticeMentorChatBoot) => void;
+  /** false — панель AI рендерится в main (mobile) отдельным слотом */
+  showMentorPanel?: boolean;
   className?: string;
 };
 
 export function PracticeLabAside({
   moduleId,
-  practicalTaskId,
-  labState,
   checklist,
   attemptCount,
   recommendations,
   moduleProgress,
-  onOpenAiChat,
+  mentorContext,
+  aiMentorConfigured,
+  onOpenMentorChat,
+  showMentorPanel = true,
   className,
 }: PracticeLabAsideProps) {
   return (
@@ -88,25 +93,13 @@ export function PracticeLabAside({
         />
       </aside>
 
-      <aside
-        className={cn(
-          "rounded-2xl border p-4 sm:p-5",
-          labState === "passed"
-            ? "border-success/30 bg-success/[0.06] ring-success/20"
-            : "border-primary/25 bg-card/80 ring-primary/10",
-        )}
-      >
-        <h2 className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-primary">Подсказки</h2>
-        <p className="mt-2 text-xs text-muted-foreground">Наводящие вопросы без готового ответа на практику.</p>
-        <PracticeSocraticHintPanel
-          moduleId={moduleId}
-          practicalTaskId={practicalTaskId}
-          className="mt-3 border-0 bg-transparent p-0 shadow-none"
+      {showMentorPanel ? (
+        <PracticeAIMentorPanel
+          aiConfigured={aiMentorConfigured}
+          context={mentorContext}
+          onOpenMentorChat={onOpenMentorChat}
         />
-        <Button type="button" variant="primary" className="mt-4 w-full" onClick={onOpenAiChat}>
-          AI-наставник
-        </Button>
-      </aside>
+      ) : null}
     </div>
   );
 }

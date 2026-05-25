@@ -31,14 +31,18 @@ test.describe("CyberEdu smoke", () => {
     await loginAs(page, "student");
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/dashboard/);
-    await expect(page.getByRole("heading", { name: /Здравствуйте/i }).first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Добро пожаловать/i }).first()).toBeVisible();
   });
 
   test("3. open course", async ({ page }) => {
     await loginAs(page, "student");
     await page.goto("/dashboard/course");
     await expect(page.locator("h1").first()).toBeVisible();
-    await expect(page.getByRole("link", { name: /Начать|Продолжить|Открыть модуль/i }).first()).toBeVisible();
+    await expect(
+      page
+        .getByRole("link", { name: /Начать|Продолжить|Открыть|Перейти к сертификату/i })
+        .first(),
+    ).toBeVisible();
   });
 
   test("4. submit module test (no false rate-limit error)", async ({ page }) => {
@@ -100,21 +104,21 @@ test.describe("CyberEdu smoke", () => {
   });
 
   test("7. certificate verify page (public)", async ({ page }) => {
-    const code = process.env.E2E_CERT_VERIFY_CODE ?? "VRFY-E2E-INVALID";
-    await page.goto(`/certificate/verify/${encodeURIComponent(code)}`);
-    await expect(page.getByRole("heading", { name: /Проверка сертификата/i })).toBeVisible();
+    const seeded = process.env.E2E_CERT_VERIFY_NUMBER ?? process.env.E2E_CERT_VERIFY_CODE;
+    const number = seeded ?? "CE-2099-INVALID1";
+    await page.goto(`/verify/${encodeURIComponent(number)}`);
 
-    if (process.env.E2E_CERT_VERIFY_CODE) {
-      await expect(page.getByText(/действителен|подлинн|выдан/i).first()).toBeVisible();
+    if (seeded) {
+      await expect(page.getByRole("heading", { name: "Сертификат подтверждён" })).toBeVisible();
     } else {
-      await expect(page.getByText(/не найдена/i)).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Сертификат не найден" })).toBeVisible();
     }
   });
 
   test("9. dashboard achievements block", async ({ page }) => {
     await loginAs(page, "student");
     await page.goto("/dashboard");
-    await expect(page.getByRole("heading", { name: /Здравствуйте/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Добро пожаловать/i })).toBeVisible();
     await expect(page.getByText(/Достижения/i).first()).toBeVisible();
   });
 

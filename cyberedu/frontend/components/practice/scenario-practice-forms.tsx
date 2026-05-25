@@ -3,12 +3,13 @@
 import { useState, type TransitionStartFunction } from "react";
 import type { PracticalTaskType, SubmissionStatus } from "@prisma/client";
 import { submitPracticeStructuredAction } from "@/lib/actions/practice";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { PracticeSubmissionSubmitFlow } from "@/components/practice/practice-submission-submit-flow";
+import {
+  buildPasswordRatingsSummary,
+  buildSituationSubmitSummary,
+} from "@/lib/practice-submit-confirmation-ui";
 import { PhishingEmailTask } from "@/components/practice/PhishingEmailTask";
-import { UrlAnalysisTask } from "@/components/practice/UrlAnalysisTask";
 import { CryptoTask } from "@/components/practice/CryptoTask";
-import { LogAnalysisTask } from "@/components/practice/LogAnalysisTask";
 import { TrainingConsole } from "@/components/practice/TrainingConsole";
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -23,22 +24,35 @@ type Props = {
   taskType: PracticalTaskType;
   scenarioData: unknown;
   latestSubmission: LatestRef;
+  practiceTitle: string;
+  allowsResubmitOnRevision?: boolean;
   startTransition: TransitionStartFunction;
   pending: boolean;
   onMessage: (err: string | null, ok: string | null) => void;
 };
 
-/** Учебная консоль (модуль 6): те же поля, что и у INTERACTIVE, передаются с страницы практики. */
+/** Учебная консоль: только флаги UI; эталоны проверки остаются на сервере. */
 export type ConsoleScenarioProps = {
   consoleScenario: string | null;
-  expectedCommand: string | null;
-  expectedAnswerPattern: string | null;
+  hasStructuredCommandStep: boolean;
+  hasStructuredExplanationStep: boolean;
   minLength: number;
 };
 
 export function ScenarioPracticeBlock(props: Props & { console?: ConsoleScenarioProps | null }) {
-  const { moduleId, taskId, taskType, scenarioData, latestSubmission, startTransition, pending, onMessage, console } =
-    props;
+  const {
+    moduleId,
+    taskId,
+    taskType,
+    scenarioData,
+    latestSubmission,
+    practiceTitle,
+    allowsResubmitOnRevision = true,
+    startTransition,
+    pending,
+    onMessage,
+    console,
+  } = props;
 
   const sd = isRecord(scenarioData) ? scenarioData : null;
 
@@ -59,8 +73,16 @@ export function ScenarioPracticeBlock(props: Props & { console?: ConsoleScenario
     );
   }
 
+  if (needsRevision && !allowsResubmitOnRevision) {
+    return (
+      <p className="text-sm text-muted-foreground" role="status">
+        Работа на доработке, но повторная отправка сейчас недоступна. Дождитесь решения преподавателя.
+      </p>
+    );
+  }
+
   const revisionBanner =
-    needsRevision ? (
+    needsRevision && allowsResubmitOnRevision ? (
       <div className="rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm ring-1 ring-inset ring-warning/20">
         <p className="font-semibold text-warning">Работа на доработке</p>
         {revisionNote ? (
@@ -82,6 +104,8 @@ export function ScenarioPracticeBlock(props: Props & { console?: ConsoleScenario
           sd={sd}
           moduleId={moduleId}
           taskId={taskId}
+          practiceTitle={practiceTitle}
+          allowsResubmitOnRevision={allowsResubmitOnRevision}
           startTransition={startTransition}
           pending={pending}
           onMessage={onMessage}
@@ -92,6 +116,8 @@ export function ScenarioPracticeBlock(props: Props & { console?: ConsoleScenario
           sd={sd}
           moduleId={moduleId}
           taskId={taskId}
+          practiceTitle={practiceTitle}
+          allowsResubmitOnRevision={allowsResubmitOnRevision}
           startTransition={startTransition}
           pending={pending}
           onMessage={onMessage}
@@ -105,34 +131,8 @@ export function ScenarioPracticeBlock(props: Props & { console?: ConsoleScenario
           onResult={onMessage}
         />
       ) : null}
-      {taskType === "CHECKLIST" ? (
-        <ChecklistForm
-          sd={sd}
-          moduleId={moduleId}
-          taskId={taskId}
-          startTransition={startTransition}
-          pending={pending}
-          onMessage={onMessage}
-        />
-      ) : null}
-      {taskType === "URL_ANALYSIS" ? (
-        <UrlAnalysisTask
-          moduleId={moduleId}
-          practicalTaskId={taskId}
-          disabled={Boolean(locked)}
-          onResult={onMessage}
-        />
-      ) : null}
       {taskType === "CRYPTO_TASK" ? (
         <CryptoTask
-          moduleId={moduleId}
-          practicalTaskId={taskId}
-          disabled={Boolean(locked)}
-          onResult={onMessage}
-        />
-      ) : null}
-      {taskType === "LOG_ANALYSIS" ? (
-        <LogAnalysisTask
           moduleId={moduleId}
           practicalTaskId={taskId}
           disabled={Boolean(locked)}
@@ -153,31 +153,36 @@ export function ScenarioPracticeBlock(props: Props & { console?: ConsoleScenario
   );
 }
 
-function submitJson(
+async function submitJsonPayload(
   moduleId: string,
   taskId: string,
   payload: unknown,
-  startTransition: TransitionStartFunction,
   onMessage: (e: string | null, o: string | null) => void,
-) {
+): Promise<string | null> {
   onMessage(null, null);
-  startTransition(async () => {
-    const res = await submitPracticeStructuredAction({
-      moduleId,
-      practicalTaskId: taskId,
-      payload: JSON.stringify(payload),
-    });
-    if (res.error) onMessage(res.error, null);
-    else if (res.pendingReview) {
-      onMessage(null, "Ответ принят. Ключевые слова в выводе неполные — работа ушла на проверку преподавателю.");
-    } else onMessage(null, "Верно! Задание засчитано автоматически.");
+  const res = await submitPracticeStructuredAction({
+    moduleId,
+    practicalTaskId: taskId,
+    payload: JSON.stringify(payload),
   });
+  if (res.error) {
+    onMessage(res.error, null);
+    return res.error;
+  }
+  if (res.pendingReview) {
+    onMessage(null, "Ответ принят. Ключевые слова в выводе неполные — работа ушла на проверку преподавателю.");
+  } else {
+    onMessage(null, "Верно! Задание засчитано автоматически.");
+  }
+  return null;
 }
 
 function SituationChoiceForm({
   sd,
   moduleId,
   taskId,
+  practiceTitle,
+  allowsResubmitOnRevision = true,
   startTransition,
   pending,
   onMessage,
@@ -185,6 +190,8 @@ function SituationChoiceForm({
   sd: Record<string, unknown> | null;
   moduleId: string;
   taskId: string;
+  practiceTitle: string;
+  allowsResubmitOnRevision?: boolean;
   startTransition: TransitionStartFunction;
   pending: boolean;
   onMessage: (e: string | null, o: string | null) => void;
@@ -208,6 +215,12 @@ function SituationChoiceForm({
     const a = answers[id];
     return a?.personalData && a?.risk && a?.safeAction;
   });
+
+  const filledCount = situations.filter((sit) => {
+    const id = String(sit.id ?? "");
+    const a = answers[id];
+    return a?.personalData && a?.risk && a?.safeAction;
+  }).length;
 
   return (
     <div className="space-y-6">
@@ -269,9 +282,16 @@ function SituationChoiceForm({
           </div>
         );
       })}
-      <Button type="button" loading={pending} disabled={!complete} onClick={() => submitJson(moduleId, taskId, { answers }, startTransition, onMessage)}>
-        Проверить ответы
-      </Button>
+      <PracticeSubmissionSubmitFlow
+        practiceTitle={practiceTitle}
+        allowsResubmitOnRevision={allowsResubmitOnRevision}
+        label="Проверить ответы"
+        pending={pending}
+        disabled={!complete}
+        startTransition={startTransition}
+        getSummary={() => buildSituationSubmitSummary(filledCount, situations.length)}
+        onSubmit={() => submitJsonPayload(moduleId, taskId, { answers }, onMessage)}
+      />
     </div>
   );
 }
@@ -280,6 +300,8 @@ function PasswordAnalysisForm({
   sd,
   moduleId,
   taskId,
+  practiceTitle,
+  allowsResubmitOnRevision = true,
   startTransition,
   pending,
   onMessage,
@@ -287,6 +309,8 @@ function PasswordAnalysisForm({
   sd: Record<string, unknown> | null;
   moduleId: string;
   taskId: string;
+  practiceTitle: string;
+  allowsResubmitOnRevision?: boolean;
   startTransition: TransitionStartFunction;
   pending: boolean;
   onMessage: (e: string | null, o: string | null) => void;
@@ -325,80 +349,16 @@ function PasswordAnalysisForm({
           </div>
         );
       })}
-      <Button type="button" loading={pending} disabled={!complete} onClick={() => submitJson(moduleId, taskId, { ratings }, startTransition, onMessage)}>
-        Проверить оценки
-      </Button>
-    </div>
-  );
-}
-
-function ChecklistForm({
-  sd,
-  moduleId,
-  taskId,
-  startTransition,
-  pending,
-  onMessage,
-}: {
-  sd: Record<string, unknown> | null;
-  moduleId: string;
-  taskId: string;
-  startTransition: TransitionStartFunction;
-  pending: boolean;
-  onMessage: (e: string | null, o: string | null) => void;
-}) {
-  const items = sd && Array.isArray(sd.items) ? sd.items.filter(isRecord) : [];
-  const [checked, setChecked] = useState<Set<string>>(() => new Set());
-  const [reflection, setReflection] = useState("");
-
-  if (!items.length) return <p className="text-sm text-danger">Сценарий не загружен.</p>;
-
-  const minR = Math.max(20, Math.min(2000, Number(sd?.reflectionMinLength) || 40));
-
-  function toggle(id: string) {
-    setChecked((prev) => {
-      const n = new Set(prev);
-      if (n.has(id)) n.delete(id);
-      else n.add(id);
-      return n;
-    });
-  }
-
-  const allOn = items.every((it) => checked.has(String(it.id ?? "")));
-
-  return (
-    <div className="space-y-4">
-      <ul className="space-y-2">
-        {items.map((it) => {
-          const id = String(it.id ?? "");
-          const label = String(it.label ?? id);
-          return (
-            <li key={id}>
-              <label className="flex items-start gap-2 text-sm cursor-pointer">
-                <input type="checkbox" checked={checked.has(id)} onChange={() => toggle(id)} className="mt-1" />
-                <span>{label}</span>
-              </label>
-            </li>
-          );
-        })}
-      </ul>
-      <Textarea
-        label="Коротко опишите свой план внедрения (например, как включить обновления на вашей системе)"
-        hint={`Не менее ${minR} символов; упомяните тему чек-листа словами «обновления», «антивирус», «блокировка», «резерв» или «USB».`}
-        value={reflection}
-        onChange={(e) => setReflection(e.target.value)}
-        rows={5}
+      <PracticeSubmissionSubmitFlow
+        practiceTitle={practiceTitle}
+        allowsResubmitOnRevision={allowsResubmitOnRevision}
+        label="Проверить оценки"
+        pending={pending}
+        disabled={!complete}
+        startTransition={startTransition}
+        getSummary={() => buildPasswordRatingsSummary(Object.keys(ratings).length, items.length)}
+        onSubmit={() => submitJsonPayload(moduleId, taskId, { ratings }, onMessage)}
       />
-      <Button
-        type="button"
-        loading={pending}
-        disabled={!allOn || reflection.trim().length < minR}
-        onClick={() =>
-          submitJson(moduleId, taskId, { checked: [...checked], reflection }, startTransition, onMessage)
-        }
-      >
-        Отправить на проверку
-      </Button>
     </div>
   );
 }
@@ -412,10 +372,6 @@ function TrainingConsoleScenarioForm(props: {
   onMessage: (e: string | null, o: string | null) => void;
 }) {
   const { moduleId, taskId, console, onMessage } = props;
-  const ec = console.expectedCommand?.trim() ?? "";
-  const ep = console.expectedAnswerPattern?.trim() ?? "";
-  const needsCommand = Boolean(ec);
-  const needsExplanation = Boolean(ep);
   const explanationMin = Math.max(12, console.minLength);
 
   return (
@@ -424,8 +380,8 @@ function TrainingConsoleScenarioForm(props: {
       structuredPractice={{
         moduleId,
         practicalTaskId: taskId,
-        expectedCommand: needsCommand ? ec : null,
-        expectedAnswerPattern: needsExplanation ? ep : null,
+        needsCommand: console.hasStructuredCommandStep,
+        needsExplanation: console.hasStructuredExplanationStep,
         minLength: explanationMin,
         onSubmitResult: (err, ok) => {
           if (err) onMessage(err, null);

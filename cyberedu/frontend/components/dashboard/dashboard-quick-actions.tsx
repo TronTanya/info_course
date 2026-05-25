@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Award, BookOpen, ClipboardCheck, FlaskConical, User } from "lucide-react";
+import { BookOpen, Bot, FlaskConical, User } from "lucide-react";
+import { openMentorChat } from "@/lib/ai/mentor-ui/open";
 import type { ProfileCourseStats } from "@/lib/profile-course-stats";
 import { getQuickActionHrefs } from "@/lib/dashboard-ui";
 import type { CourseProgressModuleRow } from "@/lib/progress";
-import { PremiumCard } from "@/components/ui/premium-card";
 import { cn } from "@/lib/utils";
 
 export function DashboardQuickActions({
@@ -17,36 +17,49 @@ export function DashboardQuickActions({
 }) {
   const hrefs = getQuickActionHrefs(modules, stats);
 
-  const actions = [
-    { href: hrefs.modules, label: "Курс", icon: BookOpen },
-    { href: hrefs.test, label: "Тест", icon: ClipboardCheck },
-    { href: hrefs.practice, label: "Практика", icon: FlaskConical },
-    { href: "/dashboard/profile", label: "Профиль", icon: User },
-    { href: "/dashboard/certificate", label: "Сертификат", icon: Award },
+  const linkActions = [
+    { href: hrefs.course, label: "Курс", icon: BookOpen, description: "Карта модулей" },
+    { href: hrefs.practice, label: "Практики", icon: FlaskConical, description: "Лаборатории" },
+    { href: hrefs.profile, label: "Профиль", icon: User, description: "Прогресс и бейджи" },
   ] as const;
 
   return (
-    <PremiumCard variant="default" padding="md" className="min-w-0" aria-labelledby="dash-actions-heading">
-      <p id="dash-actions-heading" className="typo-eyebrow text-primary">
-        Quick actions
-      </p>
-      <ul className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
-        {actions.map(({ href, label, icon: Icon }) => (
+    <nav className="min-w-0" aria-label="Быстрые действия">
+      <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {linkActions.map(({ href, label, icon: Icon, description }) => (
           <li key={label}>
             <Link
               href={href}
               className={cn(
-                "flex min-h-[4.5rem] flex-col items-center justify-center gap-2 rounded-xl border border-border/80 bg-muted/20 px-2 py-3 text-center",
-                "transition-colors hover:border-primary/25 hover:bg-primary/5",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "ce-glass flex min-h-[5rem] flex-col items-center justify-center gap-2 rounded-2xl border border-border/80 px-3 py-4 text-center",
+                "transition-[border-color,box-shadow,transform] duration-200",
+                "hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[var(--shadow-card-hover)]",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
               )}
             >
               <Icon className="size-5 text-primary" strokeWidth={1.75} aria-hidden />
-              <span className="text-xs font-semibold leading-tight text-foreground sm:text-sm">{label}</span>
+              <span className="text-sm font-semibold text-foreground">{label}</span>
+              <span className="text-[10px] leading-tight text-muted-foreground">{description}</span>
             </Link>
           </li>
         ))}
+        <li>
+          <button
+            type="button"
+            onClick={() => openMentorChat()}
+            className={cn(
+              "ce-glass flex h-full min-h-[5rem] w-full flex-col items-center justify-center gap-2 rounded-2xl border border-cyan/25 bg-cyan/5 px-3 py-4 text-center",
+              "transition-[border-color,box-shadow,transform] duration-200",
+              "hover:-translate-y-0.5 hover:border-cyan/40 hover:shadow-[var(--shadow-glow)]",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+            )}
+          >
+            <Bot className="size-5 text-cyan" strokeWidth={1.75} aria-hidden />
+            <span className="text-sm font-semibold text-foreground">AI-наставник</span>
+            <span className="text-[10px] leading-tight text-muted-foreground">Подсказки без спойлеров</span>
+          </button>
+        </li>
       </ul>
-    </PremiumCard>
+    </nav>
   );
 }

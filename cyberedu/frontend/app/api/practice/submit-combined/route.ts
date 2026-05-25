@@ -7,6 +7,7 @@ import { resolveCombinedSubmission } from "@/lib/practice-progress-engine";
 import { savePracticeFile, validatePracticeUpload } from "@/lib/practice-files";
 import { practiceUploadLimitsFromTask } from "@/lib/practice-file-constants";
 import { guardPracticeSubmission } from "@/lib/practice-submit-guard";
+import { loadLatestPracticeSubmissionView } from "@/lib/practice-submission-server";
 import { withApiGuard } from "@/lib/security/api-guard";
 import { securityLog } from "@/lib/security-log";
 
@@ -121,5 +122,6 @@ export const POST = withApiGuard(UPLOAD_API_GUARD, async ({ userId, req }) => {
     submissionId: draft.id,
   });
 
-  return NextResponse.json({ ok: true, submissionId: draft.id });
+  const submission = await loadLatestPracticeSubmissionView(g.userId, taskId, task.maxScore ?? 0);
+  return NextResponse.json({ ok: true, submissionId: draft.id, submission });
 });

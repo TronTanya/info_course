@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" role="img" aria-label="Расследование инцидента">
+  <defs>
+    <linearGradient id="bg8" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#172554"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="400" fill="url(#bg8)"/>
+  <rect x="160" y="80" width="360" height="220" rx="10" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/>
+  <text x="180" y="115" fill="#fbbf24" font-family="ui-monospace,monospace" font-size="12">[10:01] LOGIN_FAILED user=alice</text>
+  <text x="180" y="140" fill="#fbbf24" font-family="ui-monospace,monospace" font-size="12">[10:02] LOGIN_SUCCESS user=alice</text>
+  <text x="180" y="165" fill="#f87171" font-family="ui-monospace,monospace" font-size="12">[10:03] PASSWORD_RESET_REQUEST</text>
+  <text x="180" y="190" fill="#94a3b8" font-family="ui-monospace,monospace" font-size="12">[10:05] FILE_ACCESS denied</text>
+  <rect x="180" y="210" width="300" height="8" rx="2" fill="#334155"/>
+  <rect x="180" y="210" width="180" height="8" rx="2" fill="#f59e0b"/>
+  <circle cx="580" cy="190" r="70" fill="#f59e0b" opacity="0.15"/>
+  <circle cx="555" cy="175" r="50" fill="none" stroke="#fbbf24" stroke-width="4"/>
+  <line x1="595" y1="215" x2="625" y2="245" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/>
+  <text x="400" y="360" text-anchor="middle" fill="#fcd34d" font-family="system-ui,sans-serif" font-size="18">Модуль 8 — Инциденты и журналы</text>
+</svg>

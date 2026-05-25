@@ -2,26 +2,11 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
+import { CourseModuleNodeIcon } from "@/components/course/course-module-node-icon";
 import type { CourseProgressModuleRow } from "@/lib/progress";
 import { getUiStatus, statusBadge } from "@/lib/course-path-ui";
+import type { CourseEntityUiStatus } from "@/types/course-ui-status";
 import { cn } from "@/lib/utils";
-
-function LockIcon({ className }: { className?: string }) {
-  return (
-    <svg className={cn("size-3.5 shrink-0", className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <rect x="5" y="11" width="14" height="10" rx="2" />
-      <path d="M7 11V8a5 5 0 0110 0v3" />
-    </svg>
-  );
-}
-
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg className={cn("size-3 shrink-0", className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
-      <path d="M5 12l5 5L20 7" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
 
 function TrajectoryNode({
   row,
@@ -40,30 +25,13 @@ function TrajectoryNode({
   const href = `/dashboard/course/${row.module.id}`;
   const canOpen = row.unlocked;
 
-  const ring =
-    status === "completed"
-      ? "border-success/50 bg-success/15 text-success"
-      : status === "in_progress"
-        ? "border-primary/55 bg-primary/12 text-primary"
-        : status === "available"
-          ? "border-primary/40 bg-primary/8 text-primary"
-          : "border-muted-foreground/35 bg-muted/40 text-muted-foreground";
-
   const node = (
-    <div
-      className={cn(
-        "relative flex size-10 shrink-0 items-center justify-center rounded-xl border-2 text-sm font-bold tabular-nums shadow-sm sm:size-11",
-        ring,
-        isFocus && "ring-2 ring-primary/40 ring-offset-2 ring-offset-background",
-      )}
-    >
-      {status === "locked" ? <LockIcon /> : <span>{row.module.orderNumber}</span>}
-      {status === "completed" ? (
-        <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-success text-white">
-          <CheckIcon className="text-white" />
-        </span>
-      ) : null}
-    </div>
+    <CourseModuleNodeIcon
+      orderNumber={row.module.orderNumber}
+      status={status as CourseEntityUiStatus}
+      isFocus={isFocus}
+      className="size-10 sm:size-11"
+    />
   );
 
   return (

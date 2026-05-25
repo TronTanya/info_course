@@ -3,7 +3,8 @@ import type { ComponentProps } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ModuleAfterPreview } from "@/components/course/module-after-preview";
-import { ModuleHubStepList } from "@/components/course/module-hub-step-list";
+import { ModuleContentList } from "@/components/course/module-content-list";
+import { ModuleOpenedTracker } from "@/components/analytics/learn-screen-trackers";
 import { ModuleLearningShell } from "@/components/course/module-learning-shell";
 import { ModuleOverviewPanel } from "@/components/course/module-overview-panel";
 import { LearnSection } from "@/components/learn/learn-chrome";
@@ -12,6 +13,7 @@ import { buildLearningPageContext } from "@/lib/learning-context";
 import { SectionHeader } from "@/components/ui/section-header";
 import { SectionCard } from "@/components/ui/section-card";
 import { buildModuleHubSteps } from "@/lib/module-hub-steps";
+import { getModuleContentListData } from "@/lib/module-content-list";
 import { moduleStepBreadcrumbs } from "@/lib/student-nav";
 import { prisma } from "@/lib/db";
 import {
@@ -87,6 +89,7 @@ export default async function ModulePage({ params }: Props) {
   );
   const overview = moduleOverviewLabel(moduleCompleted, progressPercent, hasStarted);
   const steps = buildModuleHubSteps(moduleId, true, req, p);
+  const contentList = await getModuleContentListData(session.user.id, moduleId);
   const score = p?.score ?? 0;
   const desc = courseModule.description?.trim() || "Модуль киберлаборатории: лекция, тест и практический сценарий.";
   const moduleSteps = moduleStepsLabel(mp.requirements, mp.progress);
@@ -130,6 +133,7 @@ export default async function ModulePage({ params }: Props) {
 
   return (
     <DashboardShell wide>
+      <ModuleOpenedTracker moduleId={moduleId} source="module_hub" />
       <ModuleLearningShell
         learning={learning}
         moduleTitle={courseModule.title}
@@ -168,10 +172,14 @@ export default async function ModulePage({ params }: Props) {
         <LearnSection>
           <SectionHeader
             eyebrow="Лаборатория"
-            title="Шаги модуля"
-            description="Пройдите этапы по порядку — следующий откроется после предыдущего."
+            title="Содержание модуля"
+            description="Уроки, тест и практика — в рекомендуемом порядке. Закрытые шаги откроются после предыдущих."
           />
-          <ModuleHubStepList steps={steps} />
+          {contentList ? (
+            <ModuleContentList data={contentList} />
+          ) : (
+            <p className="text-sm text-muted-foreground">Не удалось загрузить содержание модуля.</p>
+          )}
         </LearnSection>
 
         <LearnSection>

@@ -182,7 +182,7 @@ export async function toggleModuleActiveAction(moduleId: string) {
 }
 
 export async function deleteModuleAction(moduleId: string): Promise<{ ok?: boolean; error?: string }> {
-  await requireAdmin();
+  const session = await requireAdmin();
   const n = await prisma.progress.count({ where: { moduleId } });
   if (n > 0) {
     return {
@@ -190,6 +190,10 @@ export async function deleteModuleAction(moduleId: string): Promise<{ ok?: boole
     };
   }
   await prisma.module.delete({ where: { id: moduleId } });
+  logAdminSecurityEvent(session.user.id, SECURITY_ACTIONS.ADMIN_CONTENT_UNPUBLISH, moduleId, {
+    resource: "module",
+    deleted: true,
+  });
   revalidateAdminAndDashboard();
   return { ok: true };
 }

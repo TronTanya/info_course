@@ -1,53 +1,31 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen, ClipboardCheck, FlaskConical } from "lucide-react";
+import { ArrowRight, Clock, Target } from "lucide-react";
 import { LandingSection } from "@/components/home/landing-section";
 import { Button } from "@/components/ui/button";
 import { SectionCard } from "@/components/ui/section-card";
 import { authSafe } from "@/lib/auth";
-import { getLandingCoursePreview, type LandingModulePreview } from "@/lib/landing-public";
+import { LANDING_PROGRAM_MODULES, LANDING_SECTION_IDS } from "@/lib/landing-content";
 import { cn } from "@/lib/utils";
-
-const FALLBACK_MODULES: LandingModulePreview[] = [
-  { orderNumber: 1, title: "Основы информационной безопасности", lessonCount: 1, testCount: 1, practiceCount: 1 },
-  { orderNumber: 2, title: "Сети и периметр", lessonCount: 1, testCount: 1, practiceCount: 1 },
-  { orderNumber: 3, title: "Linux для аналитика", lessonCount: 1, testCount: 1, practiceCount: 1 },
-  { orderNumber: 4, title: "Web Security", lessonCount: 1, testCount: 1, practiceCount: 1 },
-  { orderNumber: 5, title: "Криптография", lessonCount: 1, testCount: 1, practiceCount: 1 },
-  { orderNumber: 6, title: "SOC и журналы", lessonCount: 1, testCount: 1, practiceCount: 1 },
-];
-
-function moduleStats(m: LandingModulePreview) {
-  const parts: string[] = [];
-  if (m.lessonCount > 0) parts.push(`${m.lessonCount} лекц.`);
-  if (m.testCount > 0) parts.push(`${m.testCount} тест`);
-  if (m.practiceCount > 0) parts.push(`${m.practiceCount} практ.`);
-  return parts.length > 0 ? parts.join(" · ") : "Материалы в модуле";
-}
 
 export async function LandingModules() {
   const session = await authSafe();
-  const preview = await getLandingCoursePreview();
-  const modules = preview?.modules.length ? preview.modules : FALLBACK_MODULES;
-  const startHref = session?.user ? "/dashboard/course" : "/auth/register";
+  const programHref = session?.user ? "/dashboard/course" : "/auth/register";
 
   return (
     <LandingSection
-      id="modules"
-      eyebrow="Модули курса"
-      title="Пошаговая программа"
-      description={
-        preview?.description ??
-        "Каждый модуль открывается после завершения предыдущего: лекция, проверка знаний и практика в одном потоке."
-      }
+      id={LANDING_SECTION_IDS.program}
+      eyebrow="Программа"
+      title="Программа курса"
+      description="Пять модулей — от основ ИБ до разбора инцидентов. Каждый блок: урок, тест и практика в учебной среде."
     >
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {modules.map((mod) => (
+        {LANDING_PROGRAM_MODULES.map((mod) => (
           <SectionCard
-            key={`${mod.orderNumber}-${mod.title}`}
+            key={mod.orderNumber}
             variant="default"
             flushTitle
             className={cn(
-              "group h-full transition-[transform,box-shadow,border-color] duration-200",
+              "ce-landing-glass-tile ce-card-glow group flex h-full flex-col",
               "hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-[var(--shadow-card-hover)]",
             )}
           >
@@ -55,45 +33,36 @@ export async function LandingModules() {
               <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 font-mono text-sm font-bold text-primary">
                 {String(mod.orderNumber).padStart(2, "0")}
               </span>
-              <span className="rounded-lg border border-border/80 bg-muted/40 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                модуль
+              <span className="inline-flex items-center gap-1 rounded-lg border border-border/80 bg-muted/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                <Clock className="size-3 shrink-0" aria-hidden />
+                {mod.estimatedTime}
               </span>
             </div>
             <h3 className="mt-3 font-display text-lg font-semibold leading-snug text-foreground">{mod.title}</h3>
-            <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1">
-                <BookOpen className="size-3.5" aria-hidden />
-                {moduleStats(mod)}
+            <p className="mt-2 text-sm leading-relaxed text-pretty text-muted-foreground">{mod.description}</p>
+            <p className="mt-3 flex gap-2 text-sm leading-relaxed text-foreground/90">
+              <Target className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+              <span>
+                <span className="font-medium text-foreground">Навык: </span>
+                {mod.skill}.
               </span>
             </p>
-            <div className="mt-4 flex flex-wrap gap-2 text-[10px] font-medium uppercase tracking-wide text-subtle-foreground">
-              <span className="inline-flex items-center gap-1 rounded-md border border-border/80 bg-muted/30 px-2 py-1">
-                <BookOpen className="size-3" aria-hidden /> лекция
+            <p className="mt-auto pt-4">
+              <span className="inline-flex rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                {mod.formatPreview}
               </span>
-              <span className="inline-flex items-center gap-1 rounded-md border border-border/80 bg-muted/30 px-2 py-1">
-                <ClipboardCheck className="size-3" aria-hidden /> тест
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-md border border-border/80 bg-muted/30 px-2 py-1">
-                <FlaskConical className="size-3" aria-hidden /> практика
-              </span>
-            </div>
+            </p>
           </SectionCard>
         ))}
       </div>
 
       <div className="flex flex-col items-start gap-3 border-t border-border/80 pt-8 sm:flex-row sm:items-center sm:justify-between">
         <p className="max-w-xl text-sm text-muted-foreground">
-          {preview ? (
-            <>
-              Курс «{preview.title}» — {modules.length} активных модулей. Прогресс сохраняется в личном кабинете.
-            </>
-          ) : (
-            <>Демонстрационная структура программы. После регистрации откроется актуальный каталог модулей.</>
-          )}
+          Маркетинговое превью программы. В кабинете отображается актуальная структура курса из базы данных.
         </p>
         <Button asChild variant="primary" className="w-full sm:w-auto">
-          <Link href={startHref}>
-            Начать с первого модуля
+          <Link href={programHref}>
+            Открыть программу курса
             <ArrowRight className="size-4" aria-hidden />
           </Link>
         </Button>

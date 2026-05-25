@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import type { Session } from "next-auth";
 import type { Role } from "@prisma/client";
+import { ADMIN_ACCESS_DENIED_PATH } from "@/lib/admin-access-paths";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { isModuleUnlocked } from "@/lib/progress";
@@ -29,11 +30,20 @@ export async function requireAuth(): Promise<Session> {
   return session;
 }
 
-/** Только ADMIN; иначе на главную. */
+/** Только ADMIN (server actions, API handlers, явные вызовы). Иначе — отказ без деталей RBAC. */
 export async function requireAdmin(): Promise<Session> {
   const session = await requireAuth();
   if (session.user.role !== "ADMIN") {
-    redirect("/");
+    redirect(ADMIN_ACCESS_DENIED_PATH);
+  }
+  return session;
+}
+
+/** Учебный контент (dashboard, сертификат): авторизация + роль USER или ADMIN. */
+export async function requireStudentAccess(): Promise<Session> {
+  const session = await requireAuth();
+  if (!isUser(session.user.role)) {
+    redirect("/auth/login");
   }
   return session;
 }

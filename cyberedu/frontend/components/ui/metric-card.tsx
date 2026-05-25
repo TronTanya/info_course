@@ -22,14 +22,15 @@ export function MetricCard({ label, value, hint, icon, variant = "default", clas
     <div className={cn(variants[variant], "min-w-0 px-3 py-3 sm:px-4", className)}>
       <div className="flex items-start justify-between gap-2 sm:gap-3">
         <div className="min-w-0 flex-1">
-          <p className="typo-label break-words">{label}</p>
-          <p className="mt-1 break-words text-lg font-semibold tabular-nums tracking-tight text-foreground sm:text-xl">
-            {value}
-          </p>
-          {hint ? <p className="typo-caption mt-0.5 break-words">{hint}</p> : null}
+          <p className="typo-label whitespace-nowrap">{label}</p>
+          <p className="mt-1 text-lg font-semibold tabular-nums tracking-tight text-foreground sm:text-xl">{value}</p>
+          {hint ? <p className="typo-caption mt-0.5 whitespace-nowrap">{hint}</p> : null}
         </div>
         {icon ? (
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary sm:size-10">
+          <span
+            className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary sm:size-10"
+            aria-hidden
+          >
             {icon}
           </span>
         ) : null}

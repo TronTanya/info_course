@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { ADMIN_ACCESS_DENIED_PATH, isAdminAccessPublicPath } from "@/lib/admin-access-paths";
 import { applySecurityHeaders } from "@/lib/security/headers";
 import { verifyApiCsrf } from "@/lib/security/csrf";
 function withSecurityHeaders(res: NextResponse): NextResponse {
@@ -13,7 +14,12 @@ export async function middleware(request: NextRequest) {
   // Rate limits: credentials callback — в authorize() (Node.js + Redis). AI / admin / cert — Route Handlers.
 
   // --- CSRF для mutating API (дополнение к Server Actions) ---
-  if (pathname.startsWith("/api/") && !pathname.startsWith("/api/auth/")) {
+  // CSP reports: браузер может не слать Origin — отдельный rate-limited endpoint.
+  if (
+    pathname.startsWith("/api/") &&
+    !pathname.startsWith("/api/auth/") &&
+    pathname !== "/api/csp-report"
+  ) {
     const csrf = verifyApiCsrf(request);
     if (!csrf.ok) {
       return withSecurityHeaders(
@@ -46,7 +52,9 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith("/dashboard")) {
-    if (!token) {
+    const isPublicCourseHub =
+      pathname === "/dashboard/course" || pathname === "/dashboard/course/";
+    if (!token && !isPublicCourseHub) {
       const url = request.nextUrl.clone();
       url.pathname = "/auth/login";
       url.searchParams.set("callbackUrl", pathname);
@@ -55,14 +63,18 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith("/admin")) {
+    const isAccessDeniedPage = isAdminAccessPublicPath(pathname);
+
     if (!token) {
       const url = request.nextUrl.clone();
       url.pathname = "/auth/login";
-      url.searchParams.set("callbackUrl", pathname);
+      url.searchParams.set("callbackUrl", isAccessDeniedPage ? "/admin" : pathname);
       return withSecurityHeaders(NextResponse.redirect(url));
     }
-    if (role !== "ADMIN") {
-      return withSecurityHeaders(NextResponse.redirect(new URL("/", request.url)));
+    if (role !== "ADMIN" && !isAccessDeniedPage) {
+      return withSecurityHeaders(
+        NextResponse.redirect(new URL(ADMIN_ACCESS_DENIED_PATH, request.url)),
+      );
     }
   }
 

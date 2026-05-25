@@ -3,27 +3,25 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { BookOpen, Check, ClipboardCheck, FlaskConical, Lock, Menu, X } from "lucide-react";
+import { Check, Lock, Menu, X } from "lucide-react";
+import { CourseStepIcon } from "@/components/course/course-step-icon";
 import type { LearningNavModuleItem, LearningNavStepItem } from "@/lib/learning-nav";
+import type { CourseStepIconKind, CourseStepIconStatus } from "@/lib/course-step-icons";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const stepIcons = {
-  lecture: BookOpen,
-  video: BookOpen,
-  test: ClipboardCheck,
-  practice: FlaskConical,
-  result: Check,
-} as const;
+const stepIcons: Record<LearningNavStepItem["kind"], CourseStepIconKind> = {
+  lecture: "lecture",
+  video: "video",
+  test: "test",
+  practice: "practice",
+  result: "result",
+};
 
-function StepStatusDot({ status }: { status: LearningNavStepItem["status"] }) {
-  if (status === "completed") {
-    return <span className="flex size-5 items-center justify-center rounded-full bg-success/15 text-success"><Check className="size-3" /></span>;
-  }
-  if (status === "blocked") {
-    return <span className="flex size-5 items-center justify-center rounded-full bg-muted text-muted-foreground"><Lock className="size-3" /></span>;
-  }
-  return <span className="size-2 rounded-full bg-primary shadow-[0_0_8px_-1px_var(--primary)]" />;
+function navStepIconStatus(status: LearningNavStepItem["status"]): CourseStepIconStatus {
+  if (status === "completed") return "completed";
+  if (status === "blocked") return "locked";
+  return "available";
 }
 
 export function LearningSidebarPanel({
@@ -67,12 +65,11 @@ export function LearningSidebarPanel({
         <p className="typo-eyebrow text-muted-foreground">Шаги модуля</p>
         <ol className="mt-3 space-y-1">
           {steps.map((step) => {
-            const Icon = stepIcons[step.kind] ?? BookOpen;
+            const iconKind = stepIcons[step.kind] ?? "lesson";
             const clickable = Boolean(step.actionHref) && step.status !== "blocked";
             const inner = (
               <>
-                <StepStatusDot status={step.status} />
-                <Icon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+                <CourseStepIcon kind={iconKind} size="sm" status={navStepIconStatus(step.status)} />
                 <span className="min-w-0 flex-1 truncate">{step.title}</span>
               </>
             );
@@ -138,8 +135,7 @@ export function LearningSidebar({
       <Button
         type="button"
         variant="outline"
-        size="sm"
-        className={cn("lg:hidden", className)}
+        className={cn("min-h-11 w-full touch-manipulation lg:hidden", className)}
         onClick={() => setOpen(true)}
         aria-expanded={open}
         aria-controls="learning-sidebar-drawer"

@@ -31,3 +31,24 @@ export function formatUserFacingError(message: string): string {
 
   return raw;
 }
+
+/** Ошибки отправки теста (Server Action, сеть, rate limit). */
+export function formatTestSubmitError(err: unknown): string {
+  if (err instanceof Error) {
+    const m = err.message.trim().toLowerCase();
+    if (
+      m.includes("failed to fetch") ||
+      m.includes("networkerror") ||
+      m.includes("network request failed") ||
+      m.includes("load failed") ||
+      m.includes("fetch failed")
+    ) {
+      return "Нет связи с сервером. Проверьте интернет и нажмите «Отправить» снова — ответы сохранены в черновике.";
+    }
+    if (err.name === "TypeError" && (m.includes("fetch") || m.includes("network"))) {
+      return "Нет связи с сервером. Проверьте интернет и повторите отправку.";
+    }
+    return formatUserFacingError(err.message);
+  }
+  return formatUserFacingError("");
+}

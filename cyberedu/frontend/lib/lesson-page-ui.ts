@@ -1,10 +1,16 @@
 import { moduleDifficultyByOrder } from "@/lib/course-path-ui";
 import { parseLessonStructure } from "@/components/lesson/lesson-structured-text";
+import type { CheckpointQuestion } from "@/types/lesson-view-model";
 
 export type LessonSelfCheckItem = {
   question: string;
   hint?: string;
 };
+
+/** UI-совместимость: самопроверка без graded-ответов */
+export function checkpointToSelfCheckItem(item: CheckpointQuestion): LessonSelfCheckItem {
+  return { question: item.question, hint: item.explanation };
+}
 
 function bulletLines(body: string): string[] {
   return body

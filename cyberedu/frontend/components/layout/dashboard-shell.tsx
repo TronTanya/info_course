@@ -18,8 +18,10 @@ export function DashboardShell({
   return (
     <div
       className={cn(
-        "dashboard-grid dashboard-grid--with-sidebar min-w-0 flex-1 overflow-x-clip",
-        wide && "dashboard-grid--wide",
+        "dashboard-grid dashboard-grid--with-sidebar min-w-0",
+        wide
+          ? "dashboard-grid--wide dashboard-grid--immersive overflow-visible"
+          : "min-h-0 flex-1 overflow-x-clip",
         className,
       )}
     >

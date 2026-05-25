@@ -61,12 +61,12 @@ export function LessonLearningBlocks({
         </nav>
       ) : null}
 
-      {hasRemember && remember ? <LessonRememberBlock title={remember.title} items={remember.items} /> : null}
       {hasKeyIdeas ? (
         <div id="lesson-key-ideas" className="scroll-mt-28">
           <LessonKeyIdeas ideas={keyIdeas} />
         </div>
       ) : null}
+      {hasRemember && remember ? <LessonRememberBlock title={remember.title} items={remember.items} /> : null}
       {hasPractice && practice ? <LessonPracticeExample title={practice.title} body={practice.body} /> : null}
       {hasSelfCheck ? (
         <div id="lesson-self-check" className="scroll-mt-28">

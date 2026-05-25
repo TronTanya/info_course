@@ -14,10 +14,12 @@ export default function LessonError({
       error={error}
       reset={reset}
       logTag="lesson"
-      title="Не удалось загрузить лекцию"
-      description="Попробуйте обновить страницу. Если урок заблокирован — завершите предыдущий модуль в карте курса."
+      structuredLog
+      title="Не удалось загрузить урок"
+      description="Произошла непредвиденная ошибка. Обновите страницу или вернитесь к карте курса."
       homeHref="/dashboard/course"
-      homeLabel="К карте курса"
+      homeLabel="Вернуться к курсу"
+      retryLabel="Повторить попытку"
     />
   );
 }

@@ -126,7 +126,7 @@ const nextAuth = NextAuth({
           return null;
         }
 
-        if (isLoginLocked(email, ip)) {
+        if (await isLoginLocked(email, ip)) {
           logSecurityEvent({
             action: SECURITY_ACTIONS.AUTH_LOGIN_LOCKED,
             severity: "warn",
@@ -142,7 +142,7 @@ const nextAuth = NextAuth({
           select: { id: true, email: true, passwordHash: true, role: true },
         });
         if (!user?.passwordHash) {
-          recordFailedLogin(email, ip);
+          await recordFailedLogin(email, ip);
           logSecurityEvent({
             action: SECURITY_ACTIONS.AUTH_LOGIN_FAILED,
             severity: "warn",
@@ -155,7 +155,7 @@ const nextAuth = NextAuth({
 
         const valid = await bcrypt.compare(passwordRaw, user.passwordHash);
         if (!valid) {
-          const attempt = recordFailedLogin(email, ip);
+          const attempt = await recordFailedLogin(email, ip);
           logSecurityEvent({
             userId: user.id,
             action: SECURITY_ACTIONS.AUTH_LOGIN_FAILED,
@@ -167,7 +167,7 @@ const nextAuth = NextAuth({
           return null;
         }
 
-        clearLoginAttempts(email, ip);
+        await clearLoginAttempts(email, ip);
         return {
           id: user.id,
           email: user.email,

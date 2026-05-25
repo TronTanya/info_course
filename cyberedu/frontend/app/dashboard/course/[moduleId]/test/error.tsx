@@ -1,6 +1,10 @@
 "use client";
 
-import { RouteErrorView } from "@/components/ui/route-error-view";
+import { useEffect } from "react";
+import { DashboardShell } from "@/components/layout/dashboard-shell";
+import { LearnPageShell } from "@/components/learn/learn-chrome";
+import { TestPageLoadError } from "@/components/test/test-page-states";
+import { logError } from "@/lib/log/structured";
 
 export default function ModuleTestError({
   error,
@@ -9,15 +13,18 @@ export default function ModuleTestError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    logError("test_route_error", {
+      digest: error.digest,
+      code: error.message?.slice(0, 120),
+    });
+  }, [error]);
+
   return (
-    <RouteErrorView
-      error={error}
-      reset={reset}
-      logTag="test"
-      title="Не удалось загрузить тест"
-      description="Проверьте соединение и попробуйте снова. Если тест недоступен — сначала завершите лекцию модуля."
-      homeHref="/dashboard/course"
-      homeLabel="К карте курса"
-    />
+    <DashboardShell>
+      <LearnPageShell>
+        <TestPageLoadError kind="load" onRetry={reset} />
+      </LearnPageShell>
+    </DashboardShell>
   );
 }

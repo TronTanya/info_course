@@ -33,13 +33,13 @@ export function LessonStickyCta({
         : "Изучено";
 
   return (
-    <div className="mx-auto flex max-w-lg flex-col gap-2 sm:flex-row sm:items-center">
+    <div className="mx-auto flex w-full min-w-0 max-w-lg flex-col gap-2 sm:flex-row sm:items-center">
       {!lessonCompleted ? (
         <Button
           type="button"
           variant="primary"
           size="lg"
-          className="w-full flex-1"
+          className="min-h-12 w-full flex-1 touch-manipulation"
           loading={markPending}
           disabled={markPending}
           onClick={onMarkStudied}
@@ -47,7 +47,7 @@ export function LessonStickyCta({
           Отметить как изучено
         </Button>
       ) : (
-        <Button asChild variant="primary" size="lg" className="w-full flex-1">
+        <Button asChild variant="primary" size="lg" className="min-h-12 w-full flex-1 touch-manipulation">
           <Link href={nextHref}>
             {nextLabel}
             <ArrowRight className="size-4" aria-hidden />
@@ -59,7 +59,7 @@ export function LessonStickyCta({
           type="button"
           variant="outline"
           size="lg"
-          className="w-full shrink-0 gap-2 sm:w-auto"
+          className="min-h-12 w-full shrink-0 touch-manipulation gap-2 sm:w-auto"
           onClick={onAskMentor}
           aria-label="Спросить AI-наставника по этому уроку"
         >

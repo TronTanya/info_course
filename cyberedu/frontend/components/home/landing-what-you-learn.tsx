@@ -39,14 +39,11 @@ export function LandingWhatYouLearn() {
   return (
     <LandingSection
       id="what-you-learn"
-      eyebrow="Программа"
-      title="Что вы изучите"
-      description="Шесть опорных тем — от базовой модели угроз до реагирования на инциденты. Каждая тема закрепляется тестом и практикой."
+      eyebrow="Компетенции"
+      title="Шесть опорных тем программы"
+      description="От модели угроз до реагирования на инциденты — каждая тема закрепляется тестом и практикой в учебной среде."
       accent
     >
-      <span id="modules" className="sr-only">
-        Программа курса
-      </span>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {topics.map((topic) => {
           const Icon = topic.icon;

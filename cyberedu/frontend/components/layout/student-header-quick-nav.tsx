@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { studentHeaderNavKeys, studentQuickNav } from "@/lib/design-system/nav-config";
-import { isStudentQuickNavActive, resolveStudentNavPaths } from "@/lib/nav-resolve";
+import { isStudentQuickNavActive } from "@/lib/nav-resolve";
+import { useStudentNavPaths } from "@/lib/hooks/use-student-nav-paths";
 import { cn } from "@/lib/utils";
 
 const navByKey = Object.fromEntries(studentQuickNav.map((item) => [item.key, item])) as Record<
@@ -14,7 +15,7 @@ const navByKey = Object.fromEntries(studentQuickNav.map((item) => [item.key, ite
 /** Компактная горизонтальная навигация в шапке кабинета (xl+). */
 export function StudentHeaderQuickNav() {
   const pathname = usePathname() ?? "";
-  const paths = resolveStudentNavPaths(pathname);
+  const paths = useStudentNavPaths();
 
   return (
     <nav

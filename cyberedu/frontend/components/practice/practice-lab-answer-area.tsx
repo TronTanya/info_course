@@ -2,11 +2,11 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export function PracticeLabAnswerArea({
-  requirements,
+  requirements = [],
   children,
   className,
 }: {
-  requirements: string[];
+  requirements?: string[];
   children: ReactNode;
   className?: string;
 }) {

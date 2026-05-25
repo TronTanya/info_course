@@ -1,5 +1,9 @@
+import Link from "next/link";
 import { ReviewStars } from "@/components/reviews/review-stars";
+import { LandingSection } from "@/components/home/landing-section";
+import { Button } from "@/components/ui/button";
 import { SectionCard } from "@/components/ui/section-card";
+import { LANDING_SECTION_IDS } from "@/lib/landing-content";
 import { getPublishedReviews } from "@/lib/reviews";
 
 const MAX_REVIEWS = 4;
@@ -8,17 +12,12 @@ export async function LandingReviews() {
   const reviews = await getPublishedReviews(MAX_REVIEWS);
 
   return (
-    <section className="space-y-10" aria-labelledby="reviews-heading">
-      <div className="mx-auto max-w-3xl text-center">
-        <p className="text-xs font-semibold uppercase tracking-widest text-cyan">Сообщество</p>
-        <h2 id="reviews-heading" className="mt-3 text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-          Отзывы студентов
-        </h2>
-        <p className="mt-4 text-pretty text-base text-muted-foreground sm:text-lg">
-          Публикуются только отзывы после модерации. Оставить свой могут пользователи после первого завершённого модуля.
-        </p>
-      </div>
-
+    <LandingSection
+      id={LANDING_SECTION_IDS.reviews}
+      eyebrow="Сообщество"
+      title="Отзывы студентов"
+      description="Публикуются только отзывы после модерации. Оставить свой могут пользователи после первого завершённого модуля."
+    >
       {reviews.length === 0 ? (
         <div className="mx-auto max-w-lg rounded-2xl border border-dashed border-border/80 bg-muted/20 px-6 py-12 text-center">
           <p className="text-sm font-medium text-foreground">Пока нет опубликованных отзывов</p>
@@ -39,7 +38,9 @@ export async function LandingReviews() {
               <ReviewStars value={r.rating} />
               <div className="mt-4">
                 <p className="font-semibold text-foreground">{r.name}</p>
-                <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-muted-foreground">{r.educationalInstitution}</p>
+                <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-muted-foreground">
+                  {r.educationalInstitution}
+                </p>
               </div>
               <blockquote className="mt-4 line-clamp-6 flex-1 border-l-2 border-primary/25 pl-3 text-sm leading-relaxed text-muted-foreground">
                 {r.text}
@@ -48,6 +49,12 @@ export async function LandingReviews() {
           ))}
         </div>
       )}
-    </section>
+
+      <div className="flex justify-center pt-2">
+        <Button asChild variant="outline" size="lg">
+          <Link href="/reviews">Все отзывы</Link>
+        </Button>
+      </div>
+    </LandingSection>
   );
 }

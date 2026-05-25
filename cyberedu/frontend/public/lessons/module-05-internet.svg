@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" role="img" aria-label="Безопасность в интернете">
+  <defs>
+    <linearGradient id="bg5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0c1929"/>
+      <stop offset="100%" stop-color="#1e40af"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="400" fill="url(#bg5)"/>
+  <rect x="200" y="70" width="400" height="240" rx="14" fill="#1e293b" stroke="#60a5fa" stroke-width="2"/>
+  <rect x="220" y="90" width="360" height="32" rx="6" fill="#334155"/>
+  <circle cx="240" cy="106" r="6" fill="#f87171"/>
+  <circle cx="260" cy="106" r="6" fill="#fbbf24"/>
+  <circle cx="280" cy="106" r="6" fill="#4ade80"/>
+  <rect x="300" y="98" width="200" height="16" rx="4" fill="#475569"/>
+  <rect x="240" y="140" width="320" height="140" rx="6" fill="#0f172a"/>
+  <rect x="360" y="200" width="80" height="48" rx="8" fill="#166534" stroke="#4ade80" stroke-width="2"/>
+  <text x="400" y="232" text-anchor="middle" fill="#bbf7d0" font-family="system-ui,sans-serif" font-size="22" font-weight="700">HTTPS</text>
+  <path d="M400 155 C400 155 340 175 340 210 C340 235 365 250 400 250 C435 250 460 235 460 210 C460 175 400 155 400 155Z" fill="none" stroke="#4ade80" stroke-width="3"/>
+  <text x="400" y="360" text-anchor="middle" fill="#93c5fd" font-family="system-ui,sans-serif" font-size="18">Модуль 5 — Интернет и HTTPS</text>
+</svg>

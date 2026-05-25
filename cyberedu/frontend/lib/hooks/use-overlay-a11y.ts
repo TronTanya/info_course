@@ -56,7 +56,7 @@ export function useOverlayA11y({
     if (!container) return;
     const prev = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const nodes = getFocusable(container);
-    (nodes[0] ?? container).focus();
+    (nodes[0] ?? container).focus({ preventScroll: true });
     return () => {
       prev?.focus();
     };

@@ -1,3 +1,4 @@
+import type * as React from "react";
 import type { UiStatus } from "@/types/ui-status";
 import { cn } from "@/lib/utils";
 
@@ -44,14 +45,13 @@ const config: Record<UiStatus, { label: string; className: string }> = {
   },
 };
 
-export type StatusBadgeProps = {
+export type StatusBadgeProps = React.HTMLAttributes<HTMLSpanElement> & {
   status: UiStatus;
   /** Переопределить подпись */
   label?: string;
-  className?: string;
 };
 
-export function StatusBadge({ status, label, className }: StatusBadgeProps) {
+export function StatusBadge({ status, label, className, ...rest }: StatusBadgeProps) {
   const c = config[status];
   const text = label ?? c.label;
 
@@ -62,6 +62,7 @@ export function StatusBadge({ status, label, className }: StatusBadgeProps) {
         c.className,
         className,
       )}
+      {...rest}
     >
       {status === "loading" ? (
         <span

@@ -1,28 +1,30 @@
-import { Skeleton } from "@/components/ui/skeleton";
+import {
+  DashboardCardSkeleton,
+  DashboardProgressSkeleton,
+  DashboardWelcomeSkeleton,
+} from "@/components/dashboard/dashboard-page-states";
 
+/** Скелетон кабинета: сетка как у DashboardHome (основная колонка + сайдбар). */
 export function DashboardHomeSkeleton() {
   return (
-    <div className="space-y-5 sm:space-y-6" aria-busy="true" aria-label="Загрузка кабинета">
-      <div className="space-y-2">
-        <Skeleton className="h-3 w-28" />
-        <Skeleton className="h-9 w-2/3 max-w-sm" />
-        <Skeleton className="h-4 w-full max-w-md" />
+    <div
+      className="ce-dashboard-cockpit min-w-0 overflow-x-clip pb-2"
+      aria-busy="true"
+      aria-label="Загрузка кабинета"
+    >
+      <div className="ce-dashboard-cockpit__layout flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(16.5rem,20rem)] lg:items-start lg:gap-4">
+        <div className="flex min-w-0 flex-col gap-3">
+          <DashboardWelcomeSkeleton />
+          <DashboardProgressSkeleton />
+          <DashboardCardSkeleton tall />
+          <DashboardCardSkeleton />
+        </div>
+
+        <aside aria-hidden className="flex min-w-0 flex-col gap-3">
+          <DashboardCardSkeleton />
+          <DashboardCardSkeleton tall />
+        </aside>
       </div>
-      <Skeleton className="h-44 rounded-2xl" />
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <Skeleton className="h-56 rounded-2xl" />
-        <Skeleton className="h-56 rounded-2xl" />
-      </div>
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <Skeleton className="h-48 rounded-2xl" />
-        <Skeleton className="h-48 rounded-2xl" />
-      </div>
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <Skeleton className="h-44 rounded-2xl" />
-        <Skeleton className="h-44 rounded-2xl" />
-      </div>
-      <Skeleton className="h-36 rounded-2xl" />
-      <Skeleton className="h-28 rounded-2xl" />
     </div>
   );
 }

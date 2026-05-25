@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { focusRing } from "@/lib/design-system/primitives";
 import { cn } from "@/lib/utils";
 
 export const BRAND_MARK_SRC = "/brand/logo-mark.svg";
@@ -52,7 +53,7 @@ type BrandLogoHeaderLinkProps = {
 /** Шапка сайта: знак + название + подпись. */
 export function BrandLogoHeaderLink({ className, iconOnly }: BrandLogoHeaderLinkProps) {
   return (
-    <Link href="/" className={cn("flex min-w-0 items-center gap-2.5 sm:gap-3", className)}>
+    <Link href="/" className={cn("flex min-w-0 items-center gap-2.5 rounded-xl sm:gap-3", focusRing, className)}>
       <BrandLogoMark className="h-9 w-9 sm:h-10 sm:w-10" size={40} />
       {iconOnly ? (
         <span className="sr-only">CyberEdu — информационная безопасность</span>

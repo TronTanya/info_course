@@ -6,6 +6,7 @@ import { practiceLabStateMeta } from "@/lib/practice-lab-ui";
 import { AnswerFeedback } from "@/components/ui/answer-feedback";
 import { Alert } from "@/components/ui/alert";
 import { classifyFormFeedback } from "@/lib/form-feedback";
+import { resolvePracticeClientErrorDisplay } from "@/lib/practice-page-state";
 import { cn } from "@/lib/utils";
 
 const stateShell: Record<PracticeLabState, string> = {
@@ -65,6 +66,13 @@ export function PracticeLabResult({
             )}
           >
             {meta.label}
+            {labState === "wrong" ? <span className="sr-only"> — требует исправления</span> : null}
+            {labState === "correct" || labState === "passed" ? (
+              <span className="sr-only"> — зачтено</span>
+            ) : null}
+            {labState === "submitted" || labState === "needs_review" ? (
+              <span className="sr-only"> — на проверке</span>
+            ) : null}
           </p>
         </motion.div>
 
@@ -85,20 +93,21 @@ export function PracticeLabResult({
             className="ce-practice-result--wrong"
           >
             {(() => {
-              const fb = classifyFormFeedback(error);
+              const safeError = resolvePracticeClientErrorDisplay(error).message;
+              const fb = classifyFormFeedback(safeError);
               if (labState === "wrong" && fb.kind !== "rate_limit" && fb.kind !== "unavailable") {
                 return (
                   <AnswerFeedback
                     variant="incorrect"
                     title="Ответ не засчитан"
-                    explanation={fb.description ?? error}
+                    explanation={fb.description ?? safeError}
                   />
                 );
               }
               const variant = fb.kind === "rate_limit" || fb.kind === "unavailable" ? "warning" : "danger";
               return (
                 <Alert variant={variant} title={fb.title}>
-                  {fb.description}
+                  {fb.description ?? safeError}
                 </Alert>
               );
             })()}
@@ -130,7 +139,12 @@ export function PracticeLabResult({
         {showIntro ? (
           <motion.div key="intro" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <Alert variant="info" title="Добро пожаловать в Cyber Lab">
-              Изучите карточку сценария, при необходимости откройте подсказки и выполните задание в рабочей области.
+              <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm">
+                <li>Прочитайте карточку сценария — роль, задача и исходные данные.</li>
+                <li>Откройте блок «Как оценивается ответ» и при необходимости подсказки.</li>
+                <li>Выполните задание в рабочей области и отправьте ответ — проверка на сервере.</li>
+                <li>После отправки следите за статусом и переходите к следующему шагу курса.</li>
+              </ol>
             </Alert>
           </motion.div>
         ) : null}

@@ -1,66 +1,56 @@
-import { Brain, FileBadge, FlaskConical, Layers, ShieldCheck } from "lucide-react";
+import { Brain, FileBadge, FlaskConical, GraduationCap, Layers, ShieldCheck, Users } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { LandingSection } from "@/components/home/landing-section";
 import { MetricCard } from "@/components/ui/metric-card";
+import { resolveLandingMetrics } from "@/lib/landing-marketing";
+import { getLandingPublicStats } from "@/lib/landing-public-stats";
 
-const metrics = [
-  {
-    icon: Layers,
-    label: "Модули курса",
-    value: "12+",
-    hint: "Пошаговый трек от основ к SOC",
-    variant: "default" as const,
-  },
-  {
-    icon: FlaskConical,
-    label: "Практические лаборатории",
-    value: "24+",
-    hint: "Сценарии в браузере, без установки ПО",
-    variant: "cyan" as const,
-  },
-  {
-    icon: Brain,
-    label: "AI-наставник",
-    value: "24/7",
-    hint: "Подсказки без готовых ответов на тесты",
-    variant: "accent" as const,
-  },
-  {
-    icon: FileBadge,
-    label: "Сертификат",
-    value: "PDF + QR",
-    hint: "Публичная проверка подлинности",
-    variant: "default" as const,
-  },
-  {
-    icon: ShieldCheck,
-    label: "Защищённая платформа",
-    value: "RBAC",
-    hint: "Изоляция сред, rate limits, аудит",
-    variant: "cyan" as const,
-  },
-] as const;
+const ICONS: Record<string, LucideIcon> = {
+  modules: Layers,
+  labs: FlaskConical,
+  mentor: Brain,
+  cert: FileBadge,
+  security: ShieldCheck,
+  certs: FileBadge,
+  students: Users,
+};
 
-export function LandingTrustMetrics() {
+export async function LandingTrustMetrics() {
+  const stats = await getLandingPublicStats();
+  const { items, live } = resolveLandingMetrics(stats);
+
   return (
     <LandingSection
       id="trust"
       eyebrow="Платформа"
-      title="Всё для практики в одной академии"
-      description="CyberEdu — не набор PDF-лекций, а учебная среда с лабораториями, проверками и прозрачным прогрессом."
+      title="Всё для практики ИБ — в одной академии"
+      description={
+        live
+          ? "Актуальные показатели платформы. Курс, лаборатории, AI-наставник и сертификат — без разрозненных инструментов."
+          : "Курс, лаборатории, AI-наставник, сертификат и защищённая среда — единый учебный контур."
+      }
       accent
+      panel
+      panelGlow
     >
+      {live ? (
+        <p className="mb-4 flex items-center justify-center gap-2 text-center text-xs text-muted-foreground">
+          <GraduationCap className="size-3.5 text-primary" aria-hidden />
+          Показатели обновляются при загрузке страницы · без персональных данных
+        </p>
+      ) : null}
       <ul className="grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {metrics.map((m) => {
-          const Icon = m.icon;
+        {items.map((m) => {
+          const Icon = ICONS[m.key] ?? Layers;
           return (
-            <li key={m.label}>
+            <li key={m.key}>
               <MetricCard
                 variant={m.variant}
                 label={m.label}
                 value={m.value}
                 hint={m.hint}
                 icon={<Icon className="size-5" strokeWidth={1.75} aria-hidden />}
-                className="h-full"
+                className="h-full transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 motion-reduce:hover:translate-y-0"
               />
             </li>
           );

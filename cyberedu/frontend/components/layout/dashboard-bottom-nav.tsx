@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { studentBottomNavKeys, studentQuickNav } from "@/lib/design-system/nav-config";
-import { isStudentQuickNavActive, resolveStudentNavPaths, type StudentQuickNavKey } from "@/lib/nav-resolve";
+import { isStudentQuickNavActive, type StudentQuickNavKey } from "@/lib/nav-resolve";
+import { useStudentNavPaths } from "@/lib/hooks/use-student-nav-paths";
 import { cn } from "@/lib/utils";
 
 const SHORT: Record<StudentQuickNavKey, string> = {
@@ -24,7 +25,7 @@ const navByKey = Object.fromEntries(studentQuickNav.map((item) => [item.key, ite
 /** Нижняя навигация кабинета (< lg). */
 export function DashboardBottomNav() {
   const pathname = usePathname() ?? "";
-  const paths = resolveStudentNavPaths(pathname);
+  const paths = useStudentNavPaths();
 
   return (
     <nav

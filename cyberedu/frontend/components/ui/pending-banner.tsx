@@ -18,7 +18,7 @@ export function PendingBanner({
         className,
       )}
     >
-      <Loader2 className="size-4 shrink-0 animate-spin text-primary" aria-hidden />
+      <Loader2 className="size-4 shrink-0 animate-spin text-primary motion-reduce:animate-none" aria-hidden />
       <span>{label}</span>
     </div>
   );

@@ -1,7 +1,19 @@
 import type { QuestionType, SubmissionStatus } from "@prisma/client";
 import { canGenerateCertificate, certificateVerifyUrl } from "@/lib/certificate";
 import { prisma } from "@/lib/db";
+import type { ProgressRow } from "@/lib/progress";
+import { sanitizeStudentFeedback } from "@/lib/submission-status-panel";
 import { questionCountsTowardAutoScore } from "@/lib/test-grading";
+
+function submissionStudentFeedback(
+  status: SubmissionStatus,
+  adminComment: string | null | undefined,
+): string | undefined {
+  if (status !== "ACCEPTED" && status !== "REJECTED" && status !== "NEEDS_REVISION") {
+    return undefined;
+  }
+  return sanitizeStudentFeedback(adminComment);
+}
 
 export type ProfileLastLesson = {
   lessonTitle: string;
@@ -42,6 +54,8 @@ export type ProfileRecentSubmission = {
   statusLabel: string;
   outcome: "passed" | "needs_improvement" | "pending";
   at: string;
+  /** Санитизированный комментарий преподавателя для студента (без admin-only). */
+  studentFeedback?: string;
 };
 
 /** Сводка «последняя активность» — самое свежее событие из лекции / теста / практики. */
@@ -181,8 +195,18 @@ export async function getProfileCourseStats(userId: string): Promise<ProfileCour
     moduleIds.length
       ? prisma.progress.findMany({
           where: { userId, moduleId: { in: moduleIds } },
+          select: {
+            moduleId: true,
+            lessonCompleted: true,
+            videoCompleted: true,
+            testCompleted: true,
+            practiceCompleted: true,
+            moduleCompleted: true,
+            score: true,
+            updatedAt: true,
+          },
         })
-      : Promise.resolve([]),
+      : Promise.resolve([] as Pick<ProgressRow, "moduleId" | "lessonCompleted" | "videoCompleted" | "testCompleted" | "practiceCompleted" | "moduleCompleted" | "score" | "updatedAt">[]),
     moduleIds.length
       ? prisma.progress.findFirst({
           where: { userId, lessonCompleted: true, moduleId: { in: moduleIds } },
@@ -263,6 +287,7 @@ export async function getProfileCourseStats(userId: string): Promise<ProfileCour
           select: {
             createdAt: true,
             status: true,
+            adminComment: true,
             practicalTask: { select: { title: true, module: { select: { id: true, title: true } } } },
           },
         })
@@ -397,7 +422,7 @@ export async function getProfileCourseStats(userId: string): Promise<ProfileCour
   }
 
   const certificateIssued = Boolean(certificate);
-  const verifyUrl = certificate ? certificateVerifyUrl(certificate.verificationCode) : null;
+  const verifyUrl = certificate ? certificateVerifyUrl(certificate.certificateNumber) : null;
 
   const certificateDisplayState: ProfileCertificateDisplayState = certificateIssued
     ? "issued"
@@ -422,6 +447,7 @@ export async function getProfileCourseStats(userId: string): Promise<ProfileCour
     statusLabel: submissionStatusLabel(s.status),
     outcome: submissionOutcome(s.status),
     at: s.createdAt.toISOString(),
+    studentFeedback: submissionStudentFeedback(s.status, s.adminComment),
   }));
 
   return {

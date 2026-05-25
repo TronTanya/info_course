@@ -11,9 +11,28 @@ function str(v: unknown): string {
   return typeof v === "string" ? v.trim() : "";
 }
 
+export type PracticeEvidenceEmailAttachment = {
+  name: string;
+  size?: string;
+  mimeType?: string;
+};
+
 export type PracticeEvidenceBlock =
-  | { kind: "email"; from: string; subject: string; body: string }
-  | { kind: "url_list"; title: string; urls: { label: string; href: string }[] }
+  | {
+      kind: "email";
+      from: string;
+      to?: string;
+      subject: string;
+      date?: string;
+      body: string;
+      links?: string[];
+      attachments?: PracticeEvidenceEmailAttachment[];
+    }
+  | {
+      kind: "url_list";
+      title: string;
+      urls: { label: string; href: string; visibleText?: string }[];
+    }
   | { kind: "log"; title: string; lines: string }
   | { kind: "hash"; label: string; value: string; algorithm?: string }
   | { kind: "text"; title: string; content: string }
@@ -45,10 +64,39 @@ function extractEvidenceFromJson(sd: Record<string, unknown>): PracticeEvidenceB
   const email = sd.email;
   if (isRecord(email)) {
     const from = str(email.from) || str(email.sender);
+    const to = str(email.to) || str(email.recipient);
     const subject = str(email.subject);
+    const date = str(email.date) || str(email.sentAt) || str(email.timestamp);
     const body = str(email.body) || str(email.text);
+    const linksRaw = email.links;
+    const links = Array.isArray(linksRaw)
+      ? linksRaw.filter((x): x is string => typeof x === "string" && x.trim().length > 0).map((x) => x.trim())
+      : [];
+    const attachmentsRaw = email.attachments;
+    const attachments: PracticeEvidenceEmailAttachment[] = [];
+    if (Array.isArray(attachmentsRaw)) {
+      for (const a of attachmentsRaw) {
+        if (!isRecord(a)) continue;
+        const name = str(a.name) || str(a.filename);
+        if (!name) continue;
+        attachments.push({
+          name,
+          size: str(a.size) || str(a.fileSize) || undefined,
+          mimeType: str(a.mimeType) || str(a.type) || undefined,
+        });
+      }
+    }
     if (from || subject || body) {
-      blocks.push({ kind: "email", from: from || "—", subject: subject || "—", body: body || "—" });
+      blocks.push({
+        kind: "email",
+        from: from || "—",
+        to: to || undefined,
+        subject: subject || "—",
+        date: date || undefined,
+        body: body || "—",
+        links: links.length > 0 ? links : undefined,
+        attachments: attachments.length > 0 ? attachments : undefined,
+      });
     }
   }
 
@@ -59,7 +107,8 @@ function extractEvidenceFromJson(sd: Record<string, unknown>): PracticeEvidenceB
         if (isRecord(u)) {
           const href = str(u.url) || str(u.href);
           if (!href) return null;
-          return { label: str(u.label) || `URL ${i + 1}`, href };
+          const visibleText = str(u.visibleText) || str(u.text) || str(u.displayText) || undefined;
+          return { label: str(u.label) || `URL ${i + 1}`, href, visibleText };
         }
         return null;
       })

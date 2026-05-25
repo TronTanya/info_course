@@ -4,7 +4,7 @@ import { useId } from "react";
 import type { ClientTestQuestion } from "@/lib/test-grading";
 import type { QuestionType } from "@prisma/client";
 import { TestAnswerOption } from "@/components/test/test-answer-option";
-import { TestQuestionNav } from "@/components/test/test-question-nav";
+import { QuestionNavigator } from "@/components/test/question-navigator";
 import { TestSubmitDialog } from "@/components/test/test-submit-dialog";
 import { Button } from "@/components/ui/button";
 import { ErrorCard } from "@/components/ui/error-card";
@@ -13,7 +13,7 @@ import { PendingBanner } from "@/components/ui/pending-banner";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { Textarea } from "@/components/ui/textarea";
 import { useTestTakingKeyboard } from "@/lib/hooks/use-test-taking-keyboard";
-import { testKeyboardHints } from "@/lib/test-ui";
+import { formatRemainingQuestions, testKeyboardHints } from "@/lib/test-ui";
 import { cyber } from "@/lib/design-system/cyber";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +44,7 @@ export type TestLocalAnswers = {
 
 export function TestTakingView({
   title,
+  moduleTitle,
   minScore,
   maxScore,
   questions,
@@ -63,8 +64,11 @@ export function TestTakingView({
   onConfirmSubmit,
   onRetrySubmit,
   draftNote,
+  openedFlags,
+  allowFreeNavigation = true,
 }: {
   title: string;
+  moduleTitle?: string;
   minScore: number;
   maxScore: number;
   questions: ClientTestQuestion[];
@@ -84,6 +88,8 @@ export function TestTakingView({
   onConfirmSubmit: () => void;
   onRetrySubmit?: () => void;
   draftNote?: boolean;
+  openedFlags?: boolean[];
+  allowFreeNavigation?: boolean;
 }) {
   const total = questions.length;
   const q = questions[idx];
@@ -106,9 +112,17 @@ export function TestTakingView({
   const unansweredIndexes = questions
     .map((qq, i) => (!answeredFlags[i] ? i + 1 : null))
     .filter((n): n is number => n != null);
+  const remainingLabel = formatRemainingQuestions(answeredCount, total);
+  const allAnswered = answeredCount === total;
 
   return (
-    <div className={cn("ce-test-taking ce-immersive-mobile-pad", cyber.panel, "card-gradient min-w-0 space-y-0 overflow-hidden p-0")}>
+    <div
+      className={cn(
+        "ce-test-taking-screen ce-test-taking ce-immersive-mobile-pad",
+        cyber.panel,
+        "card-gradient min-w-0 space-y-0 overflow-hidden p-0",
+      )}
+    >
       <header
         className={cn(
           "sticky top-0 z-20 border-b border-border/60 bg-card/95 px-4 py-4 backdrop-blur-sm sm:px-6",
@@ -118,9 +132,14 @@ export function TestTakingView({
         <div className="ce-tech-grid pointer-events-none absolute inset-0 opacity-[0.06]" aria-hidden />
         <div className="relative space-y-3">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-primary">{title}</p>
-            <p className="text-xs text-muted-foreground">
-              Проходной: <span className="font-medium text-foreground">{minScore}</span> б.
+            <div className="min-w-0">
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-primary">{title}</p>
+              {moduleTitle ? (
+                <p className="truncate text-xs text-muted-foreground">{moduleTitle}</p>
+              ) : null}
+            </div>
+            <p className="shrink-0 text-xs text-muted-foreground">
+              Проходной: <span className="font-medium text-foreground">{minScore}</span> б. · макс. {maxScore}
             </p>
           </div>
           <ProgressBar label={`Вопрос ${idx + 1} из ${total}`} value={idx + 1} max={total} />
@@ -130,18 +149,38 @@ export function TestTakingView({
             max={total}
             tone={answeredCount === total ? "success" : "default"}
           />
-          <div className="flex justify-between text-xs text-muted-foreground">
+          <div className="flex flex-wrap justify-between gap-2 text-xs text-muted-foreground">
             <span>
               Заполнено <span className="font-semibold tabular-nums text-foreground">{answeredCount}</span> / {total}
             </span>
             <span className="tabular-nums" aria-live="polite">
-              {positionPct}% пройдено · ответы {progressPct}%
+              Позиция {positionPct}% · ответы {progressPct}%
             </span>
           </div>
-          <TestQuestionNav
+          <p
+            className={cn(
+              "rounded-lg border px-3 py-2 text-xs font-medium",
+              allAnswered
+                ? "border-success/35 bg-success/10 text-success"
+                : "border-warning/35 bg-warning/8 text-amber-900 dark:text-amber-200",
+            )}
+            role="status"
+            aria-live="polite"
+          >
+            {remainingLabel}
+            {!allAnswered && unansweredIndexes.length > 0 && unansweredIndexes.length <= 8 ? (
+              <span className="mt-1 block font-normal text-muted-foreground">
+                Без ответа:{" "}
+                <span className="font-mono tabular-nums text-foreground">{unansweredIndexes.join(", ")}</span>
+              </span>
+            ) : null}
+          </p>
+          <QuestionNavigator
             total={total}
             currentIndex={idx}
             answeredFlags={answeredFlags}
+            openedFlags={openedFlags}
+            allowFreeNavigation={allowFreeNavigation}
             onSelect={onIndexChange}
             disabled={pending}
           />
@@ -269,7 +308,7 @@ export function TestTakingView({
                 disabled={pending}
                 onClick={onRequestFinish}
               >
-                Завершить тест
+                Отправить тест
               </Button>
             </div>
           </nav>

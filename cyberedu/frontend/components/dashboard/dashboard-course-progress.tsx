@@ -22,30 +22,39 @@ export function DashboardCourseProgress({
   return (
     <PremiumCard variant="glow" padding="md" className="h-full min-w-0" aria-labelledby="dash-course-progress-heading">
       <p id="dash-course-progress-heading" className="typo-eyebrow text-primary">
-        Course progress
+        Прогресс курса
       </p>
-      <div className="mt-4 flex min-w-0 flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-5">
-        <div className="min-w-0 flex-1 basis-[12rem] space-y-3">
-          <p className="font-display text-3xl font-bold tabular-nums text-foreground">{stats.progressPercent}%</p>
+      <div className="mt-4 flex min-w-0 flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 flex-1 space-y-3">
+          <p className="font-display text-4xl font-bold tabular-nums tracking-tight text-foreground">
+            {stats.progressPercent}
+            <span className="text-2xl text-muted-foreground">%</span>
+          </p>
           <ProgressBar
-            label="Общий прогресс"
+            label="Завершение программы"
+            labelTruncate={false}
             value={stats.progressPercent}
             max={100}
-            tone={stats.progressPercent >= 100 ? "success" : "default"}
+            tone={tone}
           />
+          <p className="text-xs text-muted-foreground">
+            Баллы: {stats.totalPoints}
+            {stats.maxPossiblePoints > 0 ? ` / ${stats.maxPossiblePoints}` : ""}
+            {stats.averageTestPercent != null ? ` · средний тест: ${stats.averageTestPercent}%` : ""}
+          </p>
         </div>
         <CircularProgress
           value={stats.progressPercent}
-          size={88}
+          size={96}
           strokeWidth={7}
           tone={tone}
-          label="Курс"
+          label="Программа"
           glow
-          className="shrink-0 self-center sm:self-auto"
+          className="shrink-0 self-center"
         />
       </div>
-      <ul className="mt-5 grid grid-cols-2 gap-2">
-        <li>
+      <ul className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-4 [&>li]:min-w-[8.5rem]">
+        <li className="min-w-0">
           <MetricCard
             variant="default"
             label="Модули"
@@ -55,7 +64,7 @@ export function DashboardCourseProgress({
             className="h-full"
           />
         </li>
-        <li>
+        <li className="min-w-0">
           <MetricCard
             variant="cyan"
             label="Уроки"
@@ -65,7 +74,7 @@ export function DashboardCourseProgress({
             className="h-full"
           />
         </li>
-        <li>
+        <li className="min-w-0">
           <MetricCard
             variant="accent"
             label="Тесты"
@@ -75,7 +84,7 @@ export function DashboardCourseProgress({
             className="h-full"
           />
         </li>
-        <li>
+        <li className="min-w-0">
           <MetricCard
             variant="cyan"
             label="Практика"

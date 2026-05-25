@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 const DEMO_MODULES = [
   { label: "Модуль 01 · Основы ИБ", value: 100 },
   { label: "Модуль 02 · Фишинг", value: 62 },
-  { label: "Модуль 03 · Web threats", value: 18 },
+  { label: "Модуль 03 · Анализ URL", value: 18 },
 ] as const;
 
 export function LandingCommandCenterPreview({ className }: { className?: string }) {

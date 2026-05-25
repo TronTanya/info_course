@@ -3,6 +3,7 @@ import type { Role } from "@prisma/client";
 import { GraduationCap, MapPin, Pencil, School, Sparkles } from "lucide-react";
 import type { ProfileCourseStats } from "@/lib/profile-course-stats";
 import { buildProfileLearningStatus, profileRoleLabel } from "@/lib/profile-portfolio";
+import { ProfileMetaTile } from "@/components/profile/profile-meta-tile";
 import { ProfileUserStatsStrip } from "@/components/profile/profile-user-stats-strip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,30 +12,6 @@ function displayField(value: string | null | undefined) {
   const v = value?.trim();
   if (!v || v === "—") return "—";
   return v;
-}
-
-function MetaTile({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof School;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="ce-glass rounded-xl border border-border/60 p-3 sm:p-4">
-      <div className="flex items-start gap-3">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/15">
-          <Icon className="size-4" aria-hidden />
-        </span>
-        <div className="min-w-0">
-          <p className="typo-label">{label}</p>
-          <p className="typo-body mt-0.5 font-medium text-foreground">{value}</p>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 export function ProfileUserCard({
@@ -107,17 +84,22 @@ export function ProfileUserCard({
                 <span className="typo-caption text-muted-foreground">Аккаунт с {memberSince}</span>
               </div>
               <h1 className="typo-h1 text-balance sm:text-4xl">{fullName}</h1>
-              <p className="inline-flex max-w-full items-center justify-center rounded-xl border border-border/65 bg-background/55 px-3 py-2 font-mono text-xs text-muted-foreground sm:justify-start">
+              <p className="inline-flex max-w-full items-center justify-center rounded-xl border border-border/65 bg-background/55 px-3 py-2 font-mono text-xs text-muted-foreground break-all sm:justify-start">
                 {email}
               </p>
               <p className="text-sm font-medium text-foreground/90">{learningStatus}</p>
               <p className="text-xs text-muted-foreground">Обучение с {learningStartedAt}</p>
             </div>
 
-            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-              <MetaTile icon={School} label="Учебное заведение" value={displayField(educationalInstitution)} />
-              <MetaTile icon={GraduationCap} label="Специальность" value={displayField(specialty)} />
-              <MetaTile icon={MapPin} label="Город" value={displayField(city)} />
+            <div className="ce-profile-meta-grid grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
+              <ProfileMetaTile
+                wide
+                icon={School}
+                label="Учебное заведение"
+                value={displayField(educationalInstitution)}
+              />
+              <ProfileMetaTile icon={GraduationCap} label="Специальность" value={displayField(specialty)} />
+              <ProfileMetaTile icon={MapPin} label="Город" value={displayField(city)} />
             </div>
 
             {stats ? (

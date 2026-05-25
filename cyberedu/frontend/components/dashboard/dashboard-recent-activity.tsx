@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpen, ClipboardCheck, FlaskConical } from "lucide-react";
+import { Award, BookOpen, ClipboardCheck, FlaskConical } from "lucide-react";
 import type { DashboardActivityItem } from "@/lib/dashboard-ui";
 import { cyber } from "@/lib/design-system/cyber";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,7 @@ const kindIcon = {
   lesson: BookOpen,
   test: ClipboardCheck,
   practice: FlaskConical,
+  certificate: Award,
 } as const;
 
 function formatWhen(iso: string) {
@@ -22,6 +23,7 @@ function formatWhen(iso: string) {
   });
 }
 
+/** Лента активности (legacy) для страницы профиля. */
 export function DashboardRecentActivity({
   items,
   showProfileLink = true,
@@ -49,26 +51,26 @@ export function DashboardRecentActivity({
           }
         />
       ) : (
-      <ul className="space-y-2">
-        {items.map((item) => {
-          const Icon = kindIcon[item.kind];
-          return (
-            <li key={item.id}>
-              <div className={cn(cyber.panelStatic, "flex gap-3 p-4")}>
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted/60 text-primary ring-1 ring-border">
-                  <Icon className="size-4" strokeWidth={1.75} aria-hidden />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="typo-label text-muted-foreground">{item.label}</p>
-                  <p className="mt-0.5 font-medium text-foreground">{item.detail}</p>
-                  {item.meta ? <p className="text-sm text-muted-foreground">{item.meta}</p> : null}
-                  <p className="typo-caption mt-1">{formatWhen(item.at)}</p>
+        <ul className="space-y-2">
+          {items.map((item) => {
+            const Icon = kindIcon[item.kind];
+            return (
+              <li key={item.id}>
+                <div className={cn(cyber.panelStatic, "flex gap-3 p-4")}>
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted/60 text-primary ring-1 ring-border">
+                    <Icon className="size-4" strokeWidth={1.75} aria-hidden />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="typo-label text-muted-foreground">{item.label}</p>
+                    <p className="mt-0.5 font-medium text-foreground">{item.detail}</p>
+                    {item.meta ? <p className="text-sm text-muted-foreground">{item.meta}</p> : null}
+                    <p className="typo-caption mt-1">{formatWhen(item.at)}</p>
+                  </div>
                 </div>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+              </li>
+            );
+          })}
+        </ul>
       )}
       {items.length > 0 && showProfileLink ? (
         <p className="text-center text-sm sm:text-left">

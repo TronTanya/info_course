@@ -1,6 +1,6 @@
 "use client";
 
-import { RouteErrorView } from "@/components/ui/route-error-view";
+import { CourseRouteError } from "@/components/course/course-route-error";
 
 export default function CourseError({
   error,
@@ -9,15 +9,5 @@ export default function CourseError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  return (
-    <RouteErrorView
-      error={error}
-      reset={reset}
-      logTag="course"
-      title="Не удалось загрузить карту курса"
-      description="Попробуйте обновить страницу. Если ошибка повторяется — вернитесь в кабинет и откройте курс снова."
-      homeHref="/dashboard"
-      homeLabel="В кабинет"
-    />
-  );
+  return <CourseRouteError error={error} reset={reset} />;
 }

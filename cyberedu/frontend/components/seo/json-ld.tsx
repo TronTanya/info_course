@@ -1,3 +1,5 @@
+import { HOME_PAGE_DESCRIPTION, HOME_PAGE_TITLE } from "@/lib/seo/home-page-metadata";
+
 export function JsonLd({ data }: { data: Record<string, unknown> | Record<string, unknown>[] }) {
   return (
     <script
@@ -16,14 +18,13 @@ export function homePageJsonLd(appUrl: string) {
       name: "CyberEdu",
       url,
       inLanguage: "ru-RU",
-      description: "Образовательная платформа по основам информационной безопасности.",
+      description: HOME_PAGE_DESCRIPTION,
     },
     {
       "@context": "https://schema.org",
       "@type": "Course",
-      name: "Курс по информационной безопасности",
-      description:
-        "Модульный курс: лекции, тесты, практические задания, AI-наставник и сертификат о прохождении.",
+      name: HOME_PAGE_TITLE,
+      description: HOME_PAGE_DESCRIPTION,
       provider: {
         "@type": "Organization",
         name: "CyberEdu",

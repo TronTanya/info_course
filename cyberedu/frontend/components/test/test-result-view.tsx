@@ -1,26 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, BookOpen, CheckCircle2, FlaskConical, MessageSquare, RotateCcw, XCircle } from "lucide-react";
-import type { LearningStepLink } from "@/lib/learning-nav";
+import { BookOpen, CheckCircle2, FlaskConical, MessageSquare, RotateCcw, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { AnswerFeedback } from "@/components/ui/answer-feedback";
 import { Button } from "@/components/ui/button";
 import { CircularProgress } from "@/components/ui/circular-progress";
 import { SuccessState } from "@/components/ui/success-state";
 import { CyberHero } from "@/components/cyber/cyber-hero";
 import { SectionCard } from "@/components/ui/section-card";
 import { cyber } from "@/lib/design-system/cyber";
+import type { TestReviewRow } from "@/lib/test-result-insights";
+import { TEST_RESULT_CTA } from "@/lib/test-flow";
+import { buildTestResultInsights } from "@/lib/test-result-insights";
+import { hasSafePerQuestionFeedback } from "@/lib/test-question-feedback";
+import { TestResultInsightsPanel } from "@/components/test/test-result-insights-panel";
+import { TestResultQuestionFeedback } from "@/components/test/test-result-question-feedback";
+import { TestNextStepPanel } from "@/components/test/test-next-step-panel";
+import type { TestPageLearningContext } from "@/lib/test-next-learning-step";
+import { TestPostSubmitTimeline } from "@/components/test/test-post-submit-timeline";
 import { cn } from "@/lib/utils";
 
-export type TestReviewRow = {
-  questionId: string;
-  questionText: string;
-  explanation: string | null;
-  isCorrect: boolean | null;
-  pointsEarned: number;
-  maxPoints: number;
-};
+export type { TestReviewRow } from "@/lib/test-result-insights";
 
 export function TestResultView({
   moduleId,
@@ -32,7 +32,7 @@ export function TestResultView({
   correctCount,
   totalGraded,
   review,
-  nextStep = null,
+  learning,
   onRetry,
   onAskMentor,
 }: {
@@ -45,22 +45,20 @@ export function TestResultView({
   correctCount: number;
   totalGraded: number;
   review: TestReviewRow[];
-  nextStep?: LearningStepLink | null;
+  learning: TestPageLearningContext;
   onRetry: () => void;
   onAskMentor?: () => void;
 }) {
   const lessonHref = `/dashboard/course/${moduleId}/lesson`;
   const practiceHref = `/dashboard/course/${moduleId}/practice`;
-  const moduleHref = `/dashboard/course/${moduleId}`;
+  const courseHref = "/dashboard/course";
 
-  const wrong = review.filter((r) => r.isCorrect === false);
-  const correct = review.filter((r) => r.isCorrect === true);
   const pendingManual = review.filter((r) => r.isCorrect === null);
-  const nextLesson =
-    nextStep && !nextStep.disabled && nextStep.href.includes("/lesson") ? nextStep : null;
+  const insights = buildTestResultInsights(review);
+  const showQuestionFeedback = hasSafePerQuestionFeedback(review);
 
   return (
-    <div className="ce-test-result space-y-6">
+    <div className="ce-test-result-screen ce-test-result space-y-6">
       <CyberHero className="ce-test-result-hero border-primary/25" padding="default">
         <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col items-center gap-2 sm:items-start">
@@ -122,90 +120,21 @@ export function TestResultView({
         />
       ) : null}
 
-      <SectionCard variant="default" flushTitle className="p-5 sm:p-6" title="Разбор ответов">
-        <p className="mb-4 text-sm text-muted-foreground">
-          Ниже — все вопросы с результатом проверки. Пояснения показаны только после отправки.
-        </p>
-        {wrong.length > 0 ? (
-          <div className="mb-5 space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-danger">
-              Неверно · {wrong.length}
-            </p>
-            <ul className="space-y-3">
-              {wrong.map((row) => {
-                const index = review.findIndex((r) => r.questionId === row.questionId);
-                return (
-                  <li key={row.questionId}>
-                    <AnswerFeedback
-                      variant="incorrect"
-                      title={`${index + 1}. ${row.questionText} · ${row.pointsEarned}/${row.maxPoints} б.`}
-                      explanation={row.explanation}
-                    />
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ) : null}
-        {correct.length > 0 ? (
-          <div className="mb-5 space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-success">
-              Верно · {correct.length}
-            </p>
-            <ul className="space-y-3">
-              {correct.map((row) => {
-                const index = review.findIndex((r) => r.questionId === row.questionId);
-                return (
-                  <li key={row.questionId}>
-                    <AnswerFeedback
-                      variant="correct"
-                      title={`${index + 1}. ${row.questionText} · ${row.pointsEarned}/${row.maxPoints} б.`}
-                      explanation={row.explanation}
-                    />
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ) : null}
-        {pendingManual.length > 0 ? (
-          <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              На проверке · {pendingManual.length}
-            </p>
-            <ul className="space-y-3">
-              {pendingManual.map((row) => {
-                const index = review.findIndex((r) => r.questionId === row.questionId);
-                return (
-                  <li key={row.questionId}>
-                    <AnswerFeedback
-                      variant="neutral"
-                      title={`${index + 1}. ${row.questionText} · ожидает проверки`}
-                      explanation={row.explanation}
-                    />
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ) : null}
+      <SectionCard variant="default" flushTitle className="p-5 sm:p-6" title="Итог по темам">
+        <TestResultInsightsPanel insights={insights} hasPerQuestionFeedback={showQuestionFeedback} />
       </SectionCard>
 
-      {wrong.length > 0 ? (
-        <section className="space-y-3 rounded-2xl border border-danger/25 bg-danger/[0.04] p-5 ring-1 ring-danger/15 sm:p-6">
-          <h3 className="flex items-center gap-2 font-display text-base font-semibold text-foreground">
-            <AlertTriangle className="size-4 text-danger" aria-hidden />
-            Что повторить
-          </h3>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            {wrong.slice(0, 5).map((row) => (
-              <li key={row.questionId} className="text-pretty">
-                · {row.questionText}
-              </li>
-            ))}
-          </ul>
-        </section>
+      {showQuestionFeedback ? (
+        <SectionCard variant="default" flushTitle className="p-5 sm:p-6" title="Обратная связь по вопросам">
+          <TestResultQuestionFeedback review={review} />
+        </SectionCard>
       ) : null}
+
+      <TestNextStepPanel learning={learning} passed={passed} />
+
+      <SectionCard variant="muted" flushTitle className="p-5 sm:p-6">
+        <TestPostSubmitTimeline />
+      </SectionCard>
 
       <SectionCard variant="lab" title="Рекомендации" flushTitle>
         <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
@@ -233,46 +162,50 @@ export function TestResultView({
       </SectionCard>
 
       <div className="grid gap-3 sm:grid-cols-2">
+        <Button asChild variant="outline" size="lg" className="min-h-12 w-full gap-2 touch-manipulation">
+          <Link href={lessonHref}>
+            <BookOpen className="size-4" aria-hidden />
+            {TEST_RESULT_CTA.reviewMaterial}
+          </Link>
+        </Button>
+        {passed ? (
+          <Button asChild variant="primary" size="lg" className="min-h-12 w-full gap-2 touch-manipulation">
+            <Link href={practiceHref}>
+              <FlaskConical className="size-4" aria-hidden />
+              {TEST_RESULT_CTA.practice}
+            </Link>
+          </Button>
+        ) : (
+          <Button variant="outline" size="lg" className="min-h-12 w-full gap-2" disabled title="Сначала сдайте тест">
+            <FlaskConical className="size-4" aria-hidden />
+            {TEST_RESULT_CTA.practice}
+          </Button>
+        )}
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className="min-h-12 w-full gap-2 touch-manipulation"
+          onClick={onRetry}
+        >
+          <RotateCcw className="size-4" aria-hidden />
+          {TEST_RESULT_CTA.retry}
+        </Button>
+        <Button asChild variant="ghost" size="lg" className="min-h-12 w-full touch-manipulation sm:col-span-2">
+          <Link href={courseHref}>{TEST_RESULT_CTA.course}</Link>
+        </Button>
         {onAskMentor ? (
           <Button
             type="button"
             variant="outline"
             size="lg"
-            className="w-full gap-2 border-cyan/30 text-cyan hover:bg-cyan/10 sm:col-span-2"
+            className="min-h-12 w-full gap-2 border-cyan/30 text-cyan hover:bg-cyan/10 touch-manipulation sm:col-span-2"
             onClick={onAskMentor}
           >
             <MessageSquare className="size-4" aria-hidden />
             Разобрать с AI-наставником
           </Button>
         ) : null}
-        <Button type="button" variant="outline" size="lg" className="w-full gap-2" onClick={onRetry}>
-          <RotateCcw className="size-4" aria-hidden />
-          Повторить тест
-        </Button>
-        {nextLesson ? (
-          <Button asChild variant="outline" size="lg" className="w-full gap-2">
-            <Link href={nextLesson.href}>
-              <ArrowRight className="size-4" aria-hidden />
-              Следующий урок
-            </Link>
-          </Button>
-        ) : (
-          <Button asChild variant="outline" size="lg" className="w-full gap-2">
-            <Link href={lessonHref}>
-              <BookOpen className="size-4" aria-hidden />
-              К лекции
-            </Link>
-          </Button>
-        )}
-        <Button asChild variant={passed ? "primary" : "secondary"} size="lg" className="w-full gap-2 sm:col-span-2">
-          <Link href={practiceHref}>
-            <FlaskConical className="size-4" aria-hidden />
-            {passed ? "Перейти к практике" : "Практика (после зачёта)"}
-          </Link>
-        </Button>
-        <Button asChild variant="ghost" size="lg" className="w-full sm:col-span-2">
-          <Link href={moduleHref}>К обзору модуля</Link>
-        </Button>
       </div>
     </div>
   );

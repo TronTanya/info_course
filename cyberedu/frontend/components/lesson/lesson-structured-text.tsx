@@ -1,16 +1,32 @@
-import { Fragment, type ReactNode } from "react";
-import { LearningCallout } from "@/components/learn/learning-callout";
+import { Fragment } from "react";
+import {
+  lessonContentArticleClass,
+  lessonContentArticleWideClass,
+  type LessonContentWidth,
+  lessonContentBlockquoteClass,
+  lessonContentBodyClass,
+  lessonContentCodeWrapClass,
+  lessonContentH2Class,
+  lessonContentH3Class,
+  lessonContentOlClass,
+  lessonContentParagraphClass,
+  lessonContentTableWrapClass,
+  lessonContentUlClass,
+} from "@/lib/lesson-content-typography";
 import { formatInlineMarkdown } from "@/lib/markdown-inline";
 import { type ChecklistItem } from "@/components/learn/learning-checklist";
-import { Checklist } from "@/components/lesson/lesson-ui/checklist";
+import { lessonSegmentCalloutVariant } from "@/lib/lesson-callout-variant";
+import { LessonFigureBlock } from "@/components/lesson/lesson-figure-block";
+import { LessonResourcesBlock } from "@/components/lesson/lesson-resources-block";
 import { InfoCard } from "@/components/lesson/lesson-ui/info-card";
+import { LessonCallout } from "@/components/lesson/lesson-ui/lesson-callout";
 import { TerminalBlock } from "@/components/lesson/lesson-ui/terminal-block";
-import { WarningCard } from "@/components/lesson/lesson-ui/warning-card";
+import type { LessonResourceKind } from "@/lib/lesson-module-media";
 import { cn } from "@/lib/utils";
 
 export type GlossaryEntry = { term: string; description: string };
 
-type Segment =
+export type LessonSegment =
   | { type: "h2"; text: string }
   | { type: "h3"; text: string }
   | { type: "p"; text: string }
@@ -27,12 +43,21 @@ type Segment =
   | { type: "terms"; title: string; items: GlossaryEntry[] }
   | { type: "quote"; lines: string[] }
   | { type: "ul"; items: string[] }
+  | { type: "ol"; items: string[] }
   | { type: "table"; header: string[]; rows: string[][] }
   | { type: "code"; language: string; body: string }
   | { type: "checklist"; items: ChecklistItem[] }
   | { type: "info"; title: string; body: string }
   | { type: "success"; title: string; body: string }
-  | { type: "danger"; title: string; body: string };
+  | { type: "danger"; title: string; body: string }
+  | { type: "tip"; title: string; body: string }
+  | { type: "figure"; title: string; src: string; caption: string }
+  | {
+      type: "resources";
+      title: string;
+      intro: string;
+      items: { title: string; href: string; kind: LessonResourceKind }[];
+    };
 
 const FENCE_NAMES = [
   "definition",
@@ -49,12 +74,63 @@ const FENCE_NAMES = [
   "info",
   "success",
   "danger",
+  "tip",
 ] as const;
 
 type FenceName = (typeof FENCE_NAMES)[number];
 
 function isFenceName(s: string): s is FenceName {
   return (FENCE_NAMES as readonly string[]).includes(s);
+}
+
+const MEDIA_FENCE_NAMES = ["figure", "resources"] as const;
+type MediaFenceName = (typeof MEDIA_FENCE_NAMES)[number];
+
+function isMediaFenceName(s: string): s is MediaFenceName {
+  return (MEDIA_FENCE_NAMES as readonly string[]).includes(s);
+}
+
+function isAnyFenceName(s: string): boolean {
+  return isFenceName(s) || isMediaFenceName(s);
+}
+
+const RESOURCE_KINDS = new Set<LessonResourceKind>(["video", "article", "book", "course"]);
+
+function parseResourceKind(raw: string): LessonResourceKind {
+  const k = raw.trim().toLowerCase() as LessonResourceKind;
+  return RESOURCE_KINDS.has(k) ? k : "article";
+}
+
+function parseFigureFence(inner: string): LessonSegment {
+  const lines = inner.split("\n").map((l) => l.trim());
+  const title = lines[0] ?? "";
+  const src = lines[1] ?? "";
+  const caption = lines.slice(2).join("\n").trim();
+  return { type: "figure", title, src, caption };
+}
+
+function parseResourcesFence(inner: string): LessonSegment {
+  const lines = inner.split("\n").map((l) => l.trim()).filter(Boolean);
+  const title = lines[0] ?? "Дополнительные материалы";
+  let intro = "";
+  let startIdx = 1;
+  if (lines[1] && !/^[-*]\s+/.test(lines[1])) {
+    intro = lines[1];
+    startIdx = 2;
+  }
+  const items: { title: string; href: string; kind: LessonResourceKind }[] = [];
+  for (let i = startIdx; i < lines.length; i++) {
+    const bullet = lines[i].replace(/^[-*]\s+/, "").trim();
+    const m = /^\[([^\]]+)\]\(([^)]+)\)\s*\|\s*(\w+)\s*$/.exec(bullet);
+    if (m) {
+      items.push({
+        title: m[1].trim(),
+        href: m[2].trim(),
+        kind: parseResourceKind(m[3]),
+      });
+    }
+  }
+  return { type: "resources", title, intro, items };
 }
 
 function parseTableRow(line: string): string[] {
@@ -88,7 +164,7 @@ function parseTermsBody(bodyRaw: string, titleLine: string): { title: string; it
   return { title: titleLine || "Термины", items };
 }
 
-function fenceToSegment(kind: FenceName, title: string, body: string): Segment | null {
+function fenceToSegment(kind: FenceName, title: string, body: string): LessonSegment | null {
   switch (kind) {
     case "definition":
       return { type: "def", title: title || "Определение", body: body || title };
@@ -127,33 +203,42 @@ function fenceToSegment(kind: FenceName, title: string, body: string): Segment |
       return { type: "success", title: title || "Важно", body: body || title };
     case "danger":
       return { type: "danger", title: title || "Осторожно", body: body || title };
+    case "tip":
+      return { type: "tip", title: title || "Совет", body: body || title };
     default:
       return null;
   }
 }
 
-function readFenceAt(s: string, cursor: number): { segment: Segment | null; end: number } | null {
+function readFenceAt(s: string, cursor: number): { segment: LessonSegment | null; end: number } | null {
   if (s[cursor] !== ":") return null;
   const lineEnd = s.indexOf("\n", cursor);
   if (lineEnd === -1) return null;
   const openLine = s.slice(cursor, lineEnd).trim();
   const m = /^:::([a-z_]+)\s*$/.exec(openLine);
-  if (!m?.[1] || !isFenceName(m[1])) return null;
+  if (!m?.[1] || !isAnyFenceName(m[1])) return null;
   const kind = m[1];
   const start = lineEnd + 1;
   const closeIdx = s.indexOf("\n:::", start);
   if (closeIdx === -1) return null;
   const inner = s.slice(start, closeIdx).trim();
-  const lines = inner.split("\n");
-  const title = (lines[0] ?? "").trim();
-  const body = lines.slice(1).join("\n").trim();
-  const segment = fenceToSegment(kind, title, body || title || inner);
+  let segment: LessonSegment | null = null;
+  if (kind === "figure") {
+    segment = parseFigureFence(inner);
+  } else if (kind === "resources") {
+    segment = parseResourcesFence(inner);
+  } else if (isFenceName(kind)) {
+    const lines = inner.split("\n");
+    const title = (lines[0] ?? "").trim();
+    const body = lines.slice(1).join("\n").trim();
+    segment = fenceToSegment(kind, title, body || title || inner);
+  }
   let end = closeIdx + "\n:::".length;
   while (end < s.length && s[end] === "\n") end++;
   return { segment, end };
 }
 
-function parsePlainBlocks(text: string, out: Segment[]) {
+function parsePlainBlocks(text: string, out: LessonSegment[]) {
   const parts = text.split(/\n{2,}/);
   for (const raw of parts) {
     const b = raw.trim();
@@ -188,6 +273,14 @@ function parsePlainBlocks(text: string, out: Segment[]) {
       continue;
     }
 
+    if (nonEmpty.length > 0 && nonEmpty.every((l) => /^\d+[.)]\s+/.test(l))) {
+      out.push({
+        type: "ol",
+        items: nonEmpty.map((l) => l.replace(/^\d+[.)]\s+/, "").trim()),
+      });
+      continue;
+    }
+
     if (
       nonEmpty.length >= 2 &&
       nonEmpty.every((l) => l.includes("|")) &&
@@ -215,7 +308,7 @@ function parsePlainBlocks(text: string, out: Segment[]) {
       continue;
     }
     if (b.startsWith("## ") && !b.startsWith("### ")) {
-      out.push({ type: "h3", text: b.slice(3).trim() });
+      out.push({ type: "h2", text: b.slice(3).trim() });
       continue;
     }
     if (b.startsWith("# ")) {
@@ -228,8 +321,8 @@ function parsePlainBlocks(text: string, out: Segment[]) {
 }
 
 /** Разбор текста лекции: заголовки, списки, цитаты, блоки :::kind … :::. */
-export function parseLessonStructure(source: string): Segment[] {
-  const out: Segment[] = [];
+export function parseLessonStructure(source: string): LessonSegment[] {
+  const out: LessonSegment[] = [];
   const s = source.replace(/\r\n/g, "\n");
   let cursor = 0;
 
@@ -254,7 +347,7 @@ export function parseLessonStructure(source: string): Segment[] {
         if (lineEnd === -1) break;
         const line = s.slice(i, lineEnd).trim();
         const m = /^:::([a-z_]+)\s*$/.exec(line);
-        if (m?.[1] && isFenceName(m[1])) {
+        if (m?.[1] && isAnyFenceName(m[1])) {
           best = i;
           break;
         }
@@ -307,9 +400,6 @@ export function extractLessonGlossary(source: string): GlossaryEntry[] {
   return list;
 }
 
-const prose =
-  "text-[17px] leading-[1.75] tracking-[-0.01em] text-foreground/95 [&_p+p]:mt-4 [&_h2+p]:mt-3 [&_h3+p]:mt-2";
-
 function renderInlineText(text: string) {
   const lines = text.split("\n");
   if (lines.length === 1) return formatInlineMarkdown(text);
@@ -321,190 +411,194 @@ function renderInlineText(text: string) {
   ));
 }
 
-function BlockShell({
-  className,
-  label,
-  labelClass,
-  title,
-  children,
-}: {
-  className?: string;
-  label: string;
-  labelClass: string;
-  title: string;
-  children: ReactNode;
-}) {
+type LessonSegmentType = LessonSegment["type"];
+
+const CALLOUT_SEGMENT_TYPES = new Set<LessonSegmentType>([
+  "ex",
+  "intro",
+  "why",
+  "warning",
+  "how",
+  "mini_case",
+  "remember",
+  "outro",
+  "info",
+  "success",
+  "danger",
+  "tip",
+  "checklist",
+]);
+
+type LessonCalloutBodySegment = Extract<
+  LessonSegment,
+  { title: string; body: string }
+>;
+
+function renderLessonCallout(
+  seg: LessonCalloutBodySegment | Extract<LessonSegment, { type: "checklist" }>,
+  key: number,
+  anchor: { id: string; className: string } | null,
+) {
+  const variant = lessonSegmentCalloutVariant(seg);
+  if (!variant) return null;
+
+  if (seg.type === "checklist") {
+    return (
+      <LessonCallout
+        key={key}
+        type="checklist"
+        id={anchor?.id}
+        items={seg.items.map((item) => ({
+          checked: item.checked,
+          text: renderInlineText(item.text),
+        }))}
+      />
+    );
+  }
+
   return (
-    <section
-      className={cn(
-        "rounded-2xl px-5 py-4 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]",
-        className,
-      )}
-    >
-      <p className={cn("text-xs font-semibold uppercase tracking-wide", labelClass)}>{label}</p>
-      {title ? (
-        <h3 className="mt-1 text-base font-semibold tracking-tight text-foreground">{title}</h3>
-      ) : null}
-      <div className="mt-2">{children}</div>
-    </section>
+    <LessonCallout key={key} type={variant} id={anchor?.id} title={seg.title}>
+      <p className="whitespace-pre-wrap">{renderInlineText(seg.body)}</p>
+    </LessonCallout>
   );
 }
 
-type SegmentType = Segment["type"];
+const NAV_SEGMENT_TYPES = new Set<LessonSegmentType>([
+  "h2",
+  "h3",
+  "theory",
+  "ex",
+  "warning",
+  "intro",
+  "why",
+  "how",
+  "mini_case",
+  "remember",
+  "tip",
+  "def",
+  "outro",
+]);
+
+function lessonSectionId(navIndex: number, label: string): string {
+  const slug = label
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\u0400-\u04ff]+/gi, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 40);
+  return `ls-${navIndex}-${slug || "block"}`;
+}
+
+function getSegmentNavLabel(seg: LessonSegment): string {
+  switch (seg.type) {
+    case "h2":
+    case "h3":
+      return seg.text.trim() || "Раздел";
+    default:
+      if ("title" in seg && seg.title.trim()) return seg.title.trim();
+      return seg.type;
+  }
+}
+
+function sectionAnchorProps(navIndex: number, label: string): { id: string; className: string } {
+  const id = lessonSectionId(navIndex, label);
+  return { id, className: "scroll-mt-28" };
+}
 
 export function LessonStructuredText({
   source,
   className,
+  width = "reading",
   skipTypes = [],
 }: {
   source: string;
   className?: string;
+  width?: LessonContentWidth;
   /** Не рендерить блоки (например mini_case — показывается отдельной карточкой) */
-  skipTypes?: SegmentType[];
+  skipTypes?: LessonSegmentType[];
 }) {
   const segments = parseLessonStructure(source);
   const skip = new Set(skipTypes);
+  let navIndex = 0;
 
   return (
-    <article className={cn("lesson-reading mx-auto w-full max-w-prose space-y-8 text-pretty", prose, className)}>
+    <article
+      className={cn(
+        width === "wide" ? lessonContentArticleWideClass : lessonContentArticleClass,
+        lessonContentBodyClass,
+        className,
+      )}
+      aria-label="Текст лекции"
+    >
       {segments.map((seg, i) => {
         if (skip.has(seg.type)) return null;
+        const inNav = NAV_SEGMENT_TYPES.has(seg.type);
+        const anchor = inNav ? sectionAnchorProps(navIndex++, getSegmentNavLabel(seg)) : null;
         switch (seg.type) {
           case "h2":
             return (
-              <h2 key={i} className="scroll-mt-28 border-b border-border/70 pb-2.5 pt-1 text-2xl font-semibold tracking-tight text-foreground">
+              <h2
+                key={i}
+                {...(anchor ? { id: anchor.id } : {})}
+                className={cn(anchor?.className, lessonContentH2Class)}
+              >
                 {renderInlineText(seg.text)}
               </h2>
             );
           case "h3":
             return (
-              <h3 key={i} className="scroll-mt-28 text-xl font-semibold tracking-tight text-foreground">
+              <h3
+                key={i}
+                {...(anchor ? { id: anchor.id } : {})}
+                className={cn(anchor?.className, lessonContentH3Class)}
+              >
                 {renderInlineText(seg.text)}
               </h3>
             );
           case "p":
             return (
-              <p key={i} className="max-w-prose whitespace-pre-wrap">
+              <p key={i} className={lessonContentParagraphClass}>
                 {renderInlineText(seg.text)}
               </p>
             );
           case "def":
             return (
-              <InfoCard key={i} title={seg.title} label="Термин">
+              <InfoCard key={i} id={anchor?.id} title={seg.title} label="Термин">
                 <p className="whitespace-pre-wrap">{renderInlineText(seg.body)}</p>
               </InfoCard>
             );
           case "ex":
-            return (
-              <BlockShell
-                key={i}
-                className="border border-border/80 bg-muted/35 ring-1 ring-inset ring-border/40"
-                label="Пример из практики"
-                labelClass="text-muted-foreground"
-                title={seg.title}
-              >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90">{renderInlineText(seg.body)}</p>
-              </BlockShell>
-            );
           case "intro":
-            return (
-              <BlockShell
-                key={i}
-                className="border-l-4 border-l-violet-500/70 bg-violet-500/[0.06] ring-1 ring-inset ring-border/50"
-                label="Вступление"
-                labelClass="text-violet-600 dark:text-violet-400"
-                title={seg.title}
-              >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-muted-foreground">{renderInlineText(seg.body)}</p>
-              </BlockShell>
-            );
           case "why":
-            return (
-              <BlockShell
-                key={i}
-                className="border border-sky-500/25 bg-sky-500/[0.06] ring-1 ring-inset ring-sky-500/15"
-                label="Зачем это знать"
-                labelClass="text-sky-700 dark:text-sky-400"
-                title={seg.title}
-              >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-muted-foreground">{renderInlineText(seg.body)}</p>
-              </BlockShell>
-            );
+          case "warning":
+          case "how":
+          case "mini_case":
+          case "remember":
+          case "outro":
+          case "info":
+          case "success":
+          case "danger":
+          case "tip":
+          case "checklist":
+            return CALLOUT_SEGMENT_TYPES.has(seg.type)
+              ? renderLessonCallout(
+                  seg as LessonCalloutBodySegment | Extract<LessonSegment, { type: "checklist" }>,
+                  i,
+                  anchor,
+                )
+              : null;
           case "theory":
             return (
-              <InfoCard key={i} title={seg.title} label="Теория" variant="accent">
+              <InfoCard key={i} id={anchor?.id} title={seg.title} label="Теория" variant="accent">
                 <p className="whitespace-pre-wrap text-foreground/90">{renderInlineText(seg.body)}</p>
               </InfoCard>
             );
-          case "warning":
-            return (
-              <WarningCard key={i} title={seg.title}>
-                <p className="whitespace-pre-wrap">{renderInlineText(seg.body)}</p>
-              </WarningCard>
-            );
-          case "info":
-            return (
-              <LearningCallout key={i} variant="info" title={seg.title}>
-                <p className="whitespace-pre-wrap">{renderInlineText(seg.body)}</p>
-              </LearningCallout>
-            );
-          case "success":
-            return (
-              <LearningCallout key={i} variant="success" title={seg.title}>
-                <p className="whitespace-pre-wrap">{renderInlineText(seg.body)}</p>
-              </LearningCallout>
-            );
-          case "danger":
-            return (
-              <WarningCard key={i} title={seg.title} security>
-                <p className="whitespace-pre-wrap">{renderInlineText(seg.body)}</p>
-              </WarningCard>
-            );
           case "code":
-            return <TerminalBlock key={i} language={seg.language || undefined} code={seg.body} />;
-          case "checklist":
-            return <Checklist key={i} items={seg.items} />;
-          case "how":
             return (
-              <BlockShell
-                key={i}
-                className="border border-emerald-500/25 bg-emerald-500/[0.05] ring-1 ring-inset ring-emerald-500/15"
-                label="Как правильно"
-                labelClass="text-emerald-800 dark:text-emerald-400"
-                title={seg.title}
-              >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90">{renderInlineText(seg.body)}</p>
-              </BlockShell>
-            );
-          case "mini_case":
-            return (
-              <BlockShell
-                key={i}
-                className="border-2 border-dashed border-border bg-transparent ring-0"
-                label="Мини-кейс"
-                labelClass="text-muted-foreground"
-                title={seg.title}
-              >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90">{renderInlineText(seg.body)}</p>
-              </BlockShell>
-            );
-          case "remember":
-            return (
-              <LearningCallout key={i} variant="success" title={seg.title} label="Важно запомнить">
-                <p className="whitespace-pre-wrap">{renderInlineText(seg.body)}</p>
-              </LearningCallout>
-            );
-          case "outro":
-            return (
-              <BlockShell
-                key={i}
-                className="border border-primary/30 bg-linear-to-br from-primary/[0.07] to-card ring-1 ring-inset ring-primary/15"
-                label="Итог"
-                labelClass="text-primary"
-                title={seg.title}
-              >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90">{renderInlineText(seg.body)}</p>
-              </BlockShell>
+              <div key={i} className={lessonContentCodeWrapClass} role="group" aria-label="Блок кода">
+                <TerminalBlock language={seg.language || undefined} code={seg.body} className="min-w-0 w-full" />
+              </div>
             );
           case "terms":
             return (
@@ -527,31 +621,44 @@ export function LessonStructuredText({
             );
           case "quote":
             return (
-              <div
-                key={i}
-                className="rounded-2xl border border-border/80 bg-muted/40 px-5 py-4 text-[15px] leading-relaxed text-muted-foreground"
-              >
+              <blockquote key={i} className={lessonContentBlockquoteClass}>
                 {seg.lines.map((line, j) => (
-                  <p key={j} className={j ? "mt-2 max-w-prose whitespace-pre-wrap" : "max-w-prose whitespace-pre-wrap"}>
+                  <p key={j} className={j ? "mt-2 whitespace-pre-wrap" : "whitespace-pre-wrap"}>
                     {renderInlineText(line)}
                   </p>
                 ))}
-              </div>
+              </blockquote>
             );
           case "ul":
             return (
-              <ul key={i} className="max-w-prose list-disc space-y-2.5 pl-5 text-[16px] leading-relaxed text-foreground/90 marker:text-primary">
+              <ul key={i} className={lessonContentUlClass}>
                 {seg.items.map((item, j) => (
-                  <li key={j} className="pl-1">
+                  <li key={j} className="pl-1 text-pretty">
                     {renderInlineText(item)}
                   </li>
                 ))}
               </ul>
             );
+          case "ol":
+            return (
+              <ol key={i} className={lessonContentOlClass}>
+                {seg.items.map((item, j) => (
+                  <li key={j} className="pl-1 text-pretty">
+                    {renderInlineText(item)}
+                  </li>
+                ))}
+              </ol>
+            );
           case "table":
             return (
-              <div key={i} className="lesson-table-wrap -mx-1 overflow-x-auto rounded-xl border border-border/80 px-1">
-                <table className="w-full min-w-[18rem] border-collapse text-left text-sm">
+              <div
+                key={i}
+                className={lessonContentTableWrapClass}
+                role="region"
+                aria-label="Таблица"
+                tabIndex={0}
+              >
+                <table className="w-full min-w-[20rem] border-collapse text-left text-sm sm:min-w-[24rem]">
                   <thead>
                     <tr className="border-b border-border bg-muted/40">
                       {seg.header.map((cell, j) => (
@@ -574,6 +681,28 @@ export function LessonStructuredText({
                   </tbody>
                 </table>
               </div>
+            );
+          case "figure":
+            return (
+              <LessonFigureBlock
+                key={i}
+                id={anchor?.id}
+                title={seg.title}
+                src={seg.src}
+                caption={seg.caption}
+                className={anchor?.className}
+              />
+            );
+          case "resources":
+            return (
+              <LessonResourcesBlock
+                key={i}
+                id={anchor?.id}
+                title={seg.title}
+                intro={seg.intro}
+                items={seg.items}
+                className={anchor?.className}
+              />
             );
           default:
             return null;

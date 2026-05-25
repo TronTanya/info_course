@@ -30,8 +30,9 @@ const benefits = [
   },
   {
     icon: Lock,
-    title: "Безопасность аккаунта",
-    description: "Сессии, CSRF-защита API и rate limits — инфраструктура уровня production LMS.",
+    title: "Security-by-design",
+    description:
+      "RBAC, CSRF на API, Redis rate limits, audit log, безопасные uploads и AI без эталонов тестов — как в учебном курсе ИБ.",
   },
 ] as const;
 

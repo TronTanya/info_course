@@ -3,18 +3,20 @@ import { ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type WarningCardProps = {
+  id?: string;
   title: string;
   children: ReactNode;
   security?: boolean;
   className?: string;
 };
 
-export function WarningCard({ title, children, security = false, className }: WarningCardProps) {
+export function WarningCard({ id, title, children, security = false, className }: WarningCardProps) {
   return (
     <section
+      id={id}
       role="alert"
       className={cn(
-        "rounded-2xl border border-warning/35 bg-warning/10 px-5 py-4 shadow-sm ring-1 ring-inset ring-warning/20",
+        "scroll-mt-28 rounded-2xl border border-warning/35 bg-warning/10 px-5 py-4 shadow-sm ring-1 ring-inset ring-warning/20",
         security && "border-danger/35 bg-danger/10 ring-danger/20",
         className,
       )}

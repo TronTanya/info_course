@@ -12,10 +12,14 @@ import {
   MessageSquare,
   Settings,
   Shield,
+  Trophy,
   User,
   Users,
 } from "lucide-react";
 import type { StudentQuickNavKey } from "@/lib/nav-resolve";
+import { LANDING_GITHUB_URL, LANDING_SECTION_IDS } from "@/lib/landing-content";
+
+const landingHash = (sectionId: string) => `/#${sectionId}` as const;
 
 export type NavItem = {
   href: string;
@@ -31,12 +35,32 @@ export type QuickNavItem = {
   description?: string;
 };
 
-/** Публичный маркетинговый сайт (лендинг, шапка гостя). */
+/** Якоря лендинга: шапка и навигация гостя. */
 export const publicNavLinks: { href: string; label: string; external?: boolean }[] = [
-  { href: "/", label: "Главная" },
-  { href: "/#what-you-learn", label: "Программа" },
-  { href: "/#practice-lab", label: "Практики" },
-  { href: "/#certificates", label: "Сертификат" },
+  { href: landingHash(LANDING_SECTION_IDS.program), label: "Программа" },
+  { href: landingHash(LANDING_SECTION_IDS.practice), label: "Практика" },
+  { href: landingHash(LANDING_SECTION_IDS.mentor), label: "AI-наставник" },
+  { href: landingHash(LANDING_SECTION_IDS.certificate), label: "Сертификат" },
+  { href: landingHash(LANDING_SECTION_IDS.reviews), label: "Отзывы" },
+  { href: landingHash(LANDING_SECTION_IDS.security), label: "Безопасность" },
+  { href: landingHash(LANDING_SECTION_IDS.faq), label: "FAQ" },
+];
+
+/** @deprecated Используйте landingFooterNavLinks — сохранено для обратной совместимости. */
+export const landingFooterLegalLinks: { href: string; label: string; external?: boolean }[] = [
+  { href: "/about", label: "О проекте" },
+  { href: "/verify/CE-2026-DEMO0001", label: "Проверка сертификата" },
+];
+
+/** Ссылки подвала лендинга (разделы + GitHub). */
+export const landingFooterNavLinks: { href: string; label: string; external?: boolean }[] = [
+  { href: landingHash(LANDING_SECTION_IDS.program), label: "Программа" },
+  { href: landingHash(LANDING_SECTION_IDS.practice), label: "Практика" },
+  { href: landingHash(LANDING_SECTION_IDS.mentor), label: "AI-наставник" },
+  { href: landingHash(LANDING_SECTION_IDS.certificate), label: "Сертификат" },
+  { href: landingHash(LANDING_SECTION_IDS.reviews), label: "Отзывы" },
+  { href: landingHash(LANDING_SECTION_IDS.security), label: "Безопасность" },
+  { href: LANDING_GITHUB_URL, label: "GitHub", external: true },
 ];
 
 export const guestAuthLinks = {
@@ -51,15 +75,6 @@ export const guestNavLinks: { href: string; label: string }[] = [
   ...publicNavLinks,
   { href: "/reviews", label: "Отзывы" },
   { href: "/about", label: "О проекте" },
-];
-
-export const landingFooterNavLinks: { href: string; label: string }[] = [
-  ...publicNavLinks,
-  { href: "/#how-it-works", label: "Обучение" },
-  { href: "/#ai-mentor", label: "AI-наставник" },
-  { href: "/reviews", label: "Отзывы" },
-  { href: "/about", label: "О проекте" },
-  { href: guestAuthLinks.login, label: guestAuthLinks.loginLabel },
 ];
 
 /** Основная навигация студента (sidebar, drawer, command palette). */
@@ -95,6 +110,7 @@ export const studentBottomNavKeys: StudentQuickNavKey[] = [
 
 /** Дополнительные разделы кабинета (sidebar «Ещё»). */
 export const studentSecondaryNav: NavItem[] = [
+  { href: "/dashboard/leaderboard", label: "Рейтинг", icon: Trophy, description: "Турнирная таблица студентов" },
   { href: "/dashboard/my-assignments", label: "Задания", icon: ClipboardList, description: "Отправки на проверку" },
   { href: "/dashboard/certificate", label: "Сертификат", icon: Award, description: "PDF и верификация" },
   { href: "/dashboard/reviews", label: "Отзывы", icon: MessageSquare, description: "Оценка курса" },
@@ -132,6 +148,7 @@ export const adminNav: NavItem[] = [
 
 export const commandPaletteStudentActions: NavItem[] = [
   { href: "/dashboard", label: "Кабинет", icon: LayoutDashboard, description: "Обзор" },
+  { href: "/dashboard/leaderboard", label: "Рейтинг", icon: Trophy, description: "Турнирная таблица" },
   { href: "/dashboard/course", label: "Курс", icon: BookOpen, description: "Модули" },
   { href: "/dashboard/my-assignments", label: "Задания", icon: ClipboardList },
   { href: "/dashboard/certificate", label: "Сертификат", icon: Award },

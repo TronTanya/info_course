@@ -21,15 +21,15 @@ async function globalSetup(): Promise<void> {
       const studentEmail = getE2eCredentials("student").email;
       const cert = await prisma.certificate.findFirst({
         where: { user: { email: studentEmail } },
-        select: { verificationCode: true },
+        select: { certificateNumber: true },
         orderBy: { issuedAt: "desc" },
       });
-      if (cert?.verificationCode) {
-        process.env.E2E_CERT_VERIFY_CODE = cert.verificationCode;
+      if (cert?.certificateNumber) {
+        process.env.E2E_CERT_VERIFY_NUMBER = cert.certificateNumber;
       }
       await prisma.$disconnect();
     } catch (e) {
-      console.warn("[e2e] Не удалось загрузить verificationCode из БД:", e);
+      console.warn("[e2e] Не удалось загрузить certificateNumber из БД:", e);
     }
   }
 

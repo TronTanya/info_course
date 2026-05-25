@@ -8,6 +8,7 @@ const guardPracticeSubmissionMock = vi.hoisted(() => vi.fn());
 const prismaMock = vi.hoisted(() => ({
   test: { findFirst: vi.fn() },
   question: { findMany: vi.fn() },
+  testAttempt: { count: vi.fn() },
   practicalTask: { findUnique: vi.fn() },
   submission: { findFirst: vi.fn() },
   $transaction: vi.fn(),
@@ -56,6 +57,7 @@ beforeEach(() => {
   enforceServerActionRateLimitMock.mockResolvedValue({ allowed: true });
   checkTestPrerequisitesMock.mockResolvedValue({ ok: true });
   guardPracticeSubmissionMock.mockResolvedValue({ ok: true, userId });
+  prismaMock.testAttempt.count.mockResolvedValue(0);
 });
 
 describe("submit Server Actions rate limit", () => {
@@ -72,10 +74,14 @@ describe("submit Server Actions rate limit", () => {
     ]);
     prismaMock.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<void>) => {
       await fn({
-        testAttempt: { create: vi.fn().mockResolvedValue({ id: "a1" }) },
+        testAttempt: {
+          count: vi.fn().mockResolvedValue(0),
+          create: vi.fn().mockResolvedValue({ id: "a1" }),
+        },
         testAttemptAnswer: { createMany: vi.fn() },
       });
     });
+    prismaMock.testAttempt.count.mockResolvedValue(1);
 
     await submitTestAttemptAction({
       moduleId: "m1",

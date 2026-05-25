@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" role="img" aria-label="Основы ИБ: триада CIA">
+  <defs>
+    <linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e3a5f"/>
+    </linearGradient>
+    <linearGradient id="shield" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="400" fill="url(#bg1)"/>
+  <circle cx="680" cy="80" r="120" fill="#38bdf8" opacity="0.08"/>
+  <circle cx="120" cy="320" r="90" fill="#22d3ee" opacity="0.1"/>
+  <path d="M400 70 L520 120 V210 C520 290 400 330 400 330 C400 330 280 290 280 210 V120 Z" fill="url(#shield)" stroke="#7dd3fc" stroke-width="3"/>
+  <text x="400" y="175" text-anchor="middle" fill="#e0f2fe" font-family="system-ui,sans-serif" font-size="22" font-weight="700">CIA</text>
+  <g font-family="system-ui,sans-serif" font-size="15" fill="#bae6fd">
+    <text x="200" y="200" text-anchor="middle">Конфиденциальность</text>
+    <text x="400" y="260" text-anchor="middle">Целостность</text>
+    <text x="600" y="200" text-anchor="middle">Доступность</text>
+  </g>
+  <line x1="280" y1="195" x2="200" y2="195" stroke="#38bdf8" stroke-width="2" opacity="0.5"/>
+  <line x1="520" y1="195" x2="600" y2="195" stroke="#38bdf8" stroke-width="2" opacity="0.5"/>
+  <line x1="400" y1="250" x2="400" y2="280" stroke="#38bdf8" stroke-width="2" opacity="0.5"/>
+  <text x="400" y="370" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="18">Модуль 1 — Основы информационной безопасности</text>
+</svg>

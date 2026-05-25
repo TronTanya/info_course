@@ -3,7 +3,8 @@
 import { headers } from "next/headers";
 import { enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/security/rate-limit";
 import { clientIpFromHeaders } from "@/lib/security/request-ip";
-import { securityLog } from "@/lib/security-log";
+import { SECURITY_ACTIONS } from "@/lib/security/audit-actions";
+import { logSecurityEvent } from "@/lib/security/audit";
 import { forgotPasswordSchema, resetPasswordSchema } from "@/lib/validation";
 
 export type ForgotPasswordState = {
@@ -44,8 +45,13 @@ export async function requestPasswordResetAction(
     return { errors: { email: flat.fieldErrors.email } };
   }
 
-  const normalizedEmail = parsed.data.email.trim().toLowerCase();
-  securityLog("auth.password_reset_request", { email: normalizedEmail });
+  logSecurityEvent({
+    action: SECURITY_ACTIONS.AUTH_PASSWORD_RESET_REQUEST,
+    ip,
+    path: "/auth/forgot-password",
+    severity: "info",
+    metadata: { stage: "requested" },
+  });
   return { ok: true };
 }
 
@@ -73,7 +79,10 @@ export async function resetPasswordAction(
     };
   }
 
-  securityLog("auth.password_reset_attempt", { tokenPrefix: parsed.data.token.slice(0, 8) });
+  logSecurityEvent({
+    action: "auth.password_reset.attempt",
+    metadata: { stage: "token_submit", prefixLen: 8 },
+  });
   return {
     errors: {
       _form: [

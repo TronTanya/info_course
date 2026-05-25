@@ -21,7 +21,7 @@ function SecureModeBadge({ className }: { className?: string }) {
       title="Учебная среда изолирована"
     >
       <span className="relative flex size-1.5" aria-hidden>
-        <span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-60 motion-reduce:animate-none" />
+        <span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-60 motion-reduce:hidden" />
         <span className="relative inline-flex size-1.5 rounded-full bg-success" />
       </span>
       Secure
@@ -46,7 +46,7 @@ function CloseIcon() {
 }
 
 function isPublicLinkActive(pathname: string, href: string): boolean {
-  if (href.startsWith("/#")) return pathname === "/";
+  if (href.startsWith("/#")) return false;
   return isNavHrefActive(pathname, href);
 }
 
@@ -75,20 +75,20 @@ export function LandingHeaderNav({ isAuthenticated, dashboardHref }: LandingHead
         ))}
       </nav>
 
-      <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+      <div className="ml-auto flex min-w-0 shrink-0 flex-wrap items-center justify-end gap-1.5 sm:gap-2">
         <ThemeToggle className="hidden sm:inline-flex" />
         <SecureModeBadge className="hidden md:inline-flex" />
 
         {isAuthenticated ? (
-          <Button asChild size="sm" variant="primary" className="hidden min-h-10 sm:inline-flex shadow-sm">
-            <Link href={dashboardHref}>Кабинет</Link>
+          <Button asChild size="sm" variant="primary" className="min-h-10 shrink-0 shadow-sm">
+            <Link href={dashboardHref}>{guestAuthLinks.registerLabel}</Link>
           </Button>
         ) : (
           <>
-            <Button asChild size="sm" variant="ghost" className="hidden min-h-10 sm:inline-flex">
+            <Button asChild size="sm" variant="ghost" className="min-h-10 shrink-0 px-2.5 text-xs sm:px-3 sm:text-sm">
               <Link href={guestAuthLinks.login}>{guestAuthLinks.loginLabel}</Link>
             </Button>
-            <Button asChild size="sm" variant="primary" className="hidden min-h-10 sm:inline-flex shadow-sm">
+            <Button asChild size="sm" variant="primary" className="min-h-10 shrink-0 px-2.5 text-xs shadow-sm sm:px-3 sm:text-sm">
               <Link href={guestAuthLinks.register}>{guestAuthLinks.registerLabel}</Link>
             </Button>
           </>
@@ -135,7 +135,7 @@ export function LandingHeaderNav({ isAuthenticated, dashboardHref }: LandingHead
                     <Dialog.Close asChild>
                       <Button asChild size="lg" className="w-full min-h-11">
                         <Link href={dashboardHref} onClick={close}>
-                          Кабинет
+                          {guestAuthLinks.registerLabel}
                         </Link>
                       </Button>
                     </Dialog.Close>

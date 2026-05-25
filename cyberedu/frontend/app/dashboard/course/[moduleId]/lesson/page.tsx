@@ -1,108 +1,112 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { LessonPageClient } from "@/components/lesson/lesson-page-client";
+import {
+  LessonLockedState,
+  LessonPageEmptyState,
+  LessonPageLoadError,
+  LessonUnauthorizedState,
+} from "@/components/lesson/lesson-page-states";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
+import { auth } from "@/lib/auth";
+import { checkModuleAccessForApi } from "@/lib/course-progress-guards";
+import { loadLessonPageData } from "@/lib/lesson-page-load";
+import { buildLessonPageMetadata } from "@/lib/lesson-page-metadata";
 import { prisma } from "@/lib/db";
-import { getLessonAiSnapshots, getLessonForModulePage } from "@/lib/lesson-ai-service";
-import { assertModuleAccess } from "@/lib/course-progress-guards";
-import { buildLearningPageContext } from "@/lib/learning-context";
-import { getModuleProgress, recalculateModuleProgress } from "@/lib/progress";
-import { requireAuth } from "@/lib/permissions";
 
 type Props = { params: Promise<{ moduleId: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { moduleId } = await params;
-  const [mod, lesson] = await Promise.all([
-    prisma.module.findUnique({ where: { id: moduleId }, select: { title: true, isActive: true } }),
-    prisma.lesson.findFirst({
-      where: { moduleId },
-      orderBy: { createdAt: "asc" },
-      select: { title: true },
-    }),
-  ]);
-  if (!mod?.isActive) return { title: "Лекция" };
-  if (lesson) return { title: `Лекция · ${lesson.title}` };
-  return { title: `Лекция · ${mod.title}` };
-}
+  const session = await auth();
 
-function moduleStepsLabel(
-  req: { lessonRequired: boolean; videoRequired: boolean; testRequired: boolean; practiceRequired: boolean; totalSteps: number },
-  p: { lessonCompleted: boolean; videoCompleted: boolean; testCompleted: boolean; practiceCompleted: boolean } | null | undefined,
-): string {
-  const row = p;
-  let d = 0;
-  if (req.lessonRequired && row?.lessonCompleted) d++;
-  if (req.videoRequired && row?.videoCompleted) d++;
-  if (req.testRequired && row?.testCompleted) d++;
-  if (req.practiceRequired && row?.practiceCompleted) d++;
-  const t = req.totalSteps;
-  return t ? `${d} из ${t}` : "—";
-}
+  if (!session?.user?.id) {
+    return buildLessonPageMetadata({ moduleActive: false });
+  }
 
-function serializeSnapshot(row: { id: string; adaptedContent: string; interestsUsed: string; createdAt: Date } | null) {
-  if (!row) return null;
-  return {
-    id: row.id,
-    adaptedContent: row.adaptedContent,
-    interestsUsed: row.interestsUsed,
-    createdAt: row.createdAt.toISOString(),
-  };
+  const access = await checkModuleAccessForApi(session.user.id, moduleId);
+  if (!access.ok) {
+    return buildLessonPageMetadata({ moduleActive: false });
+  }
+
+  const mod = await prisma.module.findUnique({
+    where: { id: moduleId },
+    select: { isActive: true },
+  });
+
+  if (!mod?.isActive) {
+    return buildLessonPageMetadata({ moduleActive: false });
+  }
+
+  const lesson = await prisma.lesson.findFirst({
+    where: { moduleId },
+    orderBy: { createdAt: "asc" },
+    select: { title: true, content: true },
+  });
+
+  return buildLessonPageMetadata({
+    moduleActive: true,
+    canExposeLessonDetails: true,
+    lessonTitle: lesson?.title ?? null,
+    lessonContent: lesson?.content ?? null,
+  });
 }
 
 export default async function LessonPage({ params }: Props) {
-  const session = await requireAuth();
+  const session = await auth();
   const { moduleId } = await params;
-  await assertModuleAccess(session.user.id, moduleId);
+  const result = await loadLessonPageData(session?.user?.id, moduleId);
 
-  const lesson = await getLessonForModulePage(moduleId);
-  if (!lesson) notFound();
+  if (result.status === "unauthorized") {
+    return (
+      <DashboardShell wide>
+        <LessonUnauthorizedState />
+      </DashboardShell>
+    );
+  }
 
-  await recalculateModuleProgress(session.user.id, moduleId);
+  if (result.status === "locked") {
+    return (
+      <DashboardShell wide>
+        <LessonLockedState reason={result.reason} moduleTitle={result.moduleTitle} />
+      </DashboardShell>
+    );
+  }
 
-  const [progress, mp, mod, aiSnaps] = await Promise.all([
-    prisma.progress.findUnique({
-      where: { userId_moduleId: { userId: session.user.id, moduleId } },
-      select: { lessonCompleted: true },
-    }),
-    getModuleProgress(session.user.id, moduleId),
-    prisma.module.findUnique({
-      where: { id: moduleId },
-      select: { title: true, orderNumber: true },
-    }),
-    getLessonAiSnapshots(session.user.id, lesson.id),
-  ]);
+  if (result.status === "empty") {
+    return (
+      <DashboardShell wide>
+        <LessonPageEmptyState
+          kind={result.kind}
+          moduleTitle={result.moduleTitle}
+          lessonTitle={result.lessonTitle}
+        />
+      </DashboardShell>
+    );
+  }
 
-  if (!mp) notFound();
+  if (result.status === "error") {
+    return (
+      <DashboardShell wide>
+        <LessonPageLoadError kind={result.kind} />
+      </DashboardShell>
+    );
+  }
 
-  const moduleSteps = moduleStepsLabel(mp.requirements, mp.progress);
-  const learning = await buildLearningPageContext(
-    session.user.id,
-    moduleId,
-    `/dashboard/course/${moduleId}/lesson`,
-    mp.requirements,
-    mp.progress,
-  );
+  const { data } = result;
 
   return (
     <DashboardShell wide>
       <LessonPageClient
-        moduleId={moduleId}
-        moduleOrderNumber={mod?.orderNumber ?? 0}
-        moduleTitle={mod?.title ?? "Модуль"}
-        moduleProgressPercent={mp.progressPercent}
-        moduleStepsLabel={moduleSteps}
-        learning={learning}
-        lesson={{
-          id: lesson.id,
-          title: lesson.title,
-          content: lesson.content,
-          videoUrl: lesson.videoUrl,
-          allowAiAdaptation: lesson.allowAiAdaptation,
-        }}
-        lessonCompleted={Boolean(progress?.lessonCompleted)}
-        explanationAdaptation={serializeSnapshot(aiSnaps.explanation)}
-        summaryAdaptation={serializeSnapshot(aiSnaps.summary)}
+        moduleId={data.moduleId}
+        moduleProgressPercent={data.moduleProgressPercent}
+        moduleStepsLabel={data.moduleStepsLabel}
+        learning={data.learning}
+        view={data.view}
+        videoUrl={data.videoUrl}
+        allowAiAdaptation={data.allowAiAdaptation}
+        mentorAiConfigured={data.mentorAiConfigured}
+        explanationAdaptation={data.explanationAdaptation}
+        summaryAdaptation={data.summaryAdaptation}
       />
     </DashboardShell>
   );

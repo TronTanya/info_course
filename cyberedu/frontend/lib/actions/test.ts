@@ -6,12 +6,27 @@ import { prisma } from "@/lib/db";
 import { checkTestPrerequisites } from "@/lib/course-progress-guards";
 import { recalculateModuleProgress } from "@/lib/progress";
 import { enforceServerActionRateLimit } from "@/lib/security/server-action-rate-limit";
+import { safeTestExplanation } from "@/lib/test-explanation-safety";
 import {
   buildSubmittedMap,
   calculateTestScore,
   gradeQuestion,
+  validateSubmissionForQuestion,
   type SubmittedAnswerPayload,
 } from "@/lib/test-grading";
+import {
+  assertTestAttemptAllowed,
+  resolveTestAttemptLimit,
+  resolveTestCanRetry,
+  TEST_ATTEMPTS_EXHAUSTED_MESSAGE,
+} from "@/lib/test-retry";
+import { sanitizeSubmittedAnswersForTransport } from "@/lib/test-submit-payload";
+
+export type SubmitTestAttemptInput = {
+  moduleId: string;
+  testId: string;
+  answers: SubmittedAnswerPayload[];
+};
 
 export type SubmitTestState =
   | {
@@ -25,11 +40,18 @@ export type SubmitTestState =
       review: {
         questionId: string;
         questionText: string;
+        topic: string | null;
+        feedback: string | null;
         explanation: string | null;
         isCorrect: boolean | null;
+        showGradingStatus: boolean;
         pointsEarned: number;
         maxPoints: number;
       }[];
+      /** После этой отправки: можно ли начать ещё одну попытку */
+      canRetry: boolean;
+      attemptsUsed: number;
+      maxAttempts: number | null;
     }
   | { ok: false; error: string };
 
@@ -40,11 +62,7 @@ function revalidateTestPaths(moduleId: string) {
   revalidatePath("/dashboard/course");
 }
 
-export async function submitTestAttemptAction(input: {
-  moduleId: string;
-  testId: string;
-  answers: SubmittedAnswerPayload[];
-}): Promise<SubmitTestState> {
+export async function submitTestAttemptAction(input: SubmitTestAttemptInput): Promise<SubmitTestState> {
   const session = await auth();
   if (!session?.user?.id) return { ok: false, error: "Требуется вход." };
 
@@ -56,7 +74,11 @@ export async function submitTestAttemptAction(input: {
     return { ok: false, error: rateLimit.error };
   }
 
-  const { moduleId, testId, answers } = input;
+  const { moduleId, testId } = input;
+  const sanitizedAnswers = sanitizeSubmittedAnswersForTransport(input.answers);
+  if (!sanitizedAnswers) {
+    return { ok: false, error: "Некорректный формат ответов." };
+  }
 
   const pre = await checkTestPrerequisites(userId, moduleId);
   if (!pre.ok) {
@@ -79,7 +101,11 @@ export async function submitTestAttemptAction(input: {
     return { ok: false, error: "В тесте нет вопросов." };
   }
 
-  const byId = buildSubmittedMap(answers);
+  if (sanitizedAnswers.length !== questions.length) {
+    return { ok: false, error: "Некорректный формат ответов." };
+  }
+
+  const byId = buildSubmittedMap(sanitizedAnswers);
   if (byId.size !== questions.length) {
     return { ok: false, error: "Ответьте на все вопросы." };
   }
@@ -89,19 +115,15 @@ export async function submitTestAttemptAction(input: {
   }
 
   for (const q of questions) {
-    const s = byId.get(q.id)!;
-    if (q.questionType === "MULTIPLE_CHOICE" || q.questionType === "MATCHING") {
-      if (s.kind !== "multi") return { ok: false, error: "Некорректный формат ответов." };
-    } else if (q.questionType === "TEXT") {
-      if (s.kind !== "text") return { ok: false, error: "Некорректный формат ответов." };
-    } else if (s.kind !== "single") {
-      return { ok: false, error: "Некорректный формат ответов." };
-    }
+    const check = validateSubmissionForQuestion(q, byId.get(q.id));
+    if (!check.ok) return { ok: false, error: check.error };
   }
+
+  const maxAttempts = resolveTestAttemptLimit(null);
 
   const { score, maxScore, passed, percent } = calculateTestScore({
     questions,
-    answers,
+    answers: sanitizedAnswers,
     minScore: test.minScore,
   });
 
@@ -119,27 +141,42 @@ export async function submitTestAttemptAction(input: {
     rows.push(...g.rows);
   }
 
-  await prisma.$transaction(async (tx) => {
-    const attempt = await tx.testAttempt.create({
-      data: {
-        userId,
-        testId,
-        score,
-        maxScore,
-        passed,
-      },
+  try {
+    await prisma.$transaction(async (tx) => {
+      const attemptCount = await tx.testAttempt.count({
+        where: { userId, testId },
+      });
+      const attemptGuard = assertTestAttemptAllowed(attemptCount, maxAttempts);
+      if (!attemptGuard.ok) {
+        throw new Error(TEST_ATTEMPTS_EXHAUSTED_MESSAGE);
+      }
+
+      const attempt = await tx.testAttempt.create({
+        data: {
+          userId,
+          testId,
+          score,
+          maxScore,
+          passed,
+        },
+      });
+      await tx.testAttemptAnswer.createMany({
+        data: rows.map((r) => ({
+          attemptId: attempt.id,
+          questionId: r.questionId,
+          answerId: r.answerId,
+          textAnswer: r.textAnswer,
+          isCorrect: r.isCorrect,
+          pointsEarned: r.pointsEarned,
+        })),
+      });
     });
-    await tx.testAttemptAnswer.createMany({
-      data: rows.map((r) => ({
-        attemptId: attempt.id,
-        questionId: r.questionId,
-        answerId: r.answerId,
-        textAnswer: r.textAnswer,
-        isCorrect: r.isCorrect,
-        pointsEarned: r.pointsEarned,
-      })),
-    });
-  });
+  } catch (e) {
+    if (e instanceof Error && e.message === TEST_ATTEMPTS_EXHAUSTED_MESSAGE) {
+      return { ok: false, error: e.message };
+    }
+    throw e;
+  }
 
   await recalculateModuleProgress(userId, moduleId);
   revalidateTestPaths(moduleId);
@@ -148,17 +185,36 @@ export async function submitTestAttemptAction(input: {
     const sub = byId.get(q.id)!;
     const g = gradeQuestion(q, sub);
     const manual = q.questionType === "TEXT" && q.textManualGrading;
+    const feedback = safeTestExplanation(q.explanation);
+    const topic = q.topic?.trim() || null;
     return {
       questionId: q.id,
       questionText: q.questionText,
-      explanation: q.explanation,
+      topic,
+      feedback,
+      explanation: feedback,
       isCorrect: manual ? null : Boolean(g.rows[0]?.isCorrect),
+      showGradingStatus: !manual,
       pointsEarned: g.pointsEarned,
       maxPoints: q.points,
     };
   });
 
   const correctCount = review.filter((r) => r.isCorrect === true).length;
+  const attemptsUsed =
+    (await prisma.testAttempt.count({ where: { userId, testId } })) || 1;
+  const canRetry = resolveTestCanRetry({ attemptsUsed, maxAttempts });
 
-  return { ok: true, score, maxScore, passed, percent, correctCount, review };
+  return {
+    ok: true,
+    score,
+    maxScore,
+    passed,
+    percent,
+    correctCount,
+    review,
+    canRetry,
+    attemptsUsed,
+    maxAttempts,
+  };
 }

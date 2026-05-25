@@ -1,6 +1,7 @@
 "use client";
 
 import { Clock, ListChecks, Target, ArrowRight } from "lucide-react";
+import type { ClientTestQuestion } from "@/lib/test-grading";
 import {
   formatPassingScore,
   formatTestDuration,
@@ -11,6 +12,9 @@ import {
   testStatusMeta,
   type TestCardStatus,
 } from "@/lib/test-ui";
+import { TEST_INTRO_CTA, buildTestIntroDescription, formatTestAttemptHistory } from "@/lib/test-flow";
+import { TestModulePathStrip, type TestModulePathStep } from "@/components/test/test-module-path-strip";
+import { TestQuestionTypeBreakdown } from "@/components/test/test-question-type-breakdown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SectionCard } from "@/components/ui/section-card";
@@ -21,11 +25,15 @@ export type TestStartScreenProps = {
   title: string;
   moduleTitle: string;
   moduleOrderNumber: number;
+  moduleDescription?: string | null;
   questionCount: number;
+  attemptCount?: number;
   estimatedMinutes: number;
   minScore: number;
   maxScore: number;
   lastAttempt: { percent: number; passed: boolean; score: number; maxScore: number } | null;
+  questions?: Pick<ClientTestQuestion, "questionType">[];
+  modulePathSteps?: TestModulePathStep[];
   onStart: () => void;
   disabled?: boolean;
 };
@@ -34,11 +42,15 @@ export function TestStartScreen({
   title,
   moduleTitle,
   moduleOrderNumber,
+  moduleDescription = null,
   questionCount,
   estimatedMinutes,
   minScore,
   maxScore,
+  attemptCount = 0,
   lastAttempt,
+  questions = [],
+  modulePathSteps = [],
   onStart,
   disabled,
 }: TestStartScreenProps) {
@@ -47,20 +59,35 @@ export function TestStartScreen({
   const difficulty = testDifficultyLabel(moduleOrderNumber);
   const bestPercent = lastAttempt?.percent ?? null;
   const hasTimeEstimate = estimatedMinutes > 0;
+  const introDescription = buildTestIntroDescription({
+    moduleTitle,
+    moduleDescription,
+    questionCount,
+  });
+  const attemptLabel = formatTestAttemptHistory(attemptCount);
 
   return (
-    <article className={cn("ce-test-card overflow-hidden", cyber.panel, "card-gradient")}>
+    <article className={cn("ce-test-intro ce-test-card overflow-hidden", cyber.panel, "card-gradient")}>
       <div className="space-y-6 p-5 sm:p-7">
         <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 space-y-1">
-            <p className={cyber.monoLabel}>Перед началом</p>
+            <p className={cyber.monoLabel}>Тест модуля</p>
             <h2 className="font-display text-xl font-semibold text-balance text-foreground sm:text-2xl">{title}</h2>
-            <p className="text-sm text-muted-foreground">{moduleTitle}</p>
+            <p className="text-sm font-medium text-muted-foreground">
+              Модуль {moduleOrderNumber}: {moduleTitle}
+            </p>
           </div>
           <Badge className={cn("w-fit shrink-0 font-mono text-[10px] uppercase tracking-wider", meta.className)}>
             {meta.label}
           </Badge>
         </header>
+
+        {modulePathSteps.length > 0 ? (
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Место в модуле</p>
+            <TestModulePathStrip steps={modulePathSteps} />
+          </div>
+        ) : null}
 
         <dl className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 sm:grid-cols-4">
           <Stat icon={ListChecks} label="Вопросов" value={String(questionCount)} />
@@ -73,11 +100,24 @@ export function TestStartScreen({
           <Stat label="Сложность" value={difficulty} />
         </dl>
 
-        {bestPercent != null ? (
-          <p className="text-sm text-muted-foreground">
-            Лучший результат: <span className="font-semibold tabular-nums text-foreground">{bestPercent}%</span>
-            {lastAttempt ? ` (${lastAttempt.score} / ${lastAttempt.maxScore} б.)` : ""}
+        <p className="text-sm leading-relaxed text-pretty text-muted-foreground">{introDescription}</p>
+
+        {attemptLabel || bestPercent != null ? (
+          <p className="text-sm text-muted-foreground" role="status">
+            {attemptLabel}
+            {attemptLabel && bestPercent != null ? " · " : null}
+            {bestPercent != null ? (
+              <>
+                лучший результат:{" "}
+                <span className="font-semibold tabular-nums text-foreground">{bestPercent}%</span>
+                {lastAttempt ? ` (${lastAttempt.score} / ${lastAttempt.maxScore} б.)` : ""}
+              </>
+            ) : null}
           </p>
+        ) : null}
+
+        {questions.length > 0 ? (
+          <TestQuestionTypeBreakdown questions={questions} />
         ) : null}
 
         <SectionCard variant="default" flushTitle className="p-4 sm:p-5">
@@ -104,8 +144,15 @@ export function TestStartScreen({
           </ul>
         </SectionCard>
 
-        <Button type="button" variant="primary" size="lg" className="w-full sm:w-auto" disabled={disabled} onClick={onStart}>
-          {status === "passed" ? "Пройти снова" : "Начать тест"}
+        <Button
+          type="button"
+          variant="primary"
+          size="lg"
+          className="min-h-12 w-full touch-manipulation sm:w-auto"
+          disabled={disabled}
+          onClick={onStart}
+        >
+          {status === "passed" ? "Пройти снова" : TEST_INTRO_CTA}
         </Button>
       </div>
     </article>

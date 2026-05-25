@@ -4,9 +4,10 @@ import bcrypt from "bcryptjs";
 import { headers } from "next/headers";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import { SECURITY_ACTIONS } from "@/lib/security/audit-actions";
+import { logSecurityEvent } from "@/lib/security/audit";
 import { enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/security/rate-limit";
 import { clientIpFromHeaders } from "@/lib/security/request-ip";
-import { securityLog } from "@/lib/security-log";
 import { serializeProfileInterests } from "@/lib/profile-interests";
 import { registerSchema } from "@/lib/validation";
 
@@ -118,7 +119,13 @@ export async function registerAction(_prev: RegisterActionState, formData: FormD
       });
     });
 
-    securityLog("auth.register", { userId: newUserId });
+    logSecurityEvent({
+      userId: newUserId,
+      action: SECURITY_ACTIONS.AUTH_REGISTER_SUCCESS,
+      ip,
+      path: "/auth/register",
+      metadata: { stage: "completed" },
+    });
     return { ok: true, email: normalizedEmail };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {

@@ -7,20 +7,15 @@ import { ChevronDown, LogOut, Shield, User } from "lucide-react";
 import { logoutAction } from "@/lib/actions/logout";
 import { studentSecondaryNav } from "@/lib/design-system/nav-config";
 import { isNavHrefActive } from "@/lib/nav-active";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { cn } from "@/lib/utils";
 
 export type UserMenuUser = {
   name?: string | null;
   email?: string | null;
   role?: string | null;
+  avatarUrl?: string | null;
 };
-
-function initials(name?: string | null, email?: string | null): string {
-  const source = (name?.trim() || email?.split("@")[0] || "U").trim();
-  const parts = source.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase();
-  return source.slice(0, 2).toUpperCase();
-}
 
 export function UserMenu({ user, variant }: { user: UserMenuUser; variant: "user" | "admin" }) {
   const pathname = usePathname() ?? "";
@@ -74,12 +69,13 @@ export function UserMenu({ user, variant }: { user: UserMenuUser; variant: "user
         aria-label={`Меню аккаунта: ${user.name?.trim() || user.email || "пользователь"}`}
         onClick={() => setOpen((v) => !v)}
       >
-        <span
-          className="flex size-8 items-center justify-center rounded-lg bg-primary/15 font-mono text-xs font-bold text-primary"
-          aria-hidden
-        >
-          {initials(user.name, user.email)}
-        </span>
+        <UserAvatar
+          avatarUrl={user.avatarUrl}
+          name={user.name}
+          email={user.email}
+          size="sm"
+          className="rounded-lg ring-border/40"
+        />
         <span className="hidden max-w-[8rem] truncate sm:inline">{user.name?.trim() || "Аккаунт"}</span>
         <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", open && "rotate-180")} aria-hidden />
       </button>
@@ -121,7 +117,6 @@ export function UserMenu({ user, variant }: { user: UserMenuUser; variant: "user
               type="submit"
               role="menuitem"
               className="flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-danger hover:bg-danger/10"
-              onClick={close}
             >
               <LogOut className="size-4 shrink-0" aria-hidden />
               Выйти

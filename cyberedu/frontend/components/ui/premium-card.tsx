@@ -13,16 +13,20 @@ const variants = {
 const paddings = {
   none: "",
   sm: "p-4",
+  /** Компактные карточки в боковой колонке кабинета — чуть больше воздуха, чем `sm`. */
+  sidebar: "p-5",
   md: "p-5 sm:p-6",
   lg: "p-6 sm:p-8",
 } as const;
 
-export type PremiumCardProps = React.HTMLAttributes<HTMLDivElement> & {
+export type PremiumCardProps = React.HTMLAttributes<HTMLElement> & {
   /** @deprecated Используйте variant="glow" */
   glow?: boolean;
   variant?: keyof typeof variants;
   padding?: keyof typeof paddings;
   interactive?: boolean;
+  /** Семантический контейнер панели (дашборд, курс). */
+  as?: "div" | "section" | "article";
 };
 
 export function PremiumCard({
@@ -31,12 +35,13 @@ export function PremiumCard({
   variant,
   padding = "none",
   interactive = false,
+  as: Component = "div",
   ...props
 }: PremiumCardProps) {
   const resolvedVariant = variant ?? (glow ? "glow" : "default");
 
   return (
-    <div
+    <Component
       className={cn(
         variants[resolvedVariant],
         paddings[padding],

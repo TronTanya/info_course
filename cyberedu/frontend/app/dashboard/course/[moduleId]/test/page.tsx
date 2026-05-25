@@ -1,231 +1,125 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { prisma } from "@/lib/db";
-import { assertModuleAccess, checkTestPrerequisites } from "@/lib/course-progress-guards";
-import { requireAuth } from "@/lib/permissions";
+import { auth } from "@/lib/auth";
+import { loadTestPageData } from "@/lib/test-page-load";
+import { getTestAttemptLimitFromEnv } from "@/lib/test-retry";
+import { buildTestPageMetadata } from "@/lib/test-page-metadata";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { StudentPageHeader } from "@/components/layout/student-page-header";
 import { LearnPageShell } from "@/components/learn/learn-chrome";
 import { ModuleTestRunner } from "@/components/test/module-test-runner";
-import { AppPageShell } from "@/components/ui/page-shell";
-import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
-import { buildLearningPageContext } from "@/lib/learning-context";
-import { getModuleProgress } from "@/lib/progress";
+import {
+  TestLockedState,
+  TestPageEmptyState,
+  TestPageLoadError,
+  TestUnauthorizedState,
+} from "@/components/test/test-page-states";
 import { moduleStepBreadcrumbs } from "@/lib/student-nav";
-import { notFound } from "next/navigation";
-type Props = { params: Promise<{ moduleId: string }> };
 
-/** Перемешивание вариантов на сервере (без isCorrect — порядок из БД не подсказывает «правильный» индекс). */
-function shuffleAnswerStubs<T>(items: readonly T[]): T[] {
-  const arr = [...items];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const tmp = arr[i]!;
-    arr[i] = arr[j]!;
-    arr[j] = tmp;
-  }
-  return arr;
-}
+const testMaxAttempts = getTestAttemptLimitFromEnv();
+type Props = { params: Promise<{ moduleId: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { moduleId } = await params;
-  const m = await prisma.module.findUnique({
-    where: { id: moduleId },
-    select: { title: true, isActive: true },
-  });
-  if (!m?.isActive) return { title: "Тесты модуля" };
-  return { title: `Тесты · ${m.title}` };
+  const session = await auth();
+  return buildTestPageMetadata(moduleId, session?.user?.id);
 }
 
 export default async function TestPage({ params }: Props) {
-  const session = await requireAuth();
+  const session = await auth();
   const { moduleId } = await params;
-  await assertModuleAccess(session.user.id, moduleId);
+  const result = await loadTestPageData(session?.user?.id, moduleId);
 
-  const gate = await checkTestPrerequisites(session.user.id, moduleId);
-  if (!gate.ok) {
-    const mod = await prisma.module.findUnique({
-      where: { id: moduleId },
-      select: { title: true },
-    });
-    const lessonHref = `/dashboard/course/${moduleId}/lesson`;
-    const courseHref = "/dashboard/course";
-    const isCourseLevel = gate.code === "MODULE_INACTIVE" || gate.code === "MODULE_LOCKED";
+  if (result.status === "unauthorized") {
     return (
       <DashboardShell>
         <LearnPageShell>
-          <AppPageShell width="narrow">
-            <StudentPageHeader
-              eyebrow="Assessment"
-              title={`Тест · ${mod?.title ?? "модуль"}`}
-              backHref={isCourseLevel ? courseHref : lessonHref}
-              backLabel={isCourseLevel ? "← К курсу" : "← К лекции"}
-            />
-            <EmptyState
-              title="Шаг недоступен"
-              description={gate.message}
-              action={
-                <Button asChild variant="primary">
-                  <Link href={isCourseLevel ? courseHref : lessonHref}>
-                    {isCourseLevel ? "К списку модулей" : "Перейти к лекции"}
-                  </Link>
-                </Button>
-              }
-            />
-          </AppPageShell>
+          <TestUnauthorizedState />
         </LearnPageShell>
       </DashboardShell>
     );
   }
 
-  const userId = session.user.id;
-
-  const [mod, tests] = await Promise.all([
-    prisma.module.findUnique({
-      where: { id: moduleId },
-      select: { title: true, orderNumber: true },
-    }),
-    prisma.test.findMany({
-      where: { moduleId },
-      orderBy: { createdAt: "asc" },
-      select: {
-        id: true,
-        title: true,
-        minScore: true,
-        questions: {
-          orderBy: { orderNumber: "asc" },
-          select: {
-            id: true,
-            questionText: true,
-            questionType: true,
-            points: true,
-            orderNumber: true,
-            textManualGrading: true,
-            answers: {
-              orderBy: { id: "asc" },
-              select: { id: true, answerText: true },
-            },
-          },
-        },
-      },
-    }),
-  ]);
-
-  if (tests.length === 0) {
+  if (result.status === "locked") {
     return (
       <DashboardShell>
         <LearnPageShell>
-          <AppPageShell>
-            <StudentPageHeader
-              breadcrumbItems={
-                mod?.orderNumber != null
-                  ? moduleStepBreadcrumbs(moduleId, mod.orderNumber, "Тест")
-                  : undefined
-              }
-              eyebrow="Assessment"
-              title={`Тест · ${mod?.title ?? "модуль"}`}
-              backHref={`/dashboard/course/${moduleId}`}
-              backLabel="← К модулю"
-            />
-            <EmptyState
-              title="Тест ещё не готов"
-              description="Для этого модуля пока не добавлен контрольный тест. Вернитесь к карте курса или к лекции."
-              action={
-                <Button asChild variant="outline">
-                  <Link href={`/dashboard/course/${moduleId}`}>К модулю</Link>
-                </Button>
-              }
-            />
-          </AppPageShell>
+          <TestLockedState
+            reason={result.reason}
+            lessonHref={result.lessonHref}
+            moduleTitle={result.moduleTitle}
+          />
         </LearnPageShell>
       </DashboardShell>
     );
   }
 
-  const mp = await getModuleProgress(userId, moduleId);
-  if (!mp) notFound();
+  if (result.status === "empty") {
+    return (
+      <DashboardShell>
+        <LearnPageShell>
+          <TestPageEmptyState
+            kind={result.kind}
+            moduleTitle={result.moduleTitle}
+            moduleId={result.moduleId}
+          />
+        </LearnPageShell>
+      </DashboardShell>
+    );
+  }
 
-  const learning = await buildLearningPageContext(
-    userId,
-    moduleId,
-    `/dashboard/course/${moduleId}/test`,
-    mp.requirements,
-    mp.progress,
-  );
+  if (result.status === "error") {
+    return (
+      <DashboardShell>
+        <LearnPageShell>
+          <TestPageLoadError kind={result.kind} />
+        </LearnPageShell>
+      </DashboardShell>
+    );
+  }
 
-  const testsPayload = await Promise.all(
-    tests.map(async (t) => {
-      const lastAttempt = await prisma.testAttempt.findFirst({
-        where: { userId, testId: t.id },
-        orderBy: { createdAt: "desc" },
-        select: { score: true, maxScore: true, passed: true, createdAt: true },
-      });
-      const percent =
-        lastAttempt && lastAttempt.maxScore > 0 ? Math.round((lastAttempt.score / lastAttempt.maxScore) * 100) : 0;
-
-      return {
-        testId: t.id,
-        title: t.title,
-        minScore: t.minScore,
-        questions: t.questions.map((q) => ({
-          id: q.id,
-          questionText: q.questionText,
-          questionType: q.questionType,
-          points: q.points,
-          orderNumber: q.orderNumber,
-          manualTextGrading: q.questionType === "TEXT" && q.textManualGrading,
-          answers:
-            q.questionType === "TEXT"
-              ? []
-              : shuffleAnswerStubs(q.answers.map((a) => ({ id: a.id, answerText: a.answerText }))),
-        })),
-        lastAttempt: lastAttempt
-          ? {
-              score: lastAttempt.score,
-              maxScore: lastAttempt.maxScore,
-              passed: lastAttempt.passed,
-              percent,
-              createdAt: lastAttempt.createdAt.toISOString(),
-            }
-          : null,
-      };
-    }),
-  );
+  const { data } = result;
 
   return (
     <DashboardShell>
       <LearnPageShell>
         <StudentPageHeader
           breadcrumbItems={
-            mod?.orderNumber != null
-              ? moduleStepBreadcrumbs(moduleId, mod.orderNumber, "Тест")
+            data.moduleOrderNumber != null
+              ? moduleStepBreadcrumbs(data.moduleId, data.moduleOrderNumber, "Тест")
               : undefined
           }
           eyebrow="Cyber Lab · Тесты"
-          title={mod?.title ? `Тесты · ${mod.title}` : "Тесты модуля"}
+          title={`Тесты · ${data.moduleTitle}`}
           description="Контроль знаний перед практикой. Варианты ответов перемешиваются при каждом запуске."
-          backHref={`/dashboard/course/${moduleId}`}
+          backHref={`/dashboard/course/${data.moduleId}`}
           backLabel="← К модулю"
         />
 
-        {tests.length > 1 ? (
-          <p className="text-sm text-muted-foreground">В модуле {tests.length} теста — пройдите каждый с карточки ниже.</p>
+        {data.tests.length > 1 ? (
+          <p className="text-sm text-muted-foreground">
+            В модуле {data.tests.length} теста — пройдите каждый с карточки ниже.
+          </p>
         ) : null}
 
         <div className="space-y-8">
-          {testsPayload.map((row) => (
+          {data.tests.map((row) => (
             <ModuleTestRunner
               key={row.testId}
-              moduleId={moduleId}
-              moduleTitle={mod?.title ?? "Модуль"}
-              moduleOrderNumber={mod?.orderNumber ?? 0}
+              moduleId={data.moduleId}
+              moduleTitle={data.moduleTitle}
+              moduleOrderNumber={data.moduleOrderNumber}
+              moduleDescription={row.moduleDescription}
+              attemptCount={row.attemptCount}
+              maxAttempts={testMaxAttempts}
               testId={row.testId}
               title={row.title}
               minScore={row.minScore}
               questions={row.questions}
               lastAttempt={row.lastAttempt}
-              nextStep={learning.neighbors.next}
+              nextStep={data.nextStep}
+              modulePathSteps={data.modulePathSteps}
+              learning={data.learning}
+              aiMentorConfigured={data.aiMentorConfigured}
             />
           ))}
         </div>

@@ -17,7 +17,14 @@ export function LabTerminal({
   ...props
 }: LabTerminalProps) {
   return (
-    <div className={cn("ce-terminal overflow-hidden rounded-2xl text-sm", className)} {...props}>
+    <div
+      className={cn(
+        "ce-terminal overflow-hidden rounded-2xl text-sm",
+        glow && "shadow-[0_0_32px_-8px_color-mix(in_oklab,var(--primary)_35%,transparent)]",
+        className,
+      )}
+      {...props}
+    >
       {chrome ? (
         <div className="ce-terminal-chrome flex items-center gap-2 border-b px-3 py-2.5">
           <span className="flex gap-1.5" aria-hidden>

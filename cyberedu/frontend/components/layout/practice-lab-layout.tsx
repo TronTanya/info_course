@@ -13,19 +13,28 @@ export type PracticeLabLayoutProps = {
   header: React.ReactNode;
   main: React.ReactNode;
   aside: React.ReactNode;
+  /** На mobile/tablet (<lg): блок после main (например AI-наставник под формой). */
+  mobileAfterMain?: React.ReactNode;
   className?: string;
 };
 
 /**
  * Двухколоночная лаборатория: на lg+ — сетка; на мобиле боковая панель в drawer.
  */
-export function PracticeLabLayout({ breadcrumb, header, main, aside, className }: PracticeLabLayoutProps) {
+export function PracticeLabLayout({
+  breadcrumb,
+  header,
+  main,
+  aside,
+  mobileAfterMain,
+  className,
+}: PracticeLabLayoutProps) {
   const [asideOpen, setAsideOpen] = useState(false);
 
   return (
     <div
       className={cn(
-        "lab-shell hero-glow ce-learn-lab ce-practice-cyber-lab ce-animate-in ce-immersive-mobile-pad min-w-0 overflow-x-clip pb-24 sm:pb-0",
+        "lab-shell hero-glow ce-learn-lab ce-practice-cyber-lab ce-animate-in ce-immersive-mobile-pad min-w-0 overflow-x-clip pb-28 lg:pb-0",
         className,
       )}
     >
@@ -40,16 +49,28 @@ export function PracticeLabLayout({ breadcrumb, header, main, aside, className }
           <Button
             type="button"
             variant="outline"
-            className="min-h-11 w-full"
+            className="ce-touch-target min-h-12 w-full touch-manipulation text-base"
             onClick={() => setAsideOpen(true)}
           >
             <PanelRightOpen className="size-4" aria-hidden />
-            Чеклист и подсказки
+            Чеклист и навигация
           </Button>
         </div>
         <div className="practice-layout min-w-0">
-          <div className="practice-layout-main min-w-0">{main}</div>
-          <aside className="practice-layout-aside hidden min-w-0 space-y-5 lg:block lg:sticky lg:top-4 lg:self-start">
+          <main
+            id="practice-lab-main"
+            className="practice-layout-main min-w-0 space-y-6"
+            aria-label="Содержание задания"
+          >
+            {main}
+            {mobileAfterMain ? (
+              <div className="practice-layout-mobile-footer min-w-0 lg:hidden">{mobileAfterMain}</div>
+            ) : null}
+          </main>
+          <aside
+            className="practice-layout-aside hidden min-w-0 space-y-5 lg:block lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:overscroll-contain lg:self-start"
+            aria-label="Чеклист и навигация"
+          >
             {aside}
           </aside>
         </div>

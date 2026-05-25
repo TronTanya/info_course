@@ -231,6 +231,12 @@ export type CourseProgressModuleRow = {
   progressPercent: number;
   score: number;
   moduleCompleted: boolean;
+  /** Практика отправлена и ожидает проверки (SUBMITTED / CHECKING). */
+  practicePendingReview?: boolean;
+  /** Последняя отправка на доработку или отклонена (NEEDS_REVISION / REJECTED). */
+  practiceNeedsRevision?: boolean;
+  /** Есть незачтённая попытка теста при готовой лекции. */
+  testNeedsRetry?: boolean;
 };
 
 export type UserCourseProgressResult = {
@@ -279,6 +285,56 @@ export async function getUserCourseProgress(
       : [];
   const byModule = new Map(progressRows.map((r) => [r.moduleId, r]));
 
+  const practiceReviewModuleIds = new Set<string>();
+  const practiceRevisionModuleIds = new Set<string>();
+  const testRetryModuleIds = new Set<string>();
+
+  if (moduleIds.length > 0) {
+    const pending = await prisma.submission.findMany({
+      where: {
+        userId,
+        status: { in: ["SUBMITTED", "CHECKING"] },
+        practicalTask: { moduleId: { in: moduleIds } },
+      },
+      select: { practicalTask: { select: { moduleId: true } } },
+    });
+    for (const s of pending) {
+      practiceReviewModuleIds.add(s.practicalTask.moduleId);
+    }
+
+    const revisions = await prisma.submission.findMany({
+      where: {
+        userId,
+        status: { in: ["NEEDS_REVISION", "REJECTED"] },
+        practicalTask: { moduleId: { in: moduleIds } },
+      },
+      select: { practicalTask: { select: { moduleId: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+    for (const s of revisions) {
+      practiceRevisionModuleIds.add(s.practicalTask.moduleId);
+    }
+
+    const testIdToModule = new Map<string, string>();
+    for (const m of modules) {
+      for (const t of m.tests) {
+        testIdToModule.set(t.id, m.id);
+      }
+    }
+    const testIds = [...testIdToModule.keys()];
+    if (testIds.length > 0) {
+      const failed = await prisma.testAttempt.findMany({
+        where: { userId, testId: { in: testIds }, passed: false },
+        select: { testId: true },
+        distinct: ["testId"],
+      });
+      for (const a of failed) {
+        const modId = testIdToModule.get(a.testId);
+        if (modId) testRetryModuleIds.add(modId);
+      }
+    }
+  }
+
   let chainUnlocked = true;
   const rows: CourseProgressModuleRow[] = [];
 
@@ -305,6 +361,18 @@ export async function getUserCourseProgress(
       progressPercent,
       score,
       moduleCompleted,
+      practicePendingReview:
+        practiceReviewModuleIds.has(m.id) &&
+        req.practiceRequired &&
+        !Boolean(p?.practiceCompleted),
+      practiceNeedsRevision:
+        practiceRevisionModuleIds.has(m.id) &&
+        req.practiceRequired &&
+        !Boolean(p?.practiceCompleted),
+      testNeedsRetry:
+        testRetryModuleIds.has(m.id) &&
+        req.testRequired &&
+        !Boolean(p?.testCompleted),
     });
   }
 

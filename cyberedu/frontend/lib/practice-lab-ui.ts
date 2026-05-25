@@ -79,10 +79,11 @@ export function formatPracticeDuration(minutes: number): string {
   return m > 0 ? `~${h} ч ${m} мин` : `~${h} ч`;
 }
 
+/** @deprecated Используйте PRACTICE_HINT_LEVEL_META из @/lib/practice-hints */
 export const practiceHintLevelLabels = [
-  "Мягкая подсказка",
-  "Направление",
-  "Почти решение",
+  "Подсказка 1",
+  "Подсказка 2",
+  "Подсказка 3",
 ] as const;
 
 export function practiceResultHeadline(status: SubmissionStatus | null, passed: boolean): string {

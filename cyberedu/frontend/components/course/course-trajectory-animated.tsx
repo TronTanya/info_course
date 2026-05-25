@@ -1,39 +1,15 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
+import { CourseModuleNodeIcon } from "@/components/course/course-module-node-icon";
 import type { CourseProgressModuleRow } from "@/lib/progress";
 import { getUiStatus } from "@/lib/course-path-ui";
+import type { CourseEntityUiStatus } from "@/types/course-ui-status";
 import { cn } from "@/lib/utils";
-
-function LockIcon({ className }: { className?: string }) {
-  return (
-    <svg className={cn("size-4 shrink-0", className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <rect x="5" y="11" width="14" height="10" rx="2" />
-      <path d="M7 11V8a5 5 0 0110 0v3" />
-    </svg>
-  );
-}
-
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg className={cn("size-3.5 shrink-0", className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
-      <path d="M5 12l5 5L20 7" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
 
 function TrajectoryNode({ row, isLast, index }: { row: CourseProgressModuleRow; isLast: boolean; index: number }) {
   const reduce = useReducedMotion();
   const status = getUiStatus(row);
-  const ring =
-    status === "completed"
-      ? "border-success/50 bg-success/15 text-success"
-      : status === "in_progress"
-        ? "border-sky-500/55 bg-sky-500/12 text-sky-800 dark:text-sky-200"
-        : status === "available"
-          ? "border-primary/50 bg-primary/10 text-primary"
-          : "border-muted-foreground/35 bg-muted/50 text-muted-foreground";
-
   return (
     <motion.div
       className="flex min-w-0 flex-1 items-center"
@@ -45,21 +21,17 @@ function TrajectoryNode({ row, isLast, index }: { row: CourseProgressModuleRow; 
         className="flex min-w-0 flex-1 flex-col items-center gap-1.5"
         whileHover={reduce ? undefined : { scale: 1.04 }}
       >
-        <div
-          className={cn(
-            "relative flex size-11 shrink-0 items-center justify-center rounded-2xl border-2 text-sm font-bold tabular-nums shadow-sm sm:size-12 sm:text-base",
-            ring,
-          )}
-          title={row.module.title}
-        >
-          {status === "locked" ? <LockIcon className="size-4" /> : <span>{row.module.orderNumber}</span>}
-          {status === "completed" ? (
-            <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-success text-white shadow ring-1 ring-success/40">
-              <CheckIcon className="text-white" />
-            </span>
-          ) : null}
+        <div className="relative" title={row.module.title}>
+          <CourseModuleNodeIcon
+            orderNumber={row.module.orderNumber}
+            status={status as CourseEntityUiStatus}
+            className="size-11 sm:size-12 sm:text-base"
+          />
           {status === "in_progress" ? (
-            <span className="absolute -bottom-0.5 left-1/2 h-1 w-6 -translate-x-1/2 rounded-full bg-sky-500/80 motion-safe:animate-pulse" aria-hidden />
+            <span
+              className="absolute -bottom-0.5 left-1/2 h-1 w-6 -translate-x-1/2 rounded-full bg-primary/80 motion-safe:animate-pulse"
+              aria-hidden
+            />
           ) : null}
         </div>
         <span className="max-w-[4.5rem] truncate text-center text-[10px] font-semibold uppercase tracking-wide text-muted-foreground sm:max-w-[6rem] sm:text-[11px]">

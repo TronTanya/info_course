@@ -1,5 +1,6 @@
 import type { LessonAiAction } from "@/lib/lesson-ai-meta";
 import { AiNotConfiguredError, AiProviderError, getOpenAiApiKey } from "@/lib/ai-config";
+import { logError } from "@/lib/log/structured";
 
 /** Режимы адаптации (API и ядро генерации). */
 export type LessonAdaptMode = "simplify" | "adapt_to_interests" | "example" | "summary";
@@ -22,6 +23,20 @@ export type BuiltLessonPrompt = {
 };
 
 const MAX_LESSON_CHARS = 45_000;
+
+const MODE_MAX_LESSON_CHARS: Record<LessonAdaptMode, number> = {
+  summary: 12_000,
+  simplify: 22_000,
+  adapt_to_interests: 22_000,
+  example: 16_000,
+};
+
+const MODE_MAX_OUTPUT_TOKENS: Record<LessonAdaptMode, number> = {
+  summary: 900,
+  simplify: 1_400,
+  adapt_to_interests: 1_600,
+  example: 1_100,
+};
 
 /**
  * Системный промпт для адаптации лекции (не заменяет исходник; только дополнительное объяснение).
@@ -68,16 +83,21 @@ export function truncateLessonContent(content: string, max = MAX_LESSON_CHARS): 
   return `${content.slice(0, max)}\n\n[…текст лекции сокращён для запроса к модели…]`;
 }
 
+export function lessonAdaptContentLimit(mode: LessonAdaptMode): number {
+  return MODE_MAX_LESSON_CHARS[mode] ?? MAX_LESSON_CHARS;
+}
+
 /**
  * Собирает промпт для адаптации. Не включать ФИО, email, телефон и др. ПДн — только интересы и специальность.
  */
 export function buildLessonAdaptationPrompt(params: AdaptLessonParams): BuiltLessonPrompt {
   const interests = params.userInterests.trim() || "не указаны";
   const specialty = params.userSpecialty.trim() || "не указана";
-  const body = truncateLessonContent(params.lessonContent);
+  const body = truncateLessonContent(params.lessonContent, lessonAdaptContentLimit(params.mode));
 
   const q = params.userQuestion?.trim();
   if (q) {
+    const questionBody = truncateLessonContent(params.lessonContent, lessonAdaptContentLimit("simplify"));
     return {
       system: LESSON_ADAPT_TUTOR_SYSTEM_PROMPT,
       user: [
@@ -87,7 +107,7 @@ export function buildLessonAdaptationPrompt(params: AdaptLessonParams): BuiltLes
         "",
         "Текст лекции (источник):",
         "```",
-        body,
+        questionBody,
         "```",
         "",
         "Ответь на вопрос ученика по сути, опираясь только на лекцию и безопасные обобщения. Не решай за него тесты и практику.",
@@ -176,7 +196,7 @@ export type OpenAiChatMessage = { role: "system" | "user" | "assistant"; content
  */
 export async function callOpenAiChatCompletions(
   messages: OpenAiChatMessage[],
-  opts?: { temperature?: number },
+  opts?: { temperature?: number; maxTokens?: number },
 ): Promise<string | null> {
   const key = getOpenAiApiKey();
   if (!key) return null;
@@ -196,12 +216,15 @@ export async function callOpenAiChatCompletions(
         model,
         temperature,
         messages,
+        ...(opts?.maxTokens ? { max_tokens: opts.maxTokens } : {}),
       }),
     });
 
     if (!res.ok) {
-      const errText = await res.text().catch(() => "");
-      console.error("OpenAI error", res.status, errText.slice(0, 500));
+      logError("openai_chat_http_error", {
+        status: res.status,
+        model,
+      });
       return null;
     }
 
@@ -211,18 +234,20 @@ export async function callOpenAiChatCompletions(
     const text = data.choices?.[0]?.message?.content;
     return typeof text === "string" && text.trim() ? text.trim() : null;
   } catch (e) {
-    console.error("OpenAI fetch failed", e);
+    logError("openai_chat_fetch_failed", {
+      errorType: e instanceof Error ? e.name : "unknown",
+    });
     return null;
   }
 }
 
-async function callOpenAiChat(built: BuiltLessonPrompt): Promise<string | null> {
+async function callOpenAiChat(built: BuiltLessonPrompt, mode: LessonAdaptMode): Promise<string | null> {
   return callOpenAiChatCompletions(
     [
       { role: "system", content: built.system },
       { role: "user", content: built.user },
     ],
-    { temperature: 0.5 },
+    { temperature: 0.5, maxTokens: MODE_MAX_OUTPUT_TOKENS[mode] },
   );
 }
 
@@ -236,7 +261,7 @@ export async function adaptLessonToInterests(params: AdaptLessonParams): Promise
   }
 
   const built = buildLessonAdaptationPrompt(params);
-  const raw = await callOpenAiChat(built);
+  const raw = await callOpenAiChat(built, params.mode);
   if (!raw) {
     throw new AiProviderError("Модель не вернула текст. Проверьте OPENAI_API_BASE_URL, модель и лимиты.");
   }

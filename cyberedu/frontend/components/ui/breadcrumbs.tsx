@@ -6,13 +6,32 @@ export type BreadcrumbItem = {
   href?: string;
 };
 
-export function Breadcrumbs({ items, className }: { items: BreadcrumbItem[]; className?: string }) {
+export function Breadcrumbs({
+  items,
+  className,
+  compact = false,
+  "aria-label": ariaLabel = "Навигация",
+}: {
+  items: BreadcrumbItem[];
+  className?: string;
+  /** Узкие экраны: обрезка длинных подписей */
+  compact?: boolean;
+  "aria-label"?: string;
+}) {
   if (items.length === 0) return null;
 
   return (
-    <nav className={cn("flex flex-wrap items-center gap-x-2 gap-y-1 text-sm", className)} aria-label="Навигация">
+    <nav
+      className={cn(
+        "flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm",
+        compact &&
+          "[&_a]:max-w-[6.25rem] [&_a]:truncate min-[390px]:[&_a]:max-w-[7.5rem] [&_span:last-child]:max-w-[7.5rem] [&_span:last-child]:truncate min-[390px]:[&_span:last-child]:max-w-[9rem]",
+        className,
+      )}
+      aria-label={ariaLabel}
+    >
       {items.map((item, index) => (
-        <span key={`${item.label}-${index}`} className="inline-flex items-center gap-2">
+        <span key={`${item.label}-${index}`} className="inline-flex min-w-0 max-w-full items-center gap-2">
           {index > 0 ? (
             <span className="text-muted-foreground/50" aria-hidden>
               /

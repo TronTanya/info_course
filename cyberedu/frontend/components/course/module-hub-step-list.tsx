@@ -3,10 +3,27 @@
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import type { ComponentProps } from "react";
-import type { ModuleHubStepStatus, ModuleHubStepView } from "@/lib/module-hub-steps";
+import { CourseStepIcon } from "@/components/course/course-step-icon";
+import type { ModuleHubStepKind, ModuleHubStepStatus, ModuleHubStepView } from "@/lib/module-hub-steps";
+import type { CourseStepIconKind, CourseStepIconStatus } from "@/lib/course-step-icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+const HUB_STEP_ICON: Record<ModuleHubStepKind, CourseStepIconKind> = {
+  lecture: "lecture",
+  video: "video",
+  test: "test",
+  practice: "practice",
+  result: "result",
+};
+
+function hubStatusToIcon(status: ModuleHubStepStatus): CourseStepIconStatus {
+  if (status === "blocked") return "locked";
+  if (status === "completed") return "completed";
+  if (status === "available") return "available";
+  return "not_started";
+}
 
 const statusLabels: Record<ModuleHubStepStatus, string> = {
   not_started: "Не начато",
@@ -41,7 +58,14 @@ export function ModuleHubStepList({ steps }: { steps: ModuleHubStepView[] }) {
           )}
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0 space-y-1">
+            <div className="flex min-w-0 gap-3">
+              <CourseStepIcon
+                kind={HUB_STEP_ICON[step.kind]}
+                size="md"
+                status={hubStatusToIcon(step.status)}
+                className="mt-0.5"
+              />
+              <div className="min-w-0 flex-1 space-y-1">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                   Шаг {step.order}
@@ -50,6 +74,7 @@ export function ModuleHubStepList({ steps }: { steps: ModuleHubStepView[] }) {
               </div>
               <h3 className="text-base font-semibold text-foreground">{step.title}</h3>
               <p className="text-sm text-muted-foreground">{step.description}</p>
+              </div>
             </div>
             {step.actionLabel && step.actionHref ? (
               <div className="w-full shrink-0 sm:w-auto sm:pt-6">

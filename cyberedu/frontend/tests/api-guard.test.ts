@@ -111,7 +111,7 @@ describe("security/api-guard", () => {
 
   it("returns 429 when rate limit exceeded", async () => {
     authMock.mockResolvedValue(session({ id: "u1" }));
-    vi.mocked(enforceRateLimit).mockResolvedValue({
+    vi.mocked(enforceRateLimit).mockResolvedValueOnce({
       allowed: false,
       retryAfterMs: 5000,
       reason: "exceeded",
@@ -119,6 +119,12 @@ describe("security/api-guard", () => {
     const POST = withAuthApiRoute({ rateLimit: "aiChat" }, async () => Response.json({ ok: true }));
     const res = await POST(new Request("http://localhost/api/ai/chat", { method: "POST" }));
     expect(res.status).toBe(429);
+    const json = await res.json();
+    expect(json.error).toBe(
+      "Слишком много запросов к AI-наставнику. Подождите немного и попробуйте снова.",
+    );
+    expect(json.code).toBe("RATE_LIMITED");
+    expect(json.error).not.toMatch(/redis/i);
     expect(securityAudit).toHaveBeenCalledWith(
       expect.objectContaining({ event: "api.rate_limited" }),
     );
