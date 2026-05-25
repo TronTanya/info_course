@@ -223,6 +223,8 @@ model Question {
   questionType QuestionType
   points       Int          @default(1)
   orderNumber  Int
+  /** Короткая тема для результата теста («фишинг», «MFA»); не показывается до submit. */
+  topic              String? @db.VarChar(120)
   /** Короткое обучающее пояснение после попытки (без дословного раскрытия ответа). */
   explanation        String? @db.Text
   /** Пример ответа для авто-проверки TEXT; на клиент теста не отдаётся. */
@@ -397,13 +399,14 @@ model Progress {
 }
 
 model Certificate {
-  id                String   @id @default(cuid())
+  id                String    @id @default(cuid())
   userId            String
   courseId          String
-  certificateNumber String   @unique
+  certificateNumber String    @unique
   pdfUrl            String?
-  issuedAt          DateTime @default(now())
-  verificationCode  String   @unique
+  issuedAt          DateTime  @default(now())
+  revokedAt         DateTime?
+  verificationCode  String    @unique
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -423,6 +426,15 @@ enum AchievementKind {
   AI_MENTOR_USED
   COURSE_HALF_COMPLETE
   TEST_PERFECT_SCORE
+  LESSON_STUDIED
+  TEST_PASSED
+  TWO_MODULES_COMPLETE
+  THREE_MODULES_COMPLETE
+  PRACTICE_SUBMITTED
+  MENTOR_CHAT_ACTIVE
+  TEST_RETRY
+  ALL_LESSONS_STUDIED
+  ONE_MODULE_REMAINING
 }
 
 model UserAchievement {

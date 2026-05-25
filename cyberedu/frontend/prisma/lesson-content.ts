@@ -3,6 +3,11 @@
  * Смысл совпадает с учебной программой курса; без опасных инструкций.
  */
 
+import {
+  buildLessonFigureFence,
+  buildLessonResourcesFence,
+} from "../lib/lesson-module-media";
+
 function closing(): string {
   return [
     "## После лекции",
@@ -346,5 +351,13 @@ export function getLessonMarkdown(moduleIndex: number, title: string): string {
   ];
 
   const core = bodies[moduleIndex] ?? bodies[0];
-  return [core, "", closing()].join("\n");
+  return [
+    buildLessonFigureFence(moduleIndex),
+    "",
+    core,
+    "",
+    buildLessonResourcesFence(moduleIndex),
+    "",
+    closing(),
+  ].join("\n");
 }
