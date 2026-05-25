@@ -14,6 +14,8 @@ export const RATE_LIMIT_POLICIES = {
   registerIp: { scope: "auth:register", max: 8, windowMs: 60 * 60 * 1000 },
   registerEmail: { scope: "auth:register:email", max: 5, windowMs: 24 * 60 * 60 * 1000 },
   aiChat: { scope: "ai:chat", max: 60, windowMs: 60 * 60 * 1000 },
+  /** Доп. лимит по IP для POST /api/ai/* (NAT, несколько сессий с одного адреса). */
+  aiChatIp: { scope: "ai:chat:ip", max: 120, windowMs: 60 * 60 * 1000 },
   certVerify: { scope: "cert:verify", max: 40, windowMs: 15 * 60 * 1000 },
   adminExport: { scope: "admin:export", max: 10, windowMs: 60 * 60 * 1000 },
   upload: { scope: "upload", max: 20, windowMs: 60 * 60 * 1000 },
@@ -25,6 +27,8 @@ export const RATE_LIMIT_POLICIES = {
   practiceText: { scope: "practice:text", max: 45, windowMs: 60 * 60 * 1000 },
   practiceInteractive: { scope: "practice:interactive", max: 60, windowMs: 60 * 60 * 1000 },
   practiceStructured: { scope: "practice:structured", max: 80, windowMs: 60 * 60 * 1000 },
+  /** POST /api/csp-report — браузерные CSP violation reports. */
+  cspReport: { scope: "security:csp-report", max: 60, windowMs: 15 * 60 * 1000 },
 } as const;
 
 type MemoryBucket = { count: number; resetAt: number };
@@ -33,13 +37,18 @@ const memory = new Map<string, MemoryBucket>();
 const MAX_MEMORY_KEYS = 25_000;
 let memoryFallbackWarned = false;
 
-type RedisClient = {
+export type SharedRedisClient = {
   incr: (key: string) => Promise<number>;
   pExpire: (key: string, ms: number) => Promise<number>;
   pTTL: (key: string) => Promise<number>;
+  get: (key: string) => Promise<string | null>;
+  set: (key: string, value: string, options?: { PX?: number }) => Promise<string | null>;
+  del: (keys: string | string[]) => Promise<number>;
   connect: () => Promise<void>;
   on: (event: string, listener: () => void) => void;
 };
+
+type RedisClient = SharedRedisClient;
 
 let redisPromise: Promise<RedisClient | null> | null = null;
 
@@ -222,4 +231,9 @@ export function resetRateLimitServiceForTests(): void {
   memoryFallbackWarned = false;
 }
 
-export { isDevMemoryFallbackAllowed, isProductionRuntime };
+/** Shared Redis client for security modules (login lockout, rate limits). */
+export async function getSharedRedisClient(): Promise<SharedRedisClient | null> {
+  return getRedis();
+}
+
+export { isDevMemoryFallbackAllowed, isProductionRuntime, isAutomatedTestRuntime };

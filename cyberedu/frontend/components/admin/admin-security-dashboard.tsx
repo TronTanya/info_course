@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
+import { AdminActivityByDayChart } from "@/components/admin/admin-activity-by-day-chart";
 import type { AdminSecurityDashboardData } from "@/lib/admin-security-dashboard";
 import { AdminUsersTable } from "@/components/admin/admin-users-table";
 import type { AdminUserListRow } from "@/lib/admin-users-list";
@@ -78,7 +79,6 @@ export function AdminSecurityDashboard({
   users: AdminUserListRow[];
 }) {
   const { overview, system } = data;
-  const maxActivity = Math.max(1, ...data.activityByDay.map((d) => d.count));
 
   return (
     <div className="ce-admin-security space-y-10">
@@ -246,18 +246,7 @@ export function AdminSecurityDashboard({
             }
             description="14 дней: регистрации, тесты, практика"
           >
-              <ul className="flex h-32 items-end gap-1">
-                {data.activityByDay.map((d) => (
-                  <li key={d.date} className="flex flex-1 flex-col items-center gap-1">
-                    <div
-                      className="w-full rounded-t bg-primary/80 transition-all"
-                      style={{ height: `${Math.max(4, (d.count / maxActivity) * 100)}%` }}
-                      title={`${d.count} событий`}
-                    />
-                    <span className="hidden text-[9px] text-muted-foreground sm:block">{d.label}</span>
-                  </li>
-                ))}
-              </ul>
+            <AdminActivityByDayChart days={data.activityByDay} />
           </SectionCard>
 
           <SectionCard variant="lab" title="Сложные тесты" description="Низкий % прохождений (≥3 попыток)" className="space-y-2">

@@ -16,6 +16,12 @@ export {
   RATE_LIMIT_POLICIES,
 } from "@/lib/security/rate-limit-service";
 
+export { enforceAiMentorApiRateLimit } from "@/lib/security/ai-rate-limit";
+export {
+  AI_MENTOR_RATE_LIMIT_MESSAGE,
+  resolveApiRateLimitMessage,
+} from "@/lib/security/rate-limit-messages";
+
 export async function consumeRateLimitAsync(
   key: string,
   max: number,

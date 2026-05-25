@@ -1,3 +1,4 @@
+import { assertAdminDataAccess } from "@/lib/admin-access";
 import { prisma } from "@/lib/db";
 import { getAdminDashboardExtended, getAdminDashboardStats } from "@/lib/admin-dashboard";
 import { readinessStatus, runReadinessChecks } from "@/lib/health/readiness";
@@ -48,6 +49,9 @@ export type AdminDayActivity = {
   date: string;
   label: string;
   count: number;
+  registrations: number;
+  tests: number;
+  practice: number;
 };
 
 export type AdminSystemIssue = {
@@ -119,6 +123,7 @@ function lastNDays(n: number): { date: string; label: string; start: Date; end: 
 }
 
 export async function getAdminSecurityDashboardData(): Promise<AdminSecurityDashboardData> {
+  await assertAdminDataAccess();
   const [baseStats, extended, checks, activeModuleCount] = await Promise.all([
     getAdminDashboardStats(),
     getAdminDashboardExtended(),
@@ -306,11 +311,17 @@ export async function getAdminSecurityDashboardData(): Promise<AdminSecurityDash
   const days = lastNDays(14);
   const activityByDay: AdminDayActivity[] = days.map((d) => {
     const inDay = (dt: Date) => dt >= d.start && dt < d.end;
-    const count =
-      daySubs.filter((s) => inDay(s.createdAt)).length +
-      dayAttempts.filter((a) => inDay(a.createdAt)).length +
-      dayUsers.filter((u) => inDay(u.createdAt)).length;
-    return { date: d.date, label: d.label, count };
+    const registrations = dayUsers.filter((u) => inDay(u.createdAt)).length;
+    const tests = dayAttempts.filter((a) => inDay(a.createdAt)).length;
+    const practice = daySubs.filter((s) => inDay(s.createdAt)).length;
+    return {
+      date: d.date,
+      label: d.label,
+      registrations,
+      tests,
+      practice,
+      count: registrations + tests + practice,
+    };
   });
 
   const warnings: string[] = [];

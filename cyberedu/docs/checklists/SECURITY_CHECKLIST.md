@@ -2,12 +2,14 @@
 
 Периодичность: **каждый релиз** + **ежеквартальный** полный проход.
 
+Threat model (активы, угрозы, gaps G1–G11): [../THREAT_MODEL.md](../THREAT_MODEL.md).
+
 ## Аутентификация и сессии
 
 - [ ] `AUTH_SECRET` / `NEXTAUTH_SECRET` ротация по политике (при компрометации — немедленно)
 - [ ] Secure cookies в production (`__Secure-`, `httpOnly`, `sameSite`)
 - [ ] Session max age (`AUTH_SESSION_MAX_AGE`) соответствует политике
-- [ ] Login lockout / rate limit на credentials callback
+- [ ] Login lockout (Redis) / rate limit на credentials callback
 - [ ] Пароли: bcrypt, минимальная сложность на регистрации
 - [ ] Нет `passwordHash` в API responses и admin UI
 
@@ -21,7 +23,7 @@
 
 ## API и CSRF
 
-- [ ] Mutating `/api/*` — CSRF (origin + cookie), кроме `/api/auth/*`
+- [ ] Mutating `/api/*` — CSRF (Origin/Referer), кроме `/api/auth/*` и `/api/csp-report`
 - [ ] Backend internal routes — `X-API-Key: INTERNAL_API_KEY` (**C1:** без ключа → 401, dev и prod)
 - [ ] `GET /api/v1/course-progress` без ключа возвращает 401 (не раскрывает ПДн)
 - [ ] Production: `INTERNAL_API_KEY` задан; sensitive routes fail-closed
@@ -73,9 +75,13 @@
 
 ## Known gaps (track)
 
-| Gap | Severity | Mitigation |
-|-----|----------|------------|
-| In-memory rate limit без Redis на всех paths | Medium | `REDIS_URL` в prod + code audit |
-| Не все Route Handlers на `withApiGuard` | Medium | Постепенная миграция |
-| Dual DB schema (Prisma + Alembic) | Medium | Single source of truth plan |
-| No WAF | Low | Cloudflare / Nginx modsecurity optional |
+См. [THREAT_MODEL.md § 5](../THREAT_MODEL.md#5-gaps--todo-реальные-пробелы) (G1–G11).
+
+| ID | Gap | Severity | Mitigation |
+|----|-----|----------|------------|
+| G1 | Rate limit без Redis в prod | High (ops) | `REDIS_URL` в prod + `npm run check:rate-limit` |
+| G2 | Login lockout degraded без Redis | Low | `REDIS_URL`; monitor `[login-lockout]` |
+| G3 | CSP report-only по умолчанию | Medium | `CSP_REPORT_URI` → `CSP_MODE=enforce` |
+| G5 | Local uploads, single replica | Medium | [STORAGE.md](../STORAGE.md) |
+| G6 | Dual DB schema (Prisma + Alembic) | Medium | Process / single source of truth |
+| G4 | No WAF | Low | Cloudflare / ModSecurity optional |

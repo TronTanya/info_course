@@ -17,8 +17,13 @@ function expectedOrigin(req: NextRequest): string | null {
 
 /**
  * Проверка Origin/Referer для state-changing API-запросов.
- * Дополняет встроенную защиту Server Actions в Next.js (Origin check).
- * Блокирует cross-site POST с браузера жертвы (CSRF).
+ * Вызывается из `middleware.ts` для `/api/*` (кроме `/api/auth/*`, `/api/csp-report`).
+ *
+ * Не дублировать в Route Handlers / Server Actions:
+ * - Server Actions → встроенный Origin check Next.js (cookie session).
+ * - NextAuth → CSRF token на `/api/auth/*` (см. `lib/security/csrf-coverage.ts`).
+ *
+ * Карта покрытия: `lib/security/csrf-coverage.ts`.
  */
 export function verifyApiCsrf(req: NextRequest): { ok: true } | { ok: false; reason: string } {
   const method = req.method.toUpperCase();

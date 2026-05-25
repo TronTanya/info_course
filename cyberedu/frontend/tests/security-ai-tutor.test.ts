@@ -33,7 +33,7 @@ describe("security/AI tutor academic integrity", () => {
     expect(r.allow).toBe(false);
     if (!r.allow) {
       expect(r.refusalCode).toBe("exam_spoiler");
-      expect(r.refusalReply).toMatch(/не выдаю готовые ответы/i);
+      expect(r.refusalReply).toMatch(/не могу выбрать/i);
       expect(r.refusalReply).not.toMatch(/вариант\s*B/i);
     }
   });
@@ -46,7 +46,7 @@ describe("security/AI tutor academic integrity", () => {
     });
     expect(r.allow).toBe(false);
     if (!r.allow) {
-      expect(r.refusalReply).toMatch(/учебн/i);
+      expect(r.refusalReply).toMatch(/практик/i);
     }
   });
 

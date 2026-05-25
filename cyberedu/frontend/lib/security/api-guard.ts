@@ -3,6 +3,8 @@ import type { Session } from "next-auth";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { securityAudit } from "@/lib/security/audit";
+import { enforceAiMentorApiRateLimit } from "@/lib/security/ai-rate-limit";
+import { resolveApiRateLimitMessage, isAiRateLimitPolicyKey } from "@/lib/security/rate-limit-messages";
 import { enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/security/rate-limit";
 import { clientIpFromRequest } from "@/lib/security/request-ip";
 import { logError } from "@/lib/log/structured";
@@ -139,13 +141,22 @@ export function withApiGuard<
 
     if (options.rateLimit) {
       const policy = resolveRateLimitPolicy(options.rateLimit);
-      const rl = await enforceRateLimit({
-        scope: policy.scope,
-        userId,
-        clientIp: ip,
-        max: policy.max,
-        windowMs: policy.windowMs,
-      });
+      const rateLimitKey =
+        typeof options.rateLimit === "string" ? options.rateLimit : policy.scope;
+
+      const rl =
+        typeof options.rateLimit === "string" &&
+        isAiRateLimitPolicyKey(options.rateLimit) &&
+        userId
+          ? await enforceAiMentorApiRateLimit({ userId, clientIp: ip })
+          : await enforceRateLimit({
+              scope: policy.scope,
+              userId,
+              clientIp: ip,
+              max: policy.max,
+              windowMs: policy.windowMs,
+            });
+
       if (!rl.allowed) {
         securityAudit({
           event: "api.rate_limited",
@@ -153,9 +164,15 @@ export function withApiGuard<
           actorId: userId ?? undefined,
           ip,
           path,
-          meta: { limit: policy.scope },
+          meta: { limit: policy.scope, reason: rl.reason },
         });
-        return jsonError("Слишком много запросов. Попробуйте позже.", 429);
+        return NextResponse.json(
+          {
+            error: resolveApiRateLimitMessage(rateLimitKey, rl.reason),
+            code: "RATE_LIMITED",
+          },
+          { status: 429 },
+        );
       }
     }
 

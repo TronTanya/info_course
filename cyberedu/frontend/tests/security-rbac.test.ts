@@ -82,10 +82,10 @@ describe("security/rbac server layouts", () => {
     expect(redirectMock).toHaveBeenCalledWith("/auth/login");
   });
 
-  it("requireAdmin redirects USER to home", async () => {
+  it("requireAdmin redirects USER to access-denied", async () => {
     authMock.mockResolvedValue(mockSession("USER"));
     await expect(requireAdmin()).rejects.toThrow("NEXT_REDIRECT");
-    expect(redirectMock).toHaveBeenCalledWith("/");
+    expect(redirectMock).toHaveBeenCalledWith("/admin/access-denied");
   });
 
   it("requireAdmin allows ADMIN session", async () => {
@@ -126,11 +126,17 @@ describe("security/rbac middleware routes", () => {
     expect(res.headers.get("location")).toMatch(/\/auth\/login/);
   });
 
-  it("USER on /admin redirects to home", async () => {
+  it("USER on /admin redirects to access-denied", async () => {
     vi.mocked(getToken).mockResolvedValue({ sub: "u1", role: "USER" });
     const res = await runMiddleware("/admin/users");
     expect(res.status).toBeGreaterThanOrEqual(300);
-    expect(res.headers.get("location")).toBe("http://localhost:3100/");
+    expect(res.headers.get("location")).toBe("http://localhost:3100/admin/access-denied");
+  });
+
+  it("USER may open /admin/access-denied", async () => {
+    vi.mocked(getToken).mockResolvedValue({ sub: "u1", role: "USER" });
+    const res = await runMiddleware("/admin/access-denied");
+    expect(res.status).toBe(200);
   });
 
   it("ADMIN on /admin proceeds", async () => {

@@ -27,7 +27,9 @@ const guardPracticeSubmissionMock = vi.hoisted(() => vi.fn());
 const prismaMock = vi.hoisted(() => ({
   test: { findFirst: vi.fn() },
   question: { findMany: vi.fn() },
+  testAttempt: { count: vi.fn() },
   practicalTask: { findUnique: vi.fn() },
+  submission: { findFirst: vi.fn() },
   $transaction: vi.fn(),
 }));
 
@@ -73,6 +75,15 @@ describe("security/submit actions in production (Redis-backed rate limit)", () =
     authMock.mockResolvedValue({ user: { id: userId } });
     checkTestPrerequisitesMock.mockResolvedValue({ ok: true });
     guardPracticeSubmissionMock.mockResolvedValue({ ok: true, userId });
+    prismaMock.testAttempt.count.mockResolvedValue(0);
+    prismaMock.submission.findFirst.mockResolvedValue({
+      id: "sub-prod-1",
+      status: "SUBMITTED",
+      score: null,
+      adminComment: null,
+      createdAt: new Date("2026-01-01T00:00:00.000Z"),
+    });
+    delete process.env.TEST_MAX_ATTEMPTS_PER_TEST;
   });
 
   afterEach(() => {
@@ -94,10 +105,14 @@ describe("security/submit actions in production (Redis-backed rate limit)", () =
     ]);
     prismaMock.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<void>) => {
       await fn({
-        testAttempt: { create: vi.fn().mockResolvedValue({ id: "a1" }) },
+        testAttempt: {
+          count: vi.fn().mockResolvedValue(0),
+          create: vi.fn().mockResolvedValue({ id: "a1" }),
+        },
         testAttemptAnswer: { createMany: vi.fn() },
       });
     });
+    prismaMock.testAttempt.count.mockResolvedValue(1);
 
     const result = await submitTestAttemptAction({
       moduleId: "m1",
@@ -106,6 +121,46 @@ describe("security/submit actions in production (Redis-backed rate limit)", () =
     });
 
     expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.canRetry).toBe(true);
+      expect(result.attemptsUsed).toBe(1);
+    }
+    expect(prismaMock.$transaction).toHaveBeenCalled();
+  });
+
+  it("submitTestAttemptAction denies when TEST_MAX_ATTEMPTS_PER_TEST exhausted", async () => {
+    process.env.TEST_MAX_ATTEMPTS_PER_TEST = "2";
+    prismaMock.test.findFirst.mockResolvedValue({ id: "t1", minScore: 60 });
+    prismaMock.question.findMany.mockResolvedValue([
+      {
+        id: "q1",
+        questionType: "TEXT",
+        questionText: "Q?",
+        explanation: null,
+        textManualGrading: false,
+        answers: [],
+      },
+    ]);
+    prismaMock.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<void>) => {
+      await fn({
+        testAttempt: {
+          count: vi.fn().mockResolvedValue(2),
+          create: vi.fn(),
+        },
+        testAttemptAnswer: { createMany: vi.fn() },
+      });
+    });
+
+    const result = await submitTestAttemptAction({
+      moduleId: "m1",
+      testId: "t1",
+      answers: [{ questionId: "q1", kind: "text", text: "достаточно длинный ответ для лимита попыток" }],
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toMatch(/Попытки закончились/i);
+    }
     expect(prismaMock.$transaction).toHaveBeenCalled();
   });
 

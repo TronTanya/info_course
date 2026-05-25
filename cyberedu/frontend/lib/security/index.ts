@@ -10,6 +10,15 @@ export {
 } from "@/lib/security/headers";
 export { verifyApiCsrf } from "@/lib/security/csrf";
 export {
+  CSRF_API_AUTH_EXEMPT_PREFIX,
+  CSRF_API_EXEMPT_PATHS,
+  CSRF_CRITICAL_MUTATING_API_PATHS,
+  CSRF_SERVER_ACTION_MODULES,
+  CSRF_SURFACE_PROTECTION,
+  isCsrfExemptApiPath,
+  type StateChangingSurface,
+} from "@/lib/security/csrf-coverage";
+export {
   stripControlChars,
   stripHtmlTags,
   sanitizePlainText,

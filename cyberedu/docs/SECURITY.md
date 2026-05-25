@@ -1,18 +1,20 @@
 # SECURITY — CyberEdu
 
-Документ описывает модель безопасности для production deployment. Операционный чеклист: [checklists/SECURITY_CHECKLIST.md](./checklists/SECURITY_CHECKLIST.md).
+Документ описывает **реализацию** контролей безопасности для production deployment.
 
-## Trust boundaries
+**Модель угроз (активы, границы доверия, угрозы, gaps):** [THREAT_MODEL.md](./THREAT_MODEL.md) — канонический threat model (ЭТАП 2).
+
+Операционный чеклист: [checklists/SECURITY_CHECKLIST.md](./checklists/SECURITY_CHECKLIST.md) · витрина: [SECURITY_PLATFORM.md](./SECURITY_PLATFORM.md).
+
+## Trust boundaries (кратко)
+
+Полная диаграмма и таблица доверия — в [THREAT_MODEL.md § 2](./THREAT_MODEL.md#2-trust-boundaries-границы-доверия).
 
 ```text
-[Internet] → [Nginx TLS] → [Next.js | FastAPI] → [PostgreSQL | Redis]
-                ↑                    ↑
-           Public HTTP          Trusted internal network (compose)
+[Browser — untrusted] → [Nginx TLS] → [Next.js | FastAPI — trusted app] → [PostgreSQL | Redis — trusted]
+                                              ↓
+                                    [External AI — untrusted]
 ```
-
-- **Untrusted:** браузер пользователя, внешние AI API
-- **Semi-trusted:** Nginx (terminates TLS, forwards headers)
-- **Trusted:** application containers, DB on internal Docker network
 
 ## Аутентификация
 
@@ -36,22 +38,40 @@
 | Grade submissions | ✗ | ✓ |
 | CSV export | ✗ | ✓ |
 
-Реализация: `middleware.ts`, `requireAuth` / `requireAdmin`, `lib/security/rbac.ts`, `withApiGuard`.
+Реализация: `middleware.ts`, `lib/access-control.ts` (`requireAuth`, `requireRole`, `requireStudentAccess`, `assertCanAccess*`), `lib/security/rbac.ts`, `withApiGuard`.
+
+Серверные helpers: `requireAuth()`, `requireRole("ADMIN")`, `requireStudentAccess()`, `assertCanAccessModule()`, `assertCanAccessPractice()`, `assertCanReviewSubmission()` — см. `lib/permissions.ts` (re-export).
 
 ## Защита API (Next.js)
 
 ### CSRF
 
-Для `POST`/`PUT`/`PATCH`/`DELETE` на `/api/*` (кроме `/api/auth/*`):
+Для `POST`/`PUT`/`PATCH`/`DELETE` на `/api/*` (кроме `/api/auth/*` и `/api/csp-report`):
 
-- Проверка `Origin` / `Referer`
-- Double-submit cookie pattern (`lib/security/csrf.ts`)
+- Проверка `Origin` / `Referer` (`lib/security/csrf.ts`, `middleware.ts`)
+- Server Actions: встроенная проверка Origin в Next.js
+
+`/api/csp-report` — исключение: браузерные CSP violation reports не всегда содержат `Origin`; защита — rate limit + санитизация тела без секретов.
+
+#### Покрытие state-changing операций
+
+| Операция | Механизм |
+|----------|----------|
+| Login | NextAuth `csrfToken` → `/api/auth/callback/credentials` (exempt middleware) |
+| Logout / register / profile / lesson / test / practice submit | Server Actions (`"use server"`) — Origin check Next.js |
+| Admin mutations / practice review / cert revoke | Server Actions + `requireAdmin` |
+| Certificate issue (UI) | `POST /api/certificates/generate` — middleware Origin |
+| Upload / practice API checks | `POST`/`PATCH` `/api/*` — middleware Origin |
+| Admin CSV export | `GET /api/admin/export` — CSRF не требуется; `requireAdmin` + permission |
+
+Карта в коде: `lib/security/csrf-coverage.ts`. Тесты: `tests/security-csrf.test.ts`, `tests/security-csrf-critical.test.ts`, `tests/security-csrf-actions.test.ts`.
 
 ### Rate limiting
 
 | Зона | Лимит (ориентир) | Реализация |
 |------|------------------|------------|
 | Login (authorize) | 25 / 15 min / IP | `checkLoginRateLimit` + `checkCredentialsCallbackRateLimit` в `lib/auth.ts` → Redis |
+| Login lockout | 8 failures / email+IP | `lib/security/login-attempts.ts` → Redis (`login:fail:*`, `login:lock:*`); dev in-memory fallback |
 | Credentials callback | 20 / 15 min / IP | Тот же путь в `authorize()` (Node.js + Redis; не Edge middleware) |
 | Register | 8 / IP·час, 5 / email·сутки | `registerAction` → Redis |
 | AI chat / lesson adapt | 60 / 40 per hour / user | **`withApiGuard` only** (без дубля в middleware) |
@@ -104,7 +124,7 @@ Production без ключа → fail closed.
 
 Политика **одинакова** в report-only и enforce — нарушения видны в отчётах до включения блокировки. Готовая строка: `getEnforceReadyCsp()` в коде.
 
-Опционально: `CSP_REPORT_URI=/api/csp-report` (нужен свой Route Handler для приёма отчётов).
+Опционально: `CSP_REPORT_URI=/api/csp-report` — Route Handler `app/api/csp-report/route.ts` (rate limit, audit `security.csp.report`).
 
 ```bash
 # production (.env.production)
@@ -197,6 +217,8 @@ cd frontend && npm run test -- tests/security-headers.test.ts
 | action | Когда |
 |--------|--------|
 | `auth.login.success` / `auth.login.failed` | Вход (без email/пароля в meta) |
+| `auth.register.success` | Успешная регистрация (без email в meta) |
+| `security.csp.report` | CSP violation report (санитизированные директивы/host) |
 | `admin.user.role_change` | Смена роли (`updateUserRoleAction`) |
 | `admin.users.csv_export` | Выгрузка CSV |
 | `admin.practice.review` | Проверка отправки практики |
@@ -225,8 +247,9 @@ cd frontend && npm run test -- tests/security-headers.test.ts
 
 | Область | Файлы |
 |---------|--------|
-| CSRF negative (Origin/Referer, middleware 403) | `tests/security-csrf.test.ts`, `tests/security-suite.test.ts` |
-| RBAC: USER не в `/admin`, unauthenticated → login | `tests/security-rbac.test.ts` |
+| CSRF negative (Origin/Referer, middleware 403) | `tests/security-csrf.test.ts`, `tests/security-csrf-critical.test.ts`, `tests/security-csrf-actions.test.ts`, `tests/security-suite.test.ts` |
+| CSP report sanitization + route | `tests/security-csp-report.test.ts` |
+| RBAC: USER не в `/admin`, unauthenticated → login | `tests/security-rbac.test.ts`, `tests/security-rbac-access.test.ts` |
 | Upload validation (sandbox + practice API) | `tests/security-upload.test.ts`, `tests/practice-files.test.ts` |
 | Rate limit (prod fail-closed, Server Actions) | `tests/rate-limit-service.test.ts`, `tests/server-action-rate-limit.test.ts`, `tests/submit-actions-rate-limit.test.ts`, `tests/security-submit-production.test.ts` |
 | Certificate verify rate limit + safe copy | `tests/security-certificate-verify.test.ts` |
@@ -237,15 +260,18 @@ cd frontend && npm run test -- tests/security-headers.test.ts
 
 E2E (Playwright, не Vitest): `npm run test:e2e`, production-like — `npm run test:e2e:prod` ([OPERATIONS.md](./OPERATIONS.md)).
 
-## Известные риски
+## Известные риски (gaps)
 
-| Риск | Уровень | Статус |
-|------|---------|--------|
-| Horizontal scale без Redis rate limit | Medium | Mitigate: prod Redis |
-| Dual schema drift | Medium | Documented; process required |
-| Demo seed passwords | High if RUN_SEED=1 on prod | Mitigate: RUN_SEED=0 in prod compose |
-| Prompt injection via chat history | Medium | Partial moderation |
-| No WAF | Low | Accept or add CDN WAF |
+Таблица **G1–G11** с severity и mitigation: [THREAT_MODEL.md § 5](./THREAT_MODEL.md#5-gaps--todo-реальные-пробелы).
+
+| ID | Риск (кратко) | Уровень |
+|----|---------------|---------|
+| G1 | Rate limit без Redis в prod | High (ops) |
+| G3 | CSP report-only по умолчанию | Medium |
+| G5 | Local uploads, single replica | Medium |
+| G6 | Dual schema Prisma + Alembic | Medium |
+| G7 | Prompt injection — частично | Medium |
+| G9 | Demo seed при `RUN_SEED=1` на prod | High (misconfig) |
 
 ## Сообщение об уязвимостях
 

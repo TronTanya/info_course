@@ -30,13 +30,13 @@ describe("security/sanitize", () => {
 });
 
 describe("security/login-attempts", () => {
-  it("locks after repeated failures", () => {
+  it("locks after repeated failures", async () => {
     const email = "test-lock@example.com";
     const ip = "10.0.0.1";
-    clearLoginAttempts(email, ip);
-    for (let i = 0; i < 8; i++) recordFailedLogin(email, ip);
-    expect(isLoginLocked(email, ip)).toBe(true);
-    clearLoginAttempts(email, ip);
+    await clearLoginAttempts(email, ip);
+    for (let i = 0; i < 8; i++) await recordFailedLogin(email, ip);
+    expect(await isLoginLocked(email, ip)).toBe(true);
+    await clearLoginAttempts(email, ip);
   });
 });
 
