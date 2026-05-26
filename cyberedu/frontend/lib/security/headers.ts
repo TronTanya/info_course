@@ -24,14 +24,14 @@ export function isProductionSecurity(): boolean {
 
 /**
  * `CSP_MODE`: `off` | `report-only` | `enforce`.
- * По умолчанию: dev — `off`, production — `report-only` (безопасный rollout).
+ * По умолчанию: dev — `off`, production — `enforce` (`report-only` для отката).
  */
 export function resolveCspMode(): CspMode {
   const raw = (process.env.CSP_MODE ?? "").trim().toLowerCase();
   if (raw === "enforce" || raw === "on" || raw === "1") return "enforce";
   if (raw === "off" || raw === "none" || raw === "0" || raw === "false") return "off";
   if (raw === "report-only" || raw === "report_only" || raw === "report") return "report-only";
-  return isProductionSecurity() ? "report-only" : "off";
+  return isProductionSecurity() ? "enforce" : "off";
 }
 
 function appOrigin(): string {

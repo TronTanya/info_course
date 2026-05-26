@@ -18,7 +18,7 @@ export function DashboardShell({
   return (
     <div
       className={cn(
-        "dashboard-grid dashboard-grid--with-sidebar min-w-0 flex-1 overflow-x-clip",
+        "dashboard-grid dashboard-grid--with-sidebar ce-mobile-app min-w-0 flex-1 overflow-x-clip",
         wide && "dashboard-grid--wide",
         className,
       )}

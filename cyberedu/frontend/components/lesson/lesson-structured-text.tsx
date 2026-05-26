@@ -308,7 +308,7 @@ export function extractLessonGlossary(source: string): GlossaryEntry[] {
 }
 
 const prose =
-  "text-[17px] leading-[1.75] tracking-[-0.01em] text-foreground/95 [&_p+p]:mt-4 [&_h2+p]:mt-3 [&_h3+p]:mt-2";
+  "text-lg leading-7 tracking-tight text-foreground/95 [&_p+p]:mt-4 [&_h2+p]:mt-3 [&_h3+p]:mt-2";
 
 function renderInlineText(text: string) {
   const lines = text.split("\n");
@@ -403,31 +403,31 @@ export function LessonStructuredText({
                 labelClass="text-muted-foreground"
                 title={seg.title}
               >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90">{renderInlineText(seg.body)}</p>
+                <p className="whitespace-pre-wrap text-base leading-relaxed text-foreground/90">{renderInlineText(seg.body)}</p>
               </BlockShell>
             );
           case "intro":
             return (
               <BlockShell
                 key={i}
-                className="border-l-4 border-l-violet-500/70 bg-violet-500/[0.06] ring-1 ring-inset ring-border/50"
+                className="border-l-4 border-l-violet-500/70 bg-violet-500/6 ring-1 ring-inset ring-border/50"
                 label="Вступление"
                 labelClass="text-violet-600 dark:text-violet-400"
                 title={seg.title}
               >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-muted-foreground">{renderInlineText(seg.body)}</p>
+                <p className="whitespace-pre-wrap text-base leading-relaxed text-muted-foreground">{renderInlineText(seg.body)}</p>
               </BlockShell>
             );
           case "why":
             return (
               <BlockShell
                 key={i}
-                className="border border-sky-500/25 bg-sky-500/[0.06] ring-1 ring-inset ring-sky-500/15"
+                className="border border-sky-500/25 bg-sky-500/6 ring-1 ring-inset ring-sky-500/15"
                 label="Зачем это знать"
                 labelClass="text-sky-700 dark:text-sky-400"
                 title={seg.title}
               >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-muted-foreground">{renderInlineText(seg.body)}</p>
+                <p className="whitespace-pre-wrap text-base leading-relaxed text-muted-foreground">{renderInlineText(seg.body)}</p>
               </BlockShell>
             );
           case "theory":
@@ -468,12 +468,12 @@ export function LessonStructuredText({
             return (
               <BlockShell
                 key={i}
-                className="border border-emerald-500/25 bg-emerald-500/[0.05] ring-1 ring-inset ring-emerald-500/15"
+                className="border border-emerald-500/25 bg-emerald-500/5 ring-1 ring-inset ring-emerald-500/15"
                 label="Как правильно"
                 labelClass="text-emerald-800 dark:text-emerald-400"
                 title={seg.title}
               >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90">{renderInlineText(seg.body)}</p>
+                <p className="whitespace-pre-wrap text-base leading-relaxed text-foreground/90">{renderInlineText(seg.body)}</p>
               </BlockShell>
             );
           case "mini_case":
@@ -485,7 +485,7 @@ export function LessonStructuredText({
                 labelClass="text-muted-foreground"
                 title={seg.title}
               >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90">{renderInlineText(seg.body)}</p>
+                <p className="whitespace-pre-wrap text-base leading-relaxed text-foreground/90">{renderInlineText(seg.body)}</p>
               </BlockShell>
             );
           case "remember":
@@ -498,12 +498,12 @@ export function LessonStructuredText({
             return (
               <BlockShell
                 key={i}
-                className="border border-primary/30 bg-linear-to-br from-primary/[0.07] to-card ring-1 ring-inset ring-primary/15"
+                className="border border-primary/30 bg-linear-to-br from-primary/7 to-card ring-1 ring-inset ring-primary/15"
                 label="Итог"
                 labelClass="text-primary"
                 title={seg.title}
               >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90">{renderInlineText(seg.body)}</p>
+                <p className="whitespace-pre-wrap text-base leading-relaxed text-foreground/90">{renderInlineText(seg.body)}</p>
               </BlockShell>
             );
           case "terms":
@@ -518,7 +518,7 @@ export function LessonStructuredText({
                     <div key={j} className="border-b border-border/50 pb-3 last:border-0 last:pb-0">
                       <dt className="font-semibold text-foreground">{renderInlineText(it.term)}</dt>
                       {it.description ? (
-                        <dd className="mt-1 text-[15px] leading-relaxed text-muted-foreground">{renderInlineText(it.description)}</dd>
+                        <dd className="mt-1 text-base leading-relaxed text-muted-foreground">{renderInlineText(it.description)}</dd>
                       ) : null}
                     </div>
                   ))}
@@ -529,7 +529,7 @@ export function LessonStructuredText({
             return (
               <div
                 key={i}
-                className="rounded-2xl border border-border/80 bg-muted/40 px-5 py-4 text-[15px] leading-relaxed text-muted-foreground"
+                className="rounded-2xl border border-border/80 bg-muted/40 px-5 py-4 text-base leading-relaxed text-muted-foreground"
               >
                 {seg.lines.map((line, j) => (
                   <p key={j} className={j ? "mt-2 max-w-prose whitespace-pre-wrap" : "max-w-prose whitespace-pre-wrap"}>
@@ -540,7 +540,7 @@ export function LessonStructuredText({
             );
           case "ul":
             return (
-              <ul key={i} className="max-w-prose list-disc space-y-2.5 pl-5 text-[16px] leading-relaxed text-foreground/90 marker:text-primary">
+              <ul key={i} className="max-w-prose list-disc space-y-2.5 pl-5 text-base leading-relaxed text-foreground/90 marker:text-primary">
                 {seg.items.map((item, j) => (
                   <li key={j} className="pl-1">
                     {renderInlineText(item)}
@@ -551,7 +551,7 @@ export function LessonStructuredText({
           case "table":
             return (
               <div key={i} className="lesson-table-wrap -mx-1 overflow-x-auto rounded-xl border border-border/80 px-1">
-                <table className="w-full min-w-[18rem] border-collapse text-left text-sm">
+                <table className="w-full min-w-72 border-collapse text-left text-sm">
                   <thead>
                     <tr className="border-b border-border bg-muted/40">
                       {seg.header.map((cell, j) => (

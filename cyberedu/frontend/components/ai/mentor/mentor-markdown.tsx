@@ -132,7 +132,7 @@ export function MentorMarkdown({
                 key={idx}
                 className={cn(
                   "font-semibold uppercase tracking-wide text-muted-foreground first:mt-0",
-                  compact ? "mt-1 text-[10px]" : "mt-2 text-xs",
+                  compact ? "mt-1 text-2.5" : "mt-2 text-xs",
                 )}
               >
                 {formatInlineMarkdown(b.text)}

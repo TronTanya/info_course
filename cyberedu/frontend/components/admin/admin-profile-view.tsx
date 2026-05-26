@@ -62,7 +62,7 @@ function ActionCard({
   );
 
   const cardClass = cn(
-    "group/action ce-admin-profile-action relative overflow-hidden rounded-2xl border border-border/70 bg-card/80 p-5 shadow-(--shadow-card) ring-1 ring-secondary/6 backdrop-blur-md",
+    "group/action ce-admin-profile-action relative overflow-hidden rounded-2xl border border-border/70 bg-card/80 p-5 shadow-card ring-1 ring-secondary/6 backdrop-blur-md",
     "ce-admin-profile-rise",
     delayClass,
     className,
@@ -70,14 +70,14 @@ function ActionCard({
 
   if (external) {
     return (
-      <a href={href} className={cn(cardClass, "block text-left outline-none focus-visible:ring-2 focus-visible:ring-ring")}>
+      <a href={href} className={cn(cardClass, "block text-left outline-hidden focus-visible:ring-2 focus-visible:ring-ring")}>
         {inner}
       </a>
     );
   }
 
   return (
-    <Link href={href} className={cn(cardClass, "block text-left outline-none focus-visible:ring-2 focus-visible:ring-ring")}>
+    <Link href={href} className={cn(cardClass, "block text-left outline-hidden focus-visible:ring-2 focus-visible:ring-ring")}>
       {inner}
     </Link>
   );
@@ -145,7 +145,7 @@ export function AdminProfileView({ email, displayName, initials, avatarUrl, subt
                   </span>
                   <span className="typo-caption tabular-nums text-muted-foreground sm:ml-1">{memberSinceLabel}</span>
                 </div>
-                <h1 className="text-balance text-3xl font-semibold tracking-tighter text-foreground sm:text-4xl lg:text-[2.35rem] lg:leading-[1.15]">
+                <h1 className="text-balance text-3xl font-semibold tracking-tighter text-foreground sm:text-4xl lg:text-[2.35rem] lg:leading-tight">
                   {displayName}
                 </h1>
                 <p className="inline-flex max-w-full items-center justify-center rounded-xl border border-border/60 bg-background/50 px-3 py-2 font-mono text-xs leading-snug text-muted-foreground shadow-inner backdrop-blur-sm sm:justify-start">
@@ -164,7 +164,7 @@ export function AdminProfileView({ email, displayName, initials, avatarUrl, subt
             <Button
               asChild
               variant="primary"
-              className="h-12 w-full shadow-md transition-[transform,box-shadow] hover:scale-[1.02] hover:shadow-lg active:scale-[0.99]"
+              className="h-12 w-full shadow-md transition-transform transition-shadow hover:scale-102 hover:shadow-lg active:scale-99"
             >
               <Link href="/admin">Панель обзора</Link>
             </Button>
@@ -201,7 +201,7 @@ export function AdminProfileView({ email, displayName, initials, avatarUrl, subt
             title="Обзор"
             description="Сводка по пользователям, курсу и модерации."
             delayClass="ce-admin-profile-rise--delay-3"
-            accentClass="bg-linear-to-br from-primary/[0.07] via-transparent to-cyan/[0.05]"
+            accentClass="bg-linear-to-br from-primary/7 via-transparent to-cyan/5"
           />
           <ActionCard
             href="/api/admin/users/export"
@@ -210,7 +210,7 @@ export function AdminProfileView({ email, displayName, initials, avatarUrl, subt
             title="Выгрузка CSV"
             description="Отчёт по пользователям для Excel, UTF-8."
             delayClass="ce-admin-profile-rise--delay-4"
-            accentClass="bg-linear-to-br from-cyan/[0.08] via-transparent to-primary/[0.05]"
+            accentClass="bg-linear-to-br from-cyan/8 via-transparent to-primary/5"
           />
           <ActionCard
             href="/dashboard/profile"
@@ -218,18 +218,18 @@ export function AdminProfileView({ email, displayName, initials, avatarUrl, subt
             title="Профиль в ЛК"
             description="Аватар, достижения и прогресс как у студента."
             delayClass="ce-admin-profile-rise--delay-4"
-            accentClass="bg-linear-to-br from-secondary/[0.06] via-transparent to-cyan/[0.05]"
+            accentClass="bg-linear-to-br from-secondary/6 via-transparent to-cyan/5"
           />
           <form action={logoutAction} className="ce-admin-profile-rise ce-admin-profile-rise--delay-5">
             <button
               type="submit"
               className={cn(
-                "group/action ce-admin-profile-action relative flex h-full min-h-34 w-full flex-col overflow-hidden rounded-2xl border border-danger/20 bg-linear-to-br from-card/95 to-danger/4 p-5 text-left shadow-(--shadow-card) ring-1 ring-danger/10 backdrop-blur-md",
-                "outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "group/action ce-admin-profile-action relative flex h-full min-h-34 w-full flex-col overflow-hidden rounded-2xl border border-danger/20 bg-linear-to-br from-card/95 to-danger/4 p-5 text-left shadow-card ring-1 ring-danger/10 backdrop-blur-md",
+                "outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
               )}
             >
               <span
-                className="pointer-events-none absolute inset-0 rounded-2xl bg-linear-to-br from-danger/[0.07] via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover/action:opacity-100"
+                className="pointer-events-none absolute inset-0 rounded-2xl bg-linear-to-br from-danger/7 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover/action:opacity-100"
                 aria-hidden
               />
               <span className="relative flex size-12 items-center justify-center rounded-2xl bg-linear-to-br from-danger/15 to-danger/5 text-danger shadow-inner ring-1 ring-danger/15 transition-transform duration-300 group-hover/action:scale-105">

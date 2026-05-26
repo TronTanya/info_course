@@ -40,7 +40,7 @@ export function ProfileSkillsMap({ skills }: { skills: ProfileSkillArea[] }) {
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm font-medium text-foreground">{skill.label}</span>
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <span className="text-2.5 font-semibold uppercase tracking-wide text-muted-foreground">
                   {statusLabel[skill.status]}
                 </span>
               </div>
@@ -52,7 +52,7 @@ export function ProfileSkillsMap({ skills }: { skills: ProfileSkillArea[] }) {
                 tone={skill.status === "strong" ? "success" : skill.percent > 0 ? "default" : "default"}
               />
               {skill.matchedModules > 0 ? (
-                <p className="mt-1.5 text-[11px] text-muted-foreground">
+                <p className="mt-1.5 text-2.75 text-muted-foreground">
                   Модулей в области: {skill.completedModules}/{skill.matchedModules}
                 </p>
               ) : null}

@@ -19,8 +19,8 @@ export function AnswerFeedback({ variant, title, explanation, className }: Answe
       role="status"
       className={cn(
         "ce-answer-feedback rounded-xl border px-4 py-3 ring-1 ring-inset",
-        isCorrect && "border-success/40 bg-success/[0.08] ring-success/15 text-success",
-        isIncorrect && "border-danger/40 bg-danger/[0.08] ring-danger/15",
+        isCorrect && "border-success/40 bg-success/8 ring-success/15 text-success",
+        isIncorrect && "border-danger/40 bg-danger/8 ring-danger/15",
         variant === "neutral" && "border-border/70 bg-muted/20 ring-border/40",
         className,
       )}

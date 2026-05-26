@@ -53,7 +53,7 @@ export function AdminDashboardKpiGrid({ stats }: { stats: AdminDashboardStats })
           )}
         >
           <div
-            className={`h-1 w-full bg-linear-to-r from-primary/80 via-accent/60 to-primary/40 ${"warn" in t && t.warn ? "from-warning/80 via-warning/60" : ""}`}
+            className={cn("ce-polish-stat-bar", "warn" in t && t.warn && "ce-polish-stat-bar--warn")}
             aria-hidden
           />
           <div className="space-y-1 px-5 pb-5 pt-5">
@@ -152,7 +152,7 @@ export function AdminDashboardRecentActivity({ recent }: { recent: AdminDashboar
                 >
                   <span className="text-sm font-medium text-foreground">{item.title}</span>
                   <span className="text-xs text-muted-foreground">{item.subtitle}</span>
-                  <time className="text-[10px] tabular-nums text-muted-foreground sm:text-xs">
+                  <time className="text-2.5 tabular-nums text-muted-foreground sm:text-xs">
                     {new Date(item.at).toLocaleString("ru-RU", {
                       day: "numeric",
                       month: "short",

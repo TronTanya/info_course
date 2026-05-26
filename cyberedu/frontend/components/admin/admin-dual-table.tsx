@@ -1,20 +1,25 @@
-import * as React from "react";
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-/** Ниже `md` — мобильная вёрстка; с `md` — таблица со скроллом только внутри блока. */
+/** Ниже `md` — мобильная вёрстка; с `md` — desktop-блок со скроллом только внутри обёртки. */
 export function AdminDualTable({
   mobile,
   desktop,
   className,
 }: {
-  mobile: React.ReactNode;
-  desktop: React.ReactNode;
+  mobile: ReactNode;
+  desktop: ReactNode;
   className?: string;
 }) {
   return (
     <div className={cn("ce-admin-dual-table w-full min-w-0", className)}>
       <div className="md:hidden">{mobile}</div>
-      <div className="admin-table-scroll ce-admin-table-scroll hidden md:block">{desktop}</div>
+      <div
+        className="admin-table-scroll ce-admin-table-scroll ce-admin-data-table-wrap hidden min-h-0 md:block"
+        data-testid="admin-data-table-wrap"
+      >
+        {desktop}
+      </div>
     </div>
   );
 }

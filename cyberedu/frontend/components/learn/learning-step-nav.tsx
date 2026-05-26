@@ -18,7 +18,7 @@ export function LearningStepNav({
   return (
     <nav
       className={cn(
-        "ce-glass flex flex-col gap-3 rounded-2xl border border-border/60 p-4 sm:flex-row sm:items-stretch sm:justify-between",
+        "ce-learn-os-panel flex flex-col gap-3 p-4 sm:flex-row sm:items-stretch sm:justify-between",
         className,
       )}
       aria-label="Навигация по шагам"
@@ -36,7 +36,7 @@ export function LearningStepNav({
             <span className="flex items-center gap-2 opacity-60">
               <ChevronLeft className="size-4 shrink-0" aria-hidden />
               <span>
-                <span className="block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <span className="block text-2.5 font-semibold uppercase tracking-wide text-muted-foreground">
                   Назад
                 </span>
                 <span className="block text-sm font-medium">{previous.label}</span>
@@ -46,7 +46,7 @@ export function LearningStepNav({
             <Link href={previous.href} className="flex items-center gap-2">
               <ChevronLeft className="size-4 shrink-0" aria-hidden />
               <span>
-                <span className="block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <span className="block text-2.5 font-semibold uppercase tracking-wide text-muted-foreground">
                   Назад
                 </span>
                 <span className="block text-sm font-medium">{previous.label}</span>
@@ -70,7 +70,7 @@ export function LearningStepNav({
           {next.disabled ? (
             <span className="ml-auto flex items-center gap-2 opacity-60">
               <span>
-                <span className="block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <span className="block text-2.5 font-semibold uppercase tracking-wide text-muted-foreground">
                   Далее
                 </span>
                 <span className="block text-sm font-medium">{next.label}</span>
@@ -80,7 +80,7 @@ export function LearningStepNav({
           ) : (
             <Link href={next.href} className="ml-auto flex items-center gap-2">
               <span>
-                <span className="block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/90">
+                <span className="block text-2.5 font-semibold uppercase tracking-wide text-muted-foreground/90">
                   Далее
                 </span>
                 <span className="block text-sm font-medium">{next.label}</span>

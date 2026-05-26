@@ -2,12 +2,12 @@ import { cn } from "@/lib/utils";
 
 export function navLinkClass(mobile?: boolean, active?: boolean) {
   return cn(
-    "rounded-xl text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+    "rounded-xl text-sm font-medium transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
     mobile
       ? cn(
           "flex min-h-11 w-full items-center gap-3 border px-4 py-3 text-base text-foreground",
           active
-            ? "border-primary/35 bg-primary/[0.08] text-primary shadow-sm"
+            ? "border-primary/35 bg-primary/8 text-primary shadow-sm"
             : "border-border/60 bg-card hover:bg-muted",
         )
       : cn(

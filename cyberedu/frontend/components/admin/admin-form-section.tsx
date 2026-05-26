@@ -15,7 +15,7 @@ export function AdminFormSection({
   return (
     <section
       className={cn(
-        "ce-glass space-y-4 rounded-2xl border border-border/70 p-5 shadow-sm sm:p-6",
+        "ce-polish-panel ce-surface-interactive space-y-4 p-5 sm:p-6",
         className,
       )}
     >

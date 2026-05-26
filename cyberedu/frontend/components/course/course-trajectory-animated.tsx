@@ -62,7 +62,7 @@ function TrajectoryNode({ row, isLast, index }: { row: CourseProgressModuleRow; 
             <span className="absolute -bottom-0.5 left-1/2 h-1 w-6 -translate-x-1/2 rounded-full bg-sky-500/80 motion-safe:animate-pulse" aria-hidden />
           ) : null}
         </div>
-        <span className="max-w-[4.5rem] truncate text-center text-[10px] font-semibold uppercase tracking-wide text-muted-foreground sm:max-w-[6rem] sm:text-[11px]">
+        <span className="max-w-18 truncate text-center text-2.5 font-semibold uppercase tracking-wide text-muted-foreground sm:max-w-24 sm:text-2.75">
           М{row.module.orderNumber}
         </span>
       </motion.div>
@@ -89,8 +89,8 @@ export function CourseTrajectoryAnimated({ modules }: { modules: CourseProgressM
   }
 
   return (
-    <div className="ce-learn-panel ce-glass space-y-3 rounded-2xl p-4 shadow-(--shadow-card) sm:p-5">
-      <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan/90">Learning path</p>
+    <div className="ce-learn-panel ce-glass space-y-3 rounded-2xl p-4 shadow-card sm:p-5">
+      <p className="text-center font-mono text-2.5 font-semibold uppercase tracking-eyebrow-sm text-cyan/90">Learning path</p>
       <div className="overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch] md:overflow-visible">
         <div className="flex min-w-min items-center px-1 md:min-w-0">
           {modules.map((row, index) => (

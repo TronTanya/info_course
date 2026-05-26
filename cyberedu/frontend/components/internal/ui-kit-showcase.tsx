@@ -11,25 +11,26 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { DesignSystemShowcase } from "@/components/internal/design-system-showcase";
 import { UiKitInteractive } from "@/components/ui/ui-kit-interactive";
 import { cn } from "@/lib/utils";
 
 function CertificatePreviewDemo() {
   return (
-    <div className="flex h-full min-h-[5.5rem] flex-col justify-between">
+    <div className="flex h-full min-h-22 flex-col justify-between">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-cyan">Certificate</p>
+          <p className="font-mono text-2.5 font-semibold uppercase tracking-wider text-cyan">Certificate</p>
           <p className="mt-1 text-sm font-semibold text-foreground">CyberEdu</p>
-          <p className="text-[11px] text-muted-foreground">Основы ИБ · PDF</p>
+          <p className="text-2.75 text-muted-foreground">Основы ИБ · PDF</p>
         </div>
         <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-primary/30 bg-primary/10 text-xs font-bold text-primary">
           PDF
         </div>
       </div>
       <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-2">
-        <span className="font-mono text-[10px] text-muted-foreground">№ CE-2026-****</span>
-        <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">Подпись</span>
+        <span className="font-mono text-2.5 text-muted-foreground">№ CE-2026-****</span>
+        <span className="rounded-md bg-primary/10 px-2 py-0.5 text-2.5 font-medium text-primary">Подпись</span>
       </div>
     </div>
   );
@@ -37,7 +38,7 @@ function CertificatePreviewDemo() {
 
 function CourseCardDemo() {
   return (
-    <Card className="border-sky-500/40 bg-linear-to-br from-card via-sky-500/[0.06] to-card shadow-card ring-1 ring-inset ring-sky-500/15">
+    <Card className="border-sky-500/40 bg-linear-to-br from-card via-sky-500/6 to-card shadow-card ring-1 ring-inset ring-sky-500/15">
       <div className="h-1 w-full bg-linear-to-r from-sky-500 via-primary to-sky-400" aria-hidden />
       <CardHeader className="space-y-2 pb-2 pt-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
@@ -115,6 +116,8 @@ export function UiKitShowcase({ variant = "admin" }: { variant?: "admin" | "dev"
         </p>
       </Alert>
 
+      <DesignSystemShowcase />
+
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-foreground">Кнопки</h2>
         <Card>
@@ -176,7 +179,7 @@ export function UiKitShowcase({ variant = "admin" }: { variant?: "admin" | "dev"
               <p className="text-sm text-muted-foreground">Текст внутри CardContent.</p>
             </CardContent>
           </Card>
-          <Card className="border-primary/20 bg-primary/[0.03]">
+          <Card className="border-primary/20 bg-primary/3">
             <CardHeader>
               <CardTitle>Акцентная</CardTitle>
               <CardDescription>С лёгким фоном primary.</CardDescription>

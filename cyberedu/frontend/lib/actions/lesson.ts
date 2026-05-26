@@ -6,6 +6,7 @@ import { AiNotConfiguredError, AiProviderError } from "@/lib/ai-config";
 import { assertModuleAccess, isProgressAccessError } from "@/lib/course-progress-guards";
 import { parseLessonAiMeta } from "@/lib/lesson-ai-meta";
 import { completeLesson } from "@/lib/progress";
+import { enforceServerActionRateLimit } from "@/lib/security/server-action-rate-limit";
 import {
   getLessonAiSnapshots,
   runLessonAiPipeline,
@@ -41,6 +42,10 @@ export async function runLessonAiAction(input: {
 }): Promise<LessonActionState & { adaptation?: { id: string; adaptedContent: string; interestsUsed: string; createdAt: Date } }> {
   const session = await auth();
   if (!session?.user?.id) return { error: "Требуется вход." };
+  const rateLimit = await enforceServerActionRateLimit("aiLessonAdapt", session.user.id, {
+    exceeded: "Слишком много AI-запросов к лекции. Подождите и попробуйте позже.",
+  });
+  if (!rateLimit.allowed) return { error: rateLimit.error };
 
   const action = safeParseLessonAiAction(input.action);
   if (!action) return { error: "Неизвестное действие AI." };

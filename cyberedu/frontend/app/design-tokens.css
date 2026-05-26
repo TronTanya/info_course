@@ -1,168 +1,238 @@
 /**
- * CyberEdu Design System v2.2 — токены (цвета, типографика, радиусы, тени, glow).
- * Стиль: premium edtech / cybersecurity academy / dark SaaS (без кислотного hacker-green).
- * Тёмная тема по умолчанию через класс .dark на <html>.
+ * CyberEdu Design System v4 — source of truth (CSS custom properties)
+ * Neutral-first · restrained accent · glass on chrome only
  */
 
-/* --- Примитивы палитры (не использовать в компонентах напрямую) --- */
 :root {
-  --ce-bg-base: #060712;
-  --ce-bg-elevated: #0c0f1c;
-  --ce-bg-surface: #12152a;
-  --ce-border: rgb(255 255 255 / 0.09);
-  --ce-accent: #7c5cff;
-  --ce-accent-soft: #9b87ff;
-  --ce-violet-deep: #1a1033;
-  --ce-cyber-mint: #4cc9a0;
+  /* ─── 1. Color primitives (zinc base + indigo brand) ─── */
+  --ce-bg-base: #09090b;
+  --ce-bg-elevated: #18181b;
+  --ce-bg-overlay: #27272a;
+  --ce-bg-surface: #18181b;
+  --ce-bg-surface-hover: #27272a;
+  --ce-border: rgb(255 255 255 / 0.1);
+  --ce-border-strong: rgb(255 255 255 / 0.16);
+  --ce-primary: #6366f1;
+  --ce-primary-hover: #4f46e5;
+  --ce-accent: #818cf8;
+  --ce-accent-soft: #a5b4fc;
+  /** For rgb(R G B / alpha) in legacy CSS */
+  --ce-brand-rgb: 99 102 241;
+  --ce-accent-rgb: 129 140 248;
+  --ce-brand-deep-rgb: 79 70 229;
+  --ce-violet-deep: #1e1b4b;
+  --ce-violet-glow: rgb(99 102 241 / 0.35);
+  --ce-text: #f5f5f7;
+  --ce-text-secondary: #a1a1aa;
+  --ce-text-muted: #71717a;
+  --ce-cyber-mint: #34d399;
   --ce-cyber-teal: #5eead4;
-  --ce-warning: #e8b84a;
-  --ce-danger: #f0527a;
-  --ce-text: #f4f2fa;
-  --ce-text-secondary: #b8b3cc;
-  --ce-text-muted: #7c7794;
+  --ce-warning: #fbbf24;
+  --ce-danger: #f43f5e;
+  --ce-info: #60a5fa;
 
-  /* Premium surfaces & glow (v2.2) */
-  --ce-glass-blur: 16px;
-  --ce-glass-saturate: 1.14;
-  --ce-glow-primary: 0 0 48px -12px color-mix(in oklab, var(--ce-accent) 42%, transparent);
-  --ce-glow-cyan: 0 0 40px -14px color-mix(in oklab, var(--ce-cyber-teal) 38%, transparent);
-  --ce-glow-mint: 0 0 36px -14px color-mix(in oklab, var(--ce-cyber-mint) 32%, transparent);
+  /* ─── 2. Glass ─── */
+  --ce-glass-blur: 20px;
+  --ce-glass-blur-strong: 28px;
+  --ce-glass-blur-subtle: 14px;
+  --ce-glass-saturate: 1.35;
+  --ce-glass-bg: rgb(255 255 255 / 0.04);
+  --ce-glass-bg-elevated: rgb(255 255 255 / 0.06);
+  --ce-glass-bg-inset: rgb(0 0 0 / 0.18);
+  --ce-glass-border: rgb(255 255 255 / 0.09);
+  --ce-glass-border-soft: rgb(255 255 255 / 0.06);
+  --ce-glass-shadow:
+    0 1px 0 rgb(255 255 255 / 0.06) inset,
+    0 0 0 1px rgb(255 255 255 / 0.03) inset,
+    0 8px 32px -12px rgb(0 0 0 / 0.45);
+  --ce-glass-shadow-hover:
+    0 1px 0 rgb(255 255 255 / 0.08) inset,
+    0 12px 40px -14px rgb(0 0 0 / 0.45);
+  --ce-glass-shadow-glow:
+    0 1px 0 rgb(255 255 255 / 0.07) inset,
+    0 16px 48px -16px rgb(0 0 0 / 0.5);
   --ce-highlight-edge: linear-gradient(
-    180deg,
-    color-mix(in oklab, white 14%, transparent) 0%,
-    transparent 42%
+    90deg,
+    transparent 0%,
+    rgb(255 255 255 / 0.12) 50%,
+    transparent 100%
   );
 
-  /* SOC-терминал (не зависит от light/dark страницы; чуть ярче UI-success) */
-  --terminal-bg: #0d0b18;
-  --terminal-bg-deep: #07060f;
-  --terminal-bg-chrome: rgb(16 13 28 / 0.96);
-  --terminal-border: rgb(124 92 255 / 0.28);
-  --terminal-fg: #ebe8f5;
-  --terminal-fg-muted: #918ca8;
-  --terminal-prompt: #6ee7c4;
-  --terminal-path: #c4b5fd;
-  --terminal-accent: #a78bfa;
-  --terminal-success: #5cd9a8;
-  --terminal-live: #b4a0ff;
-  --terminal-dot-red: #ff5f57;
-  --terminal-dot-amber: #febc2e;
-  --terminal-dot-green: #34c759;
+  /* ─── 3. Typography scale ─── */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: clamp(1.875rem, 1.5rem + 1.2vw, 2.5rem);
+  --font-size-4xl: clamp(2.25rem, 1.8rem + 1.8vw, 3.5rem);
+  --font-size-display: clamp(2.75rem, 2rem + 2.5vw, 4.5rem);
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --letter-spacing-tight: -0.04em;
+  --letter-spacing-snug: -0.025em;
+  --letter-spacing-wide: 0.08em;
+  --letter-spacing-wider: 0.14em;
+  --line-height-tight: 1.1;
+  --line-height-snug: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.65;
 
-  /* Spacing */
+  /* ─── 4. Spacing (4px base, cinematic jumps) ─── */
   --space-0: 0;
+  --space-px: 1px;
+  --space-0-5: 0.125rem;
   --space-1: 0.25rem;
+  --space-1-5: 0.375rem;
   --space-2: 0.5rem;
+  --space-2-5: 0.625rem;
   --space-3: 0.75rem;
+  --space-3-5: 0.875rem;
   --space-4: 1rem;
   --space-5: 1.25rem;
   --space-6: 1.5rem;
+  --space-7: 1.75rem;
   --space-8: 2rem;
+  --space-9: 2.25rem;
   --space-10: 2.5rem;
+  --space-11: 2.75rem;
   --space-12: 3rem;
   --space-14: 3.5rem;
   --space-16: 4rem;
   --space-20: 5rem;
+  --space-24: 6rem;
+  --space-28: 7rem;
+  --space-32: 8rem;
+  --space-40: 10rem;
 
-  /* Typography scale (для документации и calc; компоненты — .typo-*) */
-  --font-size-xs: 0.8125rem;
-  --font-size-sm: 0.875rem;
-  --font-size-base: 0.9375rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.25rem;
-  --line-height-tight: 1.2;
-  --line-height-snug: 1.35;
-  --line-height-normal: 1.5;
-  --line-height-relaxed: 1.6;
-
-  /* Motion */
-  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-in-out-soft: cubic-bezier(0.45, 0, 0.55, 1);
-  --duration-fast: 150ms;
-  --duration-normal: 250ms;
-  --duration-slow: 450ms;
-
-  /* Radius */
+  /* ─── 5. Border radius ─── */
+  --radius-xs: 0.375rem;
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
   --radius-xl: 1.25rem;
   --radius-2xl: 1.5rem;
-  --radius-3xl: 1.75rem;
+  --radius-3xl: 2rem;
+  --radius-4xl: 2.5rem;
   --radius-full: 9999px;
 
-  /* Светлая тема (если снят класс .dark) — clean SaaS */
-  --background: #f4f6fb;
-  --foreground: #0f0e14;
+  /* ─── 6. Shadows (elevation) ─── */
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.2);
+  --shadow-sm: 0 1px 2px rgb(9 6 15 / 0.04);
+  --shadow-md: 0 4px 16px -4px rgb(0 0 0 / 0.35);
+  --shadow-lg: 0 12px 40px -12px rgb(0 0 0 / 0.45);
+  --shadow-xl: 0 24px 64px -20px rgb(0 0 0 / 0.55);
+  --shadow-inner: inset 0 1px 0 rgb(255 255 255 / 0.06);
+  --shadow-card: var(--ce-glass-shadow);
+  --shadow-card-hover: var(--ce-glass-shadow-hover);
+  --shadow-glow: 0 0 0 1px rgb(99 102 241 / 0.2), 0 8px 24px -12px rgb(0 0 0 / 0.35);
+  --shadow-focus: 0 0 0 3px rgb(99 102 241 / 0.4);
+  --shadow-modal: 0 32px 80px -24px rgb(0 0 0 / 0.65);
+
+  /* ─── 7. Glow (neon / brand) ─── */
+  --ce-glow-primary: 0 8px 32px -8px rgb(99 102 241 / 0.35);
+  --ce-glow-accent: 0 4px 24px -8px rgb(99 102 241 / 0.28);
+  --ce-glow-soft: 0 4px 24px -12px rgb(0 0 0 / 0.4);
+  --ce-glow-success: 0 0 32px -8px rgb(52 211 153 / 0.4);
+  --ce-glow-danger: 0 0 28px -8px rgb(244 63 94 / 0.35);
+  --ce-glow-ring: 0 0 0 1px rgb(99 102 241 / 0.45), 0 0 0 4px rgb(99 102 241 / 0.15);
+
+  /* ─── 8. Motion ─── */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-soft: cubic-bezier(0.45, 0, 0.55, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-linear: linear;
+  --duration-instant: 100ms;
+  --duration-fast: 180ms;
+  --duration-normal: 320ms;
+  --duration-slow: 520ms;
+  --duration-slower: 720ms;
+
+  /* ─── 9. Layout / grid ─── */
+  --header-height: 4.25rem;
+  --ce-sidebar-width: 16rem;
+  --ce-content-max: 118rem;
+  --ce-content-wide: 128rem;
+  --ce-page-gutter: max(0.75rem, env(safe-area-inset-left, 0px));
+  --ce-grid-gap: 1.5rem;
+  --ce-grid-gap-lg: 2rem;
+  --ce-section-gap: var(--space-10);
+  --ce-section-gap-lg: var(--space-12);
+  --ce-border-ui: var(--ce-glass-border);
+  --ce-border-ui-soft: var(--ce-glass-border-soft);
+  --z-base: 0;
+  --z-dropdown: 40;
+  --z-sticky: 50;
+  --z-modal: 60;
+  --z-onboarding: 65;
+  --z-toast: 100;
+  --z-max: 100;
+
+  /* ─── Semantic (light) — overridden in light-theme.css when html:not(.dark) ─── */
+  --background: #faf9fc;
+  --foreground: #18181b;
   --card: #ffffff;
-  --card-foreground: #0f0e14;
-  --primary: #5b4bdb;
+  --card-foreground: #18181b;
+  --primary: var(--ce-primary);
   --primary-foreground: #faf8ff;
-  --secondary: #e8ecf4;
-  --secondary-foreground: #1e293b;
-  --muted: #e2e8f2;
-  --muted-foreground: #475569;
-  --subtle-foreground: #64748b;
-  --border: rgb(15 14 20 / 0.1);
-  --ring: #5b4bdb;
+  --secondary: #f3f1f8;
+  --secondary-foreground: #3f3f46;
+  --muted: #eceaf2;
+  --muted-foreground: #52525b;
+  --subtle-foreground: #71717a;
+  --border: rgb(9 6 15 / 0.1);
+  --ring: var(--ce-primary);
   --accent: #ede9fe;
-  --accent-foreground: #3b2d7a;
-  --success: #0d9488;
-  --success-foreground: #f0fdfa;
+  --accent-foreground: #4c1d95;
+  --success: #059669;
+  --success-foreground: #ecfdf5;
   --warning: #d97706;
   --warning-foreground: #fffbeb;
   --danger: #e11d48;
   --danger-foreground: #fff1f2;
-  --cyan: #0d9488;
-  --cyan-foreground: #f0fdfa;
+  --cyan: var(--ce-primary);
+  --cyan-foreground: #faf8ff;
   --popover: #ffffff;
-  --popover-foreground: #0f0e14;
+  --popover-foreground: #09060f;
 
-  --shadow-sm:
-    0 1px 2px rgb(8 10 24 / 0.04),
-    0 1px 0 0 rgb(255 255 255 / 0.8) inset;
-  --shadow-card:
-    0 1px 0 0 rgb(255 255 255 / 0.72) inset,
-    0 1px 2px rgb(8 10 24 / 0.04),
-    0 8px 24px -8px rgb(8 10 24 / 0.08);
-  --shadow-card-hover:
-    0 1px 0 0 rgb(255 255 255 / 0.55) inset,
-    0 12px 32px -10px rgb(8 10 24 / 0.1);
-  --shadow-glow:
-    0 0 0 1px rgb(91 75 219 / 0.1),
-    0 20px 48px -24px rgb(91 75 219 / 0.18);
-  --shadow-focus: 0 0 0 3px rgb(91 75 219 / 0.32);
+  /* Gradients */
+  --gradient-cyber: linear-gradient(135deg, #6366f1 0%, #4f46e5 45%, #1e1b4b 100%);
+  --gradient-card: linear-gradient(165deg, rgb(255 255 255 / 0.98) 0%, rgb(248 247 252) 100%);
+  --gradient-hero-glow: radial-gradient(ellipse 90% 70% at 50% -20%, rgb(99 102 241 / 0.12), transparent 65%);
+  --gradient-border-glow: linear-gradient(135deg, rgb(99 102 241 / 0.45), rgb(129 140 248 / 0.25));
+  --gradient-surface-subtle: linear-gradient(180deg, rgb(255 255 255 / 0.04) 0%, transparent 100%);
+  --gradient-mesh:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgb(99 102 241 / 0.14), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 90% 10%, rgb(129 140 248 / 0.08), transparent 55%),
+    radial-gradient(ellipse 50% 50% at 50% 100%, rgb(79 70 229 / 0.08), transparent 60%);
+  --gradient-text: linear-gradient(135deg, #fafafa 0%, #a5b4fc 52%, #6366f1 100%);
 
-  --gradient-cyber: linear-gradient(135deg, #6d5ce8 0%, #4c3d9e 48%, #2e2468 100%);
-  --gradient-card: linear-gradient(
-    165deg,
-    color-mix(in oklab, #ffffff 96%, #6d5ce8 4%) 0%,
-    #ffffff 100%
-  );
-  --gradient-hero-glow: radial-gradient(
-    ellipse 85% 60% at 50% -15%,
-    color-mix(in oklab, #6d5ce8 14%, transparent),
-    transparent 70%
-  );
-  --gradient-border-glow: linear-gradient(
-    135deg,
-    color-mix(in oklab, #6d5ce8 40%, transparent),
-    color-mix(in oklab, #0d9488 22%, transparent)
-  );
-  --gradient-surface-subtle: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--card) 100%, var(--primary) 2%) 0%,
-    var(--card) 100%
-  );
+  /* Terminal */
+  --terminal-bg: #18181b;
+  --terminal-bg-deep: #09090b;
+  --terminal-bg-chrome: rgb(24 24 27 / 0.94);
+  --terminal-border: rgb(99 102 241 / 0.22);
+  --terminal-fg: #fafafa;
+  --terminal-fg-muted: #a1a1aa;
+  --terminal-prompt: #818cf8;
+  --terminal-path: #a5b4fc;
+  --terminal-accent: #6366f1;
+  --terminal-success: #34d399;
+  --terminal-live: #818cf8;
+  --terminal-dot-red: #ff5f57;
+  --terminal-dot-amber: #febc2e;
+  --terminal-dot-green: #34c759;
 }
 
-/* --- Cyber Lab (default): класс .dark на html --- */
 .dark {
   --background: var(--ce-bg-base);
   --foreground: var(--ce-text);
   --card: var(--ce-bg-surface);
   --card-foreground: var(--ce-text);
-  --primary: var(--ce-accent);
+  --primary: var(--ce-primary);
   --primary-foreground: #faf8ff;
   --secondary: var(--ce-bg-elevated);
   --secondary-foreground: var(--ce-text-secondary);
@@ -170,8 +240,8 @@
   --muted-foreground: var(--ce-text-secondary);
   --subtle-foreground: var(--ce-text-muted);
   --border: var(--ce-border);
-  --ring: color-mix(in oklab, var(--ce-accent) 70%, white);
-  --accent: var(--ce-violet-deep);
+  --ring: color-mix(in oklab, var(--ce-primary) 75%, white);
+  --accent: var(--ce-accent);
   --accent-foreground: var(--ce-text);
   --success: var(--ce-cyber-mint);
   --success-foreground: var(--ce-bg-base);
@@ -179,64 +249,61 @@
   --warning-foreground: var(--ce-bg-base);
   --danger: var(--ce-danger);
   --danger-foreground: var(--ce-text);
-  --cyan: var(--ce-cyber-teal);
+  --cyan: var(--ce-accent);
   --cyan-foreground: var(--ce-bg-base);
-  --popover: var(--ce-bg-surface);
+  --popover: var(--ce-bg-elevated);
   --popover-foreground: var(--ce-text);
 
-  --shadow-sm:
-    0 1px 2px rgb(0 0 0 / 0.35),
-    0 1px 0 0 rgb(255 255 255 / 0.03) inset;
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-sm: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 2px 8px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 20px -4px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 16px 48px -16px rgb(0 0 0 / 0.55);
+  --shadow-xl: 0 32px 72px -24px rgb(0 0 0 / 0.65);
   --shadow-card:
-    0 1px 0 0 rgb(255 255 255 / 0.04) inset,
-    0 1px 2px rgb(0 0 0 / 0.32),
-    0 8px 28px -10px rgb(0 0 0 / 0.48);
+    0 1px 0 rgb(255 255 255 / 0.05) inset,
+    0 1px 2px rgb(0 0 0 / 0.35),
+    0 8px 24px -10px rgb(0 0 0 / 0.45);
   --shadow-card-hover:
-    0 1px 0 0 rgb(255 255 255 / 0.06) inset,
-    0 14px 36px -12px rgb(0 0 0 / 0.52),
-    0 0 0 1px rgb(124 92 255 / 0.16);
-  --shadow-glow:
-    0 0 0 1px rgb(124 92 255 / 0.18),
-    0 24px 56px -28px rgb(124 92 255 / 0.26);
-  --shadow-focus: 0 0 0 3px rgb(124 92 255 / 0.42);
+    0 1px 0 rgb(255 255 255 / 0.07) inset,
+    0 0 0 1px rgb(99 102 241 / 0.18),
+    0 12px 32px -12px rgb(0 0 0 / 0.5);
+  --shadow-glow: var(--shadow-md);
+  --shadow-focus: 0 0 0 2px var(--ce-bg-base), 0 0 0 4px rgb(99 102 241 / 0.5);
+  --shadow-modal: 0 40px 96px -32px rgb(0 0 0 / 0.75);
 
-  --gradient-cyber: linear-gradient(
-    135deg,
-    color-mix(in oklab, var(--ce-accent) 92%, white 6%) 0%,
-    var(--ce-violet-deep) 52%,
-    color-mix(in oklab, var(--ce-bg-base) 92%, var(--ce-accent) 8%) 100%
-  );
+  --gradient-cyber: linear-gradient(135deg, #818cf8 0%, #6366f1 38%, #4338ca 72%, #1e1b4b 100%);
   --gradient-card: linear-gradient(
     165deg,
-    color-mix(in oklab, var(--ce-bg-surface) 97%, var(--ce-accent) 5%) 0%,
-    var(--ce-bg-surface) 100%
+    rgb(255 255 255 / 0.06) 0%,
+    rgb(255 255 255 / 0.02) 48%,
+    rgb(255 255 255 / 0.01) 100%
   );
   --gradient-hero-glow: radial-gradient(
-    ellipse 80% 55% at 50% -18%,
-    color-mix(in oklab, var(--ce-accent) 18%, transparent),
+    ellipse 100% 80% at 50% -25%,
+    rgb(99 102 241 / 0.2),
+    rgb(129 140 248 / 0.06) 42%,
     transparent 68%
   );
   --gradient-border-glow: linear-gradient(
     135deg,
-    color-mix(in oklab, var(--ce-accent) 48%, transparent),
-    color-mix(in oklab, var(--ce-cyber-teal) 28%, transparent)
+    rgb(99 102 241 / 0.5),
+    rgb(129 140 248 / 0.28),
+    rgb(255 255 255 / 0.08)
   );
-  --gradient-surface-subtle: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--ce-bg-surface) 94%, var(--ce-accent) 6%) 0%,
-    var(--ce-bg-surface) 100%
-  );
+  --gradient-mesh:
+    radial-gradient(ellipse 90% 60% at 15% -15%, rgb(99 102 241 / 0.16), transparent 52%),
+    radial-gradient(ellipse 70% 50% at 95% 5%, rgb(129 140 248 / 0.1), transparent 58%),
+    radial-gradient(ellipse 55% 45% at 50% 110%, rgb(79 70 229 / 0.12), transparent 62%);
 }
 
 @media (prefers-contrast: more) {
   :root {
-    --border: rgb(15 14 20 / 0.18);
-    --muted-foreground: #334155;
+    --border: rgb(9 6 15 / 0.18);
+    --muted-foreground: #3f3f46;
   }
-
   .dark {
     --ce-border: rgb(255 255 255 / 0.14);
-    --ce-text-muted: #9a94b0;
+    --ce-text-muted: #a1a1aa;
     --border: var(--ce-border);
   }
 }

@@ -1,5 +1,5 @@
 import type { LessonAiAction } from "@/lib/lesson-ai-meta";
-import { AiNotConfiguredError, AiProviderError, getOpenAiApiKey } from "@/lib/ai-config";
+import { AiNotConfiguredError, AiProviderError, getOpenAiApiBaseUrl, getOpenAiApiKey } from "@/lib/ai-config";
 
 /** Режимы адаптации (API и ядро генерации). */
 export type LessonAdaptMode = "simplify" | "adapt_to_interests" | "example" | "summary";
@@ -181,7 +181,7 @@ export async function callOpenAiChatCompletions(
   const key = getOpenAiApiKey();
   if (!key) return null;
 
-  const base = (process.env.OPENAI_API_BASE_URL || "https://api.openai.com/v1").replace(/\/$/, "");
+  const base = getOpenAiApiBaseUrl();
   const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
   const temperature = opts?.temperature ?? 0.5;
 

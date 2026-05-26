@@ -27,11 +27,11 @@ function EvidenceEmail({ block }: { block: Extract<PracticeEvidenceBlock, { kind
 function EvidenceUrlList({ block }: { block: Extract<PracticeEvidenceBlock, { kind: "url_list" }> }) {
   return (
     <PracticeLabTerminal title="artifacts/urls.txt">
-      <p className="ce-terminal-dim mb-3 text-[10px] uppercase tracking-wider">{block.title}</p>
+      <p className="ce-terminal-dim mb-3 text-2.5 uppercase tracking-wider">{block.title}</p>
       <ul className="space-y-2">
         {block.urls.map((u) => (
           <li key={u.href} className="rounded-lg border border-border/60 bg-background/40 px-3 py-2">
-            <span className="text-[10px] font-semibold uppercase text-muted-foreground">{u.label}</span>
+            <span className="text-2.5 font-semibold uppercase text-muted-foreground">{u.label}</span>
             <p className="mt-1 break-all font-mono text-xs text-primary">{u.href}</p>
           </li>
         ))}
@@ -43,8 +43,8 @@ function EvidenceUrlList({ block }: { block: Extract<PracticeEvidenceBlock, { ki
 function EvidenceLog({ block }: { block: Extract<PracticeEvidenceBlock, { kind: "log" }> }) {
   return (
     <PracticeLabTerminal title="var/log/auth.log">
-      <p className="ce-terminal-dim mb-2 text-[10px] uppercase tracking-wider">{block.title}</p>
-      <pre className="max-h-72 overflow-auto whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-foreground/90">
+      <p className="ce-terminal-dim mb-2 text-2.5 uppercase tracking-wider">{block.title}</p>
+      <pre className="max-h-72 overflow-auto whitespace-pre-wrap font-mono text-2.75 leading-relaxed text-foreground/90">
         {block.lines}
       </pre>
     </PracticeLabTerminal>
@@ -56,7 +56,7 @@ function EvidenceHash({ block }: { block: Extract<PracticeEvidenceBlock, { kind:
     <PracticeLabTerminal title="artifacts/hash.txt">
       <p className="text-xs text-muted-foreground">{block.label}</p>
       {block.algorithm ? (
-        <p className="mt-1 font-mono text-[10px] uppercase text-primary">{block.algorithm}</p>
+        <p className="mt-1 font-mono text-2.5 uppercase text-primary">{block.algorithm}</p>
       ) : null}
       <p className="mt-2 break-all font-mono text-sm text-foreground">{block.value}</p>
     </PracticeLabTerminal>
@@ -65,8 +65,8 @@ function EvidenceHash({ block }: { block: Extract<PracticeEvidenceBlock, { kind:
 
 function EvidenceText({ block }: { block: Extract<PracticeEvidenceBlock, { kind: "text" }> }) {
   return (
-    <div className="rounded-xl border border-border/70 bg-muted/20 px-4 py-3">
-      <p className="font-mono text-[10px] font-bold uppercase tracking-wider text-primary">{block.title}</p>
+    <div className="ce-polish-inset px-4 py-3">
+      <p className="font-mono text-2.5 font-bold uppercase tracking-wider text-primary">{block.title}</p>
       <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">{block.content}</p>
     </div>
   );
@@ -75,10 +75,10 @@ function EvidenceText({ block }: { block: Extract<PracticeEvidenceBlock, { kind:
 function EvidenceTable({ block }: { block: Extract<PracticeEvidenceBlock, { kind: "indicator_table" }> }) {
   return (
     <div className="lesson-table-wrap overflow-x-auto rounded-xl border border-border/80">
-      <p className="border-b border-border/60 bg-muted/30 px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-wider text-primary">
+      <p className="border-b border-border/60 bg-muted/30 px-4 py-2 font-mono text-2.5 font-bold uppercase tracking-wider text-primary">
         {block.title}
       </p>
-      <table className="w-full min-w-[16rem] border-collapse text-left text-sm">
+      <table className="w-full min-w-64 border-collapse text-left text-sm">
         <thead>
           <tr className="border-b border-border bg-muted/40">
             <th scope="col" className="px-3 py-2.5 font-semibold text-foreground">
@@ -121,9 +121,9 @@ export function PracticeLabEvidence({
       flushTitle
       className={cn("ce-practice-evidence relative space-y-4 overflow-hidden p-5 sm:p-6", className)}
     >
-      <div className="ce-tech-grid pointer-events-none absolute inset-0 opacity-[0.05]" aria-hidden />
+      <div className="ce-tech-grid pointer-events-none absolute inset-0 opacity-5" aria-hidden />
       <div className="relative space-y-1">
-        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-primary">Артефакты</p>
+        <p className="font-mono text-2.5 font-bold uppercase tracking-eyebrow-sm text-primary">Артефакты</p>
         <h2 className="font-display text-lg font-semibold text-foreground">Данные для расследования</h2>
         <p className="text-xs text-muted-foreground">
           Учебные материалы. Эталонные ответы не показываются до отправки.

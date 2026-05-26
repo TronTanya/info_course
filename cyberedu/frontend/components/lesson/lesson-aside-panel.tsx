@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { SectionCard } from "@/components/ui/section-card";
+import { LearnOsPanel, LearnOsEyebrow } from "@/components/learn/learn-os-panel";
 import { ProgressTracker } from "@/components/lesson/lesson-ui/progress-tracker";
 import type { LearningNavStepItem } from "@/lib/learning-nav";
 import type { LessonAiAction } from "@/lib/lesson-ai-meta";
@@ -57,21 +57,18 @@ export function LessonAsidePanel({
       />
 
       {allowAiAdaptation ? (
-        <SectionCard
-          variant="lab"
-          title="AI-наставник"
-          description="Упростить тему или получить пример — без ответов на тест."
-          flushTitle
-          className="p-4"
-        >
-          <div className="grid grid-cols-2 gap-2">
+        <LearnOsPanel variant="accent" animate={false} className="p-4!">
+          <LearnOsEyebrow>AI copilot</LearnOsEyebrow>
+          <h3 className="mt-1 font-heading text-sm font-semibold text-foreground">Наставник</h3>
+          <p className="mt-1 text-xs text-muted-foreground">Упростить тему или получить пример — без ответов на тест.</p>
+          <div className="mt-4 grid grid-cols-2 gap-2">
             {AI_BUTTONS.map((b) => (
               <Button
                 key={b.action}
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-auto min-h-10 px-2 py-2 text-[11px] leading-snug"
+                className="h-auto min-h-10 px-2 py-2 text-2.75 leading-snug"
                 disabled={aiBusy}
                 onClick={() => onRunAi(b.action)}
               >
@@ -89,7 +86,7 @@ export function LessonAsidePanel({
               Спросить AI по этому уроку
             </Button>
           </div>
-        </SectionCard>
+        </LearnOsPanel>
       ) : null}
 
       {showDesktopMark && !lessonCompleted ? (

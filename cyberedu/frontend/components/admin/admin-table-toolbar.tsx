@@ -49,7 +49,7 @@ export function AdminTableToolbar({
           placeholder={searchPlaceholder}
           className={cn(
             "h-11 min-h-11 w-full rounded-xl border border-border/80 bg-background/90 pl-9 pr-9 text-sm text-foreground shadow-sm",
-            "placeholder:text-muted-foreground transition-[border-color,box-shadow]",
+            "placeholder:text-muted-foreground transition-colors transition-shadow",
             focusRing,
           )}
           aria-label={searchPlaceholder}

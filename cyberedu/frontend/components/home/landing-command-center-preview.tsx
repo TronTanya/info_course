@@ -15,14 +15,19 @@ const DEMO_MODULES = [
 
 export function LandingCommandCenterPreview({ className }: { className?: string }) {
   return (
-    <PremiumCard variant="glow" padding="none" className={cn("overflow-hidden", className)} aria-label="Превью учебного кабинета">
-      <div className="flex items-center justify-between gap-3 border-b border-border/70 bg-primary/[0.06] px-4 py-3 sm:px-5">
+    <PremiumCard
+      variant="glow"
+      padding="none"
+      className={cn("ce-hero-preview-card overflow-hidden backdrop-blur-xl", className)}
+      aria-label="Превью учебного кабинета"
+    >
+      <div className="ce-hero-preview-card__header flex items-center justify-between gap-3 border-b px-4 py-3 sm:px-5">
         <div className="flex min-w-0 items-center gap-2">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary">
             <Radar className="size-4" strokeWidth={1.75} aria-hidden />
           </span>
           <div className="min-w-0">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-primary">SOC Command Center</p>
+            <p className="font-mono text-2.5 font-semibold uppercase tracking-wider text-primary">SOC Command Center</p>
             <p className="truncate text-sm font-medium text-foreground">Учебный трек · демо</p>
           </div>
         </div>
@@ -32,7 +37,7 @@ export function LandingCommandCenterPreview({ className }: { className?: string 
       </div>
 
       <div className="space-y-4 p-4 sm:p-5">
-        <div className="rounded-xl border border-border/80 bg-muted/20 p-4">
+        <div className="ce-polish-inset p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="typo-label">Mission status</p>
             <StatusPill status="in_progress" label="Модуль 2 в работе" />

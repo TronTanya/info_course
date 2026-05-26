@@ -10,6 +10,7 @@ import { FormMessage } from "@/components/ui/form-message";
 import { Input } from "@/components/ui/input";
 import type { ForgotPasswordState } from "@/lib/actions/password-reset";
 import { requestPasswordResetAction } from "@/lib/actions/password-reset";
+import { forgotPasswordSchema } from "@/lib/validation";
 
 export function ForgotPasswordForm() {
   const [pending, setPending] = useState(false);
@@ -18,10 +19,21 @@ export function ForgotPasswordForm() {
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+    const email = String(fd.get("email") ?? "").trim();
+
+    const parsed = forgotPasswordSchema.safeParse({ email });
+    if (!parsed.success) {
+      const flat = parsed.error.flatten();
+      setState({ errors: { email: flat.fieldErrors.email } });
+      return;
+    }
+
     setPending(true);
     setState({});
     try {
-      const result = await requestPasswordResetAction({}, fd);
+      const submitFd = new FormData();
+      submitFd.set("email", parsed.data.email);
+      const result = await requestPasswordResetAction({}, submitFd);
       setState(result);
     } finally {
       setPending(false);

@@ -1,8 +1,12 @@
+import { config as loadEnv } from "dotenv";
 import { request } from "@playwright/test";
 import { getE2eCredentials } from "./test-credentials";
+import { ensureE2eDemoUsersReady } from "./helpers/verification";
+
+loadEnv({ path: ".env", quiet: true });
 
 async function globalSetup(): Promise<void> {
-  const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3100";
+  const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3100";
 
   const ctx = await request.newContext({ baseURL });
   const health = await ctx.get("/api/health");
@@ -16,6 +20,8 @@ async function globalSetup(): Promise<void> {
 
   if (process.env.DATABASE_URL?.trim()) {
     try {
+      await ensureE2eDemoUsersReady();
+
       const { PrismaClient } = await import("@prisma/client");
       const prisma = new PrismaClient();
       const studentEmail = getE2eCredentials("student").email;

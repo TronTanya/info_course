@@ -18,7 +18,7 @@ export function PracticeLabTerminal({
 }) {
   return (
     <LabTerminal title={title} chrome className={className}>
-      <div className={cn("relative", mono && "font-mono text-[13px] leading-relaxed")}>
+      <div className={cn("relative", mono && "font-mono text-3.25 leading-relaxed")}>
         {showPrompt ? (
           <span className="ce-terminal-prompt pointer-events-none absolute left-0 top-0 select-none" aria-hidden>
             $

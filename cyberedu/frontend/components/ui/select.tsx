@@ -19,7 +19,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="flex w-full flex-col gap-1.5">
         {label ? (
-          <label htmlFor={selectId} className="text-sm font-medium text-foreground">
+          <label htmlFor={selectId} className="ds-label">
             {label}
           </label>
         ) : null}

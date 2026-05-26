@@ -54,8 +54,8 @@ export function LandingMetrics() {
               <article
                 className={cn(
                   "group flex h-full flex-col rounded-2xl border border-border bg-card/80 p-5 shadow-card",
-                  "transition-[border-color,box-shadow,transform] duration-200",
-                  "hover:border-primary/30 hover:shadow-[var(--shadow-glow)] hover:-translate-y-0.5 motion-reduce:hover:translate-y-0",
+                  "transition-colors transition-shadow transition-transform duration-200",
+                  "hover:border-primary/30 hover:shadow-card-hover hover:-translate-y-0.5 motion-reduce:hover:translate-y-0",
                 )}
               >
                 <div className="mb-4 flex size-10 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">

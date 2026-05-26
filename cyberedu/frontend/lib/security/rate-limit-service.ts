@@ -1,6 +1,7 @@
 /**
  * Централизованный rate limiter: Redis (fixed window + TTL), in-memory только в dev с warning.
  */
+import { logError, logWarn } from "@/lib/log/structured";
 
 export type RateLimitDenyReason = "exceeded" | "unavailable";
 
@@ -25,6 +26,8 @@ export const RATE_LIMIT_POLICIES = {
   practiceText: { scope: "practice:text", max: 45, windowMs: 60 * 60 * 1000 },
   practiceInteractive: { scope: "practice:interactive", max: 60, windowMs: 60 * 60 * 1000 },
   practiceStructured: { scope: "practice:structured", max: 80, windowMs: 60 * 60 * 1000 },
+  adminMutation: { scope: "admin:mutation", max: 120, windowMs: 60 * 60 * 1000 },
+  reviewSubmit: { scope: "review:submit", max: 3, windowMs: 60 * 60 * 1000 },
 } as const;
 
 type MemoryBucket = { count: number; resetAt: number };
@@ -32,11 +35,10 @@ type MemoryBucket = { count: number; resetAt: number };
 const memory = new Map<string, MemoryBucket>();
 const MAX_MEMORY_KEYS = 25_000;
 let memoryFallbackWarned = false;
+let redisFailureWarned = false;
 
 type RedisClient = {
-  incr: (key: string) => Promise<number>;
-  pExpire: (key: string, ms: number) => Promise<number>;
-  pTTL: (key: string) => Promise<number>;
+  eval: (script: string, options: { keys: string[]; arguments: string[] }) => Promise<unknown>;
   connect: () => Promise<void>;
   on: (event: string, listener: () => void) => void;
 };
@@ -68,6 +70,38 @@ function warnMemoryFallback(reason: string): void {
   console.warn(
     `[rate-limit] ${reason} — in-process limiter (dev only; not shared across replicas; resets on restart)`,
   );
+}
+
+function rateLimitKeyMeta(key: string): { scope: string; subjectKind: "user" | "ip" | "unknown" } {
+  if (!key.startsWith("rl:")) return { scope: "unknown", subjectKind: "unknown" };
+  const rest = key.slice(3);
+  const userIdx = rest.lastIndexOf(":user:");
+  if (userIdx >= 0) {
+    return { scope: rest.slice(0, userIdx), subjectKind: "user" };
+  }
+  const ipIdx = rest.lastIndexOf(":ip:");
+  if (ipIdx >= 0) {
+    return { scope: rest.slice(0, ipIdx), subjectKind: "ip" };
+  }
+  return { scope: "unknown", subjectKind: "unknown" };
+}
+
+function logRedisFailureOnce(reason: string, key: string): void {
+  if (redisFailureWarned) return;
+  redisFailureWarned = true;
+  const meta = rateLimitKeyMeta(key);
+  const fields = {
+    component: "rate_limit_service",
+    reason,
+    scope: meta.scope,
+    subjectKind: meta.subjectKind,
+    environment: (process.env.ENVIRONMENT ?? "").trim().toLowerCase() || "unknown",
+  };
+  if (isProductionRuntime()) {
+    logError("rate_limit_redis_unavailable", fields);
+    return;
+  }
+  logWarn("rate_limit_redis_unavailable", fields);
 }
 
 function pruneMemory(now: number): void {
@@ -127,15 +161,34 @@ async function redisFixedWindowConsume(
   if (!client) return null;
 
   try {
-    const count = await client.incr(key);
-    if (count === 1) {
-      await client.pExpire(key, windowMs);
+    const script = `
+      local c = redis.call("INCR", KEYS[1])
+      local ttl = redis.call("PTTL", KEYS[1])
+      if ttl < 0 then
+        redis.call("PEXPIRE", KEYS[1], ARGV[1])
+        ttl = tonumber(ARGV[1])
+      end
+      return {c, ttl}
+    `;
+    const res = await client.eval(script, {
+      keys: [key],
+      arguments: [String(windowMs)],
+    });
+    if (!Array.isArray(res) || res.length < 2) {
+      logRedisFailureOnce("invalid_eval_response", key);
+      return null;
+    }
+    const count = Number(res[0]);
+    const ttl = Number(res[1]);
+    if (!Number.isFinite(count)) {
+      logRedisFailureOnce("invalid_eval_count", key);
+      return null;
     }
     if (count <= max) return { allowed: true };
-    const ttl = await client.pTTL(key);
     const retryAfterMs = ttl > 0 ? ttl : windowMs;
     return { allowed: false, retryAfterMs, reason: "exceeded" };
   } catch {
+    logRedisFailureOnce("eval_failed", key);
     return null;
   }
 }
@@ -164,7 +217,11 @@ export async function consumeRateLimitKey(
   if (redisResult) return redisResult;
 
   if (!isDevMemoryFallbackAllowed()) {
-    console.error("[rate-limit] Redis unavailable in production — request denied");
+    logError("rate_limit_denied_unavailable", {
+      component: "rate_limit_service",
+      reason: "redis_unavailable_production",
+      ...rateLimitKeyMeta(key),
+    });
     return { allowed: false, retryAfterMs: windowMs, reason: "unavailable" };
   }
 
@@ -220,6 +277,7 @@ export function resetRateLimitServiceForTests(): void {
   redisPromise = null;
   memory.clear();
   memoryFallbackWarned = false;
+  redisFailureWarned = false;
 }
 
 export { isDevMemoryFallbackAllowed, isProductionRuntime };

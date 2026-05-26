@@ -126,7 +126,7 @@ const nextAuth = NextAuth({
           return null;
         }
 
-        if (isLoginLocked(email, ip)) {
+        if (await isLoginLocked(email, ip)) {
           logSecurityEvent({
             action: SECURITY_ACTIONS.AUTH_LOGIN_LOCKED,
             severity: "warn",
@@ -139,10 +139,10 @@ const nextAuth = NextAuth({
 
         const user = await prisma.user.findUnique({
           where: { email },
-          select: { id: true, email: true, passwordHash: true, role: true },
+          select: { id: true, email: true, passwordHash: true, role: true, emailVerified: true },
         });
         if (!user?.passwordHash) {
-          recordFailedLogin(email, ip);
+          await recordFailedLogin(email, ip);
           logSecurityEvent({
             action: SECURITY_ACTIONS.AUTH_LOGIN_FAILED,
             severity: "warn",
@@ -155,7 +155,7 @@ const nextAuth = NextAuth({
 
         const valid = await bcrypt.compare(passwordRaw, user.passwordHash);
         if (!valid) {
-          const attempt = recordFailedLogin(email, ip);
+          const attempt = await recordFailedLogin(email, ip);
           logSecurityEvent({
             userId: user.id,
             action: SECURITY_ACTIONS.AUTH_LOGIN_FAILED,
@@ -167,22 +167,35 @@ const nextAuth = NextAuth({
           return null;
         }
 
-        clearLoginAttempts(email, ip);
+        await clearLoginAttempts(email, ip);
         return {
           id: user.id,
           email: user.email,
           role: user.role,
+          emailVerified: user.emailVerified,
           name: null as string | null,
         };
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.sub = user.id;
         token.role = user.role as Role;
         token.email = user.email ?? undefined;
+        token.emailVerifiedAt = user.emailVerified ? new Date(user.emailVerified).toISOString() : null;
+      } else if (typeof token.sub === "string" && (trigger === "update" || !token.emailVerifiedAt)) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { emailVerified: true, role: true },
+        });
+        if (dbUser) {
+          token.role = dbUser.role;
+          token.emailVerifiedAt = dbUser.emailVerified
+            ? new Date(dbUser.emailVerified).toISOString()
+            : null;
+        }
       }
       return token;
     },
@@ -192,6 +205,11 @@ const nextAuth = NextAuth({
         session.user.role = (token.role as Role | undefined) ?? "USER";
         if (typeof token.email === "string") {
           session.user.email = token.email;
+        }
+        if (typeof token.emailVerifiedAt === "string" && token.emailVerifiedAt.length > 0) {
+          session.user.emailVerified = new Date(token.emailVerifiedAt);
+        } else {
+          session.user.emailVerified = null;
         }
       }
       return session;

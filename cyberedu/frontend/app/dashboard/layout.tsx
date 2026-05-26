@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { TechAmbient } from "@/components/effects/tech-ambient";
 import { requireAuth } from "@/lib/permissions";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -11,7 +12,10 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  await requireAuth();
+  const session = await requireAuth();
+  if (session.user.role === "USER" && !session.user.emailVerified) {
+    redirect("/auth/verify-email?callbackUrl=/dashboard/profile");
+  }
 
   return (
     <div className="flex min-h-screen min-w-0 flex-col">

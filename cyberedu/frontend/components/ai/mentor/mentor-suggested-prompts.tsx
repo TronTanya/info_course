@@ -16,7 +16,7 @@ export function MentorSuggestedPrompts({
 
   return (
     <div className="ce-mentor-prompts px-3 pb-2">
-      <p className="mb-2 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+      <p className="mb-2 flex items-center gap-1.5 font-mono text-2.5 uppercase tracking-wider text-muted-foreground">
         <Sparkles className="size-3 text-cyan" aria-hidden />
         Быстрые запросы
       </p>

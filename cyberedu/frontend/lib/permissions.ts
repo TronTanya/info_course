@@ -29,13 +29,29 @@ export async function requireAuth(): Promise<Session> {
   return session;
 }
 
+/** Роль из БД (не только JWT) — мгновенный отзыв ADMIN. */
+export async function getDbUserRole(userId: string): Promise<Role | null> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  });
+  return user?.role ?? null;
+}
+
 /** Только ADMIN; иначе на главную. */
 export async function requireAdmin(): Promise<Session> {
   const session = await requireAuth();
-  if (session.user.role !== "ADMIN") {
+  const role = await getDbUserRole(session.user.id);
+  if (role !== "ADMIN") {
     redirect("/");
   }
-  return session;
+  return {
+    ...session,
+    user: {
+      ...session.user,
+      role,
+    },
+  };
 }
 
 /** Поля пользователя для сессии личного кабинета (без passwordHash и прочих секретов). */

@@ -9,6 +9,7 @@ import { clientIpFromHeaders } from "@/lib/security/request-ip";
 import { securityLog } from "@/lib/security-log";
 import { serializeProfileInterests } from "@/lib/profile-interests";
 import { registerSchema } from "@/lib/validation";
+import { issueVerificationEmailForUser } from "@/lib/actions/email-verification";
 
 const BCRYPT_COST = 12;
 
@@ -99,6 +100,7 @@ export async function registerAction(_prev: RegisterActionState, formData: FormD
         data: {
           email: normalizedEmail,
           passwordHash,
+          emailVerified: null,
         },
       });
       newUserId = user.id;
@@ -119,6 +121,7 @@ export async function registerAction(_prev: RegisterActionState, formData: FormD
     });
 
     securityLog("auth.register", { userId: newUserId });
+    await issueVerificationEmailForUser(newUserId, normalizedEmail);
     return { ok: true, email: normalizedEmail };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {

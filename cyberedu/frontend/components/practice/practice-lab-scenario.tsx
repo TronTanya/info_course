@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { ParsedPracticeScenario } from "@/lib/practice-scenario-parse";
 import { PracticeLabTerminal } from "@/components/practice/practice-lab-terminal";
 import { LearningCallout } from "@/components/learn/learning-callout";
-import { SectionCard } from "@/components/ui/section-card";
+import { LearnOsPanel, LearnOsEyebrow } from "@/components/learn/learn-os-panel";
 import { cn } from "@/lib/utils";
 
 function ScenarioField({
@@ -16,7 +16,7 @@ function ScenarioField({
 }) {
   return (
     <section className="ce-practice-scenario-section space-y-2">
-      <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-primary/90">{step}</p>
+      <p className="font-mono text-2.5 font-bold uppercase tracking-eyebrow-sm text-primary/90">{step}</p>
       <h2 className="font-display text-base font-semibold text-foreground sm:text-lg">{title}</h2>
       <div className="typo-body-muted text-pretty">{children}</div>
     </section>
@@ -34,11 +34,11 @@ export function PracticeLabScenario({ parsed, contextNotes, className }: Practic
   const context = contextNotes?.trim();
 
   return (
-    <SectionCard variant="lab" className={cn("ce-practice-scenario relative space-y-6 overflow-hidden p-5 sm:p-6", className)}>
-      <div className="ce-tech-grid pointer-events-none absolute inset-0 opacity-[0.06]" aria-hidden />
+    <LearnOsPanel variant="mission" className={cn("ce-practice-scenario relative space-y-6", className)} animate={false}>
+      <div className="ce-tech-grid pointer-events-none absolute inset-0 opacity-6" aria-hidden />
       <div className="relative space-y-1">
-        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-primary">Сценарий</p>
-        <h2 className="font-display text-lg font-semibold text-foreground">Карточка миссии</h2>
+        <LearnOsEyebrow>Mission brief</LearnOsEyebrow>
+        <h2 className="font-heading text-lg font-semibold text-foreground">Карточка операции</h2>
       </div>
 
       <ScenarioField step="01 · Роль" title="Ваша роль в лаборатории">
@@ -74,6 +74,6 @@ export function PracticeLabScenario({ parsed, contextNotes, className }: Practic
       <LearningCallout variant="info" label="Безопасность" title="Учебная среда">
         Симуляторы и демо-данные не связаны с реальными системами. Вредоносные действия не требуются.
       </LearningCallout>
-    </SectionCard>
+    </LearnOsPanel>
   );
 }

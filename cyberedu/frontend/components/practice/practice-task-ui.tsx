@@ -14,7 +14,7 @@ const RESULT_TONE_CLASS: Record<PracticeResultTone, string> = {
 
 export function practiceChipClass(on: boolean, locked: boolean, className?: string) {
   return cn(
-    "rounded-md px-1 py-0.5 text-left transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring",
+    "rounded-md px-1 py-0.5 text-left transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
     on ? "bg-success/20 text-success ring-2 ring-success/50" : "bg-transparent text-inherit hover:bg-muted/50",
     locked ? "cursor-default opacity-90" : "cursor-pointer",
     className,
@@ -120,7 +120,7 @@ export function PracticeEmailPanel({
     <SectionCard variant="lab" flushTitle className="overflow-hidden p-0">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-muted/40 px-4 py-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{header}</p>
-        <Badge variant="warning" className="text-[10px]">
+        <Badge variant="warning" className="text-2.5">
           {badge}
         </Badge>
       </div>

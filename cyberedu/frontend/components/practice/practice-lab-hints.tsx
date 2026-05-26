@@ -52,7 +52,7 @@ export function PracticeLabHints({
                     onClick={() => setOpenLevel(open ? null : index)}
                     className={cn(
                       "flex w-full items-start justify-between gap-2 rounded-xl border px-4 py-3 text-left text-sm transition-colors",
-                      "hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      "hover:bg-muted/40 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
                       open ? "border-primary/30 bg-primary/5" : "border-border/80 bg-muted/15",
                     )}
                     aria-expanded={open}
@@ -60,7 +60,7 @@ export function PracticeLabHints({
                     aria-label={`Подсказка, уровень ${index + 1}`}
                   >
                     <span>
-                      <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-primary">
+                      <span className="font-mono text-2.5 font-bold uppercase tracking-wider text-primary">
                         {practiceHintLevelLabels[index] ?? `Уровень ${index + 1}`}
                       </span>
                       {!open ? (

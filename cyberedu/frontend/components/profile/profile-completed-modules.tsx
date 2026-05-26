@@ -32,10 +32,10 @@ export function ProfileCompletedModules({ modules }: { modules: ProfileCompleted
             <li key={m.id}>
               <Link
                 href={`/dashboard/course/${m.id}`}
-                className="flex items-center gap-3 rounded-xl border border-border/70 bg-muted/15 px-3 py-2.5 transition-colors hover:border-primary/25 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex items-center gap-3 rounded-xl border border-border/70 bg-muted/15 px-3 py-2.5 transition-colors hover:border-primary/25 hover:bg-primary/5 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden />
-                <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                <span className="font-mono text-2.5 font-bold uppercase tracking-wider text-muted-foreground">
                   Модуль {m.orderNumber}
                 </span>
                 <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{m.title}</span>

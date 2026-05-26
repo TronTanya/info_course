@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState, useTransition } from "react";
+import { useCallback, useMemo, useRef, useState, useTransition } from "react";
 import { submitTestAttemptAction } from "@/lib/actions/test";
 import type { ClientTestQuestion, SubmittedAnswerPayload } from "@/lib/test-grading";
 import { computeTestMaxScore, estimateTestMinutes } from "@/lib/test-ui";
@@ -94,6 +94,11 @@ export function ModuleTestRunner({
   const [error, setError] = useState<string | null>(null);
   const [mentorOpenSeq, setMentorOpenSeq] = useState(0);
   const [pending, startTransition] = useTransition();
+  const submitIdempotencyKey = useRef(
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `submit-${Date.now()}`,
+  );
 
   const questionCount = questions.length;
   const estimatedMinutes = estimateTestMinutes(questionCount);
@@ -129,7 +134,15 @@ export function ModuleTestRunner({
     enabled: draftEnabled,
   });
 
+  function newSubmitIdempotencyKey() {
+    submitIdempotencyKey.current =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `submit-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  }
+
   function startTest() {
+    newSubmitIdempotencyKey();
     setPhase("active");
     setIdx(0);
     setError(null);
@@ -137,6 +150,7 @@ export function ModuleTestRunner({
   }
 
   function resetToLobby() {
+    newSubmitIdempotencyKey();
     clearDraft();
     setPhase("lobby");
     setIdx(0);
@@ -163,7 +177,12 @@ export function ModuleTestRunner({
     }
     const payload = buildPayload(questions, local);
     startTransition(async () => {
-      const res = await submitTestAttemptAction({ moduleId, testId, answers: payload });
+      const res = await submitTestAttemptAction({
+        moduleId,
+        testId,
+        answers: payload,
+        idempotencyKey: submitIdempotencyKey.current,
+      });
       if (!res.ok) {
         setError(formatUserFacingError(res.error));
         setSubmitOpen(false);

@@ -3,34 +3,32 @@
 import Link from "next/link";
 import { AlertTriangle, Info } from "lucide-react";
 import type { DashboardWeakTopic } from "@/lib/dashboard-ui";
-import { SectionCard } from "@/components/ui/section-card";
+import { CockpitWidget, CockpitWidgetHeader } from "@/components/dashboard/cockpit/cockpit-widget";
 import { cn } from "@/lib/utils";
 
 export function DashboardWeakTopics({ items }: { items: DashboardWeakTopic[] }) {
   if (items.length === 0) {
     return (
-      <SectionCard variant="muted" flushTitle className="p-5 sm:p-6">
-        <p className="typo-eyebrow text-primary">Рекомендуем повторить</p>
-        <p className="mt-2 text-sm text-muted-foreground">
+      <CockpitWidget variant="default">
+        <CockpitWidgetHeader eyebrow="Аналитика" title="Рекомендуем повторить" />
+        <p className="text-sm text-muted-foreground">
           Пока нет зафиксированных ошибок. Продолжайте по плану курса — сюда попадут незачтённые тесты и работы на
           доработке.
         </p>
         <Link
           href="/dashboard/course"
-          className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+          className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
         >
           Карта курса
         </Link>
-      </SectionCard>
+      </CockpitWidget>
     );
   }
 
   return (
-    <SectionCard variant="default" flushTitle className="p-5 sm:p-6" aria-labelledby="dash-weak-heading">
-      <p id="dash-weak-heading" className="typo-eyebrow text-primary">
-        Рекомендуем повторить
-      </p>
-      <ul className="mt-4 space-y-3">
+    <CockpitWidget variant="default" aria-labelledby="dash-weak-heading">
+      <CockpitWidgetHeader titleId="dash-weak-heading" eyebrow="Аналитика" title="Рекомендуем повторить" />
+      <ul className="space-y-3">
         {items.map((item) => (
           <li key={item.id}>
             <Link
@@ -40,7 +38,7 @@ export function DashboardWeakTopics({ items }: { items: DashboardWeakTopic[] }) 
                 item.tone === "warning"
                   ? "border-warning/30 bg-warning/5 hover:bg-warning/10"
                   : "border-border/80 bg-muted/20 hover:bg-muted/35",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
               )}
             >
               <span
@@ -61,6 +59,6 @@ export function DashboardWeakTopics({ items }: { items: DashboardWeakTopic[] }) 
           </li>
         ))}
       </ul>
-    </SectionCard>
+    </CockpitWidget>
   );
 }

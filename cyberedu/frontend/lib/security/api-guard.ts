@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { Session } from "next-auth";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
+import { getDbUserRole } from "@/lib/permissions";
 import { securityAudit } from "@/lib/security/audit";
 import { enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/security/rate-limit";
 import { clientIpFromRequest } from "@/lib/security/request-ip";
@@ -169,16 +170,22 @@ export function withApiGuard<
         securityAudit({ event: "api.auth_denied", severity: "warn", ip, path });
         return jsonError("Требуется авторизация.", 401);
       }
-      if (session.user.role !== "ADMIN") {
+      const dbRole = await getDbUserRole(session.user.id);
+      if (dbRole !== "ADMIN") {
         securityAudit({
           event: "api.admin_denied",
           severity: "high",
           actorId: session.user.id,
           ip,
           path,
+          meta: { jwtRole: session.user.role, dbRole },
         });
         return jsonError("Доступ только для администратора.", 403);
       }
+      session = {
+        ...session,
+        user: { ...session.user, role: dbRole },
+      };
       if (options.permission && !sessionHasPermission(session, options.permission)) {
         securityAudit({
           event: "api.permission_denied",

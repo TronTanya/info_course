@@ -1,0 +1,265 @@
+/**
+ * Admin UI: readable light-neutral workspace (Phase 3), no glass/backdrop flicker.
+ */
+
+/* Admin всегда в светлой readable-палитре — независимо от глобальной темы */
+html:has(.ce-admin-route-root) {
+  color-scheme: light;
+}
+
+html.dark:has(.ce-admin-route-root),
+html:has(.ce-admin-route-root) {
+  --background: #fafafa;
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #52525b;
+  --subtle-foreground: #71717a;
+  --border: rgb(9 9 11 / 0.12);
+  --secondary: #f4f4f5;
+  --secondary-foreground: #3f3f46;
+  --primary: #6366f1;
+  --primary-foreground: #fafafa;
+  --ring: #6366f1;
+  --ce-bg-base: #fafafa;
+  --ce-bg-elevated: #ffffff;
+  --ce-bg-overlay: #f4f4f5;
+  --ce-border: rgb(9 9 11 / 0.1);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 12px -4px rgb(0 0 0 / 0.08);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
+}
+
+.ce-admin-route-root {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.ce-admin-route .typo-eyebrow,
+.ce-admin-route .ds-typo-eyebrow,
+.ce-admin-route .ce-cockpit-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--muted-foreground);
+}
+
+.ce-admin-page-hero {
+  background: var(--card) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+body:has(.ce-admin-route-root)::before,
+body:has(.ce-admin-route-root)::after,
+body:has(.ce-admin-route)::before,
+body:has(.ce-admin-route)::after {
+  display: none !important;
+}
+
+.ce-admin-route .ce-motion-page--static,
+.ce-admin-route .dashboard-grid {
+  flex: none !important;
+  flex-grow: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+.ce-admin-route-root .ce-tech-ambient {
+  display: none !important;
+}
+
+.ce-admin-shell {
+  position: relative;
+  z-index: 0;
+  background: var(--card) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  isolation: auto;
+}
+
+.ce-admin-shell * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.ce-admin-panel {
+  background: var(--card) !important;
+}
+
+.ce-admin-shell .ce-admin-table-card,
+.ce-admin-shell .ce-glass.ce-admin-table-card {
+  background: var(--card) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.ce-admin-data-table-wrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 100%;
+  max-height: min(70vh, 42rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  background: var(--ce-bg-elevated, var(--card));
+  isolation: auto;
+}
+
+/* Студенты / пользователи — CSS Grid вместо table (текст не пропадает на desktop) */
+.ce-admin-users-grid {
+  min-width: 100%;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.ce-admin-users-grid__row--dashboard {
+  min-width: 52rem;
+}
+
+.ce-admin-users-grid__row--full {
+  min-width: 72rem;
+}
+
+.ce-admin-users-grid__row {
+  display: grid;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 65%, transparent);
+}
+
+.ce-admin-users-grid__head {
+  background: var(--muted) !important;
+  box-shadow: 0 1px 0 var(--border);
+}
+
+.ce-admin-users-grid__head .ce-admin-users-grid__cell {
+  padding: 0.75rem 0.65rem;
+  color: var(--muted-foreground) !important;
+  opacity: 1 !important;
+}
+
+.ce-admin-users-grid__body-row {
+  background: var(--ce-bg-elevated, var(--card));
+}
+
+.ce-admin-users-grid__body-row:nth-child(even) {
+  background: color-mix(in oklab, var(--muted) 22%, var(--ce-bg-elevated, var(--card)));
+}
+
+.ce-admin-users-grid__body-row:hover {
+  background: color-mix(in oklab, var(--primary) 6%, var(--ce-bg-elevated, var(--card)));
+}
+
+.ce-admin-users-grid__cell {
+  min-width: 0;
+  padding: 0.75rem 0.65rem;
+  opacity: 1 !important;
+  color: var(--foreground) !important;
+  -webkit-text-fill-color: currentcolor !important;
+  word-break: break-word;
+}
+
+.ce-admin-users-grid__name {
+  font-weight: 600;
+}
+
+.ce-admin-users-grid__email,
+.ce-admin-users-grid__muted {
+  color: var(--muted-foreground) !important;
+  -webkit-text-fill-color: currentcolor !important;
+}
+
+.ce-admin-route .ce-admin-data-table-wrap .ce-admin-users-grid [role="cell"] *,
+.ce-admin-route .ce-admin-data-table-wrap .ce-admin-table-body td * {
+  -webkit-text-fill-color: currentcolor;
+}
+
+/* Legacy HTML tables in admin (modules, tests, …) */
+.ce-admin-route .ce-admin-data-table-wrap .ce-admin-table-head th {
+  background: var(--muted) !important;
+  opacity: 1 !important;
+  color: var(--muted-foreground) !important;
+}
+
+.ce-admin-route .ce-admin-data-table-wrap .ce-admin-table-body td {
+  opacity: 1 !important;
+  color: var(--foreground) !important;
+  height: auto !important;
+  vertical-align: middle;
+  -webkit-text-fill-color: currentcolor !important;
+}
+
+.ce-admin-route .ce-admin-data-table-wrap .ce-admin-table-body td.text-muted-foreground,
+.ce-admin-route .ce-admin-data-table-wrap .ce-admin-table-body .text-muted-foreground {
+  color: var(--muted-foreground) !important;
+}
+
+.ce-admin-route .ce-admin-data-table-wrap .ce-admin-table-body tr {
+  height: auto !important;
+}
+
+.ce-admin-shell .ce-admin-dual-table .ce-admin-table-scroll {
+  isolation: auto;
+}
+
+/* Next.js RSC streaming can briefly mount duplicate table shells — keep one visible */
+.ce-admin-reviews-page .ce-admin-reviews-table-wrap ~ .ce-admin-reviews-table-wrap {
+  display: none !important;
+}
+
+.ce-admin-reviews-table-wrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 100%;
+  max-height: min(70vh, 42rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  background: var(--card);
+}
+
+.ce-admin-reviews-data {
+  table-layout: fixed;
+}
+
+.ce-admin-reviews-data thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--muted) !important;
+  color: var(--muted-foreground) !important;
+  opacity: 1 !important;
+  box-shadow: 0 1px 0 var(--border);
+}
+
+.ce-admin-reviews-data tbody td {
+  opacity: 1 !important;
+  color: var(--foreground) !important;
+  vertical-align: top;
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+}
+
+.ce-admin-reviews-data tbody td .text-muted-foreground,
+.ce-admin-reviews-data tbody .text-muted-foreground {
+  color: var(--muted-foreground) !important;
+}
+
+.ce-admin-reviews-data tbody tr {
+  height: auto !important;
+}
+
+.ce-admin-reviews-data tbody tr:nth-child(even) {
+  background: color-mix(in oklab, var(--muted) 22%, var(--card));
+}
+
+.ce-review-text-clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  word-break: break-word;
+}

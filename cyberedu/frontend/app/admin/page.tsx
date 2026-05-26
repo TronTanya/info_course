@@ -25,7 +25,7 @@ export default async function AdminHomePage() {
     <AdminShell>
       <div className="space-y-8">
         <AdminPageHeader
-          eyebrow="CyberEdu Academy · LMS"
+          eyebrow="CyberEdu · LMS"
           title="Панель управления"
           description="Обзор обучения, очередь проверки, сертификаты и события безопасности. Доступ только для ADMIN."
           meta={

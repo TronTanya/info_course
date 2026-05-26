@@ -32,13 +32,21 @@ describe("security/headers", () => {
     restoreEnv(snap);
   });
 
-  it("defaults to report-only CSP in production security", () => {
+  it("defaults to enforce CSP in production security", () => {
     process.env.ENVIRONMENT = "production";
     delete process.env.CSP_MODE;
+    expect(resolveCspMode()).toBe("enforce");
+    const names = securityHeadersList().map((h) => h.key);
+    expect(names).toContain("Content-Security-Policy");
+    expect(names).not.toContain("Content-Security-Policy-Report-Only");
+  });
+
+  it("report-only CSP when CSP_MODE=report-only (rollback)", () => {
+    process.env.ENVIRONMENT = "production";
+    process.env.CSP_MODE = "report-only";
     expect(resolveCspMode()).toBe("report-only");
     const names = securityHeadersList().map((h) => h.key);
     expect(names).toContain("Content-Security-Policy-Report-Only");
-    expect(names).not.toContain("Content-Security-Policy");
   });
 
   it("enforce mode sets Content-Security-Policy", () => {

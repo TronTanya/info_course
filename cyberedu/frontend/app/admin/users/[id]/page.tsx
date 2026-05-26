@@ -225,7 +225,7 @@ export default async function AdminUserDetailPage({ params }: Props) {
                   </div>
                 }
                 desktop={
-                  <table className="w-full min-w-[640px] border-collapse text-sm">
+                  <table className="w-full min-w-160 border-collapse text-sm">
                     <thead>
                       <tr className="border-b border-border text-left text-xs font-medium text-muted-foreground">
                         <th className="py-2 pr-4">Модуль</th>
@@ -278,7 +278,7 @@ export default async function AdminUserDetailPage({ params }: Props) {
                   </div>
                 }
                 desktop={
-                  <table className="w-full min-w-[560px] border-collapse text-sm">
+                  <table className="w-full min-w-140 border-collapse text-sm">
                     <thead>
                       <tr className="border-b border-border text-left text-xs font-medium text-muted-foreground">
                         <th className="py-2 pr-4">Тест</th>
@@ -332,7 +332,7 @@ export default async function AdminUserDetailPage({ params }: Props) {
                   </div>
                 }
                 desktop={
-                  <table className="w-full min-w-[720px] border-collapse text-sm">
+                  <table className="w-full min-w-180 border-collapse text-sm">
                     <thead>
                       <tr className="border-b border-border text-left text-xs font-medium text-muted-foreground">
                         <th className="py-2 pr-4">Задание</th>

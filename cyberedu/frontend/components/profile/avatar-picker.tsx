@@ -150,7 +150,7 @@ export function AvatarPicker({
             <span className="m-auto text-2xl font-semibold text-muted-foreground">{initials}</span>
           )}
         </div>
-        <p className="max-w-[12rem] text-center text-xs text-muted-foreground sm:text-left">
+        <p className="max-w-48 text-center text-xs text-muted-foreground sm:text-left">
           {persistMode === "api"
             ? "Пресет и загрузка сохраняются сразу. Остальные поля — через кнопку внизу формы."
             : "Предпросмотр здесь; сохранение в профиль — кнопкой «Сохранить изменения»."}
@@ -185,7 +185,7 @@ export function AvatarPicker({
                   aria-pressed={showRing}
                   onClick={() => handlePresetClick(path)}
                   className={cn(
-                    "relative aspect-square overflow-hidden rounded-xl border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    "relative aspect-square overflow-hidden rounded-xl border-2 transition-all focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
                     showRing ? "border-primary ring-2 ring-primary/25" : "border-transparent hover:border-border",
                   )}
                 >

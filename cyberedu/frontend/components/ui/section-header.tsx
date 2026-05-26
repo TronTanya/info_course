@@ -25,11 +25,11 @@ export function SectionHeader({
   return (
     <div className={cn("flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between", className)}>
       <div className="min-w-0 space-y-1.5">
-        {eyebrow ? <p className="typo-eyebrow text-primary">{eyebrow}</p> : null}
-        <h2 id={titleId} className={cn("typo-h2 text-balance", accent && "ce-section-accent")}>
+        {eyebrow ? <p className="ds-typo-eyebrow">{eyebrow}</p> : null}
+        <h2 id={titleId} className={cn("ds-typo-h2 text-balance", accent && "ce-section-accent")}>
           {title}
         </h2>
-        {description ? <p className="typo-body-muted max-w-2xl text-pretty">{description}</p> : null}
+        {description ? <p className="ds-typo-muted max-w-2xl text-pretty">{description}</p> : null}
       </div>
       {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
     </div>

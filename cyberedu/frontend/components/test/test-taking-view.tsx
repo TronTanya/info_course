@@ -115,10 +115,10 @@ export function TestTakingView({
           "max-md:top-14",
         )}
       >
-        <div className="ce-tech-grid pointer-events-none absolute inset-0 opacity-[0.06]" aria-hidden />
+        <div className="ce-tech-grid pointer-events-none absolute inset-0 opacity-6" aria-hidden />
         <div className="relative space-y-3">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-primary">{title}</p>
+            <p className="font-mono text-2.5 font-bold uppercase tracking-eyebrow-sm text-primary">{title}</p>
             <p className="text-xs text-muted-foreground">
               Проходной: <span className="font-medium text-foreground">{minScore}</span> б.
             </p>
@@ -195,7 +195,7 @@ export function TestTakingView({
               onChange={(e) => onText(q.id, e.target.value)}
               rows={6}
               maxLength={8000}
-              className="min-h-[140px] rounded-xl border-border bg-muted/20"
+              className="min-h-35 rounded-xl border-border bg-muted/20"
               aria-invalid={Boolean(error)}
               aria-describedby={error ? "test-form-error" : undefined}
             />

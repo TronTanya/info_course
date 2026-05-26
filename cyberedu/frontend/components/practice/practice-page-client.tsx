@@ -550,7 +550,7 @@ function TextAnswerForm({
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={8}
-          className="ce-terminal-input min-h-[160px] border-0 bg-transparent shadow-none focus-visible:ring-[var(--terminal-accent)]/40"
+          className="ce-terminal-input min-h-40 border-0 bg-transparent shadow-none focus-visible:ring-(--terminal-accent)/40"
         />
       </PracticeLabTerminal>
       <Button
@@ -743,7 +743,7 @@ function InteractiveForm({
                 <input
                   className={cn(
                     "w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30",
+                    "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/30",
                   )}
                   value={legacyAnswer}
                   onChange={(e) => setLegacyAnswer(e.target.value)}

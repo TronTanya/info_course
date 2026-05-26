@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FlaskConical } from "lucide-react";
 import type { ProfileCourseStats, ProfileRecentSubmission } from "@/lib/profile-course-stats";
+import { ProfileListPager } from "@/components/profile/profile-list-pager";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -15,8 +16,8 @@ const outcomeBadge: Record<
   ProfileRecentSubmission["outcome"],
   { label: string; variant: "success" | "danger" | "secondary" }
 > = {
-  passed: { label: "Passed", variant: "success" },
-  needs_improvement: { label: "Needs improvement", variant: "danger" },
+  passed: { label: "Зачёт", variant: "success" },
+  needs_improvement: { label: "Доработка", variant: "danger" },
   pending: { label: "На проверке", variant: "secondary" },
 };
 
@@ -39,7 +40,7 @@ export function ProfilePracticeResults({
           <h2 id="profile-practice-heading" className="font-display text-base font-semibold text-foreground sm:text-lg">
             Практические задания
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">Статусы сдач и последние submissions.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Статусы сдач и последние отправки.</p>
         </div>
       </div>
 
@@ -52,7 +53,7 @@ export function ProfilePracticeResults({
         <MetricCard
           label="Принято (последние)"
           value={recentSubmissions.length > 0 ? `${passedCount}/${recentSubmissions.length}` : "—"}
-          hint="по последним 5 отправкам"
+          hint="по последним отправкам в портфолио"
         />
       </div>
 
@@ -74,8 +75,10 @@ export function ProfilePracticeResults({
           }
         />
       ) : (
-        <ul className="mt-4 space-y-2">
-          {recentSubmissions.map((s) => {
+        <ProfileListPager
+          className="mt-4"
+          items={recentSubmissions}
+          renderItem={(s) => {
             const badge = outcomeBadge[s.outcome];
             return (
               <li key={`${s.moduleId}-${s.at}`}>
@@ -90,13 +93,13 @@ export function ProfilePracticeResults({
                   <div className="flex shrink-0 flex-wrap items-center gap-2">
                     <Badge variant={badge.variant}>{badge.label}</Badge>
                     <span className="text-xs text-muted-foreground">{s.statusLabel}</span>
-                    <span className="text-[10px] text-muted-foreground">{formatAt(s.at)}</span>
+                    <span className="text-2.5 text-muted-foreground">{formatAt(s.at)}</span>
                   </div>
                 </Link>
               </li>
             );
-          })}
-        </ul>
+          }}
+        />
       )}
     </SectionCard>
   );

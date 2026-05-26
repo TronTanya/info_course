@@ -28,13 +28,13 @@ export function LessonHeader({
   onAskMentor,
 }: LessonHeaderProps) {
   return (
-    <header className="space-y-4 border-b border-border/60 pb-6">
+    <header className="ce-learn-os-panel ce-learn-os-panel--glow space-y-4 rounded-2xl! border-0 p-4 sm:p-5">
       <nav className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground" aria-label="Навигация">
-        <Link href="/dashboard/course" className="hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm">
-          Карта курса
+        <Link href="/dashboard/course" className="font-mono text-2.5 hover:text-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring rounded-sm">
+          mission map
         </Link>
         <span aria-hidden>/</span>
-        <Link href={moduleHref} className="hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm">
+        <Link href={moduleHref} className="hover:text-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring rounded-sm">
           Модуль {moduleOrderNumber}
         </Link>
         <span aria-hidden>/</span>
@@ -42,7 +42,7 @@ export function LessonHeader({
       </nav>
 
       {moduleOrderNumber > 0 ? (
-        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+        <p className="font-mono text-2.5 font-bold uppercase tracking-eyebrow text-primary">
           MOD-{String(moduleOrderNumber).padStart(2, "0")}
         </p>
       ) : null}
@@ -59,7 +59,7 @@ export function LessonHeader({
       <div className="flex flex-wrap gap-2">
         <Badge variant={lessonCompleted ? "success" : "primary"}>{lessonCompleted ? "Изучено" : "Чтение"}</Badge>
         <Badge variant="outline">{difficulty}</Badge>
-        <Badge variant="outline" className="max-w-[14rem] truncate">
+        <Badge variant="outline" className="max-w-56 truncate">
           {moduleTitle}
         </Badge>
       </div>

@@ -135,7 +135,7 @@ function ActionTile({
       href={href}
       className={cn(
         "group flex flex-col rounded-xl border px-4 py-3 transition-colors",
-        "hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "hover:shadow-card focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
         primary
           ? "border-primary/35 bg-primary/10 hover:bg-primary/15"
           : "border-border/80 bg-card hover:border-primary/25 hover:bg-muted/30",

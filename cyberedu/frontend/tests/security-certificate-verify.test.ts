@@ -9,13 +9,12 @@ vi.mock("redis", () => ({
   createClient: vi.fn(() => ({
     connect: vi.fn().mockResolvedValue(undefined),
     on: vi.fn(),
-    incr: vi.fn(async (key: string) => {
+    eval: vi.fn(async (_script: string, options: { keys: string[] }) => {
+      const key = options.keys[0] ?? "unknown";
       const next = (redisCounts.get(key) ?? 0) + 1;
       redisCounts.set(key, next);
-      return next;
+      return [next, 60_000];
     }),
-    pExpire: vi.fn().mockResolvedValue(1),
-    pTTL: vi.fn().mockResolvedValue(60_000),
   })),
 }));
 

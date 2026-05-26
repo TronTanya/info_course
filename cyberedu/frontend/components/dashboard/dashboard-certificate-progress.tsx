@@ -5,8 +5,8 @@ import { Award, CheckCircle2, Circle } from "lucide-react";
 import type { ProfileCourseStats } from "@/lib/profile-course-stats";
 import { computeStepMetrics, getCertificateEligibility } from "@/lib/dashboard-ui";
 import type { CourseProgressModuleRow } from "@/lib/progress";
+import { CockpitWidget, CockpitWidgetHeader } from "@/components/dashboard/cockpit/cockpit-widget";
 import { Button } from "@/components/ui/button";
-import { PremiumCard } from "@/components/ui/premium-card";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { cn } from "@/lib/utils";
 
@@ -24,21 +24,23 @@ export function DashboardCertificateProgress({
   const modulesTotal = stats.totalModules || 1;
 
   return (
-    <PremiumCard variant="glow" padding="md" className="flex h-full min-w-0 flex-col" aria-labelledby="dash-cert-heading">
-      <div className="flex items-start gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary">
-          <Award className="size-5" aria-hidden />
-        </span>
-        <div className="min-w-0">
-          <p id="dash-cert-heading" className="typo-eyebrow text-primary">
-            Certificate progress
-          </p>
-          <h3 className="mt-1 font-display text-lg font-semibold text-balance text-foreground">{eligibility.title}</h3>
-          <p className="mt-1 break-words text-sm text-pretty text-muted-foreground [overflow-wrap:anywhere]">
-            {eligibility.description}
-          </p>
-        </div>
-      </div>
+    <CockpitWidget variant="accent" className="flex h-full min-w-0 flex-col" aria-labelledby="dash-cert-heading">
+      <CockpitWidgetHeader
+        titleId="dash-cert-heading"
+        eyebrow="Сертификат"
+        title="Сертификат"
+        action={
+          <span className="flex size-10 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary">
+            <Award className="size-5" aria-hidden />
+          </span>
+        }
+      />
+      <h3 className="font-heading text-lg font-semibold text-balance text-foreground">
+        {eligibility.title}
+      </h3>
+      <p className="mt-1 text-sm text-pretty text-muted-foreground wrap-anywhere">
+        {eligibility.description}
+      </p>
 
       {!stats.certificateIssued ? (
         <ProgressBar
@@ -60,7 +62,7 @@ export function DashboardCertificateProgress({
             ) : (
               <Circle className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
             )}
-            <span className={cn("min-w-0 break-words", req.met ? "text-foreground" : "text-muted-foreground")}>
+            <span className={cn("min-w-0 wrap-break-word", req.met ? "text-foreground" : "text-muted-foreground")}>
               {req.label}
             </span>
           </li>
@@ -76,6 +78,6 @@ export function DashboardCertificateProgress({
           <Link href={eligibility.ctaHref}>{eligibility.ctaLabel}</Link>
         </Button>
       </div>
-    </PremiumCard>
+    </CockpitWidget>
   );
 }

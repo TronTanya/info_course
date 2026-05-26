@@ -63,7 +63,7 @@ export function CyberPageHeader({
 
 function ModuleProgressAside({ percent, stepsLabel }: { percent: number; stepsLabel: string }) {
   return (
-    <div className="w-full shrink-0 space-y-2 sm:max-w-[220px]">
+    <div className="w-full shrink-0 space-y-2 sm:max-w-55">
       <div className="flex items-end justify-between gap-2">
         <p className="text-xs font-medium text-muted-foreground">Прогресс модуля</p>
         <span className="text-sm font-semibold tabular-nums text-foreground">{percent}%</span>

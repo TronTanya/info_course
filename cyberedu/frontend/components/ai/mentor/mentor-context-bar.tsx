@@ -24,8 +24,8 @@ export function MentorContextBar({
   const chips = buildContextChips(kind, labels, moduleId);
 
   return (
-    <div className="ce-mentor-context border-b border-cyan/10 bg-cyan/[0.03] px-3 py-2.5">
-      <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-cyan/80">
+    <div className="ce-mentor-context border-b border-cyan/10 bg-cyan/3 px-3 py-2.5">
+      <div className="flex items-center gap-2 font-mono text-2.5 uppercase tracking-widest text-cyan/80">
         <Radio className="size-3 shrink-0" aria-hidden />
         <span>Контекст обучения</span>
         <span className="text-muted-foreground">·</span>
@@ -36,7 +36,7 @@ export function MentorContextBar({
           {chips.map((c) => (
             <li
               key={c.id}
-              className="inline-flex max-w-full items-center gap-1 truncate rounded-md border border-cyan/20 bg-background/60 px-2 py-0.5 text-[11px] text-foreground/90"
+              className="inline-flex max-w-full items-center gap-1 truncate rounded-md border border-cyan/20 bg-background/60 px-2 py-0.5 text-2.75 text-foreground/90"
               title={c.label}
             >
               <Crosshair className="size-3 shrink-0 text-cyan/70" aria-hidden />
@@ -45,7 +45,7 @@ export function MentorContextBar({
           ))}
         </ul>
       ) : (
-        <p className="mt-1.5 text-[11px] text-muted-foreground">Общие вопросы по курсу — без привязки к странице.</p>
+        <p className="mt-1.5 text-2.75 text-muted-foreground">Общие вопросы по курсу — без привязки к странице.</p>
       )}
     </div>
   );

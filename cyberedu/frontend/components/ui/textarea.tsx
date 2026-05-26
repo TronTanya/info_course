@@ -19,7 +19,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className="flex w-full flex-col gap-1.5">
         {label ? (
-          <label htmlFor={inputId} className="text-sm font-medium text-foreground">
+          <label htmlFor={inputId} className="ds-label">
             {label}
           </label>
         ) : null}
@@ -28,7 +28,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           className={cn(
-            "min-h-[120px] w-full px-3 py-2.5 text-base sm:text-sm",
+            "min-h-30 w-full px-3 py-2.5 text-base sm:text-sm",
             formControlClass,
             error && formControlErrorClass,
             className,

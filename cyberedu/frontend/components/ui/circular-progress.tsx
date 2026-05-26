@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 export type CircularProgressProps = {
   value: number;
   max?: number;
+  /** Diameter in px */
+  size?: number;
   strokeWidth?: number;
   className?: string;
   label?: string;
@@ -38,8 +40,8 @@ function ringCenterLayout(size: number, label: string) {
     showLabel,
     valueClass,
     labelClass: longLabel
-      ? "max-w-[92%] text-[8px] font-medium leading-[1.15] tracking-normal normal-case line-clamp-2"
-      : "max-w-[88%] truncate text-[10px] font-medium uppercase tracking-wide",
+      ? "max-w-[92%] text-2 font-medium leading-tight tracking-normal normal-case line-clamp-2"
+      : "max-w-[88%] truncate text-2.5 font-medium uppercase tracking-wide",
   };
 }
 

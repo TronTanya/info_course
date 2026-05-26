@@ -1,15 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Trophy } from "lucide-react";
 import { AchievementGlyph } from "@/components/achievements/achievement-glyph";
+import { CockpitWidget, CockpitWidgetHeader } from "@/components/dashboard/cockpit/cockpit-widget";
 import type { AchievementRow } from "@/lib/achievements";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export function DashboardAchievementsPreview({ rows }: { rows: AchievementRow[] }) {
-  const reduce = useReducedMotion();
   const unlocked = rows.filter((r) => r.unlocked);
   const locked = rows.filter((r) => !r.unlocked);
   const highlight = unlocked.length > 0 ? unlocked[unlocked.length - 1] : locked[0];
@@ -18,32 +17,28 @@ export function DashboardAchievementsPreview({ rows }: { rows: AchievementRow[] 
   const unlockedCount = unlocked.length;
 
   return (
-    <motion.section
-      className="ce-learn-panel ce-glass rounded-2xl p-5 shadow-card sm:p-6"
-      initial={reduce ? false : { opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      aria-labelledby="dash-achievements-title"
-    >
+    <CockpitWidget variant="default" delay={0.1} aria-labelledby="dash-achievements-title">
+      <CockpitWidgetHeader
+        titleId="dash-achievements-title"
+        eyebrow="Награды"
+        title="Достижения"
+        action={
+          <Badge variant="outline" className="tabular-nums text-2.5">
+            {unlockedCount}/{rows.length}
+          </Badge>
+        }
+      />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-start gap-4">
           <span
             className={cn(
-              "flex size-16 shrink-0 items-center justify-center rounded-2xl p-0.5 ring-1",
+              "flex size-16 shrink-0 items-center justify-center rounded-2xl p-0.5 ring-1 shadow-ce-glow-soft",
               highlight.unlocked ? "bg-primary/12 ring-primary/25" : "bg-muted/60 ring-border",
             )}
           >
             <AchievementGlyph slug={highlight.slug} unlocked={highlight.unlocked} size="lg" />
           </span>
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <p id="dash-achievements-title" className="text-xs font-semibold uppercase tracking-wider text-cyan">
-                Достижения
-              </p>
-              <Badge variant="outline" className="tabular-nums text-[10px]">
-                {unlockedCount}/{rows.length}
-              </Badge>
-            </div>
             <p className="mt-1 font-semibold text-foreground">
               {highlight.unlocked ? `Открыто: ${highlight.title}` : `Цель: ${highlight.title}`}
             </p>
@@ -53,7 +48,7 @@ export function DashboardAchievementsPreview({ rows }: { rows: AchievementRow[] 
           </div>
         </div>
         <Link
-          href="/dashboard/profile#achievements-heading"
+          href="/dashboard/profile?tab=achievements"
           className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-xl border border-primary/25 bg-primary/8 px-4 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary/12 sm:self-center"
         >
           <Trophy className="size-4" aria-hidden />
@@ -76,6 +71,6 @@ export function DashboardAchievementsPreview({ rows }: { rows: AchievementRow[] 
           </li>
         ))}
       </ul>
-    </motion.section>
+    </CockpitWidget>
   );
 }

@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { checkTestPrerequisites } from "@/lib/course-progress-guards";
 import { recalculateModuleProgress } from "@/lib/progress";
+import { normalizeIdempotencyKey, withIdempotency } from "@/lib/security/idempotency";
 import { enforceServerActionRateLimit } from "@/lib/security/server-action-rate-limit";
 import {
   buildSubmittedMap,
@@ -40,23 +41,13 @@ function revalidateTestPaths(moduleId: string) {
   revalidatePath("/dashboard/course");
 }
 
-export async function submitTestAttemptAction(input: {
+async function executeTestSubmit(input: {
+  userId: string;
   moduleId: string;
   testId: string;
   answers: SubmittedAnswerPayload[];
 }): Promise<SubmitTestState> {
-  const session = await auth();
-  if (!session?.user?.id) return { ok: false, error: "Требуется вход." };
-
-  const userId = session.user.id;
-  const rateLimit = await enforceServerActionRateLimit("testSubmit", userId, {
-    exceeded: "Слишком много отправок теста. Подождите и попробуйте позже.",
-  });
-  if (!rateLimit.allowed) {
-    return { ok: false, error: rateLimit.error };
-  }
-
-  const { moduleId, testId, answers } = input;
+  const { userId, moduleId, testId, answers } = input;
 
   const pre = await checkTestPrerequisites(userId, moduleId);
   if (!pre.ok) {
@@ -161,4 +152,39 @@ export async function submitTestAttemptAction(input: {
   const correctCount = review.filter((r) => r.isCorrect === true).length;
 
   return { ok: true, score, maxScore, passed, percent, correctCount, review };
+}
+
+export async function submitTestAttemptAction(input: {
+  moduleId: string;
+  testId: string;
+  answers: SubmittedAnswerPayload[];
+  idempotencyKey?: string;
+}): Promise<SubmitTestState> {
+  const session = await auth();
+  if (!session?.user?.id) return { ok: false, error: "Требуется вход." };
+
+  const userId = session.user.id;
+  const rateLimit = await enforceServerActionRateLimit("testSubmit", userId, {
+    exceeded: "Слишком много отправок теста. Подождите и попробуйте позже.",
+  });
+  if (!rateLimit.allowed) {
+    return { ok: false, error: rateLimit.error };
+  }
+
+  const { moduleId, testId, answers, idempotencyKey: rawKey } = input;
+  const idempotencyKey = normalizeIdempotencyKey(rawKey);
+
+  try {
+    if (idempotencyKey) {
+      return await withIdempotency({
+        scope: `test-submit:${userId}:${testId}`,
+        idempotencyKey,
+        run: () => executeTestSubmit({ userId, moduleId, testId, answers }),
+      });
+    }
+    return await executeTestSubmit({ userId, moduleId, testId, answers });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Не удалось отправить тест.";
+    return { ok: false, error: msg };
+  }
 }

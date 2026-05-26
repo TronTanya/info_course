@@ -25,6 +25,7 @@ export function DashboardRoadmap({
   return (
     <section className="space-y-5" aria-labelledby="dash-roadmap-heading">
       <SectionHeader
+        titleId="dash-roadmap-heading"
         title="Карта курса"
         description="Модули по порядку: завершённые, текущий и заблокированные."
         actions={
@@ -33,9 +34,6 @@ export function DashboardRoadmap({
           </Button>
         }
       />
-      <h2 id="dash-roadmap-heading" className="sr-only">
-        Карта курса
-      </h2>
       <ol className="grid list-none gap-3 p-0 sm:grid-cols-2">
         {modules.map((row, index) => {
           const status = getUiStatus(row);
@@ -92,12 +90,12 @@ export function DashboardRoadmap({
               className={cn(
                 cyber.panel,
                 "card-gradient p-4 transition-[transform,box-shadow] duration-200",
-                clickable && "hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)] motion-reduce:hover:translate-y-0",
+                clickable && "hover:-translate-y-0.5 hover:shadow-card-hover motion-reduce:hover:translate-y-0",
                 !clickable && "opacity-95",
               )}
             >
               {clickable ? (
-                <Link href={action.href} className="flex gap-3 outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl">
+                <Link href={action.href} className="flex gap-3 outline-hidden focus-visible:ring-2 focus-visible:ring-ring rounded-xl">
                   {inner}
                 </Link>
               ) : (

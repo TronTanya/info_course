@@ -46,9 +46,9 @@ export function TestAnswerOption({
         }
       }}
       className={cn(
-        "ce-test-option flex w-full min-h-[52px] items-start gap-3 rounded-xl border px-4 py-3.5 text-left text-base leading-snug",
+        "ce-test-option flex w-full min-h-13 items-start gap-3 rounded-xl border px-4 py-3.5 text-left text-base leading-snug",
         stateInteractiveClass,
-        selected && !isResult && "ce-test-option--selected border-primary/50 bg-primary/10 shadow-[0_0_0_1px_color-mix(in_oklab,var(--primary)_25%,transparent)]",
+        selected && !isResult && "ce-test-option--selected border-primary/50 bg-primary/10 ring-1 ring-primary/25",
         !selected && !isResult && "border-border bg-muted/25 hover:border-primary/30 hover:bg-muted/40",
         resultTone === "correct" && "ce-test-option--correct border-success/45 bg-success/10",
         resultTone === "incorrect" && selected && "ce-test-option--incorrect border-danger/45 bg-danger/10",

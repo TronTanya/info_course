@@ -131,7 +131,7 @@ export function PhishingEmailTask({ moduleId, practicalTaskId, disabled, onResul
       <PracticeEmailPanel header="Учебное письмо" badge="Имитация · без реальных сервисов">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm">
           <span className="font-medium text-muted-foreground">От кого:</span>
-          {chip("sender", <span className="font-mono text-[13px] sm:text-sm">security@colledge-support.ru</span>)}
+          {chip("sender", <span className="font-mono text-3.25 sm:text-sm">security@colledge-support.ru</span>)}
         </div>
 
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm">
@@ -146,7 +146,7 @@ export function PhishingEmailTask({ moduleId, practicalTaskId, disabled, onResul
             {chip("password_request", <>подтвердите логин и пароль</>)}.
           </p>
           <p className="mt-4 text-xs font-medium text-muted-foreground">Ссылка</p>
-          <p className="mt-1 break-all font-mono text-[13px]">
+          <p className="mt-1 break-all font-mono text-3.25">
             {chip(
               "suspicious_link",
               <span className="underline decoration-dotted underline-offset-2">http://college-login-security.example.com</span>,

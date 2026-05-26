@@ -32,7 +32,7 @@ describe("seed password preservation", () => {
       createdAt: new Date("2026-01-01T00:00:00.000Z"),
     });
     expect(payload).not.toHaveProperty("passwordHash");
-    expect(Object.keys(payload).sort()).toEqual(["createdAt", "role"]);
+    expect(Object.keys(payload).sort()).toEqual(["createdAt", "emailVerified", "role"]);
   });
 
   it("student update payload never contains passwordHash", () => {

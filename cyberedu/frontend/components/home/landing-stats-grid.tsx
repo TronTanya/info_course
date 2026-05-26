@@ -26,7 +26,7 @@ export function LandingStatsGrid({ stats }: { stats: LandingStatsData }) {
         <StaggerItem key={key}>
           <div
             className={cn(
-              "ce-card-glow flex flex-col items-center rounded-2xl border border-border/60 bg-card/70 px-5 py-8 text-center shadow-sm backdrop-blur-sm",
+              "ds-card flex flex-col items-center rounded-2xl px-5 py-8 text-center shadow-card",
               "ring-1 ring-inset ring-white/50 dark:ring-cyan/10",
             )}
           >

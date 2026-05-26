@@ -57,7 +57,7 @@ export default async function TestPage({ params }: Props) {
         <LearnPageShell>
           <AppPageShell width="narrow">
             <StudentPageHeader
-              eyebrow="Assessment"
+              eyebrow="Контроль"
               title={`Тест · ${mod?.title ?? "модуль"}`}
               backHref={isCourseLevel ? courseHref : lessonHref}
               backLabel={isCourseLevel ? "← К курсу" : "← К лекции"}
@@ -123,7 +123,7 @@ export default async function TestPage({ params }: Props) {
                   ? moduleStepBreadcrumbs(moduleId, mod.orderNumber, "Тест")
                   : undefined
               }
-              eyebrow="Assessment"
+              eyebrow="Контроль"
               title={`Тест · ${mod?.title ?? "модуль"}`}
               backHref={`/dashboard/course/${moduleId}`}
               backLabel="← К модулю"
@@ -202,7 +202,7 @@ export default async function TestPage({ params }: Props) {
               ? moduleStepBreadcrumbs(moduleId, mod.orderNumber, "Тест")
               : undefined
           }
-          eyebrow="Cyber Lab · Тесты"
+          eyebrow="Лаборатория · Тесты"
           title={mod?.title ? `Тесты · ${mod.title}` : "Тесты модуля"}
           description="Контроль знаний перед практикой. Варианты ответов перемешиваются при каждом запуске."
           backHref={`/dashboard/course/${moduleId}`}

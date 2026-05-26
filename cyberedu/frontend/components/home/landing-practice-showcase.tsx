@@ -56,7 +56,7 @@ export function LandingPracticeShowcase() {
                 title={lab.title}
                 description={lab.description}
               >
-                <span className="inline-flex rounded-lg border border-primary/20 bg-primary/8 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                <span className="inline-flex rounded-lg border border-primary/20 bg-primary/8 px-2 py-0.5 text-2.5 font-semibold uppercase tracking-wide text-primary">
                   {lab.tag}
                 </span>
               </LandingFeatureCard>

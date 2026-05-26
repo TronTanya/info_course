@@ -110,7 +110,7 @@ export function LogAnalysisTask({ moduleId, practicalTaskId, disabled, onResult 
       </PracticeTaskBanner>
 
       <PracticeTaskStep title="Фрагмент журнала аутентификации">
-        <pre className="ce-terminal-body max-h-72 overflow-auto rounded-2xl border border-[var(--terminal-border)] bg-[var(--terminal-bg)] p-4 text-[11px] whitespace-pre shadow-inner sm:text-xs">
+        <pre className="ce-terminal-body max-h-72 overflow-auto rounded-2xl border border-(--terminal-border) bg-(--terminal-bg) p-4 text-2.75 whitespace-pre shadow-inner sm:text-xs">
           {MINI_SOC_LOG_LINES.join("\n")}
         </pre>
       </PracticeTaskStep>

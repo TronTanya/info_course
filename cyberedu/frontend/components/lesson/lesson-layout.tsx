@@ -5,6 +5,7 @@ import { useState } from "react";
 import { PanelRightOpen } from "lucide-react";
 import type { LearningNavModuleItem, LearningNavStepItem } from "@/lib/learning-nav";
 import { LearnPageShell } from "@/components/learn/learn-chrome";
+import { LearnFloatNav } from "@/components/learn/learn-float-nav";
 import { LearningSidebar, LearningSidebarPanel } from "@/components/learn/learning-sidebar";
 import { MobileDrawer } from "@/components/layout/mobile-drawer";
 import { Button } from "@/components/ui/button";
@@ -45,11 +46,11 @@ export function LessonLayout({
           </Button>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(12rem,14rem)_minmax(0,1fr)_minmax(15rem,18rem)] lg:gap-8 xl:grid-cols-[14rem_minmax(0,42rem)_18rem] xl:justify-center">
+        <div className="grid gap-6 lg:grid-cols-[minmax(12rem,14rem)_minmax(0,1fr)_minmax(15rem,18rem)] lg:gap-8">
           <aside className="hidden lg:block">
             <div
               className={cn(
-                cyber.panelStatic,
+                cyber.learnOsSidebar,
                 "sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto p-3",
               )}
             >
@@ -57,7 +58,9 @@ export function LessonLayout({
             </div>
           </aside>
 
-          <div className="lesson-prose min-w-0">{children}</div>
+          <div className="ce-learn-reader-column min-w-0">
+            <div className="ce-learn-reader ce-learn-reader-surface lesson-prose w-full">{children}</div>
+          </div>
 
           <aside className="hidden lg:block">
             <div className="sticky top-24 max-h-[calc(100vh-7rem)] space-y-4 overflow-y-auto">{aside}</div>
@@ -69,8 +72,10 @@ export function LessonLayout({
         {aside}
       </MobileDrawer>
 
+      <LearnFloatNav steps={steps} className="hidden xl:flex" />
+
       <div
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-border/80 bg-background/95 p-3 backdrop-blur-md lg:hidden"
+        className="ce-mobile-sticky-cta fixed inset-x-0 bottom-0 z-30 p-3 lg:hidden"
         style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0px))" }}
       >
         {mobileCta}

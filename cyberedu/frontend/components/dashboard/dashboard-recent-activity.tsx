@@ -32,10 +32,11 @@ export function DashboardRecentActivity({
 }) {
   return (
     <section className="space-y-4" aria-labelledby="dash-activity-heading">
-      <SectionHeader title="Недавняя активность" description="Последние лекции, тесты и практика." />
-      <h2 id="dash-activity-heading" className="sr-only">
-        Недавняя активность
-      </h2>
+      <SectionHeader
+        titleId="dash-activity-heading"
+        title="Недавняя активность"
+        description="Последние лекции, тесты и практика."
+      />
       {items.length === 0 ? (
         <EmptyState
           compact

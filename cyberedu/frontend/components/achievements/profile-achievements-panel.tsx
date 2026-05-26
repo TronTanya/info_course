@@ -62,7 +62,7 @@ export function ProfileAchievementsPanel({ rows }: { rows: AchievementRow[] }) {
               className={cn(
                 "ce-achievement-card relative flex h-full flex-col overflow-hidden rounded-2xl border p-4 pt-5 transition-shadow duration-300",
                 a.unlocked
-                  ? "border-primary/35 bg-linear-to-b from-primary/[0.1] to-card shadow-(--shadow-card-hover) ring-1 ring-primary/15"
+                  ? "border-primary/35 bg-linear-to-b from-primary/10 to-card shadow-card-hover ring-1 ring-primary/15"
                   : "border-border/70 bg-muted/15 opacity-95 ring-1 ring-inset ring-border/40",
               )}
             >
@@ -84,11 +84,11 @@ export function ProfileAchievementsPanel({ rows }: { rows: AchievementRow[] }) {
                   </p>
                 </div>
                 {a.unlocked && a.unlockedAt ? (
-                  <p className="mt-auto text-[10px] font-medium uppercase tracking-wide text-primary/90">
+                  <p className="mt-auto text-2.5 font-medium uppercase tracking-wide text-primary/90">
                     {formatUnlockedAt(a.unlockedAt)}
                   </p>
                 ) : (
-                  <p className="mt-auto text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Закрыто</p>
+                  <p className="mt-auto text-2.5 font-medium uppercase tracking-wide text-muted-foreground">Закрыто</p>
                 )}
               </div>
             </article>

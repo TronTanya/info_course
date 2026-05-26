@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
+import { accordionVariants } from "@/lib/design-system/components";
 import { cn } from "@/lib/utils";
 
 /** Боковая панель модуля на узких экранах — аккордеон вместо третьей колонки. */
@@ -15,15 +16,16 @@ export function LearningAsideMobile({
   return (
     <details
       className={cn(
-        "ce-mobile-accordion group rounded-2xl border border-border/80 bg-card/80 open:shadow-card xl:hidden",
+        accordionVariants.root,
+        "ce-mobile-accordion group open:shadow-card-hover xl:hidden",
         className,
       )}
     >
-      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-base font-semibold text-foreground [&::-webkit-details-marker]:hidden">
+      <summary className={cn(accordionVariants.trigger, "list-none text-base [&::-webkit-details-marker]:hidden")}>
         <span>{title}</span>
-        <ChevronDown className="size-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+        <ChevronDown className={cn("size-5 shrink-0 text-muted-foreground", accordionVariants.chevron, "group-open:rotate-180")} aria-hidden />
       </summary>
-      <div className="min-w-0 border-t border-border/60 p-4">{children}</div>
+      <div className={cn(accordionVariants.panel, "min-w-0 border-t border-white/6")}>{children}</div>
     </details>
   );
 }

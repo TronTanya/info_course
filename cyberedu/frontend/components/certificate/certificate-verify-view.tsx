@@ -44,15 +44,16 @@ export function CertificateVerifyView({ result }: { result: CertificateVerifyRes
 
   return (
     <VerifyShell>
-      <article className="ce-cert-verify-card w-full max-w-lg overflow-hidden rounded-2xl border border-success/30 bg-card shadow-(--shadow-card)">
+      <article className="ce-cert-verify-card w-full max-w-lg overflow-hidden rounded-2xl border border-success/30 bg-card shadow-card">
         <div className="border-b border-success/20 bg-success/8 px-6 py-5">
+          <h2 className="sr-only">Результат проверки</h2>
           <div className="flex items-center gap-3">
             <span className="flex size-12 items-center justify-center rounded-xl bg-success/15 text-success">
               <ShieldCheck className="size-6" aria-hidden />
             </span>
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-widest text-success">CyberEdu Academy</p>
-              <h1 className="font-display text-xl font-semibold text-foreground">Проверка сертификата</h1>
+              <p className="font-mono text-2.5 uppercase tracking-widest text-success">CyberEdu Academy</p>
+              <h2 className="font-display text-xl font-semibold text-foreground">Проверка сертификата</h2>
             </div>
           </div>
           <Badge variant="success" className="mt-4 gap-1.5 px-3 py-1">
@@ -102,7 +103,10 @@ function VerifyShell({ children }: { children: ReactNode }) {
   return (
     <div className="ce-cert-verify-page flex min-h-screen flex-col items-center justify-center px-4 py-16">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_center,color-mix(in_oklab,var(--primary)_8%,transparent),transparent_70%)]" aria-hidden />
-      <div className="relative z-10 flex w-full max-w-lg flex-col items-center gap-6">{children}</div>
+      <div className="relative z-10 flex w-full max-w-lg flex-col items-center gap-6">
+        <h1 className="font-display text-center text-xl font-semibold text-foreground">Проверка сертификата</h1>
+        {children}
+      </div>
     </div>
   );
 }

@@ -84,7 +84,7 @@ export function DashboardCourseSnapshot({
             href="/dashboard/certificate"
             className={cn(
               "inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-primary/25 bg-primary/10 px-4 text-sm font-semibold text-primary",
-              "hover:bg-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "hover:bg-primary/15 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
             )}
           >
             <Award className="size-4" aria-hidden />
@@ -92,8 +92,8 @@ export function DashboardCourseSnapshot({
           </Link>
           {achievementsTotal > 0 ? (
             <Link
-              href="/dashboard/profile#achievements-heading"
-              className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-border px-4 text-sm font-medium text-foreground hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              href="/dashboard/profile?tab=achievements"
+              className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-border px-4 text-sm font-medium text-foreground hover:bg-muted/50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
             >
               Достижения
             </Link>
@@ -116,12 +116,12 @@ function StepStat({
   label: string;
 }) {
   return (
-    <div className="rounded-xl border border-border/70 bg-muted/20 px-2 py-2 text-center">
+    <div className="ce-polish-inset px-2 py-2 text-center">
       <Icon className="mx-auto size-4 text-primary" aria-hidden />
       <dd className="mt-1 text-sm font-semibold tabular-nums text-foreground">
         {total > 0 ? `${done}/${total}` : "—"}
       </dd>
-      <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</dt>
+      <dt className="text-2.5 uppercase tracking-wide text-muted-foreground">{label}</dt>
     </div>
   );
 }

@@ -21,10 +21,10 @@ export function AdminTableCard({
 }) {
   return (
     <div
-      className={cn(cyber.adminTable, className)}
+      className={cn(cyber.adminTable, "ce-admin-table-card", className)}
     >
       {title || description || headerActions ? (
-        <div className="flex flex-col gap-3 border-b border-border/60 bg-primary/[0.04] px-4 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+        <div className="flex flex-col gap-3 border-b border-border/60 bg-primary/4 px-4 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
           <div className="min-w-0">
             {title ? <h2 className="typo-h3">{title}</h2> : null}
             {description ? <p className="typo-caption mt-1">{description}</p> : null}

@@ -69,7 +69,7 @@ export function ProfileUserCard({
   const learningStatus = stats ? buildProfileLearningStatus(stats) : "Программа курса ещё не подключена";
 
   return (
-    <header className="ce-profile-user-card ce-user-profile-hero hero-glow ce-cyber-hero overflow-x-clip p-4 sm:p-8 lg:p-10">
+    <header className="ce-profile-user-card ce-user-profile-hero ce-cyber-hero overflow-x-clip rounded-4xl border border-border bg-card p-4 shadow-card sm:p-8 lg:p-10">
       <div className="ce-user-profile-hero-blob" aria-hidden />
       <div className="ce-user-profile-hero-grid" aria-hidden />
       <div className="ce-user-profile-hero-vignette" aria-hidden />
@@ -98,7 +98,7 @@ export function ProfileUserCard({
 
           <div className="min-w-0 flex-1 space-y-5 text-center sm:text-left">
             <div className="space-y-2">
-              <p className="typo-eyebrow text-primary">Progress portfolio</p>
+              <p className="typo-eyebrow text-primary">Портфолио прогресса</p>
               <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                 <Badge variant="secondary" className="gap-1 font-semibold ring-1 ring-border/60">
                   <Sparkles className="size-3.5 text-warning" aria-hidden />

@@ -10,7 +10,7 @@ export type ProgressBarProps = {
 };
 
 const toneBar: Record<NonNullable<ProgressBarProps["tone"]>, string> = {
-  default: "bg-primary shadow-[0_0_12px_color-mix(in_oklab,var(--primary)_45%,transparent)]",
+  default: "bg-primary",
   success: "bg-success",
   warning: "bg-warning",
   danger: "bg-danger",

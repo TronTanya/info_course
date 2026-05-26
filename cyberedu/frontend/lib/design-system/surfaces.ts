@@ -1,21 +1,26 @@
 /**
- * Именованные CSS-классы поверхностей (определения в app/globals.css + design-tokens.css).
+ * Named surface classes — definitions in app/design-system.css + app/globals.css
  */
 export const surfaces = {
-  glass: "ce-glass",
+  glass: "ds-glass",
+  glassStrong: "ds-glass ds-glass-strong",
+  glassSurface: "ds-glass-surface",
+  glassElevated: "ds-glass-surface ds-glass-surface--elevated",
+  card: "ds-card",
+  cardGlow: "ds-card ds-card--glow",
+  cardInteractive: "ds-card ds-card--interactive",
+  widget: "ds-widget",
+  widgetAccent: "ds-widget ds-widget--accent",
+  widgetHero: "ds-widget ds-widget--hero",
+  /** Legacy (globals.css) */
   premiumCard: "ce-premium-card",
   premiumCardGlow: "ce-premium-card ce-premium-card--glow",
-  premiumCardAccent: "ce-premium-card ce-premium-card--accent",
   premiumCardInteractive: "ce-premium-card ce-premium-card--interactive",
   missionPanel: "ce-mission-panel",
   metricCard: "ce-metric-card",
   metricCardAccent: "ce-metric-card ce-metric-card--accent",
-  metricCardCyan: "ce-metric-card ce-metric-card--cyan",
   cyberBadge: "ce-cyber-badge",
   cyberBadgeGlow: "ce-cyber-badge ce-cyber-badge--glow",
-  statusPill: "ce-status-pill",
-  sectionAccent: "ce-section-accent",
-  progressRingGlow: "ce-progress-ring-glow",
 } as const;
 
 export type SurfaceKey = keyof typeof surfaces;

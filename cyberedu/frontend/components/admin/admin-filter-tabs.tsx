@@ -28,7 +28,7 @@ export function AdminFilterTabs({ tabs, active, className }: { tabs: AdminFilter
             className={cn(
               "shrink-0 snap-start rounded-xl px-3.5 py-2.5 text-sm font-semibold whitespace-nowrap transition-all motion-reduce:transition-none sm:whitespace-normal",
               isActive
-                ? "bg-primary text-primary-foreground shadow-(--shadow-card) ring-1 ring-primary/30"
+                ? "bg-primary text-primary-foreground shadow-card ring-1 ring-primary/30"
                 : "border border-primary/15 bg-card/90 text-foreground hover:border-primary/30 hover:bg-primary/5",
             )}
           >

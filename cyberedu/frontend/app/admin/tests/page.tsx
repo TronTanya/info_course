@@ -74,7 +74,7 @@ export default async function AdminTestsPage() {
                 </div>
               }
               desktop={
-                <table className="w-full min-w-[640px] text-left text-sm">
+                <table className="w-full min-w-160 text-left text-sm">
                   <thead className="sticky top-0 z-10 border-b border-border bg-muted/80 text-xs uppercase text-muted-foreground backdrop-blur-sm">
                     <tr>
                       <th scope="col" className="px-4 py-3 font-medium">

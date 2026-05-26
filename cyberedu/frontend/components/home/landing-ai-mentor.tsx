@@ -34,6 +34,24 @@ const modes = [
   },
 ] as const;
 
+export function AiMentorPreview() {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      {modes.map((m) => {
+        const Icon = m.icon;
+        return (
+          <LandingFeatureCard
+            key={m.title}
+            icon={<Icon className="size-5" strokeWidth={1.75} aria-hidden />}
+            title={m.title}
+            description={m.description}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 export function LandingAiMentor() {
   return (
     <LandingSection
@@ -62,7 +80,7 @@ export function LandingAiMentor() {
           })}
         </StaggerReveal>
 
-        <LabTerminal title="mentor@cyberedu" glow className="lg:sticky lg:top-24">
+        <LabTerminal title="mentor@cyberedu" className="lg:sticky lg:top-24">
           {modes.map((m, i) => (
             <p key={m.title} className={i > 0 ? "mt-2" : undefined}>
               <span className="ce-terminal-dim"># {m.title}</span>

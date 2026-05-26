@@ -30,7 +30,7 @@ export function CertificatePreviewCard({
       <div className="relative space-y-6">
         <header className="flex flex-wrap items-start justify-between gap-4 border-b border-amber-900/10 bg-amber-50/60 px-3 py-4 pb-5">
           <div>
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-700">
+            <p className="font-mono text-2.5 font-semibold uppercase tracking-eyebrow text-amber-700">
               Официальный документ
             </p>
             <p className="mt-1 font-display text-lg font-semibold tracking-wide text-slate-900 sm:text-xl">Сертификат</p>
@@ -40,7 +40,7 @@ export function CertificatePreviewCard({
         </header>
 
         <div className="space-y-3 text-center sm:text-left">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="text-2.5 font-semibold uppercase tracking-eyebrow-sm text-muted-foreground">
             Настоящим подтверждается, что
           </p>
           <p className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -53,11 +53,11 @@ export function CertificatePreviewCard({
 
         <dl className="grid gap-4 border-y border-border/50 py-5 sm:grid-cols-2">
           <div>
-            <dt className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Дата выдачи</dt>
+            <dt className="text-2.5 font-semibold uppercase tracking-wider text-muted-foreground">Дата выдачи</dt>
             <dd className="mt-1 text-sm font-medium text-foreground">{issuedLabel}</dd>
           </div>
           <div>
-            <dt className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <dt className="text-2.5 font-semibold uppercase tracking-wider text-muted-foreground">
               Регистрационный номер
             </dt>
             <dd className="mt-1 font-mono text-sm font-semibold tracking-tight text-foreground">{number}</dd>
@@ -78,7 +78,7 @@ export function CertificatePreviewCard({
             <Badge variant="secondary">Превью</Badge>
           )}
           {verifyUrl ? (
-            <p className="w-full truncate font-mono text-[10px] text-muted-foreground sm:w-auto sm:max-w-[14rem]">
+            <p className="w-full truncate font-mono text-2.5 text-muted-foreground sm:w-auto sm:max-w-56">
               <QrCode className="mr-1 inline size-3" aria-hidden />
               {verifyUrl.replace(/^https?:\/\//, "")}
             </p>

@@ -30,9 +30,9 @@ export function InfoCard({ title, children, label = "Информация", clas
         className,
       )}
     >
-      <p className={cn("font-mono text-[10px] font-semibold uppercase tracking-widest", labelTone[variant])}>{label}</p>
+      <p className={cn("font-mono text-2.5 font-semibold uppercase tracking-widest", labelTone[variant])}>{label}</p>
       <h3 className="mt-1.5 text-base font-semibold leading-snug text-foreground">{title}</h3>
-      <div className="mt-2 text-[15px] leading-relaxed text-muted-foreground">{children}</div>
+      <div className="mt-2 text-base leading-relaxed text-muted-foreground">{children}</div>
     </section>
   );
 }

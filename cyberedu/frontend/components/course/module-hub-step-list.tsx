@@ -35,17 +35,15 @@ export function ModuleHubStepList({ steps }: { steps: ModuleHubStepView[] }) {
           transition={{ delay: index * 0.08, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           whileHover={reduce ? undefined : { x: 4 }}
           className={cn(
-            "ce-learn-panel ce-card-glow rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5",
-            step.status === "available" && "ring-1 ring-cyan/20",
-            step.status === "completed" && "ring-1 ring-success/15",
+            "ce-learn-mission-card p-4 sm:p-5",
+            step.status === "available" && "ce-learn-mission-card--current ring-1 ring-primary/30",
+            step.status === "completed" && "ce-learn-mission-card--complete",
           )}
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0 space-y-1">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                  Шаг {step.order}
-                </span>
+                <span className="ce-learn-os-eyebrow text-muted-foreground">OP-{String(step.order).padStart(2, "0")}</span>
                 <Badge variant={badgeVariant[step.status] ?? "outline"}>{statusLabels[step.status]}</Badge>
               </div>
               <h3 className="text-base font-semibold text-foreground">{step.title}</h3>

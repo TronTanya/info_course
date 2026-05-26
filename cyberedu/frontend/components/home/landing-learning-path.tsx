@@ -18,7 +18,7 @@ export function LandingLearningPath() {
   return (
     <LandingSection
       id="learning-path"
-      eyebrow="Learning Path"
+      eyebrow="Траектория обучения"
       title="Дорожная карта курса"
       description="Последовательный маршрут: теория, тесты и практика в каждом модуле."
       headerClassName="max-w-2xl"
@@ -74,21 +74,21 @@ function PathNode({ step }: { step: (typeof steps)[number] }) {
   return (
     <div
       className={cn(
-        "group relative z-[1] flex flex-col items-center px-1 text-center",
+        "group relative z-1 flex flex-col items-center px-1 text-center",
         "transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:hover:translate-y-0",
       )}
     >
       <span
         className={cn(
-          "flex size-10 items-center justify-center rounded-xl border font-mono text-[10px] font-bold transition-[border-color,box-shadow] duration-200",
+          "flex size-10 items-center justify-center rounded-xl border font-mono text-2.5 font-bold transition duration-200",
           "highlight" in step && step.highlight
-            ? "border-primary/50 bg-primary/15 text-primary shadow-[var(--shadow-glow)]"
-            : "border-border bg-muted/80 text-foreground group-hover:border-primary/35 group-hover:shadow-[var(--shadow-glow)]",
+            ? "border-primary/50 bg-primary/15 text-primary shadow-sm"
+            : "border-border bg-muted/80 text-foreground group-hover:border-primary/35 group-hover:shadow-sm",
         )}
       >
         {step.code}
       </span>
-      <span className="mt-2 max-w-[6.5rem] text-xs font-semibold leading-tight text-foreground">{step.label}</span>
+      <span className="mt-2 max-w-26 text-xs font-semibold leading-tight text-foreground">{step.label}</span>
     </div>
   );
 }

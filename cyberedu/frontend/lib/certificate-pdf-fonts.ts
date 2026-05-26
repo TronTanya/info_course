@@ -16,7 +16,7 @@ let fontsRegistered = false;
 type PdfFontModule = {
   register: (descriptor: {
     family: string;
-    fonts: { src: string; fontWeight: number | string }[];
+    fonts: { src: string; fontWeight?: number }[];
   }) => void;
 };
 

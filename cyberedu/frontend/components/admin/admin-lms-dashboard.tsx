@@ -73,7 +73,7 @@ export function AdminLmsDashboard({
         </div>
       </section>
 
-      <SectionCard variant="lab" flushTitle className="overflow-hidden" id="students">
+      <SectionCard variant="lab" flushTitle className="overflow-x-clip" id="students">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-4 py-4 sm:px-6">
           <div className="flex items-center gap-3">
             <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -183,7 +183,7 @@ export function AdminLmsDashboard({
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       <Badge variant="secondary">{s.statusLabel}</Badge>
-                      <time className="text-[10px] tabular-nums text-muted-foreground">{formatAt(s.at)}</time>
+                      <time className="text-2.5 tabular-nums text-muted-foreground">{formatAt(s.at)}</time>
                     </div>
                   </Link>
                 </li>
@@ -265,7 +265,7 @@ export function AdminLmsDashboard({
                     <span className="font-mono font-medium text-foreground">{e.action}</span>
                     <Badge variant={severityBadge(e.severity)}>{e.severity}</Badge>
                     {e.sensitive ? (
-                      <Badge variant="outline" className="text-[10px]">
+                      <Badge variant="outline" className="text-2.5">
                         sensitive
                       </Badge>
                     ) : null}
@@ -307,7 +307,7 @@ function OverviewKpi({
       <div className="px-4 pb-4 pt-4">
         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
         <p className="mt-1 text-2xl font-bold tabular-nums text-foreground">{value}</p>
-        <p className="mt-0.5 text-[11px] text-muted-foreground">{hint}</p>
+        <p className="mt-0.5 text-2.75 text-muted-foreground">{hint}</p>
       </div>
     </article>
   );

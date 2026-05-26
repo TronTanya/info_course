@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { generateCertificatePdf, readCertificatePdfFile, writeCertificatePdfFile } from "@/lib/certificate";
 import { prisma } from "@/lib/db";
+import { getDbUserRole } from "@/lib/permissions";
 import { withAuthApiRoute } from "@/lib/security/api-guard";
 
 function safeFilenamePart(s: string): string {
@@ -11,13 +12,14 @@ type CertDownloadRouteCtx = { params: Promise<{ certificateId: string }> };
 
 export const GET = withAuthApiRoute(
   { requireAuth: true },
-  async ({ session, userId }, routeCtx: CertDownloadRouteCtx) => {
+  async ({ userId }, routeCtx: CertDownloadRouteCtx) => {
     const { certificateId } = await routeCtx.params;
     if (!certificateId?.trim()) {
       return new NextResponse("Не найдено.", { status: 404 });
     }
 
-    const isAdmin = session.user.role === "ADMIN";
+    const dbRole = await getDbUserRole(userId);
+    const isAdmin = dbRole === "ADMIN";
     const cert = await prisma.certificate.findFirst({
       where: isAdmin ? { id: certificateId } : { id: certificateId, userId },
       select: { id: true, userId: true, courseId: true, certificateNumber: true },

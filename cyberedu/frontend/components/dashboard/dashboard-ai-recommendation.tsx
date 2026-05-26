@@ -21,9 +21,9 @@ export function DashboardAiRecommendation({ recommendation }: { recommendation: 
         </span>
         <div className="min-w-0">
           <p id="dash-ai-heading" className="typo-eyebrow text-cyan">
-            AI recommendation
+            Рекомендация AI
           </p>
-          <p className="mt-2 break-words text-sm leading-relaxed text-pretty text-foreground">
+          <p className="mt-2 wrap-break-word text-sm leading-relaxed text-pretty text-foreground">
             {recommendation.message}
           </p>
         </div>

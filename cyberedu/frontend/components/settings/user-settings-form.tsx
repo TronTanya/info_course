@@ -123,9 +123,9 @@ export function UserSettingsForm({ defaults, email }: { defaults: UserSettingsDe
         </Alert>
       ) : null}
 
-      <section className="overflow-hidden rounded-3xl border border-border/70 bg-card/90 shadow-card ring-1 ring-secondary/10">
-        <div className="border-b border-border/60 bg-linear-to-r from-primary/[0.06] to-transparent px-6 py-5 sm:px-8">
-          <h2 className="text-lg font-semibold text-foreground">Личные данные</h2>
+      <section className="ce-polish-panel">
+        <div className="ce-settings-panel-header">
+          <h2 className="ds-typo-h3 text-lg">Личные данные</h2>
           <p className="mt-1 text-sm text-muted-foreground">Используются в сертификате и в интерфейсе курса.</p>
         </div>
         <div className="grid gap-5 p-6 sm:grid-cols-2 sm:gap-6 sm:p-8">
@@ -197,9 +197,9 @@ export function UserSettingsForm({ defaults, email }: { defaults: UserSettingsDe
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-3xl border border-border/70 bg-card/90 shadow-card ring-1 ring-secondary/10">
-        <div className="border-b border-border/60 bg-linear-to-r from-cyan/[0.06] to-transparent px-6 py-5 sm:px-8">
-          <h2 className="text-lg font-semibold text-foreground">Аватар</h2>
+      <section className="ce-polish-panel">
+        <div className="ce-settings-panel-header">
+          <h2 className="ds-typo-h3 text-lg">Аватар</h2>
           <p className="mt-1 text-sm text-muted-foreground">Выберите пресет, загрузите своё фото или сбросьте к инициалам.</p>
         </div>
         <div className="p-6 sm:p-8">
@@ -221,9 +221,9 @@ export function UserSettingsForm({ defaults, email }: { defaults: UserSettingsDe
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-3xl border border-border/70 bg-card/90 shadow-card ring-1 ring-secondary/10">
-        <div className="border-b border-border/60 bg-linear-to-r from-primary/[0.05] to-transparent px-6 py-5 sm:px-8">
-          <h2 className="text-lg font-semibold text-foreground">Интересы для AI</h2>
+      <section className="ce-polish-panel">
+        <div className="ce-settings-panel-header">
+          <h2 className="ds-typo-h3 text-lg">Интересы для AI</h2>
           <p className="mt-1 text-sm text-muted-foreground">По ним подстраиваются примеры и объяснения в лекциях.</p>
         </div>
         <div className="space-y-4 p-6 sm:p-8">
@@ -236,7 +236,7 @@ export function UserSettingsForm({ defaults, email }: { defaults: UserSettingsDe
             {INTEREST_TAG_OPTIONS.map((tag) => (
               <label
                 key={tag}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm shadow-sm transition-colors hover:border-primary/40 has-[:checked]:border-primary/50 has-[:checked]:bg-primary/10"
+                className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm shadow-sm transition-colors hover:border-primary/40 has-checked:border-primary/50 has-checked:bg-primary/10"
               >
                 <input
                   type="checkbox"
@@ -261,13 +261,13 @@ export function UserSettingsForm({ defaults, email }: { defaults: UserSettingsDe
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-3xl border border-border/70 bg-card/90 shadow-card ring-1 ring-secondary/10">
-        <div className="border-b border-border/60 bg-linear-to-r from-secondary/[0.06] to-transparent px-6 py-5 sm:px-8">
-          <h2 className="text-lg font-semibold text-foreground">Безопасность аккаунта</h2>
+      <section className="ce-polish-panel">
+        <div className="ce-settings-panel-header">
+          <h2 className="ds-typo-h3 text-lg">Безопасность аккаунта</h2>
           <p className="mt-1 text-sm text-muted-foreground">Вход и контактный email.</p>
         </div>
         <div className="space-y-4 p-6 sm:p-8">
-          <div className="rounded-2xl border border-border/60 bg-muted/20 px-4 py-3">
+          <div className="ce-polish-inset px-4 py-3">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Email</p>
             <p className="mt-1 text-sm font-medium text-foreground">{email}</p>
           </div>
@@ -284,7 +284,7 @@ export function UserSettingsForm({ defaults, email }: { defaults: UserSettingsDe
 
       <ActionPanel sticky className="mt-8">
         <p className="typo-body-muted">Изменения применяются после сохранения.</p>
-        <Button type="submit" variant="primary" size="lg" loading={pending} className="w-full min-w-0 sm:w-auto sm:min-w-[200px]">
+        <Button type="submit" variant="primary" size="lg" loading={pending} className="w-full min-w-0 sm:w-auto sm:min-w-50">
           Сохранить изменения
         </Button>
       </ActionPanel>

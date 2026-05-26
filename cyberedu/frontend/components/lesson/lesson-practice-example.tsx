@@ -17,7 +17,7 @@ export function LessonPracticeExample({ title, body }: { title: string; body: st
               Связь теории с тем, что встретится в лаборатории — без готовых ответов на задания.
             </p>
             <h3 className="mt-4 text-base font-semibold text-foreground">{title}</h3>
-            <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90">{body}</p>
+            <p className="mt-2 whitespace-pre-wrap text-base leading-relaxed text-foreground/90">{body}</p>
           </div>
         </div>
       </SectionCard>

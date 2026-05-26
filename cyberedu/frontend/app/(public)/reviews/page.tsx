@@ -3,6 +3,7 @@ import { ScrollReveal } from "@/components/effects/scroll-reveal";
 import { PublicReviewsGrid } from "@/components/reviews/public-reviews-grid";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { cyber } from "@/lib/design-system/cyber";
 import { buildPublicMetadata } from "@/lib/seo/build-page-metadata";
 import { getPublishedReviews } from "@/lib/reviews";
 
@@ -18,7 +19,7 @@ export default async function ReviewsPage() {
   return (
     <div className="space-y-10">
       <ScrollReveal>
-        <div className="hero-glow ce-learn-header rounded-2xl p-6 sm:p-8">
+        <div className={cyber.pageHeader}>
           <p className="typo-eyebrow text-primary">CyberEdu</p>
           <h1 className="typo-h1 mt-2">Отзывы</h1>
           <p className="mt-3 max-w-2xl text-muted-foreground">

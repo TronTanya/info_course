@@ -47,15 +47,15 @@ export async function LandingModules() {
             variant="default"
             flushTitle
             className={cn(
-              "group h-full transition-[transform,box-shadow,border-color] duration-200",
-              "hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-[var(--shadow-card-hover)]",
+              "group h-full transition-transform transition-shadow transition-colors duration-200",
+              "hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-card-hover",
             )}
           >
             <div className="flex items-start justify-between gap-3">
               <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 font-mono text-sm font-bold text-primary">
                 {String(mod.orderNumber).padStart(2, "0")}
               </span>
-              <span className="rounded-lg border border-border/80 bg-muted/40 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+              <span className="rounded-lg border border-border/80 bg-muted/40 px-2 py-0.5 text-2.5 font-medium uppercase tracking-wide text-muted-foreground">
                 модуль
               </span>
             </div>
@@ -66,7 +66,7 @@ export async function LandingModules() {
                 {moduleStats(mod)}
               </span>
             </p>
-            <div className="mt-4 flex flex-wrap gap-2 text-[10px] font-medium uppercase tracking-wide text-subtle-foreground">
+            <div className="mt-4 flex flex-wrap gap-2 text-2.5 font-medium uppercase tracking-wide text-subtle-foreground">
               <span className="inline-flex items-center gap-1 rounded-md border border-border/80 bg-muted/30 px-2 py-1">
                 <BookOpen className="size-3" aria-hidden /> лекция
               </span>

@@ -46,12 +46,12 @@ export function EmptyState({
       terminalLine={terminalLine}
       role="status"
       className={cn(
-        "ce-empty-state transition-[border-color,box-shadow] duration-200 hover:border-primary/35 hover:shadow-[0_0_32px_-12px_color-mix(in_oklab,var(--primary)_25%,transparent)]",
+        "ce-empty-state transition-colors transition-shadow duration-200 hover:border-primary/35 hover:shadow-card-hover",
         className,
       )}
     >
       <div className="flex flex-col items-center justify-center px-6 py-14 text-center">
-        <div className="mb-5 flex size-16 items-center justify-center rounded-2xl border border-primary/15 bg-primary/8 text-muted-foreground shadow-[var(--ce-glow-primary)] ring-1 ring-primary/20">
+        <div className="mb-5 flex size-16 items-center justify-center rounded-2xl border border-primary/15 bg-primary/8 text-muted-foreground ring-1 ring-primary/20">
           {icon ?? <Inbox className="size-7 opacity-70" aria-hidden />}
         </div>
         <h3 className="typo-h3 text-balance">{title}</h3>

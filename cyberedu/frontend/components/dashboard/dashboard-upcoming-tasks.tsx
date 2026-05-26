@@ -17,12 +17,10 @@ export function DashboardUpcomingTasks({ tasks }: { tasks: DashboardUpcomingTask
   return (
     <section className="space-y-4" aria-labelledby="dash-tasks-heading">
       <SectionHeader
+        titleId="dash-tasks-heading"
         title="Ближайшие шаги"
         description="Тесты и практика в текущей траектории. Дедлайны в платформе не заданы — двигайтесь в своём темпе."
       />
-      <h2 id="dash-tasks-heading" className="sr-only">
-        Ближайшие шаги
-      </h2>
       {tasks.length === 0 ? (
         <EmptyState
           compact

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { QuestionType } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/permissions";
+import { requireAdminAction } from "@/lib/security/admin-action-guard";
 
 export type AdminTestFormState = { error?: string };
 
@@ -95,7 +95,7 @@ export async function createTestAction(
   _prev: AdminTestFormState | null,
   formData: FormData,
 ): Promise<AdminTestFormState> {
-  await requireAdmin();
+  await requireAdminAction();
   const moduleId = String(formData.get("moduleId") ?? "").trim();
   const title = String(formData.get("title") ?? "").trim();
   const minScore = parseInt(String(formData.get("minScore") ?? "0"), 10);
@@ -116,7 +116,7 @@ export async function updateTestMetaAction(
   _prev: AdminTestFormState | null,
   formData: FormData,
 ): Promise<AdminTestFormState> {
-  await requireAdmin();
+  await requireAdminAction();
   const testId = String(formData.get("testId") ?? "").trim();
   const title = String(formData.get("title") ?? "").trim();
   const minScore = parseInt(String(formData.get("minScore") ?? "0"), 10);
@@ -135,7 +135,7 @@ export async function updateTestMetaAction(
 }
 
 export async function createQuestionAction(testId: string) {
-  await requireAdmin();
+  await requireAdminAction();
   const test = await prisma.test.findUnique({ where: { id: testId } });
   if (!test) redirect("/admin/tests");
 
@@ -169,7 +169,7 @@ export async function moveQuestionAction(
   questionId: string,
   direction: "up" | "down",
 ): Promise<{ ok?: boolean; error?: string }> {
-  await requireAdmin();
+  await requireAdminAction();
   const q = await prisma.question.findFirst({ where: { id: questionId, testId } });
   if (!q) return { error: "Вопрос не найден." };
 
@@ -194,7 +194,7 @@ export async function moveQuestionAction(
 }
 
 export async function deleteQuestionAction(questionId: string, testId: string) {
-  await requireAdmin();
+  await requireAdminAction();
   const q = await prisma.question.findFirst({ where: { id: questionId, testId } });
   if (!q) return;
 
@@ -203,7 +203,7 @@ export async function deleteQuestionAction(questionId: string, testId: string) {
 }
 
 export async function deleteAnswerAction(answerId: string, testId: string, questionId: string) {
-  await requireAdmin();
+  await requireAdminAction();
   const answer = await prisma.answer.findFirst({
     where: { id: answerId, questionId },
     include: { question: true },
@@ -229,7 +229,7 @@ export async function updateQuestionAction(
   _prev: AdminTestFormState | null,
   formData: FormData,
 ): Promise<AdminTestFormState> {
-  await requireAdmin();
+  await requireAdminAction();
   const questionId = String(formData.get("questionId") ?? "").trim();
   const testId = String(formData.get("testId") ?? "").trim();
   const questionText = String(formData.get("questionText") ?? "").trim();
@@ -310,7 +310,7 @@ export async function updateQuestionAction(
 }
 
 export async function addAnswerAction(testId: string, questionId: string) {
-  await requireAdmin();
+  await requireAdminAction();
   const q = await prisma.question.findFirst({
     where: { id: questionId, testId },
     select: { questionType: true },
@@ -329,7 +329,7 @@ export async function addAnswerAction(testId: string, questionId: string) {
 }
 
 export async function updateAnswerAction(formData: FormData): Promise<void> {
-  await requireAdmin();
+  await requireAdminAction();
   const answerId = String(formData.get("answerId") ?? "").trim();
   const testId = String(formData.get("testId") ?? "").trim();
   const questionId = String(formData.get("questionId") ?? "").trim();

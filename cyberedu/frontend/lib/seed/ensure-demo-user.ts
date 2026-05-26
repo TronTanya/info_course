@@ -9,6 +9,7 @@ export function existingUserSeedUpdateFields(params: { role: Role; createdAt: Da
   return {
     role: params.role,
     createdAt: params.createdAt,
+    emailVerified: new Date(),
   };
 }
 
@@ -73,6 +74,7 @@ export async function ensureDemoUser(params: {
       passwordHash,
       role: params.role,
       createdAt: params.createdAt,
+      emailVerified: new Date(),
     },
   });
   return {

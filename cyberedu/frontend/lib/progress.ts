@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { reconcileUserAchievements } from "@/lib/achievements";
-import type { Module, Prisma, Progress } from "@prisma/client";
+import type { Module, Prisma, Progress, SubmissionStatus } from "@prisma/client";
 
 const progressSelect = {
   id: true,
@@ -111,22 +111,39 @@ export async function loadModuleForProgress(moduleId: string): Promise<ModuleFor
 }
 
 async function computeScoreFromSources(userId: string, m: ModuleForProgress): Promise<number> {
+  const testIds = m.tests.map((t) => t.id);
+  const taskIds = m.practicalTasks.map((pt) => pt.id);
+
+  const [testAttempts, acceptedSubmissions] = await Promise.all([
+    testIds.length > 0
+      ? prisma.testAttempt.findMany({
+          where: { userId, testId: { in: testIds }, passed: true },
+          orderBy: [{ testId: "asc" }, { score: "desc" }],
+          select: { testId: true, score: true },
+        })
+      : Promise.resolve([]),
+    taskIds.length > 0
+      ? prisma.submission.findMany({
+          where: { userId, practicalTaskId: { in: taskIds }, status: "ACCEPTED", score: { not: null } },
+          orderBy: [{ practicalTaskId: "asc" }, { updatedAt: "desc" }],
+          select: { practicalTaskId: true, score: true },
+        })
+      : Promise.resolve([]),
+  ]);
+
   let score = 0;
-  for (const t of m.tests) {
-    const best = await prisma.testAttempt.findFirst({
-      where: { userId, testId: t.id, passed: true },
-      orderBy: { score: "desc" },
-      select: { score: true },
-    });
-    score += best?.score ?? 0;
+  const seenTests = new Set<string>();
+  for (const row of testAttempts) {
+    if (seenTests.has(row.testId)) continue;
+    seenTests.add(row.testId);
+    score += row.score;
   }
-  for (const pt of m.practicalTasks) {
-    const sub = await prisma.submission.findFirst({
-      where: { userId, practicalTaskId: pt.id, status: "ACCEPTED", score: { not: null } },
-      orderBy: { updatedAt: "desc" },
-      select: { score: true },
-    });
-    score += sub?.score ?? 0;
+
+  const seenTasks = new Set<string>();
+  for (const row of acceptedSubmissions) {
+    if (seenTasks.has(row.practicalTaskId)) continue;
+    seenTasks.add(row.practicalTaskId);
+    score += row.score ?? 0;
   }
   return score;
 }
@@ -134,13 +151,21 @@ async function computeScoreFromSources(userId: string, m: ModuleForProgress): Pr
 /** По каждой практике последняя не-черновая отправка должна быть ACCEPTED (иначе доработка/отклонение сбрасывает зачёт). */
 async function allPracticalAccepted(userId: string, taskIds: string[]): Promise<boolean> {
   if (taskIds.length === 0) return true;
+  const rows = await prisma.submission.findMany({
+    where: { userId, practicalTaskId: { in: taskIds }, status: { not: "DRAFT" } },
+    orderBy: [{ practicalTaskId: "asc" }, { createdAt: "desc" }],
+    select: { practicalTaskId: true, status: true },
+  });
+
+  const latestByTask = new Map<string, SubmissionStatus>();
+  for (const row of rows) {
+    if (!latestByTask.has(row.practicalTaskId)) {
+      latestByTask.set(row.practicalTaskId, row.status);
+    }
+  }
+
   for (const tid of taskIds) {
-    const latest = await prisma.submission.findFirst({
-      where: { userId, practicalTaskId: tid, status: { not: "DRAFT" } },
-      orderBy: { createdAt: "desc" },
-      select: { status: true },
-    });
-    if (!latest || latest.status !== "ACCEPTED") return false;
+    if (latestByTask.get(tid) !== "ACCEPTED") return false;
   }
   return true;
 }
@@ -148,14 +173,12 @@ async function allPracticalAccepted(userId: string, taskIds: string[]): Promise<
 /** Все тесты модуля пройдены (passed). */
 export async function allTestsPassed(userId: string, testIds: string[]): Promise<boolean> {
   if (testIds.length === 0) return true;
-  for (const id of testIds) {
-    const ok = await prisma.testAttempt.findFirst({
-      where: { userId, testId: id, passed: true },
-      select: { id: true },
-    });
-    if (!ok) return false;
-  }
-  return true;
+  const rows = await prisma.testAttempt.findMany({
+    where: { userId, testId: { in: testIds }, passed: true },
+    distinct: ["testId"],
+    select: { testId: true },
+  });
+  return rows.length === testIds.length;
 }
 
 /**
@@ -499,11 +522,136 @@ export async function syncAndGetUserCourseProgress(
   const ordered = await prisma.module.findMany({
     where: { courseId, isActive: true },
     orderBy: { orderNumber: "asc" },
-    select: { id: true },
+    select: {
+      id: true,
+      courseId: true,
+      orderNumber: true,
+      isActive: true,
+      lessons: { select: { videoUrl: true } },
+      tests: { select: { id: true } },
+      practicalTasks: { select: { id: true } },
+    },
   });
-  for (const { id } of ordered) {
-    await recalculateModuleProgress(userId, id);
+
+  if (ordered.length === 0) {
+    return getUserCourseProgress(userId, courseId);
   }
+
+  const moduleIds = ordered.map((m) => m.id);
+  const allTestIds = ordered.flatMap((m) => m.tests.map((t) => t.id));
+  const allTaskIds = ordered.flatMap((m) => m.practicalTasks.map((t) => t.id));
+
+  const [progressRows, passedAttempts, latestSubmissions, acceptedSubmissions] = await Promise.all([
+    prisma.progress.findMany({
+      where: { userId, moduleId: { in: moduleIds } },
+      select: progressSelect,
+    }),
+    allTestIds.length > 0
+      ? prisma.testAttempt.findMany({
+          where: { userId, testId: { in: allTestIds }, passed: true },
+          orderBy: [{ testId: "asc" }, { score: "desc" }],
+          select: { testId: true, score: true },
+        })
+      : Promise.resolve([]),
+    allTaskIds.length > 0
+      ? prisma.submission.findMany({
+          where: { userId, practicalTaskId: { in: allTaskIds }, status: { not: "DRAFT" } },
+          orderBy: [{ practicalTaskId: "asc" }, { createdAt: "desc" }],
+          select: { practicalTaskId: true, status: true },
+        })
+      : Promise.resolve([]),
+    allTaskIds.length > 0
+      ? prisma.submission.findMany({
+          where: { userId, practicalTaskId: { in: allTaskIds }, status: "ACCEPTED", score: { not: null } },
+          orderBy: [{ practicalTaskId: "asc" }, { updatedAt: "desc" }],
+          select: { practicalTaskId: true, score: true },
+        })
+      : Promise.resolve([]),
+  ]);
+
+  const progressByModule = new Map(progressRows.map((r) => [r.moduleId, r]));
+  const passedTests = new Set<string>();
+  const bestTestScoreById = new Map<string, number>();
+  for (const row of passedAttempts) {
+    passedTests.add(row.testId);
+    if (!bestTestScoreById.has(row.testId)) {
+      bestTestScoreById.set(row.testId, row.score);
+    }
+  }
+
+  const latestStatusByTask = new Map<string, SubmissionStatus>();
+  for (const row of latestSubmissions) {
+    if (!latestStatusByTask.has(row.practicalTaskId)) {
+      latestStatusByTask.set(row.practicalTaskId, row.status);
+    }
+  }
+
+  const latestAcceptedScoreByTask = new Map<string, number>();
+  for (const row of acceptedSubmissions) {
+    if (!latestAcceptedScoreByTask.has(row.practicalTaskId)) {
+      latestAcceptedScoreByTask.set(row.practicalTaskId, row.score ?? 0);
+    }
+  }
+
+  let chainUnlocked = true;
+  for (const moduleRow of ordered) {
+    const req = getModuleRequirements(moduleRow);
+    const existing = progressByModule.get(moduleRow.id);
+    const unlocked = chainUnlocked;
+
+    if (!unlocked) {
+      chainUnlocked = false;
+      continue;
+    }
+
+    const ensured = existing ?? (await ensureProgressRow(userId, moduleRow.id));
+    if (!existing) {
+      progressByModule.set(moduleRow.id, ensured);
+    }
+
+    const testsDone =
+      moduleRow.tests.length === 0 || moduleRow.tests.every((test) => passedTests.has(test.id));
+    const practiceDone =
+      moduleRow.practicalTasks.length === 0 ||
+      moduleRow.practicalTasks.every((task) => latestStatusByTask.get(task.id) === "ACCEPTED");
+
+    const merged: Pick<
+      Progress,
+      "lessonCompleted" | "videoCompleted" | "testCompleted" | "practiceCompleted"
+    > = {
+      lessonCompleted: ensured.lessonCompleted,
+      videoCompleted: ensured.videoCompleted,
+      testCompleted: req.testRequired ? testsDone : false,
+      practiceCompleted: req.practiceRequired ? practiceDone : false,
+    };
+
+    const done = countCompletedSteps(req, merged);
+    const moduleCompleted = req.totalSteps > 0 && done === req.totalSteps;
+
+    let score = 0;
+    for (const test of moduleRow.tests) {
+      score += bestTestScoreById.get(test.id) ?? 0;
+    }
+    for (const task of moduleRow.practicalTasks) {
+      score += latestAcceptedScoreByTask.get(task.id) ?? 0;
+    }
+
+    const updated = await prisma.progress.update({
+      where: { userId_moduleId: { userId, moduleId: moduleRow.id } },
+      data: {
+        testCompleted: req.testRequired ? testsDone : ensured.testCompleted,
+        practiceCompleted: req.practiceRequired ? practiceDone : ensured.practiceCompleted,
+        moduleCompleted,
+        score,
+      },
+      select: progressSelect,
+    });
+
+    progressByModule.set(moduleRow.id, updated);
+    chainUnlocked = moduleCompleted;
+  }
+
+  await reconcileUserAchievements(userId);
   return getUserCourseProgress(userId, courseId);
 }
 

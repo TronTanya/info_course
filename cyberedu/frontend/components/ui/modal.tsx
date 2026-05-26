@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { focusRing, transitionBase } from "@/lib/design-system/primitives";
+import { modalVariants } from "@/lib/design-system/components";
+import { transitionBase } from "@/lib/design-system/primitives";
+import { typography } from "@/lib/design-system/tokens";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -21,28 +23,21 @@ export function Modal({ open, onOpenChange, title, description, children, footer
       <Dialog.Portal>
         <Dialog.Overlay
           className={cn(
-            "fixed inset-0 z-50 bg-background/75 backdrop-blur-md",
+            modalVariants.overlay,
             transitionBase,
-            "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 motion-reduce:animate-none",
+            "data-[state=open]:animate-[ds-fade-in_0.28s_var(--ease-out-expo)_forwards] data-[state=closed]:opacity-0 motion-reduce:animate-none",
           )}
         />
-        <Dialog.Content
-          className={cn(
-            "fixed left-1/2 top-1/2 z-50 w-[min(100%-2rem,520px)] max-h-[min(90vh,720px)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl border border-border bg-popover p-6 text-popover-foreground shadow-[var(--shadow-card-hover)] outline-none",
-            transitionBase,
-            focusRing,
-            "data-[state=open]:animate-[ce-modal-in_0.25s_var(--ease-out-expo)_forwards] data-[state=closed]:opacity-0 motion-reduce:animate-none",
-          )}
-        >
+        <Dialog.Content className={cn(modalVariants.content, "outline-hidden motion-reduce:animate-none")}>
           <div className="flex flex-col gap-2">
-            <Dialog.Title className="font-display text-lg font-semibold text-foreground">{title}</Dialog.Title>
+            <Dialog.Title className={modalVariants.title}>{title}</Dialog.Title>
             {description ? (
-              <Dialog.Description className="text-sm text-muted-foreground">{description}</Dialog.Description>
+              <Dialog.Description className={cn(typography.caption)}>{description}</Dialog.Description>
             ) : (
               <Dialog.Description className="sr-only">Диалоговое окно</Dialog.Description>
             )}
           </div>
-          <div className="mt-4 text-sm">{children}</div>
+          <div className={cn(typography.body, "mt-4 text-sm")}>{children}</div>
           {footer ? (
             <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">{footer}</div>
           ) : (

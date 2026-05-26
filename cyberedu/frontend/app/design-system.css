@@ -1,0 +1,677 @@
+/**
+ * CyberEdu Design System v3.1 — utilities, component surfaces, animations
+ * Import after design-tokens.css (via globals.css)
+ */
+
+@theme inline {
+  /* Tailwind v4 — map tokens to utilities */
+  --spacing-ce-1: var(--space-1);
+  --spacing-ce-2: var(--space-2);
+  --spacing-ce-3: var(--space-3);
+  --spacing-ce-4: var(--space-4);
+  --spacing-ce-6: var(--space-6);
+  --spacing-ce-8: var(--space-8);
+  --spacing-ce-12: var(--space-12);
+  --spacing-ce-16: var(--space-16);
+  --spacing-ce-24: var(--space-24);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-inner: var(--shadow-inner);
+  --shadow-modal: var(--shadow-modal);
+  --shadow-focus: var(--shadow-focus);
+  --radius-xs: var(--radius-xs);
+  --radius-4xl: var(--radius-4xl);
+  --font-size-4xl: var(--font-size-4xl);
+  --font-size-display: var(--font-size-display);
+  --ease-spring: var(--ease-spring);
+  --animate-ds-fade-in: ds-fade-in var(--duration-normal) var(--ease-out-expo) forwards;
+  --animate-ds-slide-up: ds-slide-up var(--duration-slow) var(--ease-out-expo) forwards;
+  --animate-ds-scale-in: ds-scale-in var(--duration-normal) var(--ease-out-expo) forwards;
+  --animate-ds-glow-pulse: ds-glow-pulse 3s var(--ease-in-out-soft) infinite;
+}
+
+/* ─── Keyframes (animation presets) ─── */
+@keyframes ds-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ds-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ds-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes ds-glow-pulse {
+  0%,
+  100% {
+    box-shadow: var(--ce-glow-soft);
+  }
+  50% {
+    box-shadow: var(--ce-glow-primary);
+  }
+}
+
+@keyframes ds-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes ds-modal-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.97);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    filter: blur(0);
+  }
+}
+
+@layer components {
+  /* ─── Typography utilities ─── */
+  .ds-typo-display {
+    font-family: var(--font-heading);
+    font-size: var(--font-size-display);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-tight);
+    line-height: var(--line-height-tight);
+    color: var(--foreground);
+    text-wrap: balance;
+  }
+  .ds-typo-h1 {
+    font-family: var(--font-heading);
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-tight);
+    line-height: var(--line-height-tight);
+    color: var(--foreground);
+    text-wrap: balance;
+  }
+  .ds-typo-h2 {
+    font-family: var(--font-heading);
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-snug);
+    line-height: var(--line-height-tight);
+    color: var(--foreground);
+    text-wrap: balance;
+  }
+  .ds-typo-h3 {
+    font-family: var(--font-heading);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-snug);
+    line-height: var(--line-height-snug);
+    color: var(--foreground);
+  }
+  .ds-typo-body {
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-relaxed);
+    color: var(--foreground);
+  }
+  .ds-typo-muted {
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-relaxed);
+    color: var(--muted-foreground);
+  }
+  .ds-typo-caption {
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-normal);
+    color: var(--subtle-foreground);
+  }
+  .ds-typo-eyebrow {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: -0.01em;
+    text-transform: none;
+    color: var(--muted-foreground);
+  }
+  .ds-typo-metric {
+    font-family: var(--font-metrics);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: var(--letter-spacing-snug);
+    line-height: var(--line-height-tight);
+    color: var(--foreground);
+  }
+  .ds-text-gradient {
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* ─── Layout / grid ─── */
+  .ds-container {
+    margin-inline: auto;
+    width: 100%;
+    min-width: 0;
+    max-width: min(100vw - 2 * var(--ce-page-gutter), var(--ce-content-max));
+    padding-inline: var(--ce-page-gutter);
+  }
+  .ds-container-wide {
+    max-width: min(100vw - 2 * var(--ce-page-gutter), var(--ce-content-wide));
+  }
+  .ds-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ce-grid-gap);
+  }
+  .ds-stack-lg {
+    gap: var(--ce-grid-gap-lg);
+  }
+  .ds-grid-auto {
+    display: grid;
+    gap: var(--ce-grid-gap);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  }
+  .ds-grid-dashboard {
+    display: grid;
+    gap: var(--ce-grid-gap);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 768px) {
+    .ds-grid-dashboard {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1280px) {
+    .ds-grid-dashboard {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+    .ds-grid-dashboard > .ds-widget-span-8 {
+      grid-column: span 8;
+    }
+    .ds-grid-dashboard > .ds-widget-span-4 {
+      grid-column: span 4;
+    }
+    .ds-grid-dashboard > .ds-widget-span-12 {
+      grid-column: span 12;
+    }
+  }
+
+  /* ─── Glass surface base ─── */
+  .ds-glass {
+    position: relative;
+    isolation: isolate;
+    border: 1px solid var(--ce-glass-border);
+    background: var(--ce-glass-bg);
+    box-shadow: var(--ce-glass-shadow);
+    backdrop-filter: blur(var(--ce-glass-blur)) saturate(var(--ce-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--ce-glass-blur)) saturate(var(--ce-glass-saturate));
+  }
+  .ds-glass-strong {
+    backdrop-filter: blur(var(--ce-glass-blur-strong)) saturate(var(--ce-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--ce-glass-blur-strong)) saturate(var(--ce-glass-saturate));
+  }
+
+  /* ─── 9. Buttons ─── */
+  .ds-btn {
+    display: inline-flex;
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    border-radius: var(--radius-2xl);
+    padding-inline: var(--space-4);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-snug);
+    transition:
+      color var(--duration-fast) var(--ease-out-expo),
+      background-color var(--duration-fast) var(--ease-out-expo),
+      border-color var(--duration-fast) var(--ease-out-expo),
+      box-shadow var(--duration-normal) var(--ease-out-expo),
+      transform var(--duration-fast) var(--ease-out-expo),
+      filter var(--duration-fast) var(--ease-out-expo);
+  }
+  .ds-btn:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+  }
+  .ds-btn:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+  .ds-btn:disabled {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+  .ds-btn--primary {
+    background: var(--ce-primary);
+    color: var(--primary-foreground);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12);
+  }
+  .ds-btn--primary:hover:not(:disabled) {
+    background: var(--ce-primary-hover);
+    box-shadow: var(--shadow-md);
+  }
+  .ds-btn--secondary {
+    border: 1px solid var(--border);
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+    box-shadow: var(--shadow-xs);
+  }
+  .ds-btn--secondary:hover:not(:disabled) {
+    border-color: color-mix(in oklab, var(--primary) 25%, var(--border));
+    background: color-mix(in oklab, var(--secondary) 90%, var(--primary) 10%);
+  }
+  .ds-btn--outline {
+    border: 1px solid var(--ce-glass-border);
+    background: var(--ce-glass-bg);
+    color: var(--foreground);
+    backdrop-filter: blur(12px);
+  }
+  .ds-btn--outline:hover:not(:disabled) {
+    border-color: color-mix(in oklab, var(--primary) 40%, var(--border));
+    background: color-mix(in oklab, var(--primary) 12%, transparent);
+    box-shadow: var(--ce-glow-soft);
+  }
+  .ds-btn--ghost {
+    color: var(--foreground);
+    background: transparent;
+  }
+  .ds-btn--ghost:hover:not(:disabled) {
+    background: var(--ce-bg-surface-hover);
+  }
+  .ds-btn--danger {
+    background: var(--danger);
+    color: var(--danger-foreground);
+    box-shadow: var(--ce-glow-danger);
+  }
+  .ds-btn--sm {
+    min-height: 2.5rem;
+    padding-inline: var(--space-3);
+    font-size: var(--font-size-sm);
+  }
+  .ds-btn--lg {
+    min-height: 3rem;
+    padding-inline: var(--space-5);
+    font-size: var(--font-size-base);
+  }
+  .ds-btn--icon {
+    width: 2.75rem;
+    padding: 0;
+  }
+
+  /* ─── 10. Inputs ─── */
+  .ds-input {
+    display: flex;
+    width: 100%;
+    min-height: 2.75rem;
+    border-radius: var(--radius-2xl);
+    border: 1px solid var(--ce-glass-border);
+    background: rgb(255 255 255 / 0.04);
+    padding: var(--space-2-5) var(--space-3);
+    font-size: var(--font-size-base);
+    color: var(--foreground);
+    backdrop-filter: blur(8px);
+    transition:
+      border-color var(--duration-fast) var(--ease-out-expo),
+      box-shadow var(--duration-fast) var(--ease-out-expo),
+      background-color var(--duration-fast) var(--ease-out-expo);
+  }
+  .ds-input::placeholder {
+    color: var(--subtle-foreground);
+  }
+  .ds-input:hover:not(:disabled) {
+    border-color: color-mix(in oklab, var(--primary) 35%, var(--border));
+    background: rgb(255 255 255 / 0.06);
+  }
+  .ds-input:focus-visible {
+    outline: none;
+    border-color: color-mix(in oklab, var(--primary) 55%, var(--border));
+    box-shadow: var(--shadow-focus);
+  }
+  .ds-input:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  .ds-input--error {
+    border-color: color-mix(in oklab, var(--danger) 60%, var(--border));
+  }
+  .ds-input--error:focus-visible {
+    box-shadow: 0 0 0 2px var(--background), 0 0 0 4px color-mix(in oklab, var(--danger) 50%, transparent);
+  }
+  .ds-label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--foreground);
+  }
+  .ds-hint {
+    font-size: var(--font-size-xs);
+    color: var(--muted-foreground);
+  }
+
+  /* ─── 11. Cards ─── */
+  .ds-card {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border-radius: var(--radius-3xl);
+    border: 1px solid var(--ce-glass-border);
+    background: var(--ce-glass-bg);
+    color: var(--card-foreground);
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(var(--ce-glass-blur)) saturate(var(--ce-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--ce-glass-blur)) saturate(var(--ce-glass-saturate));
+  }
+  .ds-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    background: var(--ce-highlight-edge);
+    pointer-events: none;
+    opacity: 0.85;
+  }
+  .ds-card--glow {
+    box-shadow: var(--shadow-card-hover);
+  }
+  .ds-card--interactive {
+    transition:
+      border-color var(--duration-normal) var(--ease-out-expo),
+      box-shadow var(--duration-normal) var(--ease-out-expo),
+      transform var(--duration-fast) var(--ease-out-expo);
+  }
+  .ds-card--interactive:hover {
+    border-color: color-mix(in oklab, var(--primary) 32%, var(--border));
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
+  }
+  .ds-card__header {
+    padding: var(--space-6) var(--space-6) 0;
+  }
+  .ds-card__body {
+    padding: var(--space-4) var(--space-6) var(--space-6);
+  }
+  .ds-card__footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0 var(--space-6) var(--space-6);
+  }
+
+  /* ─── 12. Modal ─── */
+  .ds-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal);
+    background: rgb(5 1 10 / 0.78);
+    backdrop-filter: blur(var(--ce-glass-blur));
+    -webkit-backdrop-filter: blur(var(--ce-glass-blur));
+  }
+  .ds-modal-content {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    z-index: calc(var(--z-modal) + 1);
+    width: min(calc(100% - var(--space-8)), 32.5rem);
+    max-height: min(90dvh, 45rem);
+    overflow-y: auto;
+    border-radius: var(--radius-3xl);
+    border: 1px solid var(--ce-glass-border);
+    background: color-mix(in oklab, var(--popover) 96%, transparent);
+    padding: var(--space-6);
+    color: var(--popover-foreground);
+    box-shadow: var(--shadow-modal);
+    backdrop-filter: blur(var(--ce-glass-blur-strong)) saturate(var(--ce-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--ce-glass-blur-strong)) saturate(var(--ce-glass-saturate));
+    animation: ds-modal-in var(--duration-normal) var(--ease-out-expo) forwards;
+  }
+  .ds-modal-content::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    background: var(--ce-highlight-edge);
+    pointer-events: none;
+  }
+  .ds-modal-title {
+    font-family: var(--font-heading);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--foreground);
+  }
+
+  /* ─── 13. Sidebar / navigation ─── */
+  .ds-sidebar {
+    width: 100%;
+    min-width: 0;
+    max-width: var(--ce-sidebar-width);
+  }
+  .ds-sidebar-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    overflow-y: auto;
+    border-radius: var(--radius-3xl);
+    border: 1px solid var(--ce-glass-border);
+    background: var(--ce-glass-bg);
+    padding: var(--space-3);
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(var(--ce-glass-blur)) saturate(var(--ce-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--ce-glass-blur)) saturate(var(--ce-glass-saturate));
+  }
+  .ds-nav-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    border-radius: var(--radius-xl);
+    padding: var(--space-2-5) var(--space-3);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--muted-foreground);
+    transition:
+      background-color var(--duration-fast) var(--ease-out-expo),
+      color var(--duration-fast) var(--ease-out-expo),
+      box-shadow var(--duration-fast) var(--ease-out-expo);
+  }
+  .ds-nav-link:hover {
+    background: color-mix(in oklab, var(--primary) 10%, transparent);
+    color: var(--foreground);
+  }
+  .ds-nav-link:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+  }
+  .ds-nav-link--active {
+    background: color-mix(in oklab, var(--primary) 16%, transparent);
+    color: var(--primary);
+    box-shadow: var(--ce-glow-ring);
+  }
+  .ds-nav-link__icon {
+    display: flex;
+    width: 2rem;
+    height: 2rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-lg);
+    background: color-mix(in oklab, var(--muted) 50%, transparent);
+    transition: background-color var(--duration-fast) var(--ease-out-expo);
+  }
+  .ds-nav-link--active .ds-nav-link__icon {
+    background: color-mix(in oklab, var(--primary) 20%, transparent);
+    color: var(--primary);
+  }
+
+  /* ─── 14. Tables ─── */
+  .ds-table-wrap {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    border-radius: var(--radius-3xl);
+    border: 1px solid var(--ce-glass-border);
+    background: var(--ce-glass-bg);
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(12px);
+  }
+  .ds-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: var(--font-size-sm);
+  }
+  .ds-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: color-mix(in oklab, var(--muted) 85%, var(--card));
+    box-shadow: 0 1px 0 var(--border);
+  }
+  .ds-table th {
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    font-family: var(--font-metrics);
+    font-size: 0.6875rem;
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-wide);
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+    white-space: nowrap;
+  }
+  .ds-table td {
+    padding: var(--space-3-5) var(--space-4);
+    vertical-align: middle;
+    color: var(--foreground);
+  }
+  .ds-table tbody tr {
+    border-bottom: 1px solid color-mix(in oklab, var(--border) 65%, transparent);
+    transition: background-color var(--duration-fast) var(--ease-out-expo);
+  }
+  .ds-table tbody tr:hover {
+    background: color-mix(in oklab, var(--primary) 8%, transparent);
+  }
+
+  /* ─── 15. Dashboard widgets ─── */
+  .ds-widget {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border-radius: var(--radius-3xl);
+    border: 1px solid var(--ce-glass-border);
+    background: var(--ce-glass-bg);
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(var(--ce-glass-blur)) saturate(var(--ce-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--ce-glass-blur)) saturate(var(--ce-glass-saturate));
+    transition:
+      border-color var(--duration-normal) var(--ease-out-expo),
+      box-shadow var(--duration-normal) var(--ease-out-expo);
+  }
+  .ds-widget:hover {
+    border-color: color-mix(in oklab, var(--primary) 28%, var(--border));
+    box-shadow: var(--shadow-card-hover);
+  }
+  .ds-widget--accent {
+    border-color: color-mix(in oklab, var(--primary) 24%, var(--border));
+    background: linear-gradient(
+      160deg,
+      color-mix(in oklab, var(--card) 88%, var(--primary) 12%) 0%,
+      var(--ce-glass-bg) 100%
+    );
+  }
+  .ds-widget--hero {
+    border-color: color-mix(in oklab, var(--primary) 22%, var(--border));
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--card) 90%, var(--primary) 10%) 0%,
+      color-mix(in oklab, var(--card) 94%, var(--accent) 6%) 100%
+    );
+    box-shadow: var(--shadow-card), var(--ce-glow-soft);
+  }
+  .ds-widget__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-5) var(--space-5) var(--space-2);
+  }
+  .ds-widget__body {
+    padding: var(--space-2) var(--space-5) var(--space-5);
+  }
+  .ds-widget__value {
+    font-family: var(--font-metrics);
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-semibold);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: var(--letter-spacing-snug);
+    line-height: var(--line-height-tight);
+  }
+  .ds-widget__label {
+    font-family: var(--font-metrics);
+    font-size: 0.6875rem;
+    font-weight: var(--font-weight-medium);
+    letter-spacing: var(--letter-spacing-wide);
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  /* Motion utilities */
+  .ds-animate-in {
+    animation: ds-slide-up var(--duration-slow) var(--ease-out-expo) forwards;
+  }
+  .ds-animate-fade {
+    animation: ds-fade-in var(--duration-normal) var(--ease-out-expo) forwards;
+  }
+  .ds-animate-glow {
+    animation: ds-glow-pulse 3s var(--ease-in-out-soft) infinite;
+  }
+  .ds-stagger-1 {
+    animation-delay: 60ms;
+  }
+  .ds-stagger-2 {
+    animation-delay: 120ms;
+  }
+  .ds-stagger-3 {
+    animation-delay: 180ms;
+  }
+  .ds-stagger-4 {
+    animation-delay: 240ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-animate-in,
+  .ds-animate-fade,
+  .ds-animate-glow,
+  .ds-modal-content,
+  .ds-card--interactive:hover {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}

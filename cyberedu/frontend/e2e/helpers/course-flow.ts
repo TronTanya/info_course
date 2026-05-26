@@ -36,11 +36,19 @@ export async function openFirstTestPage(page: Page): Promise<void> {
 }
 
 export async function startTestAttempt(page: Page): Promise<void> {
-  const retake = page.getByRole("button", { name: /Пройти тест ещё раз/i });
-  if (await retake.isVisible().catch(() => false)) {
-    await retake.click();
-    await expect(page.getByText(/Прогресс по ответам:/i).first()).toBeVisible({ timeout: 10_000 });
-  }
+  const finish = page.getByRole("button", { name: /Завершить тест/i });
+  const retake = page.getByRole("button", { name: /Пройти тест ещё раз|Пройти снова/i });
+  const start = page.getByRole("button", { name: /Начать тест/i });
+
+  if (await finish.isVisible().catch(() => false)) return;
+
+  await expect(start.or(retake).or(finish)).toBeVisible({ timeout: 20_000 });
+  if (await finish.isVisible().catch(() => false)) return;
+
+  const launcher = (await retake.isVisible().catch(() => false)) ? retake : start;
+  await launcher.scrollIntoViewIfNeeded();
+  await launcher.click();
+  await expect(finish).toBeVisible({ timeout: 30_000 });
 }
 
 async function answerVisibleQuestion(page: Page): Promise<void> {
@@ -66,10 +74,23 @@ async function answerVisibleQuestion(page: Page): Promise<void> {
 }
 
 async function testAnswerProgress(page: Page): Promise<{ answered: number; total: number } | null> {
-  const text = await page.getByText(/Прогресс по ответам:/i).first().textContent();
+  const filled = page.getByText(/Заполнено\s+\d+\s*\/\s*\d+/i).first();
+  const progress = page.getByText(/Прогресс по ответам:/i).first();
+  const el = (await filled.isVisible({ timeout: 400 }).catch(() => false)) ? filled : progress;
+  if (!(await el.isVisible({ timeout: 400 }).catch(() => false))) return null;
+  const text = await el.textContent();
   const m = text?.match(/(\d+)\s*\/\s*(\d+)/);
   if (!m) return null;
   return { answered: Number(m[1]), total: Number(m[2]) };
+}
+
+async function answerAllTestQuestions(page: Page): Promise<void> {
+  const nav = page.getByRole("navigation", { name: /Навигация по вопросам/i });
+  const count = await nav.getByRole("button").count();
+  for (let i = 0; i < count; i++) {
+    await nav.getByRole("button").nth(i).click();
+    await answerVisibleQuestion(page);
+  }
 }
 
 /** Ответить на все вопросы и отправить тест; false — если тест уже сдан и повтор недоступен в UI. */
@@ -77,35 +98,40 @@ export async function submitModuleTest(page: Page): Promise<boolean> {
   await startTestAttempt(page);
 
   const finishBtn = page.getByRole("button", { name: /Завершить тест/i });
-  const maxSteps = 40;
+  if (!(await finishBtn.isVisible().catch(() => false))) {
+    return false;
+  }
 
-  for (let step = 0; step < maxSteps; step++) {
-    await answerVisibleQuestion(page);
-    const progress = await testAnswerProgress(page);
-    if (progress && progress.answered >= progress.total) {
-      break;
-    }
+  await answerAllTestQuestions(page);
 
-    const nextBtn = page.getByRole("button", { name: /Следующий вопрос/i });
-    if (await nextBtn.isEnabled().catch(() => false)) {
-      await nextBtn.click();
-      continue;
+  const progress = await testAnswerProgress(page);
+  if (!progress || progress.answered < progress.total) {
+    const nextBtn = page.getByRole("button", { name: /Далее|Следующий вопрос/i });
+    for (let step = 0; step < 12; step++) {
+      await answerVisibleQuestion(page);
+      const p = await testAnswerProgress(page);
+      if (p && p.answered >= p.total) break;
+      if (await nextBtn.isEnabled().catch(() => false)) {
+        await nextBtn.click();
+      } else {
+        break;
+      }
     }
-
-    const backBtn = page.getByRole("button", { name: /Назад/i });
-    if (await backBtn.isEnabled().catch(() => false)) {
-      await backBtn.click();
-      continue;
-    }
-    break;
   }
 
   if (!(await finishBtn.isEnabled().catch(() => false))) {
     return false;
   }
   await finishBtn.click();
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible({ timeout: 10_000 });
+  const confirmSubmit = dialog.getByRole("button", { name: /Отправить ответы/i });
+  await expect(confirmSubmit).toBeEnabled({ timeout: 15_000 });
+  await confirmSubmit.click();
+
   await expect(page.getByText(RATE_LIMIT_ERROR)).not.toBeVisible({ timeout: 15_000 });
-  await expect(page.getByText(/Результат:|Статус:/i).first()).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText(/Результат теста|Результат:|Статус:/i).first()).toBeVisible({ timeout: 30_000 });
   return true;
 }
 
@@ -142,12 +168,32 @@ export async function openFirstLessonPage(page: Page): Promise<void> {
 
 export async function openFirstPracticePage(page: Page): Promise<void> {
   await page.goto("/dashboard/course");
-  const practiceLink = page.locator('a[href^="/dashboard/course/"][href$="/practice"]').first();
-  if ((await practiceLink.count()) === 0) {
-    throw new Error("Practice link not available — complete test first or check seed");
+  await expect(page.locator("h1").first()).toBeVisible({ timeout: 20_000 });
+
+  const practiceUrl = await page.evaluate(() =>
+    Array.from(document.querySelectorAll<HTMLAnchorElement>("a[href]"))
+      .map((a) => a.getAttribute("href"))
+      .find((h): h is string => Boolean(h?.match(/^\/dashboard\/course\/[^/]+\/practice$/))),
+  );
+  if (practiceUrl) {
+    await page.goto(practiceUrl);
+    await expect(page).toHaveURL(/\/dashboard\/course\/[^/]+\/practice/);
+    return;
   }
-  await practiceLink.click();
-  await expect(page).toHaveURL(/\/dashboard\/course\/[^/]+\/practice/);
+
+  const moduleRoot = await page.evaluate(() => {
+    const href = Array.from(document.querySelectorAll<HTMLAnchorElement>("a[href]"))
+      .map((a) => a.getAttribute("href"))
+      .find((h) => h?.match(/^\/dashboard\/course\/[^/]+$/));
+    return href ?? null;
+  });
+  if (moduleRoot) {
+    await page.goto(`${moduleRoot}/practice`);
+    await expect(page).toHaveURL(/\/dashboard\/course\/[^/]+\/practice/);
+    return;
+  }
+
+  throw new Error("Practice: module id not found on course map — check seed");
 }
 
 /** TEXT-практика: заполнить textarea и отправить. */
@@ -159,7 +205,7 @@ export async function submitPracticeTextIfPresent(page: Page): Promise<void> {
   await textarea.fill(
     "E2E smoke practice submission: описание шагов и выводов для проверки server action rate limit в production-like окружении.",
   );
-  const submit = page.getByRole("button", { name: /Отправить на проверку/i }).first();
+  const submit = page.getByRole("button", { name: /Отправить (?:ответ )?на проверку/i }).first();
   if (!(await submit.isVisible().catch(() => false))) {
     return;
   }

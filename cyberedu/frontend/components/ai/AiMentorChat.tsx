@@ -31,6 +31,9 @@ export type AiMentorChatProps = {
   practicalTaskId?: string | null;
   contextLabels?: MentorContextLabels;
   openSignal?: number;
+  /** floating — FAB + overlay; docked — встроенная колонка (dashboard xl) */
+  presentation?: "floating" | "docked";
+  className?: string;
 };
 
 function nextId(): string {
@@ -52,8 +55,11 @@ export function AiMentorChat({
   practicalTaskId,
   contextLabels = {},
   openSignal,
+  presentation = "floating",
+  className,
 }: AiMentorChatProps) {
-  const [open, setOpen] = useState(false);
+  const isDocked = presentation === "docked";
+  const [open, setOpen] = useState(isDocked);
   const [messages, setMessages] = useState<MentorChatTurn[]>([]);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
@@ -65,7 +71,7 @@ export function AiMentorChat({
   const reduce = useReducedMotion();
 
   useOverlayA11y({
-    open,
+    open: !isDocked && open,
     onClose: () => setOpen(false),
     containerRef: panelRef,
   });
@@ -180,76 +186,35 @@ export function AiMentorChat({
     setError(null);
   }
 
-  return (
+  const panelBody = (
     <>
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls="ai-mentor-chat-panel"
-        aria-label={open ? "Закрыть AI-наставника" : "Открыть AI-наставника"}
-        onClick={() => {
-          setError(null);
-          setOpen((v) => !v);
-        }}
-        className={cn(
-          "ce-ai-mentor-fab ce-touch-target fixed z-[60] flex size-14 min-h-14 min-w-14 items-center justify-center rounded-full",
-          "bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-[max(1.25rem,env(safe-area-inset-right))]",
-          "ce-mentor-fab-surface border border-cyan/40 text-cyan shadow-(--shadow-glow)",
-          "transition hover:scale-[1.03] motion-reduce:hover:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan",
-          open && "ring-2 ring-cyan/60 ring-offset-2 ring-offset-background",
-        )}
-      >
-        {open ? (
-          <span className="text-2xl leading-none text-foreground" aria-hidden>
-            ×
-          </span>
-        ) : (
-          <Bot className="size-6" aria-hidden />
-        )}
-      </button>
+      {!isDocked ? (
+        <div className="ce-mentor-scanline pointer-events-none absolute inset-0 opacity-4" aria-hidden />
+      ) : null}
 
-      <AnimatePresence>
-        {open ? (
-          <motion.div
-            ref={panelRef}
-            id="ai-mentor-chat-panel"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="ai-mentor-chat-title"
-            initial={reduce ? false : { opacity: 0, y: 16, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={reduce ? undefined : { opacity: 0, y: 12, scale: 0.98 }}
-            transition={{ duration: reduce ? 0 : 0.22, ease: [0.22, 1, 0.36, 1] }}
-            className={cn(
-              "ce-ai-mentor-panel ce-mentor-soc fixed z-[60] flex flex-col overflow-hidden",
-              "inset-x-0 bottom-0 max-h-[min(88dvh,40rem)] w-full rounded-t-2xl border-t border-cyan/25",
-              "sm:inset-x-auto sm:bottom-[calc(5.5rem+env(safe-area-inset-bottom))] sm:right-[max(1.25rem,env(safe-area-inset-right))]",
-              "sm:max-h-[min(78dvh,36rem)] sm:w-[min(100vw-2rem,28rem)] sm:rounded-2xl sm:border",
-            )}
+      <header className="ce-mentor-header relative flex items-start justify-between gap-2 border-b border-border px-4 py-3">
+        <div className="min-w-0">
+          <p id="ai-mentor-chat-title" className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Scan className="size-4 text-primary" aria-hidden />
+            AI-наставник
+          </p>
+          <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+            Объяснения и подсказки без готовых ответов на тесты.
+          </p>
+        </div>
+        {!isDocked ? (
+          <button
+            type="button"
+            className="ce-touch-target shrink-0 rounded-xl p-2.5 text-muted-foreground transition hover:bg-muted/40 hover:text-foreground"
+            aria-label="Закрыть"
+            onClick={() => setOpen(false)}
           >
-            <div className="ce-mentor-scanline pointer-events-none absolute inset-0 opacity-[0.04]" aria-hidden />
-
-            <header className="ce-mentor-header relative flex items-start justify-between gap-2 border-b px-4 py-3">
-              <div className="min-w-0">
-                <p id="ai-mentor-chat-title" className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                  <Scan className="size-4 text-cyan" aria-hidden />
-                  AI-наставник CyberEdu
-                </p>
-                <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
-                  Встроенный учебный помощник: объяснения, примеры и подсказки без готовых ответов.
-                </p>
-              </div>
-              <button
-                type="button"
-                className="ce-touch-target shrink-0 rounded-xl p-2.5 text-muted-foreground transition hover:bg-muted/40 hover:text-foreground"
-                aria-label="Закрыть"
-                onClick={() => setOpen(false)}
-              >
-                <span className="text-lg leading-none" aria-hidden>
-                  ×
-                </span>
-              </button>
-            </header>
+            <span className="text-lg leading-none" aria-hidden>
+              ×
+            </span>
+          </button>
+        ) : null}
+      </header>
 
             <MentorContextBar kind={contextKind} labels={contextLabels} moduleId={moduleId} />
 
@@ -271,7 +236,7 @@ export function AiMentorChat({
                       : "ce-mentor-bubble-assistant mr-1",
                   )}
                 >
-                  <p className="mb-1 font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
+                  <p className="mb-1 font-mono text-2xs uppercase tracking-widest text-muted-foreground">
                     {m.role === "user" ? "Вы" : "Наставник"}
                   </p>
                   {m.role === "assistant" ? (
@@ -300,14 +265,19 @@ export function AiMentorChat({
               onSelect={(t) => void sendMessage(t)}
             />
 
-            <div className="border-t border-cyan/15 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <div
+              className={cn(
+                "border-t border-border p-3",
+                !isDocked && "pb-[max(0.75rem,env(safe-area-inset-bottom))]",
+              )}
+            >
               <Textarea
                 label="Сообщение наставнику"
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 placeholder="Сформулируйте вопрос для наставника…"
                 rows={2}
-                className="ce-mentor-input min-h-[64px] resize-none text-sm sm:min-h-[72px]"
+                className="ce-mentor-input min-h-16 resize-none text-sm sm:min-h-18"
                 disabled={loading}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
@@ -323,12 +293,79 @@ export function AiMentorChat({
               </div>
             </div>
 
-            <MentorMemoryStrip
-              localCount={messages.length}
-              serverNote={serverMemoryNote}
-              onClearLocal={clearLocal}
-              disabled={loading}
-            />
+      <MentorMemoryStrip
+        localCount={messages.length}
+        serverNote={serverMemoryNote}
+        onClearLocal={clearLocal}
+        disabled={loading}
+      />
+    </>
+  );
+
+  if (isDocked) {
+    return (
+      <aside
+        ref={panelRef}
+        id="ai-mentor-chat-panel"
+        aria-labelledby="ai-mentor-chat-title"
+        className={cn(
+          "ce-mentor-docked ds-card flex w-full flex-col overflow-hidden rounded-2xl border border-border",
+          className,
+        )}
+      >
+        {panelBody}
+      </aside>
+    );
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls="ai-mentor-chat-panel"
+        aria-label={open ? "Закрыть AI-наставника" : "Открыть AI-наставника"}
+        onClick={() => {
+          setError(null);
+          setOpen((v) => !v);
+        }}
+        className={cn(
+          "ce-ai-mentor-fab ce-touch-target fixed z-(--z-modal) flex size-14 min-h-14 min-w-14 items-center justify-center rounded-full",
+          "bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-[max(1.25rem,env(safe-area-inset-right))]",
+          "border border-primary/25 bg-card text-primary shadow-md",
+          "transition hover:scale-[1.02] motion-reduce:hover:scale-100 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
+          open && "ring-2 ring-primary/30 ring-offset-2 ring-offset-background",
+        )}
+      >
+        {open ? (
+          <span className="text-2xl leading-none text-foreground" aria-hidden>
+            ×
+          </span>
+        ) : (
+          <Bot className="size-6" aria-hidden />
+        )}
+      </button>
+
+      <AnimatePresence>
+        {open ? (
+          <motion.div
+            ref={panelRef}
+            id="ai-mentor-chat-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ai-mentor-chat-title"
+            initial={reduce ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reduce ? undefined : { opacity: 0, y: 8 }}
+            transition={{ duration: reduce ? 0 : 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className={cn(
+              "ce-ai-mentor-panel fixed z-(--z-modal) flex flex-col overflow-hidden border border-border bg-card shadow-modal",
+              "inset-x-0 bottom-0 max-h-[min(88dvh,40rem)] w-full rounded-t-2xl",
+              "lg:inset-x-auto lg:bottom-[calc(1.25rem+env(safe-area-inset-bottom))] lg:right-[max(1.25rem,env(safe-area-inset-right))]",
+              "lg:max-h-[min(78dvh,36rem)] lg:w-[min(100vw-2rem,24rem)] lg:rounded-2xl",
+            )}
+          >
+            {panelBody}
           </motion.div>
         ) : null}
       </AnimatePresence>

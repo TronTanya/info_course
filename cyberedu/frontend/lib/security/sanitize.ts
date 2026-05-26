@@ -53,3 +53,31 @@ export function isSafeExternalHttpsUrl(url: string): boolean {
 export function escapeIlikePattern(input: string): string {
   return input.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
 }
+
+/**
+ * Безопасный href для markdown-ссылок в UI (лекции, AI-ответы).
+ * Блокирует javascript:, data:, protocol-relative // и прочие опасные схемы.
+ */
+export function isSafeMarkdownHref(href: string): boolean {
+  const h = href.trim();
+  if (!h || h.startsWith("//")) return false;
+  const lower = h.toLowerCase();
+  if (
+    lower.startsWith("javascript:") ||
+    lower.startsWith("data:") ||
+    lower.startsWith("vbscript:") ||
+    lower.startsWith("file:")
+  ) {
+    return false;
+  }
+  if (/^[a-z][a-z0-9+.-]*:/i.test(h)) {
+    try {
+      const u = new URL(h);
+      return u.protocol === "http:" || u.protocol === "https:" || u.protocol === "mailto:";
+    } catch {
+      return false;
+    }
+  }
+  if (h.includes("\\") || /[\x00-\x1f]/.test(h)) return false;
+  return true;
+}

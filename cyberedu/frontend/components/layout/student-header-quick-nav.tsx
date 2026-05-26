@@ -31,7 +31,7 @@ export function StudentHeaderQuickNav() {
             href={paths[key]}
             className={cn(
               "shrink-0 rounded-lg px-2.5 py-2 text-xs font-semibold transition-colors",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
               active
                 ? "bg-primary/12 text-primary ring-1 ring-primary/25"
                 : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",

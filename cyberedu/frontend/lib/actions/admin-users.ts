@@ -3,7 +3,7 @@
 import type { Role } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/permissions";
+import { requireAdminAction } from "@/lib/security/admin-action-guard";
 import { SECURITY_ACTIONS } from "@/lib/security/audit-actions";
 import { logAdminSecurityEvent } from "@/lib/security/audit";
 
@@ -13,7 +13,7 @@ export async function updateUserRoleAction(
   _prev: UpdateUserRoleState | null,
   formData: FormData,
 ): Promise<UpdateUserRoleState> {
-  const session = await requireAdmin();
+  const session = await requireAdminAction();
   const targetUserId = String(formData.get("userId") ?? "").trim();
   const newRoleRaw = String(formData.get("role") ?? "").trim();
 

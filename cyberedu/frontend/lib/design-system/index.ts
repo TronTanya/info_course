@@ -1,5 +1,39 @@
 export { cyber, type CyberClassKey } from "./cyber";
-export { motionPresets } from "./motion";
+export { colors, cssVars, type Colors } from "./colors";
+export {
+  buttonVariants,
+  buttonClass,
+  cardVariants,
+  inputVariants,
+  modalVariants,
+  navVariants,
+  tabsVariants,
+  alertVariants,
+  dropdownVariants,
+  tooltipVariants,
+  accordionVariants,
+  toastVariants,
+  glassVariants,
+  tableVariants,
+  widgetVariants,
+  typeVariants,
+  layoutVariants,
+  type ButtonVariant,
+  type AlertVariant,
+} from "./components";
+export { layout, zIndex, containers, grids } from "./layout";
+export {
+  motionPresets,
+  motionVariants,
+  motionWithReducedMotion,
+  cssAnimations,
+  ease,
+  spring,
+  duration,
+  stagger,
+  blurRevealTransition,
+  pageTransition,
+} from "./motion";
 export {
   adminNav,
   adminNavContent,
@@ -10,6 +44,8 @@ export {
   landingFooterNavLinks,
   publicNavLinks,
   studentBottomNavKeys,
+  studentMobileTabKeys,
+  studentMobileMoreKeys,
   studentHeaderNavKeys,
   studentQuickNav,
   studentSecondaryNav,
@@ -17,6 +53,7 @@ export {
   type QuickNavItem,
 } from "./nav-config";
 export { gradients } from "./gradients";
+export { premium } from "./premium";
 export { surfaces, type SurfaceKey } from "./surfaces";
 export { palette, type Palette } from "./palette";
 export {
@@ -31,6 +68,8 @@ export {
 } from "./primitives";
 export {
   fontSize,
+  fontWeight,
+  glows,
   lineHeight,
   motion,
   radii,

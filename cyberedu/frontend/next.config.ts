@@ -1,9 +1,11 @@
 import type { NextConfig } from "next";
+import { devTrustedOriginsForNext } from "./lib/security/dev-trusted-origin";
 import { securityHeadersList } from "./lib/security/headers";
 
 const nextConfig: NextConfig = {
-  // Playwright/smoke use 127.0.0.1; without this Next 16 blocks dev chunks/HMR cross-origin.
-  allowedDevOrigins: ["127.0.0.1", "localhost"],
+  // LAN IP (192.168.x.x) и localhost — разные origins; без этого dev/HMR и auth ломаются.
+  allowedDevOrigins: devTrustedOriginsForNext(),
+  serverExternalPackages: ["nodemailer"],
   output: "standalone",
   outputFileTracingIncludes: {
     "/api/certificates/**/*": [

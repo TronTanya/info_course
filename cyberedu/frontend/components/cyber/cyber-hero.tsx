@@ -35,7 +35,7 @@ export function CyberHero({
     >
       <div className={cyber.heroGrid} aria-hidden />
       <div className={cyber.heroGlow} aria-hidden />
-      <div className="relative z-[1]">{children}</div>
+      <div className="relative z-1">{children}</div>
     </Tag>
   );
 }

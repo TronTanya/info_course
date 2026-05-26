@@ -15,7 +15,7 @@ export function GradientBorder({ className, padding = "sm", children, ...props }
   return (
     <div
       className={cn(
-        "rounded-2xl bg-[image:var(--gradient-border-glow)] shadow-[0_0_24px_-8px_color-mix(in_oklab,var(--primary)_35%,transparent)]",
+        "rounded-2xl border border-border bg-card shadow-card",
         paddingClass[padding],
         className,
       )}

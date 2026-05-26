@@ -10,10 +10,24 @@ function withSecurityHeaders(res: NextResponse): NextResponse {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Dev: localhost и 127.0.0.1 — разные хосты для cookie; NextAuth сессия «теряется» на 127.0.0.1.
+  if (
+    process.env.NODE_ENV !== "production" &&
+    request.nextUrl.hostname === "127.0.0.1" &&
+    request.nextUrl.port === "3100"
+  ) {
+    const url = request.nextUrl.clone();
+    url.hostname = "localhost";
+    return withSecurityHeaders(NextResponse.redirect(url));
+  }
+
   // Rate limits: credentials callback — в authorize() (Node.js + Redis). AI / admin / cert — Route Handlers.
 
   // --- CSRF для mutating API (дополнение к Server Actions) ---
-  if (pathname.startsWith("/api/") && !pathname.startsWith("/api/auth/")) {
+  const devAuthBypass =
+    process.env.NODE_ENV !== "production" &&
+    (pathname === "/api/dev/e2e-reset-auth" || pathname === "/api/dev/reset-demo-passwords");
+  if (pathname.startsWith("/api/") && !pathname.startsWith("/api/auth/") && !devAuthBypass) {
     const csrf = verifyApiCsrf(request);
     if (!csrf.ok) {
       return withSecurityHeaders(
@@ -28,6 +42,7 @@ export async function middleware(request: NextRequest) {
   });
 
   const role = token?.role as string | undefined;
+  const emailVerified = Boolean((token as { emailVerifiedAt?: string | null } | null)?.emailVerifiedAt);
 
   if (pathname.startsWith("/dev")) {
     if (process.env.NODE_ENV !== "development") {
@@ -52,6 +67,12 @@ export async function middleware(request: NextRequest) {
       url.searchParams.set("callbackUrl", pathname);
       return withSecurityHeaders(NextResponse.redirect(url));
     }
+    if (role === "USER" && !emailVerified) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/auth/verify-email";
+      url.searchParams.set("callbackUrl", pathname);
+      return withSecurityHeaders(NextResponse.redirect(url));
+    }
   }
 
   if (pathname.startsWith("/admin")) {
@@ -70,10 +91,19 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/auth/login") ||
     pathname.startsWith("/auth/register") ||
     pathname.startsWith("/auth/forgot-password") ||
-    pathname.startsWith("/auth/reset-password");
+    pathname.startsWith("/auth/reset-password") ||
+    pathname.startsWith("/auth/verify-email");
 
   if (isAuthEntry) {
     if (token) {
+      if (pathname.startsWith("/auth/verify-email")) {
+        return withSecurityHeaders(NextResponse.next());
+      }
+      if (role === "USER" && !emailVerified) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/auth/verify-email";
+        return withSecurityHeaders(NextResponse.redirect(url));
+      }
       if (role === "ADMIN") {
         return withSecurityHeaders(NextResponse.redirect(new URL("/admin", request.url)));
       }

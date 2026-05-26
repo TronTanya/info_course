@@ -57,7 +57,7 @@ export function TestStartScreen({
             <h2 className="font-display text-xl font-semibold text-balance text-foreground sm:text-2xl">{title}</h2>
             <p className="text-sm text-muted-foreground">{moduleTitle}</p>
           </div>
-          <Badge className={cn("w-fit shrink-0 font-mono text-[10px] uppercase tracking-wider", meta.className)}>
+          <Badge className={cn("w-fit shrink-0 font-mono text-2.5 uppercase tracking-wider", meta.className)}>
             {meta.label}
           </Badge>
         </header>
@@ -122,9 +122,9 @@ function Stat({
   value: string;
 }) {
   return (
-    <div className="rounded-xl border border-border/70 bg-muted/20 px-3 py-2.5">
+    <div className="ce-polish-inset px-3 py-2.5">
       {Icon ? <Icon className="mb-1 size-4 text-primary" aria-hidden /> : null}
-      <dt className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{label}</dt>
+      <dt className="text-2.5 font-medium uppercase tracking-wide text-muted-foreground">{label}</dt>
       <dd className="mt-0.5 text-sm font-semibold leading-snug text-foreground">{value}</dd>
     </div>
   );

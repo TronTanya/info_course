@@ -68,7 +68,7 @@ function TrajectoryNode({
 
   return (
     <motion.div
-      className="flex min-w-[4.25rem] max-w-[5.5rem] shrink-0 flex-col items-center sm:min-w-[5rem] sm:max-w-[6.5rem]"
+      className="flex min-w-17 max-w-22 shrink-0 flex-col items-center sm:min-w-20 sm:max-w-26"
       initial={reduce ? false : { opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.3 }}
@@ -77,7 +77,7 @@ function TrajectoryNode({
         {canOpen ? (
           <Link
             href={href}
-            className="flex flex-1 flex-col items-center gap-1.5 rounded-lg p-1 transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex flex-1 flex-col items-center gap-1.5 rounded-lg p-1 transition-colors hover:bg-muted/40 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
             aria-label={`${row.module.orderNumber}. ${row.module.title} — ${badge.label}`}
           >
             {node}
@@ -90,20 +90,20 @@ function TrajectoryNode({
         {!isLast ? (
           <div
             className={cn(
-              "h-0.5 min-w-[8px] flex-1 rounded-full",
+              "h-0.5 min-w-2 flex-1 rounded-full",
               row.moduleCompleted ? "bg-success/40" : row.unlocked ? "bg-primary/25" : "bg-border",
             )}
             aria-hidden
           />
         ) : null}
       </div>
-      <span className="mt-1 line-clamp-2 w-full text-center text-[9px] font-medium leading-tight text-muted-foreground sm:text-[10px]">
+      <span className="mt-1 line-clamp-2 w-full text-center text-2xs font-medium leading-tight text-muted-foreground sm:text-2.5">
         {row.module.title}
       </span>
       {isFocus ? (
-        <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary">Сейчас</span>
+        <span className="mt-0.5 text-2xs font-semibold uppercase tracking-wide text-primary">Сейчас</span>
       ) : (
-        <span className="mt-0.5 text-[9px] text-muted-foreground/80">{badge.label}</span>
+        <span className="mt-0.5 text-2xs text-muted-foreground/80">{badge.label}</span>
       )}
     </motion.div>
   );
@@ -134,7 +134,7 @@ export function CourseTrajectoryMap({
             Модули открываются по порядку. Нажмите на доступный блок, чтобы открыть обзор.
           </p>
         </div>
-        <ul className="flex flex-wrap gap-3 text-[10px] uppercase tracking-wide text-muted-foreground sm:text-[11px]">
+        <ul className="flex flex-wrap gap-3 text-2.5 uppercase tracking-wide text-muted-foreground sm:text-2.75">
           <li className="flex items-center gap-1.5">
             <span className="size-2 rounded-full bg-success" aria-hidden /> Завершён
           </li>

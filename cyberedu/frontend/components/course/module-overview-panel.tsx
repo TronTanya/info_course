@@ -122,9 +122,9 @@ function MetricPill({
   text: string;
 }) {
   return (
-    <div className="rounded-xl border border-border/70 bg-muted/20 px-2 py-2 text-center">
+    <div className="ce-polish-inset px-2 py-2 text-center">
       <Icon className="mx-auto size-4 text-primary" aria-hidden />
-      <dt className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">{label}</dt>
+      <dt className="mt-1 text-2.5 uppercase tracking-wide text-muted-foreground">{label}</dt>
       <dd className="text-xs font-semibold text-foreground">{text}</dd>
     </div>
   );

@@ -31,7 +31,7 @@ export function DashboardWelcome({
         <motion.div className="space-y-4" {...motionPresets.slideUp}>
           <div className="flex flex-wrap items-center gap-2">
             <span className="ce-hud-chip">security lab</span>
-            <span className="font-mono text-[11px] text-muted-foreground">learner session</span>
+            <span className="font-mono text-2.75 text-muted-foreground">learner session</span>
           </div>
           <p className="typo-eyebrow text-primary">Личный кабинет</p>
           <h1 className="typo-h1 text-balance">Здравствуйте, {displayName}</h1>
@@ -48,7 +48,7 @@ export function DashboardWelcome({
             />
           </motion.div>
           <div className="pt-1">
-            <Button asChild size="lg" className="w-full shadow-card sm:w-auto sm:min-w-[220px]">
+            <Button asChild size="lg" className="w-full shadow-card sm:w-auto sm:min-w-55">
               <Link href={continueTarget.href}>
                 {continueTarget.label}
                 <ArrowRight className="size-4" aria-hidden />

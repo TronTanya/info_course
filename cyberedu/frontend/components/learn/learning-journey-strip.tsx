@@ -70,7 +70,7 @@ export function LearningJourneyStrip({
                 href={step.href}
                 className={cn(
                   "flex min-h-11 items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors sm:gap-2 sm:px-3 sm:py-2",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
                   active &&
                     "border-primary/40 bg-primary/12 text-primary shadow-sm",
                   done &&

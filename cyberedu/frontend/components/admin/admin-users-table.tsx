@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { AdminDualTable } from "@/components/admin/admin-dual-table";
 import { AdminMobileCard } from "@/components/admin/admin-mobile-card";
 import { AdminRowMenu } from "@/components/admin/admin-row-menu";
-import { AdminTable, AdminTableBody, AdminTableHead } from "@/components/admin/admin-table";
+import { AdminUsersDesktopTable } from "@/components/admin/admin-users-desktop-table";
 import { AdminTableToolbar, type AdminTableDensity } from "@/components/admin/admin-table-toolbar";
 import type { AdminUserListRow } from "@/lib/admin-users-list";
 import { Badge } from "@/components/ui/badge";
@@ -151,7 +151,7 @@ export function AdminUsersTable({
             type="button"
             onClick={() => setProgressFilter(f.id)}
             className={cn(
-              "rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors",
+              "rounded-full border px-2.5 py-1 text-2.75 font-semibold transition-colors",
               progressFilter === f.id
                 ? "border-primary/40 bg-primary/12 text-primary"
                 : "border-border/70 bg-card/80 text-muted-foreground hover:text-foreground",
@@ -203,11 +203,11 @@ export function AdminUsersTable({
                       <p className="font-medium text-foreground">{r.fullName}</p>
                       <div className="mt-1 flex flex-wrap gap-1">
                         {r.role === "ADMIN" ? (
-                          <Badge variant="outline" className="text-[10px]">
+                          <Badge variant="outline" className="text-2.5">
                             ADMIN
                           </Badge>
                         ) : (
-                          <Badge variant={progressBadgeVariant(r.overallProgressPercent)} className="text-[10px] tabular-nums">
+                          <Badge variant={progressBadgeVariant(r.overallProgressPercent)} className="text-2.5 tabular-nums">
                             {r.overallProgressPercent}%
                           </Badge>
                         )}
@@ -248,106 +248,7 @@ export function AdminUsersTable({
               ))}
             </div>
           }
-          desktop={
-            <AdminTable
-              minWidth={dashboardView ? "960px" : "1280px"}
-              density={density}
-              caption={dashboardView ? "Студенты — краткий список" : "Пользователи платформы"}
-            >
-              <AdminTableHead>
-                <tr>
-                  <th>ФИО</th>
-                  <th>Email</th>
-                  <th>Роль</th>
-                  {!dashboardView ? (
-                    <>
-                      <th>Учебное заведение</th>
-                      <th>Группа</th>
-                      <th>Курс</th>
-                      <th>Специальность</th>
-                      <th>Регистрация</th>
-                    </>
-                  ) : null}
-                  <th>Прогресс</th>
-                  {dashboardView ? (
-                    <>
-                      <th>Тесты</th>
-                      <th>Практика</th>
-                      <th>Активность</th>
-                    </>
-                  ) : (
-                    <>
-                      <th>Баллы</th>
-                      <th className="whitespace-normal">Отчёт курса</th>
-                    </>
-                  )}
-                  <th>Сертификат</th>
-                  <th className="w-28" />
-                </tr>
-              </AdminTableHead>
-              <AdminTableBody>
-                {displayRows.map((r) => (
-                  <tr key={r.id}>
-                    <td className="font-semibold text-foreground">{r.fullName}</td>
-                    <td className="text-muted-foreground">{r.email}</td>
-                    <td>
-                      <Badge variant={r.role === "ADMIN" ? "outline" : "secondary"} className="text-[10px]">
-                        {r.role === "ADMIN" ? "Админ" : "Студент"}
-                      </Badge>
-                    </td>
-                    {!dashboardView ? (
-                      <>
-                        <td className="max-w-[200px] text-muted-foreground">{r.educationalInstitution}</td>
-                        <td className="max-w-[100px] tabular-nums text-muted-foreground">{r.studyGroup}</td>
-                        <td className="w-16 tabular-nums text-muted-foreground">{r.studyCourseYear}</td>
-                        <td className="max-w-[160px] text-muted-foreground">{r.specialty}</td>
-                        <td className="tabular-nums text-muted-foreground">
-                          {new Date(r.createdAt).toLocaleDateString("ru-RU")}
-                        </td>
-                      </>
-                    ) : null}
-                    <td>
-                      {r.role === "USER" ? (
-                        <Badge variant={progressBadgeVariant(r.overallProgressPercent)} className="tabular-nums">
-                          {r.overallProgressPercent}%
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </td>
-                    {dashboardView ? (
-                      <>
-                        <td className="tabular-nums text-sm text-muted-foreground">
-                          {r.role === "USER" ? `${r.testsPassedCount}/${r.testAttemptCount}` : "—"}
-                        </td>
-                        <td className="tabular-nums text-sm text-muted-foreground">
-                          {r.role === "USER" ? r.practicesCompletedCount : "—"}
-                        </td>
-                        <td className="whitespace-nowrap text-xs tabular-nums text-muted-foreground">
-                          {formatLastActivity(r.lastActivityAt)}
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        <td className="tabular-nums font-medium text-foreground">{r.role === "USER" ? r.totalScore : "—"}</td>
-                        <td className="tabular-nums text-muted-foreground">{r.courseProgressRowCount}</td>
-                      </>
-                    )}
-                    <td>
-                      {r.hasCertificate ? (
-                        <span className="font-medium text-success">Выдан</span>
-                      ) : (
-                        <span className="text-muted-foreground">Нет</span>
-                      )}
-                    </td>
-                    <td>
-                      <UserRowMenu userId={r.id} />
-                    </td>
-                  </tr>
-                ))}
-              </AdminTableBody>
-            </AdminTable>
-          }
+          desktop={<AdminUsersDesktopTable rows={displayRows} dashboardView={dashboardView} />}
         />
       )}
     </div>

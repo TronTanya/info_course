@@ -2,6 +2,7 @@ import { execSync } from "node:child_process";
 import { config as loadEnv } from "dotenv";
 import { request } from "@playwright/test";
 import { getE2eCredentials } from "./test-credentials";
+import { ensureE2eDemoUsersReady } from "./helpers/verification";
 
 /** DATABASE_URL и прочее из `frontend/.env` (нужно для persistence-check в prod-smoke). */
 loadEnv({ path: ".env", quiet: true });
@@ -62,6 +63,15 @@ async function globalSetup(): Promise<void> {
   clearRateLimitKeys(redisUrl);
 
   getE2eCredentials("student");
+  getE2eCredentials("admin");
+
+  if (process.env.DATABASE_URL?.trim() && process.env.E2E_USE_SEED_CREDENTIALS === "1") {
+    try {
+      await ensureE2eDemoUsersReady();
+    } catch (e) {
+      console.warn("[e2e-prod] ensureE2eDemoUsersReady:", e);
+    }
+  }
 
   await ctx.dispose();
 }

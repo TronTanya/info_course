@@ -41,7 +41,7 @@ function ChartCard({
           title={emptyTitle}
           description="Данные появятся после активности студентов."
         >
-          <div className="h-[220px] w-full min-w-0">
+          <div className="h-55 w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border/50" vertical={false} />

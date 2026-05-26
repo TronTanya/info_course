@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Prisma, type CheckType, type PracticalTaskType } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/permissions";
+import { requireAdminAction } from "@/lib/security/admin-action-guard";
 
 export type AdminPracticalFormState = { error?: string };
 
@@ -105,7 +105,7 @@ export async function savePracticalTaskAction(
   _prev: AdminPracticalFormState | null,
   formData: FormData,
 ): Promise<AdminPracticalFormState> {
-  await requireAdmin();
+  await requireAdminAction();
 
   const payload = buildPayload(formData);
   if (!payload) return { error: "Некорректный тип задания или проверки." };

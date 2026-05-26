@@ -36,7 +36,7 @@ test.describe("UX documentation screenshots", () => {
     await loginAs(page, "student");
 
     await page.goto("/dashboard");
-    await expect(page.getByRole("heading", { name: /Здравствуйте/i }).first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Привет,/i }).first()).toBeVisible();
     await page.screenshot({ path: path.join(SCREENSHOTS_DIR, "02-dashboard.png") });
 
     await page.goto("/dashboard/course");

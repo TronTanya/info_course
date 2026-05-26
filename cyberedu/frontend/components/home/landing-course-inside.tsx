@@ -48,14 +48,14 @@ export function LandingCourseInside() {
             key={item.title}
             variant="default"
             flushTitle
-            className="group transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan/25 hover:shadow-[var(--shadow-card-hover)]"
+            className="group transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan/25 hover:shadow-card-hover"
           >
             <div className="mb-3 flex size-11 items-center justify-center rounded-xl border border-primary/15 bg-primary/8 text-primary transition-colors group-hover:bg-primary/12">
               <item.icon className="size-5" strokeWidth={1.75} aria-hidden />
             </div>
             <h3 className="text-lg font-semibold leading-snug text-foreground">{item.title}</h3>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
-            <div className="mt-4 h-1 w-10 rounded-full bg-gradient-to-r from-primary to-cyan opacity-90 transition-all group-hover:w-16" />
+            <div className="mt-4 h-1 w-10 rounded-full bg-linear-to-r from-primary to-cyan opacity-90 transition-all group-hover:w-16" />
           </SectionCard>
         ))}
       </div>

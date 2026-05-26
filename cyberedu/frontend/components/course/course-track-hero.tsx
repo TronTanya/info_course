@@ -29,10 +29,10 @@ export function CourseTrackHero({ data }: { data: UserCourseProgressResult }) {
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(240px,300px)] lg:items-center">
         <div className="min-w-0 space-y-5">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="primary" className="font-mono text-[10px] uppercase tracking-wider">
-              Cyber mission track
+            <Badge variant="primary" className="font-mono text-2.5 uppercase tracking-wider">
+              Learn OS · Mission track
             </Badge>
-            <Badge variant="outline" className="border-primary/25 font-mono text-[10px] uppercase tracking-widest">
+            <Badge variant="outline" className="border-primary/25 font-mono text-2.5 uppercase tracking-widest">
               {level.label}
             </Badge>
           </div>

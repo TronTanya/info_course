@@ -158,13 +158,13 @@ export function UrlAnalysisTask({ moduleId, practicalTaskId, disabled, onResult 
       </PracticeTaskBanner>
 
       <div className={cn(cyber.adminTable, "ce-scroll-x-contained -mx-1 min-w-0 px-1")}>
-        <table className="w-full min-w-[640px] border-collapse text-sm">
+        <table className="w-full min-w-160 border-collapse text-sm">
           <thead>
             <tr className="border-b border-border bg-muted/50 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               <th className="px-3 py-3 w-10">#</th>
-              <th className="px-3 py-3 min-w-[200px]">Ссылка</th>
-              <th className="px-3 py-3 w-[200px]">Статус</th>
-              <th className="px-3 py-3 min-w-[180px]">Причина (если подозрительно)</th>
+              <th className="px-3 py-3 min-w-50">Ссылка</th>
+              <th className="px-3 py-3 w-50">Статус</th>
+              <th className="px-3 py-3 min-w-45">Причина (если подозрительно)</th>
             </tr>
           </thead>
           <tbody>
@@ -174,7 +174,7 @@ export function UrlAnalysisTask({ moduleId, practicalTaskId, disabled, onResult 
               return (
                 <tr key={it.id} className="border-b border-border last:border-0">
                   <td className="px-3 py-3 align-top text-muted-foreground">{idx + 1}</td>
-                  <td className="px-3 py-3 align-top font-mono text-[12px] sm:text-[13px] break-all text-foreground">
+                  <td className="px-3 py-3 align-top font-mono text-xs sm:text-3.25 break-all text-foreground">
                     {it.url}
                   </td>
                   <td className="px-3 py-3 align-top">

@@ -11,12 +11,77 @@ const byKey = new Map<string, AttemptBucket>();
 const MAX_FAILURES = 8;
 const LOCKOUT_MS = 15 * 60 * 1000;
 const WINDOW_MS = 30 * 60 * 1000;
+const LOCK_KEY_PREFIX = "auth:login:lock";
+const FAIL_KEY_PREFIX = "auth:login:fail";
+let redisUnavailableWarned = false;
+
+type RedisClient = {
+  incr: (key: string) => Promise<number>;
+  pExpire: (key: string, ms: number) => Promise<number>;
+  pTTL: (key: string) => Promise<number>;
+  connect: () => Promise<void>;
+  on: (event: string, listener: () => void) => void;
+};
+
+let redisPromise: Promise<RedisClient | null> | null = null;
+
+function isProductionRuntime(): boolean {
+  const environment = (process.env.ENVIRONMENT ?? "").trim().toLowerCase();
+  return environment === "production" || environment === "prod";
+}
+
+function warnRedisUnavailable(): void {
+  if (redisUnavailableWarned) return;
+  redisUnavailableWarned = true;
+  const msg = isProductionRuntime()
+    ? "[auth] Redis unavailable for login lockout; denying lockout checks (fail-closed)."
+    : "[auth] Redis unavailable for login lockout; fallback to in-memory lockout (not shared across replicas).";
+  if (isProductionRuntime()) {
+    console.error(msg);
+    return;
+  }
+  console.warn(msg);
+}
+
+/** Production без Redis: не ослаблять brute-force через in-memory fallback. */
+function loginLockoutFailClosed(): { locked: boolean; failures: number } {
+  return { locked: true, failures: MAX_FAILURES };
+}
+
+async function getRedis(): Promise<RedisClient | null> {
+  const url = process.env.REDIS_URL?.trim();
+  if (!url) return null;
+  if (!redisPromise) {
+    redisPromise = (async () => {
+      try {
+        const redisMod = (await import("redis")) as typeof import("redis");
+        const client = redisMod.createClient({ url });
+        client.on("error", () => {
+          /* per-request fallback */
+        });
+        await client.connect();
+        return client as unknown as RedisClient;
+      } catch {
+        return null;
+      }
+    })();
+  }
+  return redisPromise;
+}
 
 function key(email: string, ip: string): string {
   return `${email.toLowerCase()}|${ip}`;
 }
 
-export function isLoginLocked(email: string, ip: string): boolean {
+function failKey(email: string, ip: string): string {
+  return `${FAIL_KEY_PREFIX}:${key(email, ip)}`;
+}
+
+function lockKey(email: string, ip: string): string {
+  return `${LOCK_KEY_PREFIX}:${key(email, ip)}`;
+}
+
+function isLoginLockedMemory(email: string, ip: string): boolean {
   const b = byKey.get(key(email, ip));
   if (!b) return false;
   if (Date.now() < b.lockedUntil) return true;
@@ -27,7 +92,7 @@ export function isLoginLocked(email: string, ip: string): boolean {
   return false;
 }
 
-export function recordFailedLogin(email: string, ip: string): { locked: boolean; failures: number } {
+function recordFailedLoginMemory(email: string, ip: string): { locked: boolean; failures: number } {
   const k = key(email, ip);
   const now = Date.now();
   let b = byKey.get(k);
@@ -44,8 +109,73 @@ export function recordFailedLogin(email: string, ip: string): { locked: boolean;
   return { locked: b.failures >= MAX_FAILURES, failures: b.failures };
 }
 
-export function clearLoginAttempts(email: string, ip: string): void {
+function clearLoginAttemptsMemory(email: string, ip: string): void {
   byKey.delete(key(email, ip));
+}
+
+/** Полный сброс in-memory lockout (только dev/e2e, тот же процесс, что и Next.js). */
+export function resetLoginLockoutMemoryStore(): void {
+  byKey.clear();
+}
+
+export async function isLoginLocked(email: string, ip: string): Promise<boolean> {
+  const redis = await getRedis();
+  if (!redis) {
+    warnRedisUnavailable();
+    if (isProductionRuntime()) return true;
+    return isLoginLockedMemory(email, ip);
+  }
+  try {
+    const ttl = await redis.pTTL(lockKey(email, ip));
+    return ttl > 0;
+  } catch {
+    warnRedisUnavailable();
+    if (isProductionRuntime()) return true;
+    return isLoginLockedMemory(email, ip);
+  }
+}
+
+export async function recordFailedLogin(
+  email: string,
+  ip: string,
+): Promise<{ locked: boolean; failures: number }> {
+  const redis = await getRedis();
+  if (!redis) {
+    warnRedisUnavailable();
+    if (isProductionRuntime()) return loginLockoutFailClosed();
+    return recordFailedLoginMemory(email, ip);
+  }
+  try {
+    const failures = await redis.incr(failKey(email, ip));
+    if (failures === 1) {
+      await redis.pExpire(failKey(email, ip), WINDOW_MS);
+    }
+    if (failures >= MAX_FAILURES) {
+      const lockCount = await redis.incr(lockKey(email, ip));
+      if (lockCount === 1) {
+        await redis.pExpire(lockKey(email, ip), LOCKOUT_MS);
+      }
+      return { locked: true, failures };
+    }
+    return { locked: false, failures };
+  } catch {
+    warnRedisUnavailable();
+    if (isProductionRuntime()) return loginLockoutFailClosed();
+    return recordFailedLoginMemory(email, ip);
+  }
+}
+
+export async function clearLoginAttempts(email: string, ip: string): Promise<void> {
+  const redis = await getRedis();
+  if (!redis) {
+    clearLoginAttemptsMemory(email, ip);
+    return;
+  }
+  try {
+    await Promise.all([redis.pExpire(failKey(email, ip), 1), redis.pExpire(lockKey(email, ip), 1)]);
+  } catch {
+    clearLoginAttemptsMemory(email, ip);
+  }
 }
 
 /** Лимит попыток входа по доверенному IP (до проверки пароля). */

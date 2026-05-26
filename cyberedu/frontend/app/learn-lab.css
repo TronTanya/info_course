@@ -1,0 +1,448 @@
+/**
+ * CyberEdu Learn OS — premium interactive cyber lab (course, lesson, practice)
+ */
+
+@layer components {
+  .ce-learn-os {
+    position: relative;
+    isolation: isolate;
+    min-width: 0;
+  }
+
+  .ce-learn-os::before {
+    content: "";
+    position: absolute;
+    inset: -1rem 0 auto;
+    height: 14rem;
+    background: radial-gradient(ellipse 70% 55% at 20% 0%, rgb(99 102 241 / 0.04), transparent 68%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .ce-learn-os > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .ce-learn-os-map.ce-course-track-map::before {
+    background: radial-gradient(ellipse 90% 50% at 50% 0%, rgb(var(--ce-brand-rgb) / 0.1), transparent 70%);
+  }
+
+  /* Learn panels — solid surfaces */
+  .ce-learn-os-panel {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-2xl);
+    border: 1px solid var(--ce-border);
+    background: var(--ce-bg-elevated);
+    box-shadow: var(--shadow-card);
+    transition:
+      border-color var(--duration-fast) var(--ease-out-expo),
+      box-shadow var(--duration-fast) var(--ease-out-expo);
+  }
+
+  .ce-learn-os-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    background: var(--ce-highlight-edge);
+    opacity: 0.85;
+    pointer-events: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .ce-learn-os-panel--interactive:hover {
+      border-color: color-mix(in oklab, var(--primary) 22%, var(--ce-border));
+      box-shadow: var(--shadow-card-hover);
+    }
+  }
+
+  .ce-learn-os-panel--glow {
+    border-color: color-mix(in oklab, var(--primary) 20%, var(--ce-border));
+  }
+
+  .ce-learn-os-panel--terminal {
+    border-color: var(--ce-border);
+    background: var(--ce-bg-elevated);
+    font-family: var(--font-mono);
+  }
+
+  .ce-learn-os-panel--mission {
+    border-color: color-mix(in oklab, var(--primary) 22%, var(--ce-border));
+    background: var(--ce-bg-elevated);
+    box-shadow: var(--shadow-card);
+  }
+
+  .ce-learn-os-eyebrow {
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    text-transform: none;
+    color: var(--muted-foreground);
+  }
+
+  /* Sticky learning sidebar */
+  .ce-learn-os-sidebar {
+    border-radius: var(--radius-2xl);
+    border: 1px solid var(--ce-border);
+    background: var(--ce-bg-elevated);
+    box-shadow: var(--shadow-card);
+  }
+
+  .ce-learn-os-sidebar .ce-learn-os-step--active {
+    background: rgb(var(--ce-brand-rgb) / 0.1);
+    box-shadow: none;
+  }
+
+  .ce-learn-os-step--completed .ce-learn-os-step-dot {
+    box-shadow: 0 0 12px color-mix(in oklab, var(--success) 55%, transparent);
+  }
+
+  /* Cyber progress strip */
+  .ce-learn-os-progress {
+    border-radius: var(--radius-2xl);
+    border: 1px solid var(--ce-border);
+    background: var(--ce-bg-elevated);
+    box-shadow: var(--shadow-card);
+  }
+
+  .ce-learn-os-progress-bar {
+    height: 0.375rem;
+    overflow: hidden;
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 0.06);
+  }
+
+  .ce-learn-os-progress-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #6366f1, #818cf8);
+    box-shadow: none;
+    transition: width 0.45s var(--ease-out-expo);
+  }
+
+  .ce-learn-os-progress-fill--complete {
+    background: linear-gradient(90deg, #22c55e, #4ade80);
+    box-shadow: none;
+  }
+
+  /* Immersive mission cards */
+  .ce-learn-mission-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-2xl);
+    border: 1px solid var(--ce-border);
+    background: var(--ce-bg-elevated);
+    box-shadow: var(--shadow-card);
+    transition:
+      border-color var(--duration-normal) var(--ease-out-expo),
+      box-shadow var(--duration-normal) var(--ease-out-expo),
+      transform var(--duration-fast) var(--ease-out-expo);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .ce-learn-mission-card:hover {
+      border-color: color-mix(in oklab, var(--primary) 22%, var(--ce-border));
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-card-hover);
+    }
+  }
+
+  .ce-learn-mission-card--current {
+    border-color: color-mix(in oklab, var(--primary) 28%, var(--ce-border));
+    box-shadow: var(--shadow-card);
+  }
+
+  .ce-learn-mission-card--complete {
+    border-color: color-mix(in oklab, var(--success) 35%, var(--ce-border));
+    box-shadow: var(--shadow-card);
+  }
+
+  .ce-learn-mission-card--locked {
+    opacity: 0.82;
+  }
+
+  /* Roadmap nodes */
+  .ce-learn-mission-node {
+    border-radius: var(--radius-xl);
+    border-width: 2px;
+    transition: box-shadow var(--duration-normal) var(--ease-out-expo);
+  }
+
+  .ce-learn-mission-node--current {
+    animation: ce-learn-node-pulse 2.8s ease-in-out infinite;
+  }
+
+  .ce-learn-mission-node--complete {
+    box-shadow: 0 0 20px color-mix(in oklab, var(--success) 40%, transparent);
+  }
+
+  @keyframes ce-learn-node-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 16px color-mix(in oklab, var(--primary) 35%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 28px color-mix(in oklab, var(--primary) 55%, transparent);
+    }
+  }
+
+  /* Floating lesson navigation */
+  .ce-learn-float-nav {
+    position: fixed;
+    bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    z-index: 35;
+    display: flex;
+    max-width: min(42rem, calc(100vw - 2rem));
+    -webkit-transform: translateX(-50%);
+    transform: translateX(-50%);
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.35rem;
+    border-radius: 9999px;
+    border: 1px solid rgb(255 255 255 / 0.1);
+    background: rgb(5 1 10 / 0.82);
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.06) inset,
+      var(--ce-glow-soft),
+      0 12px 40px rgb(0 0 0 / 0.45);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  }
+
+  .ce-learn-float-nav__chip {
+    display: inline-flex;
+    min-height: 2.25rem;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 9999px;
+    padding: 0 0.85rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    transition:
+      background-color var(--duration-fast) var(--ease-out-expo),
+      color var(--duration-fast) var(--ease-out-expo),
+      box-shadow var(--duration-fast) var(--ease-out-expo);
+  }
+
+  .ce-learn-float-nav__chip:hover:not(:disabled) {
+    color: var(--foreground);
+    background: rgb(255 255 255 / 0.06);
+  }
+
+  .ce-learn-float-nav__chip--active {
+    color: var(--primary);
+    background: rgb(var(--ce-brand-rgb) / 0.18);
+    box-shadow: 0 0 16px -4px rgb(var(--ce-brand-rgb) / 0.5);
+  }
+
+  .ce-learn-float-nav__chip--done {
+    color: var(--success);
+  }
+
+  .ce-learn-float-nav__chip:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  /* Lesson immersive tabs */
+  .ce-learn-lesson-tabs {
+    border-radius: var(--radius-2xl);
+    border: 1px solid rgb(255 255 255 / 0.08);
+    background: rgb(5 1 10 / 0.88);
+    box-shadow: var(--ce-glow-soft);
+    backdrop-filter: blur(16px);
+  }
+
+  .ce-learn-lesson-read-bar {
+    height: 0.25rem;
+    overflow: hidden;
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 0.06);
+  }
+
+  .ce-learn-lesson-read-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #6366f1, #22d3ee);
+    box-shadow: none;
+  }
+
+  /* Practice mission lab */
+  .ce-mission-lab.lab-shell {
+    border: 1px solid var(--ce-border);
+    border-radius: var(--radius-3xl);
+    background: var(--ce-bg-elevated);
+    box-shadow: var(--shadow-card);
+  }
+
+  .ce-mission-lab .lab-shell-header {
+    border-bottom: 1px solid var(--ce-border);
+    background: var(--ce-bg-elevated);
+  }
+
+  .ce-mission-lab .lab-main-surface {
+    background: rgb(5 1 10 / 0.4);
+  }
+
+  .ce-mission-topbar {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-2xl);
+    border: 1px solid rgb(var(--ce-brand-rgb) / 0.28);
+    background: linear-gradient(135deg, rgb(var(--ce-brand-rgb) / 0.1) 0%, rgb(255 255 255 / 0.02) 55%);
+    box-shadow: var(--ce-glow-soft);
+  }
+
+  .ce-mission-topbar__live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--success);
+  }
+
+  .ce-mission-topbar__live-dot {
+    position: relative;
+    display: flex;
+    width: 0.375rem;
+    height: 0.375rem;
+  }
+
+  .ce-mission-topbar__live-dot::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background: var(--success);
+    animation: ce-mission-live-ping 1.8s ease-out infinite;
+  }
+
+  .ce-mission-topbar__live-dot::after {
+    content: "";
+    position: relative;
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 9999px;
+    background: var(--success);
+  }
+
+  @keyframes ce-mission-live-ping {
+    0% {
+      transform: scale(1);
+      opacity: 0.7;
+    }
+    100% {
+      transform: scale(2.2);
+      opacity: 0;
+    }
+  }
+
+  .ce-mission-panel {
+    border-radius: var(--radius-2xl);
+    border: 1px solid rgb(255 255 255 / 0.08);
+    background: rgb(255 255 255 / 0.025);
+    box-shadow: var(--ce-glow-soft);
+  }
+
+  .ce-mission-panel--sandbox {
+    border-color: rgb(34 211 238 / 0.22);
+    background: linear-gradient(165deg, rgb(8 5 15 / 0.95) 0%, rgb(5 1 10 / 0.88) 100%);
+  }
+
+  .ce-mission-validation {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    padding: 0.2rem 0.65rem;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .ce-mission-validation--pending {
+    border-color: rgb(255 255 255 / 0.12);
+    background: rgb(255 255 255 / 0.04);
+    color: var(--muted-foreground);
+  }
+
+  .ce-mission-validation--running {
+    border-color: rgb(var(--ce-brand-rgb) / 0.35);
+    background: rgb(var(--ce-brand-rgb) / 0.1);
+    color: var(--primary);
+    animation: ce-mission-validation-pulse 1.2s ease-in-out infinite;
+  }
+
+  .ce-mission-validation--passed {
+    border-color: rgb(34 197 94 / 0.4);
+    background: rgb(34 197 94 / 0.12);
+    color: var(--success);
+    box-shadow: 0 0 16px -4px rgb(34 197 94 / 0.4);
+  }
+
+  .ce-mission-validation--failed {
+    border-color: rgb(239 68 68 / 0.35);
+    background: rgb(239 68 68 / 0.1);
+    color: var(--danger);
+  }
+
+  @keyframes ce-mission-validation-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.65;
+    }
+  }
+
+  .ce-mission-progress-track {
+    height: 0.5rem;
+    overflow: hidden;
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 0.06);
+  }
+
+  .ce-mission-progress-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #6366f1, #22d3ee);
+    box-shadow: 0 0 10px rgb(var(--ce-brand-rgb) / 0.45);
+    transition: width 0.5s var(--ease-out-expo);
+  }
+
+  .ce-course-module-card.ce-learn-mission-card {
+    backdrop-filter: blur(12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ce-learn-os-panel--interactive:hover,
+  .ce-learn-mission-card:hover {
+    transform: none;
+  }
+
+  .ce-learn-mission-node--current {
+    animation: none;
+  }
+
+  .ce-mission-topbar__live-dot::before {
+    animation: none;
+  }
+
+  .ce-mission-validation--running {
+    animation: none;
+  }
+}

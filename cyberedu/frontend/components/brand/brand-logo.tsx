@@ -59,7 +59,7 @@ export function BrandLogoHeaderLink({ className, iconOnly }: BrandLogoHeaderLink
       ) : (
         <span className="flex min-w-0 flex-col leading-tight">
           <span className="truncate text-base font-semibold tracking-tight text-foreground">CyberEdu</span>
-          <span className="hidden truncate text-xs text-muted-foreground sm:block sm:text-[13px]">
+          <span className="hidden truncate text-xs text-muted-foreground sm:block sm:text-3.25">
             Информационная безопасность
           </span>
         </span>

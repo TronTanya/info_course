@@ -6,7 +6,8 @@ export type ServerActionRateLimitKey =
   | "testSubmit"
   | "practiceText"
   | "practiceInteractive"
-  | "practiceStructured";
+  | "practiceStructured"
+  | "aiLessonAdapt";
 
 const DEFAULT_EXCEEDED = "Слишком много отправок. Подождите и попробуйте позже.";
 const DEFAULT_UNAVAILABLE =

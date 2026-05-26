@@ -1,4 +1,5 @@
 import { type ReactNode } from "react";
+import { isSafeMarkdownHref } from "@/lib/security/sanitize";
 
 /** Инлайн Markdown: **жирный**, `код`, [ссылки](url). */
 export function formatInlineMarkdown(text: string): ReactNode[] {
@@ -25,17 +26,27 @@ export function formatInlineMarkdown(text: string): ReactNode[] {
     } else {
       const link = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(token);
       if (link) {
-        parts.push(
-          <a
-            key={k++}
-            href={link[2]}
-            className="text-primary underline-offset-2 hover:underline"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            {link[1]}
-          </a>,
-        );
+        const label = link[1];
+        const href = link[2];
+        if (isSafeMarkdownHref(href)) {
+          parts.push(
+            <a
+              key={k++}
+              href={href}
+              className="text-primary underline-offset-2 hover:underline"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              {label}
+            </a>,
+          );
+        } else {
+          parts.push(
+            <span key={k++} className="text-foreground">
+              {label}
+            </span>,
+          );
+        }
       } else {
         parts.push(token);
       }

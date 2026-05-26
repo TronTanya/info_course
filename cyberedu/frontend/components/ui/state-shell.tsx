@@ -29,7 +29,7 @@ export function StateShell({
       )}
     >
       {terminalLine ? (
-        <div className="border-b border-border/50 bg-primary/[0.05] px-4 py-2 font-mono text-xs">
+        <div className="border-b border-border/50 bg-primary/5 px-4 py-2 font-mono text-xs">
           <span className="text-muted-foreground">$</span>{" "}
           <span className="text-primary">{terminalLine}</span>
         </div>

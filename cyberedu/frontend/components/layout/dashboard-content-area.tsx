@@ -25,9 +25,10 @@ export function DashboardContentArea({
 
   return (
     <section
+      data-mobile-tab-bar={immersive ? undefined : ""}
       className={cn(
-        "dashboard-content ce-app-main-panel ce-lab-panel min-w-0 overflow-x-clip p-3 sm:p-6 lg:p-9",
-        !immersive && "ce-dashboard-main-pad",
+        "dashboard-content ce-app-main-panel ce-mobile-app ce-cockpit-shell ce-lab-panel min-w-0 overflow-x-clip",
+        immersive ? "p-3 sm:p-6 lg:p-9" : "ce-mobile-main-pad ce-dashboard-main-pad p-3 sm:p-6 lg:p-9",
         className,
       )}
     >

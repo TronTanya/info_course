@@ -27,7 +27,7 @@ export function LandingAiFeatures() {
   return (
     <section
       id="ai"
-      className="scroll-mt-24 hero-glow relative overflow-hidden rounded-3xl border border-primary/20 p-6 sm:p-10"
+      className="scroll-mt-24 ds-card relative overflow-hidden rounded-3xl p-6 sm:p-10"
       aria-labelledby="ai-heading"
     >
       <div className="pointer-events-none absolute -right-20 top-0 h-56 w-56 rounded-full bg-accent/12 blur-3xl" aria-hidden />

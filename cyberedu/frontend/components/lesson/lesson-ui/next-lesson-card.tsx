@@ -35,7 +35,7 @@ export function NextLessonCard({
         className,
       )}
     >
-      <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-primary">Следующий шаг</p>
+      <p className="font-mono text-2.5 font-semibold uppercase tracking-widest text-primary">Следующий шаг</p>
       <div className="mt-3 flex gap-4">
         <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-primary/25 bg-primary/15 text-primary">
           <Icon className="size-5" strokeWidth={1.75} aria-hidden />

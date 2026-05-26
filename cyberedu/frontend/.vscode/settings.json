@@ -1,0 +1,8 @@
+{
+  "tailwindCSS.experimental.configFile": "app/globals.css",
+  "tailwindCSS.classFunctions": ["cn", "clsx", "cva"],
+  "tailwindCSS.includeLanguages": {
+    "typescript": "javascript",
+    "typescriptreact": "javascript"
+  }
+}

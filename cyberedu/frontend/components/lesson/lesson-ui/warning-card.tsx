@@ -31,14 +31,14 @@ export function WarningCard({ title, children, security = false, className }: Wa
         <div className="min-w-0 flex-1">
           <p
             className={cn(
-              "font-mono text-[10px] font-semibold uppercase tracking-widest",
+              "font-mono text-2.5 font-semibold uppercase tracking-widest",
               security ? "text-danger" : "text-warning",
             )}
           >
             {security ? "Security Warning" : "Внимание"}
           </p>
           <h3 className="mt-1 text-base font-semibold leading-snug text-foreground">{title}</h3>
-          <div className="mt-2 text-[15px] leading-relaxed text-foreground/90">{children}</div>
+          <div className="mt-2 text-base leading-relaxed text-foreground/90">{children}</div>
         </div>
       </div>
     </section>

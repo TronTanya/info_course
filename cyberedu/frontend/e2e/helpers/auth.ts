@@ -1,10 +1,21 @@
 import type { BrowserContext, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { getE2eCredentials, type E2eRole } from "../test-credentials";
+import {
+  ensureE2eDemoUsersReady,
+  ensureE2eUserPassword,
+  issueE2eEmailVerificationUrl,
+  resetServerAuthGuards,
+} from "./verification";
 
-/** Стабильный вход для smoke: NextAuth credentials API (без GET-submit формы до гидрации). */
-export async function loginAs(page: Page, role: E2eRole): Promise<void> {
-  const { email, password } = getE2eCredentials(role);
+async function readSessionEmail(page: Page): Promise<string> {
+  const res = await page.request.get("/api/auth/session");
+  if (!res.ok()) return "";
+  const session = (await res.json()) as { user?: { email?: string } } | null;
+  return session?.user?.email?.trim().toLowerCase() ?? "";
+}
+
+export async function credentialsSignIn(page: Page, email: string, password: string): Promise<void> {
   const csrfRes = await page.request.get("/api/auth/csrf");
   expect(csrfRes.ok()).toBeTruthy();
   const { csrfToken } = (await csrfRes.json()) as { csrfToken: string };
@@ -20,20 +31,85 @@ export async function loginAs(page: Page, role: E2eRole): Promise<void> {
   });
   expect(signInRes.ok()).toBeTruthy();
 
+  const contentType = signInRes.headers()["content-type"] ?? "";
+  if (contentType.includes("application/json")) {
+    const body = (await signInRes.json()) as { error?: string; url?: string };
+    if (body.error) {
+      throw new Error(`E2E sign-in failed: ${body.error}`);
+    }
+  }
+}
+
+/** Стабильный вход для smoke: NextAuth credentials API (без GET-submit формы до гидрации). */
+export async function loginAs(page: Page, role: E2eRole): Promise<void> {
+  const { email, password } = getE2eCredentials(role);
+  const normalizedEmail = email.trim().toLowerCase();
+
+  if (process.env.E2E_USE_SEED_CREDENTIALS === "1") {
+    await resetServerAuthGuards([normalizedEmail]);
+    if (process.env.DATABASE_URL?.trim()) {
+      await ensureE2eDemoUsersReady();
+    }
+  }
+
+  await credentialsSignIn(page, email, password);
+
+  let sessionEmail = await readSessionEmail(page);
+  if (sessionEmail !== normalizedEmail && process.env.DATABASE_URL?.trim() && process.env.E2E_USE_SEED_CREDENTIALS === "1") {
+    await ensureE2eUserPassword(email, password);
+    await credentialsSignIn(page, email, password);
+    sessionEmail = await readSessionEmail(page);
+  }
+
+  expect(sessionEmail, "NextAuth session must be set after credentials sign-in").toBe(normalizedEmail);
+
   const dest = role === "admin" ? "/admin" : "/dashboard/profile";
-  await page.goto(dest);
-  await expect(page).toHaveURL(role === "admin" ? /\/admin/ : /\/dashboard/, { timeout: 15_000 });
-  await expect(sidebarLogoutButton(page)).toBeVisible();
+  const destPattern = role === "admin" ? /\/admin/ : /\/dashboard\/profile/;
+
+  await page.goto(dest, { waitUntil: "load" });
+
+  if (page.url().includes("/auth/verify-email") && process.env.DATABASE_URL?.trim()) {
+    const verifyUrl = await issueE2eEmailVerificationUrl(email, dest);
+    await page.goto(verifyUrl, { waitUntil: "load" });
+    await page.goto(dest, { waitUntil: "load" });
+  }
+
+  await expect(page).toHaveURL(destPattern, { timeout: 15_000 });
+
+  const sidebarLogout = sidebarLogoutButton(page);
+  const sidebarReady = await sidebarLogout
+    .first()
+    .waitFor({ state: "visible", timeout: 8_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (sidebarReady) {
+    await expect(sidebarLogout.first()).toBeVisible();
+    return;
+  }
+
+  const mobileMenu = page.getByRole("button", { name: /открыть меню/i });
+  if (await mobileMenu.isVisible().catch(() => false)) {
+    await expect(mobileMenu).toBeVisible();
+    return;
+  }
+
+  await expect(page.getByRole("button", { name: /меню аккаунта/i })).toBeVisible({ timeout: 10_000 });
 }
 
 /** Изоляция storage между student/admin logout (serial suite, один worker). */
 export async function resetAuthStorage(context: BrowserContext): Promise<void> {
   await context.clearCookies();
   for (const p of context.pages()) {
-    await p.evaluate(() => {
-      localStorage.clear();
-      sessionStorage.clear();
-    });
+    const url = p.url();
+    if (!url || url === "about:blank") continue;
+    try {
+      await p.evaluate(() => {
+        localStorage.clear();
+        sessionStorage.clear();
+      });
+    } catch {
+      /* detached or storage denied */
+    }
   }
 }
 
@@ -84,29 +160,47 @@ export async function signOutViaApiDiagnostic(page: Page): Promise<void> {
 export async function logout(page: Page): Promise<void> {
   const sidebar = sidebarLogoutButton(page);
   const mobileTrigger = page.getByRole("button", { name: /открыть меню/i });
+  const accountMenu = page.getByRole("button", { name: /меню аккаунта/i });
 
-  if (await sidebar.isVisible()) {
-    await expect(sidebar).toBeEnabled();
+  const sidebarVisible = await sidebar
+    .first()
+    .waitFor({ state: "visible", timeout: 5_000 })
+    .then(() => true)
+    .catch(() => false);
+
+  if (sidebarVisible) {
+    const btn = sidebar.first();
+    await expect(btn).toBeEnabled();
     await Promise.all([
       page.waitForURL(/\/auth\/login|\/$/, { timeout: 15_000 }).catch(() => null),
-      sidebar.click(),
+      btn.click(),
     ]);
-  } else {
-    await expect(mobileTrigger).toBeVisible();
+    await waitForEmptySession(page);
+    return;
+  }
+
+  if (await mobileTrigger.isVisible().catch(() => false)) {
     await mobileTrigger.click();
-
-    const dialog = page.getByRole("dialog", { name: /^меню$/i });
+    const dialog = page.getByRole("dialog", { name: /^(меню|кабинет|админка)$/i });
     await expect(dialog).toBeVisible();
-
     const drawerLogout = dialog.getByRole("button", { name: /^выйти$/i });
-    await expect(drawerLogout).toBeVisible();
     await expect(drawerLogout).toBeEnabled();
-
     await Promise.all([
       page.waitForURL(/\/auth\/login|\/$/, { timeout: 15_000 }).catch(() => null),
       drawerLogout.click(),
     ]);
+    await waitForEmptySession(page);
+    return;
   }
+
+  await expect(accountMenu).toBeVisible({ timeout: 10_000 });
+  await accountMenu.click();
+  const menuLogout = page.getByRole("menuitem", { name: /^выйти$/i });
+  await expect(menuLogout).toBeVisible();
+  await Promise.all([
+    page.waitForURL(/\/auth\/login|\/$/, { timeout: 15_000 }).catch(() => null),
+    menuLogout.click(),
+  ]);
 
   await waitForEmptySession(page);
 }

@@ -16,12 +16,12 @@ export function LandingFeatureCard({ className, icon, title, description, childr
       variant="default"
       flushTitle
       className={cn(
-        "ce-card-glow group h-full transition-[transform,box-shadow,border-color] duration-200 motion-reduce:transition-none hover:-translate-y-0.5",
+        "ce-premium-card ce-premium-card--interactive group h-full motion-reduce:transition-none",
         className,
       )}
     >
       {icon ? (
-        <div className="mb-3 flex size-11 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary ring-1 ring-primary/15 transition-colors group-hover:border-primary/35 group-hover:bg-primary/15">
+        <div className="mb-4 flex size-12 items-center justify-center rounded-2xl border border-primary/25 bg-primary/12 text-primary transition-colors group-hover:border-primary/40 group-hover:bg-primary/18">
           {icon}
         </div>
       ) : null}

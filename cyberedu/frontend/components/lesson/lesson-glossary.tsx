@@ -5,8 +5,8 @@ export function LessonGlossary({ terms }: { terms: GlossaryEntry[] }) {
   if (terms.length === 0) return null;
 
   return (
-    <section className="rounded-2xl border border-border/80 bg-muted/20 p-5 ring-1 ring-inset ring-border/50">
-      <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-primary">Ключевые термины</p>
+    <section className="ce-polish-inset ce-surface-interactive rounded-2xl p-5">
+      <p className="font-mono text-2.5 font-semibold uppercase tracking-widest text-primary">Ключевые термины</p>
       <ul className="mt-4 flex flex-wrap gap-2">
         {terms.map((t) => (
           <li key={t.term}>

@@ -4,9 +4,9 @@ import { BookOpen, ClipboardCheck, FlaskConical, Layers } from "lucide-react";
 import type { ProfileCourseStats } from "@/lib/profile-course-stats";
 import { computeStepMetrics } from "@/lib/dashboard-ui";
 import type { CourseProgressModuleRow } from "@/lib/progress";
+import { CockpitWidget, CockpitWidgetHeader } from "@/components/dashboard/cockpit/cockpit-widget";
 import { CircularProgress } from "@/components/ui/circular-progress";
 import { MetricCard } from "@/components/ui/metric-card";
-import { PremiumCard } from "@/components/ui/premium-card";
 import { ProgressBar } from "@/components/ui/progress-bar";
 
 export function DashboardCourseProgress({
@@ -20,13 +20,11 @@ export function DashboardCourseProgress({
   const tone = stats.progressPercent >= 100 ? "success" : "default";
 
   return (
-    <PremiumCard variant="glow" padding="md" className="h-full min-w-0" aria-labelledby="dash-course-progress-heading">
-      <p id="dash-course-progress-heading" className="typo-eyebrow text-primary">
-        Course progress
-      </p>
-      <div className="mt-4 flex min-w-0 flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-5">
-        <div className="min-w-0 flex-1 basis-[12rem] space-y-3">
-          <p className="font-display text-3xl font-bold tabular-nums text-foreground">{stats.progressPercent}%</p>
+    <CockpitWidget variant="default" className="h-full" aria-labelledby="dash-course-progress-heading">
+      <CockpitWidgetHeader titleId="dash-course-progress-heading" eyebrow="Курс" title="Прогресс курса" />
+      <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-5">
+        <div className="min-w-0 flex-1 basis-48 space-y-3">
+          <p className="ce-cockpit-stat-value tabular-nums">{stats.progressPercent}%</p>
           <ProgressBar
             label="Общий прогресс"
             value={stats.progressPercent}
@@ -86,6 +84,6 @@ export function DashboardCourseProgress({
           />
         </li>
       </ul>
-    </PremiumCard>
+    </CockpitWidget>
   );
 }

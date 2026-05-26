@@ -36,7 +36,7 @@ export function LandingFaq() {
   return (
     <LandingSection
       id="faq"
-      eyebrow="FAQ"
+      eyebrow="Вопросы и ответы"
       title="Частые вопросы"
       description="Коротко о формате, стоимости и сертификате."
     >
@@ -45,9 +45,8 @@ export function LandingFaq() {
           <details
             key={item.q}
             className={cn(
-              "ce-glass group rounded-2xl border border-border/70 transition-[border-color,box-shadow] duration-200",
-              "open:border-primary/25 open:shadow-[var(--shadow-card)]",
-              "hover:border-primary/20",
+              "ce-glass ce-surface-interactive group rounded-2xl",
+              "open:border-primary/25 open:shadow-card-hover",
             )}
           >
             <summary className="cursor-pointer list-none px-5 py-4 text-sm font-semibold text-foreground marker:content-none [&::-webkit-details-marker]:hidden">

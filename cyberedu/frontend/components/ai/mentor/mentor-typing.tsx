@@ -22,7 +22,7 @@ export function MentorTypingIndicator() {
           ),
         )}
       </div>
-      <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Наставник формирует ответ</span>
+      <span className="font-mono text-2.75 uppercase tracking-wider text-muted-foreground">Наставник формирует ответ</span>
     </div>
   );
 }

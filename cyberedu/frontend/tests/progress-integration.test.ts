@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const prisma = vi.hoisted(() => ({
   module: { findUnique: vi.fn(), findFirst: vi.fn() },
   progress: { findUnique: vi.fn(), update: vi.fn(), upsert: vi.fn() },
-  testAttempt: { findFirst: vi.fn() },
-  submission: { findFirst: vi.fn() },
+  testAttempt: { findFirst: vi.fn(), findMany: vi.fn() },
+  submission: { findFirst: vi.fn(), findMany: vi.fn() },
 }));
 
 vi.mock("@/lib/db", () => ({ prisma }));
@@ -16,8 +16,8 @@ import { isModuleUnlocked, recalculateModuleProgress } from "@/lib/progress";
 type MockDb = {
   module: { findUnique: ReturnType<typeof vi.fn>; findFirst: ReturnType<typeof vi.fn> };
   progress: { findUnique: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; upsert: ReturnType<typeof vi.fn> };
-  testAttempt: { findFirst: ReturnType<typeof vi.fn> };
-  submission: { findFirst: ReturnType<typeof vi.fn> };
+  testAttempt: { findFirst: ReturnType<typeof vi.fn>; findMany: ReturnType<typeof vi.fn> };
+  submission: { findFirst: ReturnType<typeof vi.fn>; findMany: ReturnType<typeof vi.fn> };
 };
 
 const prismaMock = prismaClient as unknown as MockDb;
@@ -166,7 +166,7 @@ describe("checkPracticeEntry", () => {
         return Promise.resolve({ lessonCompleted: true, videoCompleted: true });
       },
     );
-    prismaMock.testAttempt.findFirst.mockResolvedValue(null);
+    prismaMock.testAttempt.findMany.mockResolvedValue([]);
     const r = await checkPracticeEntry("u1", "m2");
     expect(r).toEqual(expect.objectContaining({ ok: false, code: "TEST" }));
   });

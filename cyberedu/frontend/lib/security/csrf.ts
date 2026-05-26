@@ -1,6 +1,10 @@
 import type { NextRequest } from "next/server";
+import { isDevTrustedAppOrigin } from "@/lib/security/dev-trusted-origin";
 
 function expectedOrigin(req: NextRequest): string | null {
+  if (process.env.NODE_ENV !== "production") {
+    return req.nextUrl.origin;
+  }
   const explicit =
     process.env.AUTH_URL?.trim() ||
     process.env.NEXT_PUBLIC_APP_URL?.trim() ||
@@ -13,6 +17,12 @@ function expectedOrigin(req: NextRequest): string | null {
     }
   }
   return req.nextUrl.origin;
+}
+
+function originAllowed(req: NextRequest, origin: string): boolean {
+  const expected = expectedOrigin(req);
+  if (expected && origin === expected) return true;
+  return isDevTrustedAppOrigin(origin, req.nextUrl.port || "3100");
 }
 
 /**
@@ -33,14 +43,14 @@ export function verifyApiCsrf(req: NextRequest): { ok: true } | { ok: false; rea
 
   const origin = req.headers.get("origin");
   if (origin) {
-    if (origin === expected) return { ok: true };
+    if (originAllowed(req, origin)) return { ok: true };
     return { ok: false, reason: "origin_mismatch" };
   }
 
   const referer = req.headers.get("referer");
   if (referer) {
     try {
-      if (new URL(referer).origin === expected) return { ok: true };
+      if (originAllowed(req, new URL(referer).origin)) return { ok: true };
     } catch {
       return { ok: false, reason: "invalid_referer" };
     }

@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { cyber } from "@/lib/design-system/cyber";
 import { cn } from "@/lib/utils";
 
 export function AdminPageHeader({
@@ -22,13 +21,10 @@ export function AdminPageHeader({
   return (
     <header
       className={cn(
-        "ce-admin-page-hero",
-        cyber.hero,
-        "rounded-2xl border-primary/15 p-5 sm:p-7",
+        "ce-admin-page-hero relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-card sm:p-7",
         className,
       )}
     >
-      <div className="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-primary/10 blur-3xl" aria-hidden />
       <div className="relative z-10 space-y-4">
         {breadcrumb ? <div className="text-sm text-muted-foreground">{breadcrumb}</div> : null}
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">

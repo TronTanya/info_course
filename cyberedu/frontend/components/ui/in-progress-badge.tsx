@@ -11,7 +11,7 @@ export function InProgressBadge({ label = "В процессе", className }: In
     <StatusBadge
       status="in_progress"
       label={label}
-      className={cn("font-mono text-[10px] uppercase tracking-wider", className)}
+      className={cn("font-mono text-2.5 uppercase tracking-wider", className)}
     />
   );
 }

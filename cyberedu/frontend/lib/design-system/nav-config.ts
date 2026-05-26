@@ -34,9 +34,8 @@ export type QuickNavItem = {
 /** Публичный маркетинговый сайт (лендинг, шапка гостя). */
 export const publicNavLinks: { href: string; label: string; external?: boolean }[] = [
   { href: "/", label: "Главная" },
-  { href: "/#what-you-learn", label: "Программа" },
-  { href: "/#practice-lab", label: "Практики" },
-  { href: "/#certificates", label: "Сертификат" },
+  { href: "/#product", label: "Платформа" },
+  { href: "/#start", label: "Начать" },
 ];
 
 export const guestAuthLinks = {
@@ -55,8 +54,6 @@ export const guestNavLinks: { href: string; label: string }[] = [
 
 export const landingFooterNavLinks: { href: string; label: string }[] = [
   ...publicNavLinks,
-  { href: "/#how-it-works", label: "Обучение" },
-  { href: "/#ai-mentor", label: "AI-наставник" },
   { href: "/reviews", label: "Отзывы" },
   { href: "/about", label: "О проекте" },
   { href: guestAuthLinks.login, label: guestAuthLinks.loginLabel },
@@ -82,16 +79,20 @@ export const studentHeaderNavKeys: StudentQuickNavKey[] = [
   "practice",
 ];
 
-/** Нижняя панель мобильного кабинета (< lg). */
-export const studentBottomNavKeys: StudentQuickNavKey[] = [
+/** Нижняя панель мобильного кабинета (< lg) — 4 раздела + центральный AI. */
+export const studentMobileTabKeys: StudentQuickNavKey[] = [
   "dashboard",
   "course",
-  "lessons",
-  "tests",
-  "practice",
   "mentor",
+  "practice",
   "profile",
 ];
+
+/** @deprecated Используйте studentMobileTabKeys */
+export const studentBottomNavKeys: StudentQuickNavKey[] = studentMobileTabKeys;
+
+/** Доп. разделы в mobile sheet «Ещё». */
+export const studentMobileMoreKeys: StudentQuickNavKey[] = ["lessons", "tests"];
 
 /** Дополнительные разделы кабинета (sidebar «Ещё»). */
 export const studentSecondaryNav: NavItem[] = [

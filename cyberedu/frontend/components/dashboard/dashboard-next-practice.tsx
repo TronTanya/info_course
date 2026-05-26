@@ -5,14 +5,14 @@ import { ArrowRight, Clock, FlaskConical, Gauge } from "lucide-react";
 import type { DashboardNextStepCard } from "@/lib/dashboard-ui";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { PremiumCard } from "@/components/ui/premium-card";
+import { CockpitWidget, CockpitWidgetHeader } from "@/components/dashboard/cockpit/cockpit-widget";
 import { StatusPill } from "@/components/ui/status-pill";
 import { cn } from "@/lib/utils";
 
 export function DashboardNextPractice({ card }: { card: DashboardNextStepCard | null }) {
   if (!card) {
     return (
-      <PremiumCard variant="default" padding="md" className="h-full">
+      <CockpitWidget variant="default" className="h-full">
         <EmptyState
           compact
           title="Практика пока недоступна"
@@ -23,23 +23,22 @@ export function DashboardNextPractice({ card }: { card: DashboardNextStepCard | 
             </Button>
           }
         />
-      </PremiumCard>
+      </CockpitWidget>
     );
   }
 
   const isPractice = card.kind === "practice";
 
   return (
-    <PremiumCard variant="default" padding="md" className="flex h-full min-w-0 flex-col" aria-labelledby="dash-practice-heading">
-      <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
-        <p id="dash-practice-heading" className="typo-eyebrow text-primary">
-          Next practice
-        </p>
-        <StatusPill
-          status={card.empty ? "pending" : "in_progress"}
-          label={card.statusLabel}
-        />
-      </div>
+    <CockpitWidget variant="default" className="flex h-full min-w-0 flex-col" aria-labelledby="dash-practice-heading">
+      <CockpitWidgetHeader
+        titleId="dash-practice-heading"
+        eyebrow="Очередь лабораторий"
+        title="Следующая практика"
+        action={
+          <StatusPill status={card.empty ? "pending" : "in_progress"} label={card.statusLabel} />
+        }
+      />
       <div className="mt-4 flex gap-3">
         <span
           className={cn(
@@ -50,8 +49,8 @@ export function DashboardNextPractice({ card }: { card: DashboardNextStepCard | 
           <FlaskConical className="size-5" aria-hidden />
         </span>
         <div className="min-w-0">
-          <h3 className="break-words font-display text-lg font-semibold text-balance text-foreground">{card.title}</h3>
-          <p className="mt-1 break-words text-sm text-pretty text-muted-foreground">{card.moduleTitle}</p>
+          <h3 className="wrap-break-word font-display text-lg font-semibold text-balance text-foreground">{card.title}</h3>
+          <p className="mt-1 wrap-break-word text-sm text-pretty text-muted-foreground">{card.moduleTitle}</p>
         </div>
       </div>
       {!card.empty && (card.difficultyLabel || card.estimatedLabel) ? (
@@ -78,6 +77,6 @@ export function DashboardNextPractice({ card }: { card: DashboardNextStepCard | 
           </Link>
         </Button>
       </div>
-    </PremiumCard>
+    </CockpitWidget>
   );
 }

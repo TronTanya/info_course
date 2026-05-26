@@ -1,12 +1,7 @@
 import type { Metadata } from "next";
-import { LandingAiMentor } from "@/components/home/landing-ai-mentor";
-import { LandingCertificates } from "@/components/home/landing-certificates";
-import { LandingCta } from "@/components/home/landing-cta";
+import { LandingActClosing } from "@/components/home/landing-act-closing";
+import { LandingActProduct } from "@/components/home/landing-act-product";
 import { LandingHero } from "@/components/home/landing-hero";
-import { LandingHowItWorks } from "@/components/home/landing-how-it-works";
-import { LandingPracticeLab } from "@/components/home/landing-practice-lab";
-import { LandingTrustMetrics } from "@/components/home/landing-trust-metrics";
-import { LandingWhatYouLearn } from "@/components/home/landing-what-you-learn";
 import { LandingShell } from "@/components/layout/landing-shell";
 import { buildPublicMetadata } from "@/lib/seo/build-page-metadata";
 import { JsonLd, homePageJsonLd } from "@/components/seo/json-ld";
@@ -33,13 +28,8 @@ export default function HomePage() {
     <LandingShell>
       <JsonLd data={homePageJsonLd(appUrl)} />
       <LandingHero />
-      <LandingTrustMetrics />
-      <LandingWhatYouLearn />
-      <LandingHowItWorks />
-      <LandingPracticeLab />
-      <LandingAiMentor />
-      <LandingCertificates />
-      <LandingCta />
+      <LandingActProduct />
+      <LandingActClosing />
     </LandingShell>
   );
 }

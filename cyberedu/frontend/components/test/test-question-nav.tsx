@@ -31,7 +31,7 @@ export function TestQuestionNav({
                 onClick={() => onSelect(i)}
                 className={cn(
                   "flex size-11 min-h-11 min-w-11 items-center justify-center rounded-xl border text-xs font-semibold tabular-nums transition-colors",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
                   current && "border-primary bg-primary text-primary-foreground shadow-sm",
                   !current && answered && "border-success/40 bg-success/10 text-success",
                   !current && !answered && "border-border/80 bg-muted/25 text-muted-foreground hover:border-primary/30 hover:bg-muted/40",

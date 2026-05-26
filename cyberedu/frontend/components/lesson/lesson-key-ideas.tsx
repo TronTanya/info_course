@@ -13,7 +13,7 @@ export function LessonKeyIdeas({ ideas }: { ideas: string[] }) {
         <div className="min-w-0 flex-1">
           <h2 className="font-display text-lg font-semibold text-foreground">Ключевые идеи</h2>
           <p className="mt-1 text-sm text-muted-foreground">Кратко — что важно унести из урока перед тестом.</p>
-          <ul className="mt-4 space-y-2.5 text-[15px] leading-relaxed text-foreground/90">
+          <ul className="mt-4 space-y-2.5 text-base leading-relaxed text-foreground/90">
             {ideas.map((idea, i) => (
               <li key={i} className="flex gap-2.5">
                 <span className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" aria-hidden />

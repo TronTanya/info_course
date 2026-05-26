@@ -1,16 +1,17 @@
 import * as React from "react";
+import { tableVariants } from "@/lib/design-system/components";
 import { cn } from "@/lib/utils";
 
 export function Table({ className, ...props }: React.HTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="w-full min-w-0 overflow-x-auto rounded-2xl border border-border/80 shadow-sm">
-      <table className={cn("w-full caption-bottom text-sm", className)} {...props} />
+    <div className={tableVariants.wrap}>
+      <table className={cn(tableVariants.table, className)} {...props} />
     </div>
   );
 }
 
 export function TableHeader({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) {
-  return <thead className={cn("border-b border-border bg-muted/40 [&_tr]:hover:bg-transparent", className)} {...props} />;
+  return <thead className={cn(className)} {...props} />;
 }
 
 export function TableBody({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) {
@@ -18,29 +19,13 @@ export function TableBody({ className, ...props }: React.HTMLAttributes<HTMLTabl
 }
 
 export function TableRow({ className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) {
-  return (
-    <tr
-      className={cn(
-        "border-b border-border/70 transition-colors duration-150 hover:bg-muted/35 data-[state=selected]:bg-muted/50",
-        className,
-      )}
-      {...props}
-    />
-  );
+  return <tr className={cn(className)} {...props} />;
 }
 
 export function TableHead({ className, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) {
-  return (
-    <th
-      className={cn(
-        "h-11 px-4 text-left align-middle text-xs font-semibold uppercase tracking-wide text-muted-foreground",
-        className,
-      )}
-      {...props}
-    />
-  );
+  return <th className={cn(className)} {...props} />;
 }
 
 export function TableCell({ className, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) {
-  return <td className={cn("px-4 py-3 align-middle text-foreground", className)} {...props} />;
+  return <td className={cn(className)} {...props} />;
 }

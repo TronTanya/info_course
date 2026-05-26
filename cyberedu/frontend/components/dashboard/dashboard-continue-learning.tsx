@@ -48,7 +48,7 @@ export function DashboardContinueLearning({
         </div>
         <Link
           href={target.href}
-          className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-1 rounded-2xl border border-primary/30 bg-primary/10 px-4 text-sm font-semibold text-primary transition-colors hover:bg-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-auto sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:hover:bg-transparent sm:underline sm:underline-offset-4"
+          className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-1 rounded-2xl border border-primary/30 bg-primary/10 px-4 text-sm font-semibold text-primary transition-colors hover:bg-primary/15 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring sm:w-auto sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:hover:bg-transparent sm:underline sm:underline-offset-4"
         >
           Открыть шаг
         </Link>

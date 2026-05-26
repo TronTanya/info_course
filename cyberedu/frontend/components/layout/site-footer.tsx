@@ -12,7 +12,7 @@ export function SiteFooter() {
             следующих этапах.
           </p>
           {DOCKER_IMAGE_BUILD_STAMP !== "local" ? (
-            <p className="mt-3 font-mono text-[11px] tabular-nums text-muted-foreground" title="Метка сборки Docker-образа">
+            <p className="mt-3 font-mono text-2.75 tabular-nums text-muted-foreground" title="Метка сборки Docker-образа">
               Сборка: {DOCKER_IMAGE_BUILD_STAMP}
             </p>
           ) : null}

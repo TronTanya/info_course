@@ -1,28 +1,25 @@
 import * as React from "react";
+import { cardVariants } from "@/lib/design-system/components";
+import { transitionBase } from "@/lib/design-system/primitives";
 import { cn } from "@/lib/utils";
 
 const variants = {
-  default: "ce-glass border-border shadow-card hover:shadow-card-hover",
-  muted: "border-border/80 bg-muted/25 shadow-sm hover:border-border hover:bg-muted/35",
-  accent:
-    "border-primary/25 bg-linear-to-br from-primary/[0.06] via-card to-accent/[0.06] shadow-card ring-1 ring-inset ring-primary/12 hover:shadow-card-hover",
-  workspace:
-    "border-primary/25 ce-glass shadow-inner ring-1 ring-inset ring-primary/10 hover:border-primary/35",
-  lab: "ce-premium-card ce-premium-card--glow border-primary/20 ring-1 ring-primary/10 hover:border-primary/30",
+  default: cn(cardVariants.base, cardVariants.interactive, "ce-surface-interactive rounded-2xl"),
+  muted: cn(cardVariants.base, "rounded-2xl bg-white/2"),
+  accent: cn(cardVariants.base, cardVariants.glow, cardVariants.interactive, "ce-surface-interactive rounded-2xl border-primary/25"),
+  workspace: cn(cardVariants.base, cardVariants.interactive, "ce-surface-interactive rounded-2xl ring-1 ring-inset ring-primary/10"),
+  lab: cn(cardVariants.base, cardVariants.glow, cardVariants.interactive, "ce-premium-card--glow ce-surface-interactive rounded-2xl"),
 } as const;
 
 export type SectionCardProps = {
   children: React.ReactNode;
   className?: string;
   variant?: keyof typeof variants;
-  /** Заголовок секции */
   title?: React.ReactNode;
   description?: React.ReactNode;
-  /** Убрать нижний разделитель под заголовком */
   flushTitle?: boolean;
 } & Pick<React.ComponentProps<"section">, "id">;
 
-/** Карточка-секция: единые radius, border, padding, лёгкий hover. */
 export function SectionCard({
   children,
   className,
@@ -36,16 +33,12 @@ export function SectionCard({
   return (
     <section
       id={id}
-      className={cn(
-        "rounded-2xl border p-5 transition-shadow duration-200 sm:p-6",
-        variants[variant],
-        className,
-      )}
+      className={cn(variants[variant], transitionBase, "p-5 sm:p-6", className)}
     >
       {hasHeader ? (
-        <header className={cn(!flushTitle && "mb-4 border-b border-border/50 pb-3", flushTitle && "mb-4 space-y-1")}>
-          {title ? <h3 className="typo-h3">{title}</h3> : null}
-          {description ? <p className="typo-caption mt-1">{description}</p> : null}
+        <header className={cn("mb-4 space-y-1", !flushTitle && "border-b border-white/6 pb-4")}>
+          {title ? <div className="font-semibold text-foreground">{title}</div> : null}
+          {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
         </header>
       ) : null}
       {children}

@@ -141,7 +141,7 @@ export function PracticeSocraticHintPanel({ moduleId, practicalTaskId, className
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Например: не понимаю, с чего начать анализ…"
             rows={3}
-            className="min-h-[72px] text-sm"
+            className="min-h-18 text-sm"
             disabled={loading}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {

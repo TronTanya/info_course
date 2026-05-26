@@ -1,11 +1,13 @@
 "use client";
 
-import { useId, useState, type FormEvent } from "react";
+import { Suspense, useId, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { signIn } from "next-auth/react";
+import { AuthVerifySentBanner } from "@/components/auth/auth-verify-sent-banner";
 import { AuthFormFooter } from "@/components/auth/auth-form-footer";
+import { safeCallbackUrl } from "@/lib/auth/safe-callback-url";
 import { AuthGlassCard } from "@/components/auth/auth-glass-card";
 import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
@@ -14,8 +16,10 @@ import { Input } from "@/components/ui/input";
 import type { RegisterActionState } from "@/lib/actions/register";
 import { registerAction } from "@/lib/actions/register";
 
-export function RegisterForm() {
+function RegisterFormInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const verifySent = searchParams.get("verify_sent") === "1";
   const consentErrorId = useId();
   const [pending, setPending] = useState(false);
   const [state, setState] = useState<RegisterActionState>({});
@@ -43,11 +47,13 @@ export function RegisterForm() {
           redirect: false,
         });
         if (!res || res.ok !== true) {
-          router.push("/auth/login?registered=1");
+          router.push("/auth/login?registered=1&verify_sent=1");
           return;
         }
         router.refresh();
-        router.push("/dashboard/profile");
+        router.push(
+          `/auth/verify-email?verify_sent=1&callbackUrl=${encodeURIComponent(safeCallbackUrl(searchParams.get("callbackUrl")))}`,
+        );
       }
     } finally {
       setPending(false);
@@ -61,7 +67,9 @@ export function RegisterForm() {
           <span className="flex size-14 items-center justify-center rounded-2xl border border-success/35 bg-success/12 text-success">
             <CheckCircle2 className="size-8" aria-hidden />
           </span>
-          <p className="text-sm text-muted-foreground">Перенаправляем в личный кабинет…</p>
+          <p className="text-sm text-muted-foreground">
+            Письмо с подтверждением отправлено. Перенаправляем на страницу подтверждения…
+          </p>
         </div>
       </AuthGlassCard>
     );
@@ -81,6 +89,7 @@ export function RegisterForm() {
       }
     >
       <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        {verifySent ? <AuthVerifySentBanner /> : null}
         {state.errors?._form ? <FormMessage>{state.errors._form[0]}</FormMessage> : null}
         <Input
           autoComplete="name"
@@ -143,5 +152,13 @@ export function RegisterForm() {
         </Button>
       </form>
     </AuthGlassCard>
+  );
+}
+
+export function RegisterForm() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterFormInner />
+    </Suspense>
   );
 }

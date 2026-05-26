@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { LearnPageWrap } from "@/components/learn/learn-page-wrap";
@@ -8,6 +9,7 @@ import { ProfileUserCard } from "@/components/profile/profile-user-card";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ProfilePageSkeleton } from "@/components/ui/page-skeleton";
 import { AchievementUnlockToasts } from "@/components/achievements/achievement-unlock-toasts";
 import { achievementNoticesFromKinds, getUserAchievementRows, reconcileUserAchievements } from "@/lib/achievements";
 import { getProfileCourseStats } from "@/lib/profile-course-stats";
@@ -18,7 +20,11 @@ export const metadata: Metadata = {
   title: "Профиль",
 };
 
-export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {
+export default async function ProfilePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ saved?: string; tab?: string }>;
+}) {
   const user = await getCurrentUser();
   if (!user?.profile) {
     redirect("/auth/login");
@@ -26,6 +32,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
 
   const sp = await searchParams;
   const saved = sp.saved === "1";
+  const initialTab = sp.tab ?? null;
 
   const p = user.profile;
   const newUnlocks = await reconcileUserAchievements(user.id);
@@ -93,7 +100,14 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
             }
           />
         ) : (
-          <ProfileProgressPortfolio stats={stats} achievements={achievements} modules={modules} />
+          <Suspense fallback={<ProfilePageSkeleton />}>
+            <ProfileProgressPortfolio
+              stats={stats}
+              achievements={achievements}
+              modules={modules}
+              initialTab={initialTab}
+            />
+          </Suspense>
         )}
       </LearnPageWrap>
     </DashboardShell>

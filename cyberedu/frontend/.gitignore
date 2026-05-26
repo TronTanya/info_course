@@ -1,3 +1,6 @@
+# Lighthouse CI
+/lighthouse-landing.json
+
 # Playwright
 /e2e-results/
 /e2e-results-prod/

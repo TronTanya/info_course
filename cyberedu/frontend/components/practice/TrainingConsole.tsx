@@ -136,14 +136,14 @@ export function TrainingConsole({
             <span className="ce-terminal-dot-amber size-3 rounded-full" />
             <span className="ce-terminal-dot-green size-3 rounded-full" />
           </div>
-          <div className="ce-terminal-dim min-w-0 flex-1 text-center font-mono text-[11px] font-medium tracking-wide">
+          <div className="ce-terminal-dim min-w-0 flex-1 text-center font-mono text-2.75 font-medium tracking-wide">
             Учебная консоль · sandbox
           </div>
           <Button
             type="button"
             size="sm"
             variant="ghost"
-            className="ce-terminal-dim h-7 shrink-0 px-2 text-[11px] hover:bg-white/5 hover:text-[var(--terminal-fg)]"
+            className="ce-terminal-dim h-7 shrink-0 px-2 text-2.75 hover:bg-white/5 hover:text-(--terminal-fg)"
             onClick={applyClear}
           >
             clear
@@ -152,15 +152,15 @@ export function TrainingConsole({
 
         <div
           className={cn(
-            "ce-terminal-body relative max-h-[min(340px,52vh)] min-h-[220px] overflow-y-auto px-3 py-3",
-            "text-[13px] leading-relaxed sm:text-sm",
+            "ce-terminal-body relative max-h-[min(340px,52vh)] min-h-55 overflow-y-auto px-3 py-3",
+            "text-3.25 leading-relaxed sm:text-sm",
             "selection:bg-[color-mix(in_oklab,var(--terminal-success)_25%,transparent)]",
           )}
           role="log"
           aria-live="polite"
         >
           <div
-            className="pointer-events-none absolute inset-0 opacity-[0.035]"
+            className="pointer-events-none absolute inset-0 opacity-3.5"
             style={{
               backgroundImage:
                 "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.08) 2px, rgba(255,255,255,0.08) 3px)",
@@ -172,7 +172,7 @@ export function TrainingConsole({
               <div
                 key={`${i}-${line.slice(0, 32)}`}
                 className={cn(
-                  "whitespace-pre-wrap break-words",
+                  "whitespace-pre-wrap wrap-break-word",
                   line.startsWith("$ ") ? "ce-terminal-prompt" : "ce-terminal-dim",
                 )}
               >
@@ -212,7 +212,7 @@ export function TrainingConsole({
       </div>
 
       {commandHistory.length > 0 ? (
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-2.75 text-muted-foreground">
           История ввода ({commandHistory.length}):{" "}
           <span className="font-mono text-foreground/80">{commandHistory.join(" → ")}</span>
         </p>
@@ -221,7 +221,7 @@ export function TrainingConsole({
       {structuredPractice ? (
         <div className="space-y-3 rounded-xl border border-border bg-card/40 p-4">
           {needsCommand ? (
-            <p className="break-words text-xs text-muted-foreground">
+            <p className="wrap-break-word text-xs text-muted-foreground">
               {expectedCommandDone ? (
                 <span className="ce-terminal-success font-medium">Команда выполнена — можно отправить ответ.</span>
               ) : (
@@ -237,7 +237,7 @@ export function TrainingConsole({
               value={explanation}
               onChange={(e) => setExplanation(e.target.value)}
               rows={5}
-              className="min-h-[120px] font-mono text-sm"
+              className="min-h-30 font-mono text-sm"
             />
           ) : null}
 

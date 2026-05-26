@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/db";
 import { parseProfileEducationalInstitution } from "@/lib/profile-school-parse";
-import { getUserCourseProgress } from "@/lib/progress";
 
 export type AdminUserListRow = {
   id: string;
@@ -64,8 +63,17 @@ export async function getAdminUserListRows(): Promise<AdminUserListRow[]> {
   });
 
   const studentIds = users.filter((u) => u.role === "USER").map((u) => u.id);
+  const activeModuleIds =
+    course && studentIds.length > 0
+      ? (
+          await prisma.module.findMany({
+            where: { courseId: course.id, isActive: true },
+            select: { id: true },
+          })
+        ).map((m) => m.id)
+      : [];
 
-  const [testAttemptsByUser, testsPassedByUser, practiceDoneByUser, lastTest, lastSub, lastProgress] =
+  const [testAttemptsByUser, testsPassedByUser, practiceDoneByUser, lastTest, lastSub, lastProgress, courseProgress] =
     studentIds.length > 0
       ? await Promise.all([
           prisma.testAttempt.groupBy({
@@ -98,18 +106,36 @@ export async function getAdminUserListRows(): Promise<AdminUserListRow[]> {
             where: { userId: { in: studentIds } },
             _max: { updatedAt: true },
           }),
+          activeModuleIds.length > 0
+            ? prisma.progress.findMany({
+                where: { userId: { in: studentIds }, moduleId: { in: activeModuleIds } },
+                select: { userId: true, moduleCompleted: true, score: true },
+              })
+            : Promise.resolve([]),
         ])
-      : [[], [], [], [], [], []];
+      : [[], [], [], [], [], [], []];
 
   const testCountMap = new Map(testAttemptsByUser.map((r) => [r.userId, r._count._all]));
   const passedMap = new Map(testsPassedByUser.map((r) => [r.userId, r._count._all]));
   const practiceMap = new Map(practiceDoneByUser.map((r) => [r.userId, r._count._all]));
+  const lastTestMap = new Map(lastTest.map((r) => [r.userId, r._max.createdAt ?? null]));
+  const lastSubMap = new Map(lastSub.map((r) => [r.userId, r._max.updatedAt ?? null]));
+  const lastProgressMap = new Map(lastProgress.map((r) => [r.userId, r._max.updatedAt ?? null]));
+
+  const progressAgg = new Map<string, { completedModules: number; totalScore: number }>();
+  for (const row of courseProgress) {
+    const prev = progressAgg.get(row.userId) ?? { completedModules: 0, totalScore: 0 };
+    progressAgg.set(row.userId, {
+      completedModules: prev.completedModules + (row.moduleCompleted ? 1 : 0),
+      totalScore: prev.totalScore + row.score,
+    });
+  }
 
   function lastActivityFor(userId: string): string | null {
     const dates: Date[] = [];
-    const t = lastTest.find((r) => r.userId === userId)?._max.createdAt;
-    const s = lastSub.find((r) => r.userId === userId)?._max.updatedAt;
-    const p = lastProgress.find((r) => r.userId === userId)?._max.updatedAt;
+    const t = lastTestMap.get(userId);
+    const s = lastSubMap.get(userId);
+    const p = lastProgressMap.get(userId);
     if (t) dates.push(t);
     if (s) dates.push(s);
     if (p) dates.push(p);
@@ -117,17 +143,15 @@ export async function getAdminUserListRows(): Promise<AdminUserListRow[]> {
     return new Date(Math.max(...dates.map((d) => d.getTime()))).toISOString();
   }
 
-  const rows: AdminUserListRow[] = await Promise.all(
-    users.map(async (u) => {
+  const rows: AdminUserListRow[] = users.map((u) => {
       let overallProgressPercent = 0;
       let totalScore = 0;
 
-      if (course && u.role === "USER") {
-        const agg = await getUserCourseProgress(u.id, course.id);
-        if (agg) {
-          overallProgressPercent = agg.overallProgressPercent;
-          totalScore = agg.totalScore;
-        }
+      if (course && u.role === "USER" && activeModuleIds.length > 0) {
+        const agg = progressAgg.get(u.id);
+        const completedModules = agg?.completedModules ?? 0;
+        overallProgressPercent = Math.round((completedModules / activeModuleIds.length) * 100);
+        totalScore = agg?.totalScore ?? 0;
       }
 
       const p = u.profile;
@@ -153,8 +177,7 @@ export async function getAdminUserListRows(): Promise<AdminUserListRow[]> {
         practicesCompletedCount: u.role === "USER" ? (practiceMap.get(u.id) ?? 0) : 0,
         lastActivityAt: u.role === "USER" ? lastActivityFor(u.id) : null,
       };
-    }),
-  );
+    });
 
   return rows;
 }

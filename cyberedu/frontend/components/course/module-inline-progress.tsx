@@ -35,7 +35,7 @@ export function ModuleInlineProgress({
           <li key={step.key}>
             <span
               className={cn(
-                "inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-medium sm:text-[11px]",
+                "inline-flex items-center rounded-md border px-2 py-0.5 text-2.5 font-medium sm:text-2.75",
                 step.done
                   ? "border-success/35 bg-success/10 text-success"
                   : "border-border/80 bg-muted/30 text-muted-foreground",

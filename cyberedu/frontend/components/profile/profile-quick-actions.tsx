@@ -47,7 +47,7 @@ export function ProfileQuickActions({ actions }: { actions: ProfileQuickAction[]
             return (
               <li key={action.id}>
                 <div
-                  className="flex min-h-[5.5rem] gap-3 rounded-xl border border-border/60 bg-muted/15 p-4 opacity-70"
+                  className="flex min-h-22 gap-3 rounded-xl border border-border/60 bg-muted/15 p-4 opacity-70"
                   aria-disabled="true"
                 >
                   {content}
@@ -61,8 +61,8 @@ export function ProfileQuickActions({ actions }: { actions: ProfileQuickAction[]
               <Link
                 href={action.href}
                 className={cn(
-                  "flex min-h-[4.75rem] gap-3 rounded-xl border border-border/80 bg-card/60 p-4 transition-colors sm:min-h-[5.5rem]",
-                  "hover:border-primary/30 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "flex min-h-19 gap-3 rounded-xl border border-border/80 bg-card/60 p-4 transition-colors sm:min-h-22",
+                  "hover:border-primary/30 hover:bg-primary/5 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
                 )}
               >
                 {content}

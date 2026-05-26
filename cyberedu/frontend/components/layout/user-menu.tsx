@@ -65,7 +65,7 @@ export function UserMenu({ user, variant }: { user: UserMenuUser; variant: "user
         type="button"
         className={cn(
           "inline-flex min-h-11 items-center gap-2 rounded-xl border border-border/80 bg-card/90 px-2 py-1.5 text-sm font-medium",
-          "transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "transition-colors hover:bg-muted focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
           open && "border-primary/30 bg-primary/8",
         )}
         aria-expanded={open}
@@ -80,7 +80,7 @@ export function UserMenu({ user, variant }: { user: UserMenuUser; variant: "user
         >
           {initials(user.name, user.email)}
         </span>
-        <span className="hidden max-w-[8rem] truncate sm:inline">{user.name?.trim() || "Аккаунт"}</span>
+        <span className="hidden max-w-32 truncate sm:inline">{user.name?.trim() || "Аккаунт"}</span>
         <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", open && "rotate-180")} aria-hidden />
       </button>
 

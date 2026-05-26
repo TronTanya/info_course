@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/permissions";
+import { requireAdminAction } from "@/lib/security/admin-action-guard";
 
 function revalidateLessonAdmin(moduleId: string, lessonId: string) {
   revalidatePath("/admin/lessons");
@@ -20,7 +20,7 @@ export async function updateLessonAction(
   _prev: AdminLessonFormState | null,
   formData: FormData,
 ): Promise<AdminLessonFormState> {
-  await requireAdmin();
+  await requireAdminAction();
   const lessonId = String(formData.get("lessonId") ?? "").trim();
   if (!lessonId) return { error: "Не указана лекция." };
 

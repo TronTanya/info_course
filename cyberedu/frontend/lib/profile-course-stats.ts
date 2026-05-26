@@ -241,7 +241,7 @@ export async function getProfileCourseStats(userId: string): Promise<ProfileCour
       ? prisma.testAttempt.findMany({
           where: { userId, test: { moduleId: { in: moduleIds } } },
           orderBy: { createdAt: "desc" },
-          take: 5,
+          take: 50,
           select: {
             createdAt: true,
             passed: true,
@@ -259,7 +259,7 @@ export async function getProfileCourseStats(userId: string): Promise<ProfileCour
             practicalTask: { moduleId: { in: moduleIds } },
           },
           orderBy: { createdAt: "desc" },
-          take: 5,
+          take: 50,
           select: {
             createdAt: true,
             status: true,

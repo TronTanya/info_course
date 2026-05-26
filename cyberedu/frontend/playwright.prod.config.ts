@@ -6,12 +6,19 @@ import baseConfig from "./playwright.config";
  * Требует запущенное приложение (см. npm run test:e2e:prod:local или CI job e2e-prod-smoke).
  */
 const prodTestMatch = ["tests/prod-smoke/**/*.spec.ts", "**/*.prod.spec.ts"];
+const prodTestIgnore = ["tests/prod-smoke/live-readonly.spec.ts"];
 
 export default defineConfig({
   ...baseConfig,
   testDir: ".",
   testMatch: prodTestMatch,
-  testIgnore: ["**/.next/**", "**/node_modules/**", "**/e2e-results/**", "**/e2e-results-prod/**"],
+  testIgnore: [
+    ...prodTestIgnore,
+    "**/.next/**",
+    "**/node_modules/**",
+    "**/e2e-results/**",
+    "**/e2e-results-prod/**",
+  ],
   globalSetup: "./e2e/global-setup.prod.ts",
   timeout: 90_000,
   expect: { timeout: 20_000 },

@@ -22,7 +22,7 @@ export function LandingFooter() {
         </nav>
       </div>
       <div className="container-page border-t border-border/60 py-4">
-        <p className="font-mono text-[10px] uppercase tracking-wider text-subtle-foreground">
+        <p className="font-mono text-2.5 uppercase tracking-wider text-subtle-foreground">
           © {new Date().getFullYear()} CyberEdu · secure_mode=on · env=training
         </p>
       </div>

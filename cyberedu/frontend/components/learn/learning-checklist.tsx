@@ -15,7 +15,7 @@ export function LearningChecklist({ items, className }: { items: ChecklistItem[]
       aria-label="Чеклист"
     >
       {items.map((item, i) => (
-        <li key={i} className="flex gap-3 text-[15px] leading-relaxed">
+        <li key={i} className="flex gap-3 text-base leading-relaxed">
           <span
             className={cn(
               "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border",

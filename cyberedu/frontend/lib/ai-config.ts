@@ -1,3 +1,5 @@
+import { isSafeExternalHttpsUrl } from "@/lib/security/sanitize";
+
 /** Единая точка: ключи AI и понятные ошибки без «фейковых» ответов модели. */
 
 export const AI_KEY_NOT_CONFIGURED_MESSAGE =
@@ -11,6 +13,20 @@ export function getOpenAiApiKey(): string | undefined {
 
 export function isAiConfigured(): boolean {
   return Boolean(getOpenAiApiKey());
+}
+
+const DEFAULT_OPENAI_BASE = "https://api.openai.com/v1";
+
+/** OpenAI-compatible API base URL; блокирует private/metadata hosts (SSRF). */
+export function getOpenAiApiBaseUrl(): string {
+  const raw = (process.env.OPENAI_API_BASE_URL?.trim() || DEFAULT_OPENAI_BASE).replace(/\/$/, "");
+  const probe = raw.includes("://") ? raw : `https://${raw}`;
+  if (!isSafeExternalHttpsUrl(probe)) {
+    throw new Error(
+      "OPENAI_API_BASE_URL must be a public HTTPS endpoint (no localhost, private IP, or metadata hosts).",
+    );
+  }
+  return raw;
 }
 
 export class AiNotConfiguredError extends Error {

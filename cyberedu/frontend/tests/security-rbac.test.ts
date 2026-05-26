@@ -28,6 +28,16 @@ vi.mock("@/lib/auth", () => ({
   auth: vi.fn(),
 }));
 
+const prismaUserFindUnique = vi.hoisted(() => vi.fn());
+
+vi.mock("@/lib/db", () => ({
+  prisma: {
+    user: {
+      findUnique: prismaUserFindUnique,
+    },
+  },
+}));
+
 vi.mock("next-auth/jwt", () => ({
   getToken: vi.fn(),
 }));
@@ -74,6 +84,11 @@ describe("security/rbac permissions", () => {
 describe("security/rbac server layouts", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    prismaUserFindUnique.mockImplementation(async ({ where }: { where: { id: string } }) => {
+      if (where.id === "admin-1") return { role: "ADMIN" as const };
+      if (where.id === "u1") return { role: "USER" as const };
+      return null;
+    });
   });
 
   it("requireAuth redirects when unauthenticated", async () => {
@@ -82,14 +97,22 @@ describe("security/rbac server layouts", () => {
     expect(redirectMock).toHaveBeenCalledWith("/auth/login");
   });
 
+  it("requireAdmin redirects USER to home when JWT says ADMIN but DB says USER", async () => {
+    authMock.mockResolvedValue(mockSession("ADMIN", "u1"));
+    prismaUserFindUnique.mockResolvedValue({ role: "USER" });
+    await expect(requireAdmin()).rejects.toThrow("NEXT_REDIRECT");
+    expect(redirectMock).toHaveBeenCalledWith("/");
+  });
+
   it("requireAdmin redirects USER to home", async () => {
     authMock.mockResolvedValue(mockSession("USER"));
     await expect(requireAdmin()).rejects.toThrow("NEXT_REDIRECT");
     expect(redirectMock).toHaveBeenCalledWith("/");
   });
 
-  it("requireAdmin allows ADMIN session", async () => {
-    authMock.mockResolvedValue(mockSession("ADMIN", "admin-1"));
+  it("requireAdmin allows ADMIN session from DB", async () => {
+    authMock.mockResolvedValue(mockSession("USER", "admin-1"));
+    prismaUserFindUnique.mockResolvedValue({ role: "ADMIN" });
     const s = await requireAdmin();
     expect(s.user.role).toBe("ADMIN");
     expect(redirectMock).not.toHaveBeenCalled();

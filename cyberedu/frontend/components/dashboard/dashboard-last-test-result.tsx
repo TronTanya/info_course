@@ -5,7 +5,7 @@ import { ArrowRight, ClipboardCheck } from "lucide-react";
 import type { DashboardLastTestResult } from "@/lib/dashboard-ui";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { PremiumCard } from "@/components/ui/premium-card";
+import { CockpitWidget, CockpitWidgetHeader } from "@/components/dashboard/cockpit/cockpit-widget";
 import { StatusPill } from "@/components/ui/status-pill";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +22,7 @@ function formatWhen(iso: string): string {
 export function DashboardLastTestResult({ result }: { result: DashboardLastTestResult | null }) {
   if (!result) {
     return (
-      <PremiumCard variant="default" padding="md" className="h-full">
+      <CockpitWidget variant="terminal" className="h-full">
         <EmptyState
           compact
           title="Тестов ещё не было"
@@ -33,22 +33,24 @@ export function DashboardLastTestResult({ result }: { result: DashboardLastTestR
             </Button>
           }
         />
-      </PremiumCard>
+      </CockpitWidget>
     );
   }
 
   return (
-    <PremiumCard variant="default" padding="md" className="flex h-full min-w-0 flex-col" aria-labelledby="dash-test-heading">
-      <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
-        <p id="dash-test-heading" className="typo-eyebrow text-primary">
-          Last test result
-        </p>
-        <StatusPill status={result.passed ? "completed" : "error"} label={result.passed ? "Зачёт" : "Не зачтён"} />
-      </div>
-      <div className="mt-4 flex min-w-0 flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-2 sm:gap-y-1">
+    <CockpitWidget variant="terminal" className="flex h-full min-w-0 flex-col" aria-labelledby="dash-test-heading">
+      <CockpitWidgetHeader
+        titleId="dash-test-heading"
+        eyebrow="Журнал тестов"
+        title="Последний тест"
+        action={
+          <StatusPill status={result.passed ? "completed" : "error"} label={result.passed ? "Зачёт" : "Не зачтён"} />
+        }
+      />
+      <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-2 sm:gap-y-1">
         <span
           className={cn(
-            "shrink-0 font-display text-4xl font-bold tabular-nums",
+            "ce-cockpit-stat-value shrink-0 tabular-nums",
             result.passed ? "text-success" : "text-warning",
           )}
         >
@@ -56,7 +58,7 @@ export function DashboardLastTestResult({ result }: { result: DashboardLastTestR
         </span>
         <span className="min-w-0 text-sm text-pretty text-muted-foreground sm:flex-1">· {result.testTitle}</span>
       </div>
-      <p className="mt-1 min-w-0 break-words text-xs text-pretty text-muted-foreground">
+      <p className="mt-1 min-w-0 wrap-break-word text-xs text-pretty text-muted-foreground">
         {result.moduleTitle}
         {result.at ? ` · ${formatWhen(result.at)}` : ""}
       </p>
@@ -83,6 +85,6 @@ export function DashboardLastTestResult({ result }: { result: DashboardLastTestR
           </Button>
         ) : null}
       </div>
-    </PremiumCard>
+    </CockpitWidget>
   );
 }

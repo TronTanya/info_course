@@ -113,7 +113,7 @@ export function ProfileEditForm({ defaultValues }: { defaultValues: ProfileEditF
               {INTEREST_TAG_OPTIONS.map((tag) => (
                 <label
                   key={tag}
-                  className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm shadow-sm transition-colors hover:border-primary/40 has-[:checked]:border-primary/50 has-[:checked]:bg-primary/10"
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm shadow-sm transition-colors hover:border-primary/40 has-checked:border-primary/50 has-checked:bg-primary/10"
                 >
                   <input
                     type="checkbox"

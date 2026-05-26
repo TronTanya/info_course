@@ -37,7 +37,7 @@ export function LockedCard({
           {children}
         </div>
         {locked ? (
-          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-background/55 p-4 backdrop-blur-[2px]">
+          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-background/55 p-4 backdrop-blur-0.5">
             <LockedCardPanel title={title} description={description} action={action} className="max-w-sm w-full shadow-2xl" />
           </div>
         ) : null}

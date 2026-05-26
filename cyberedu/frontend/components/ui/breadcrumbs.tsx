@@ -21,7 +21,7 @@ export function Breadcrumbs({ items, className }: { items: BreadcrumbItem[]; cla
           {item.href ? (
             <Link
               href={item.href}
-              className="font-medium text-primary underline-offset-4 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+              className="font-medium text-primary underline-offset-4 transition-colors hover:underline focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
             >
               {item.label}
             </Link>

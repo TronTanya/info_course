@@ -26,7 +26,7 @@ export function LandingSection({
   const headingId = id ? `${id}-heading` : undefined;
 
   return (
-    <section id={id} className={cn("scroll-mt-24 space-y-10", className)} aria-labelledby={headingId}>
+    <section id={id} className={cn("ce-section ce-section-stack", className)} aria-labelledby={headingId}>
       <SectionHeader
         className={cn("mx-auto max-w-3xl flex-col items-center text-center", headerClassName)}
         eyebrow={eyebrow}

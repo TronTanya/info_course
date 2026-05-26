@@ -2,8 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { createUserReviewRecord } from "@/lib/reviews";
+import { enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/security/rate-limit";
+import { clientIpFromHeaders } from "@/lib/security/request-ip";
 import { userReviewSubmitSchema } from "@/lib/validation";
 
 export type UserReviewFormState = {
@@ -18,6 +21,25 @@ export async function submitUserReviewAction(
   const session = await auth();
   if (!session?.user?.id) {
     redirect("/auth/login");
+  }
+
+  const h = await headers();
+  const ip = clientIpFromHeaders(h);
+  const reviewPolicy = RATE_LIMIT_POLICIES.reviewSubmit;
+  const rl = await enforceRateLimit({
+    scope: reviewPolicy.scope,
+    userId: session.user.id,
+    clientIp: ip,
+    max: reviewPolicy.max,
+    windowMs: reviewPolicy.windowMs,
+  });
+  if (!rl.allowed) {
+    return {
+      error:
+        rl.reason === "unavailable"
+          ? "Сервис временно недоступен. Повторите позже."
+          : "Слишком много попыток отправить отзыв. Попробуйте позже.",
+    };
   }
 
   const parsed = userReviewSubmitSchema.safeParse({

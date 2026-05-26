@@ -2,6 +2,8 @@
 
 import * as React from "react";
 import { AlertCircle, CheckCircle2, Info, X, AlertTriangle } from "lucide-react";
+import { toastVariants } from "@/lib/design-system/components";
+import { MAX_VISIBLE_TOASTS, trimToastQueue } from "@/lib/toast-queue";
 import { cn } from "@/lib/utils";
 
 export type ToastVariant = "default" | "success" | "error" | "warning" | "info";
@@ -25,11 +27,11 @@ const ToastContext = React.createContext<ToastContextValue | null>(null);
 let toastId = 0;
 
 const variantStyles: Record<ToastVariant, string> = {
-  default: "border-border bg-popover text-popover-foreground",
-  success: "border-success/30 bg-success/10 text-foreground",
-  error: "border-danger/35 bg-danger/10 text-foreground",
-  warning: "border-warning/35 bg-warning/10 text-foreground",
-  info: "border-cyan/30 bg-cyan/10 text-foreground",
+  default: toastVariants.default,
+  success: toastVariants.success,
+  error: toastVariants.error,
+  warning: toastVariants.warning,
+  info: toastVariants.info,
 };
 
 const variantIcons: Record<ToastVariant, React.ReactNode> = {
@@ -51,7 +53,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     (item: Omit<ToastItem, "id">) => {
       const id = `toast-${++toastId}`;
       const duration = item.duration ?? 5000;
-      setToasts((prev) => [...prev, { ...item, id }]);
+      setToasts((prev) => trimToastQueue([...prev, { ...item, id }]));
       if (duration > 0) {
         window.setTimeout(() => dismiss(id), duration);
       }
@@ -84,7 +86,7 @@ function ToasterViewport({ toasts, dismiss }: { toasts: ToastItem[]; dismiss: (i
     <div
       aria-live={hasAssertive ? "assertive" : "polite"}
       aria-relevant="additions"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-[100] flex flex-col items-end gap-2 p-4 sm:inset-x-auto sm:left-auto sm:right-4 sm:bottom-4 sm:max-w-sm"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-toast flex flex-col items-end gap-2 p-4 sm:inset-x-auto sm:left-auto sm:right-4 sm:bottom-4 sm:max-w-sm"
     >
       {toasts.map((t) => (
         <ToastCard key={t.id} item={t} onDismiss={() => dismiss(t.id)} />
@@ -95,12 +97,13 @@ function ToasterViewport({ toasts, dismiss }: { toasts: ToastItem[]; dismiss: (i
 
 function ToastCard({ item, onDismiss }: { item: ToastItem; onDismiss: () => void }) {
   const variant = item.variant ?? "default";
+  const isError = variant === "error";
 
   return (
     <div
-      role="status"
+      role={isError ? "alert" : "status"}
       className={cn(
-        "pointer-events-auto flex w-full max-w-sm gap-3 rounded-xl border p-4 shadow-card backdrop-blur-md",
+        "pointer-events-auto w-full max-w-sm",
         "animate-[ce-toast-in_0.35s_var(--ease-out-expo)_forwards] motion-reduce:animate-none",
         variantStyles[variant],
       )}

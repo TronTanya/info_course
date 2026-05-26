@@ -1,6 +1,7 @@
 import { Brain, FileBadge, FlaskConical, Layers, ShieldCheck } from "lucide-react";
 import { LandingSection } from "@/components/home/landing-section";
 import { MetricCard } from "@/components/ui/metric-card";
+import { cn } from "@/lib/utils";
 
 const metrics = [
   {
@@ -40,32 +41,43 @@ const metrics = [
   },
 ] as const;
 
+export function TrustMetricsGrid({ className }: { className?: string }) {
+  return (
+    <ul
+      className={cn(
+        "grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5",
+        className,
+      )}
+    >
+      {metrics.map((m) => {
+        const Icon = m.icon;
+        return (
+          <li key={m.label}>
+            <MetricCard
+              variant={m.variant}
+              label={m.label}
+              value={m.value}
+              hint={m.hint}
+              icon={<Icon className="size-5" strokeWidth={1.75} aria-hidden />}
+              className="h-full"
+            />
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 export function LandingTrustMetrics() {
   return (
     <LandingSection
       id="trust"
-      eyebrow="Платформа"
-      title="Всё для практики в одной академии"
-      description="CyberEdu — не набор PDF-лекций, а учебная среда с лабораториями, проверками и прозрачным прогрессом."
+      eyebrow="Системные метрики"
+      title="Инфраструктура обучения в одной среде"
+      description="Модули, лаборатории, AI-слой и сертификация — единая премиальная среда без ощущения классического LMS."
       accent
     >
-      <ul className="grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {metrics.map((m) => {
-          const Icon = m.icon;
-          return (
-            <li key={m.label}>
-              <MetricCard
-                variant={m.variant}
-                label={m.label}
-                value={m.value}
-                hint={m.hint}
-                icon={<Icon className="size-5" strokeWidth={1.75} aria-hidden />}
-                className="h-full"
-              />
-            </li>
-          );
-        })}
-      </ul>
+      <TrustMetricsGrid />
     </LandingSection>
   );
 }

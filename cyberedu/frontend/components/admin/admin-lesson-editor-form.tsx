@@ -85,7 +85,7 @@ export function AdminLessonEditorForm({
               disabled={pending}
             />
           </TabsContent>
-          <TabsContent value="preview" className="mt-3 min-h-[200px] border border-border/80 bg-muted/20 p-4">
+          <TabsContent value="preview" className="mt-3 min-h-50 border border-border/80 bg-muted/20 p-4">
             <LessonRichText source={content} />
           </TabsContent>
         </Tabs>

@@ -66,7 +66,7 @@ export default async function AdminCertificatesPage() {
               }
               desktop={
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[960px] border-collapse text-sm">
+                  <table className="w-full min-w-240 border-collapse text-sm">
                     <thead>
                       <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
                         <th className="px-3 py-2">Номер</th>
@@ -83,7 +83,7 @@ export default async function AdminCertificatesPage() {
                         <tr key={r.id} className="border-b border-border/80 hover:bg-muted/30">
                           <td className="px-3 py-2 font-mono text-xs">{r.certificateNumber}</td>
                           <td className="px-3 py-2">{r.fullName}</td>
-                          <td className="max-w-[200px] break-all px-3 py-2 text-muted-foreground">{r.userEmail}</td>
+                          <td className="max-w-50 break-all px-3 py-2 text-muted-foreground">{r.userEmail}</td>
                           <td className="px-3 py-2 text-muted-foreground">{r.courseTitle}</td>
                           <td className="whitespace-nowrap px-3 py-2 tabular-nums text-muted-foreground">
                             {new Date(r.issuedAt).toLocaleDateString("ru-RU")}

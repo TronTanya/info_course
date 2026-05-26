@@ -7,8 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 function ChartsSkeleton() {
   return (
     <div className="grid gap-4 lg:grid-cols-2" aria-busy="true" aria-label="Загрузка диаграмм">
-      <Skeleton className="h-[280px] rounded-2xl" />
-      <Skeleton className="h-[280px] rounded-2xl" />
+      <Skeleton className="h-70 rounded-2xl" />
+      <Skeleton className="h-70 rounded-2xl" />
     </div>
   );
 }

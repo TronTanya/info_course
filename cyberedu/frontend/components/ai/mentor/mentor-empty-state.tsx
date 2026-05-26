@@ -4,7 +4,7 @@ import { BookOpen, Shield } from "lucide-react";
 
 export function MentorEmptyState() {
   return (
-    <div className="ce-mentor-empty rounded-xl border border-dashed border-cyan/25 bg-linear-to-br from-cyan/8 to-transparent px-4 py-4 text-sm">
+    <div className="ce-mentor-empty ce-polish-inset rounded-xl border-dashed px-4 py-4 text-sm">
       <p className="flex items-center gap-2 font-semibold text-foreground">
         <BookOpen className="size-4 text-cyan" aria-hidden />
         Учебный помощник

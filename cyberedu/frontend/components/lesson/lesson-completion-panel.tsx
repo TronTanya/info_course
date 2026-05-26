@@ -65,7 +65,7 @@ export function LessonCompletionPanel({
           </div>
         </div>
 
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:min-w-[200px]">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:min-w-50">
           {!lessonCompleted ? (
             <Button
               type="button"

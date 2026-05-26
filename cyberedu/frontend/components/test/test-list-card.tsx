@@ -49,26 +49,26 @@ export function TestListCard({
             <h2 className="font-display text-lg font-semibold text-foreground sm:text-xl">{title}</h2>
             <p className="text-sm text-muted-foreground">{moduleTitle}</p>
           </div>
-          <Badge className={cn("w-fit shrink-0 font-mono text-[10px] uppercase tracking-wider", meta.className)}>
+          <Badge className={cn("w-fit shrink-0 font-mono text-2.5 uppercase tracking-wider", meta.className)}>
             {meta.label}
           </Badge>
         </header>
 
         <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
           <div className="rounded-xl border border-border/70 bg-muted/20 px-3 py-2">
-            <dt className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Вопросов</dt>
+            <dt className="text-2.5 font-medium uppercase tracking-wide text-muted-foreground">Вопросов</dt>
             <dd className="mt-0.5 font-semibold tabular-nums text-foreground">{questionCount}</dd>
           </div>
           <div className="rounded-xl border border-border/70 bg-muted/20 px-3 py-2">
-            <dt className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Время</dt>
+            <dt className="text-2.5 font-medium uppercase tracking-wide text-muted-foreground">Время</dt>
             <dd className="mt-0.5 font-semibold text-foreground">{formatTestDuration(estimatedMinutes)}</dd>
           </div>
           <div className="rounded-xl border border-border/70 bg-muted/20 px-3 py-2">
-            <dt className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Сложность</dt>
+            <dt className="text-2.5 font-medium uppercase tracking-wide text-muted-foreground">Сложность</dt>
             <dd className="mt-0.5 font-medium text-foreground">{difficulty}</dd>
           </div>
           <div className="rounded-xl border border-border/70 bg-muted/20 px-3 py-2">
-            <dt className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Лучший результат</dt>
+            <dt className="text-2.5 font-medium uppercase tracking-wide text-muted-foreground">Лучший результат</dt>
             <dd className="mt-0.5 font-semibold tabular-nums text-foreground">
               {bestPercent != null ? `${bestPercent}%` : "—"}
             </dd>

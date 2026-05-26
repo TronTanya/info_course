@@ -1,34 +1,39 @@
 /**
- * CyberEdu design system v2.2 — исходная палитра (синхронизировать с app/design-tokens.css).
- * Контраст (на #060712): primary #F4F2FA ~16:1, secondary #B8B3CC ~8:1, muted #7C7794 ~4.8:1.
+ * CyberEdu palette v4 — sync with app/design-tokens.css
  */
 export const palette = {
   bg: {
-    base: "#060712",
-    elevated: "#0C0F1C",
-    surface: "#12152A",
+    base: "#09090B",
+    elevated: "#18181B",
+    overlay: "#27272A",
+    surface: "#18181B",
   },
-  border: "rgba(255, 255, 255, 0.09)",
-  accent: {
-    primary: "#7C5CFF",
-    soft: "#9B87FF",
-    violetDeep: "#1A1033",
-    cyberMint: "#4CC9A0",
-    cyberTeal: "#5EEAD4",
+  border: {
+    default: "rgba(255,255,255,0.1)",
+    strong: "rgba(255,255,255,0.16)",
+  },
+  brand: {
+    primary: "#6366F1",
+    primaryHover: "#4F46E5",
+    accent: "#818CF8",
+    accentSoft: "#A5B4FC",
+    violetDeep: "#1E1B4B",
   },
   semantic: {
-    warning: "#E8B84A",
-    danger: "#F0527A",
+    success: "#34D399",
+    warning: "#FBBF24",
+    danger: "#F43F5E",
+    info: "#60A5FA",
   },
   text: {
-    primary: "#F4F2FA",
-    secondary: "#B8B3CC",
-    muted: "#7C7794",
+    primary: "#F5F5F7",
+    secondary: "#A1A1AA",
+    muted: "#71717A",
   },
   terminal: {
-    bg: "#0D0B18",
-    prompt: "#6EE7C4",
-    success: "#5CD9A8",
+    bg: "#18181B",
+    prompt: "#818CF8",
+    success: "#34D399",
   },
 } as const;
 

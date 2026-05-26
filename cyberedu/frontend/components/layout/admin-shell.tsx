@@ -12,13 +12,17 @@ export function AdminShell({
   className?: string;
 }) {
   return (
-    <div className={cn("dashboard-grid dashboard-grid--with-sidebar min-w-0 flex-1 overflow-x-clip", className)}>
+    <div className={cn("dashboard-grid dashboard-grid--with-sidebar w-full min-w-0 overflow-x-clip", className)}>
       <AppSidebar variant="admin" />
-      <section className="dashboard-content ce-admin-shell ce-app-main-panel ce-lab-panel relative isolate overflow-x-clip p-3 pb-6 sm:p-6 lg:p-8">
-        <div className="ce-learn-ambient pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]" aria-hidden>
-          <div className="ce-learn-grid absolute inset-0 opacity-[0.08]" />
-        </div>
-        <div className="relative z-[1]">
+      <section
+        className="dashboard-content ce-admin-shell relative min-w-0 overflow-x-clip rounded-2xl border border-border bg-card p-3 pb-6 shadow-sm sm:p-6 lg:p-8"
+        style={{
+          background: "var(--card)",
+          backdropFilter: "none",
+          WebkitBackdropFilter: "none",
+        }}
+      >
+        <div className="relative z-0 min-w-0">
           <AdminMobileNav />
           <p className="mb-4 mt-3 lg:hidden">
             <Link

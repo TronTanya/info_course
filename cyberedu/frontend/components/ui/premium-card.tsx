@@ -1,14 +1,7 @@
 import * as React from "react";
+import { cardVariants } from "@/lib/design-system/components";
 import { transitionBase } from "@/lib/design-system/primitives";
 import { cn } from "@/lib/utils";
-
-const variants = {
-  default: "ce-premium-card",
-  glow: "ce-premium-card ce-premium-card--glow",
-  accent: "ce-premium-card ce-premium-card--accent",
-  flat: "ce-glass rounded-2xl",
-  muted: "rounded-2xl border border-border/80 bg-muted/20 shadow-sm",
-} as const;
 
 const paddings = {
   none: "",
@@ -20,7 +13,7 @@ const paddings = {
 export type PremiumCardProps = React.HTMLAttributes<HTMLDivElement> & {
   /** @deprecated Используйте variant="glow" */
   glow?: boolean;
-  variant?: keyof typeof variants;
+  variant?: "default" | "glow" | "accent" | "flat" | "muted";
   padding?: keyof typeof paddings;
   interactive?: boolean;
 };
@@ -33,16 +26,21 @@ export function PremiumCard({
   interactive = false,
   ...props
 }: PremiumCardProps) {
-  const resolvedVariant = variant ?? (glow ? "glow" : "default");
+  const resolved = variant ?? (glow ? "glow" : "default");
 
   return (
     <div
       className={cn(
-        variants[resolvedVariant],
-        paddings[padding],
-        "min-w-0 max-w-full",
-        interactive && "ce-premium-card--interactive cursor-default",
+        cardVariants.base,
+        "ce-premium-card min-w-0 max-w-full",
         transitionBase,
+        resolved === "glow" && cn(cardVariants.glow, "ce-premium-card--glow"),
+        resolved === "accent" && "ce-premium-card--accent border-primary/25",
+        resolved === "flat" && "ds-glass-surface rounded-2xl",
+        resolved === "muted" && "rounded-2xl border border-white/6 bg-white/2",
+        resolved === "default" && "ce-premium-card",
+        interactive && cn(cardVariants.interactive, "ce-premium-card--interactive cursor-default"),
+        paddings[padding],
         className,
       )}
       {...props}

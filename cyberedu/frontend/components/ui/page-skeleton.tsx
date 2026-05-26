@@ -14,18 +14,16 @@ export function PageHeaderSkeleton({ className }: { className?: string }) {
 export function ProfilePageSkeleton({ className }: { className?: string }) {
   return (
     <div className={cn("space-y-6 sm:space-y-8", className)} aria-busy="true" aria-label="Загрузка профиля">
-      <Skeleton className="h-48 w-full rounded-3xl sm:h-56" />
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+      <div className="flex gap-2 overflow-hidden">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-20 rounded-2xl" />
+          <Skeleton key={i} className="h-9 w-24 shrink-0 rounded-xl" />
         ))}
       </div>
-      <Skeleton className="h-36 rounded-2xl" />
+      <Skeleton className="h-40 w-full rounded-2xl sm:h-44" />
       <div className="grid gap-4 lg:grid-cols-2">
-        <Skeleton className="min-h-[14rem] rounded-2xl" />
-        <Skeleton className="min-h-[14rem] rounded-2xl" />
+        <Skeleton className="min-h-56 rounded-2xl" />
+        <Skeleton className="min-h-56 rounded-2xl" />
       </div>
-      <Skeleton className="h-48 rounded-2xl" />
     </div>
   );
 }

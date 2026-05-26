@@ -57,18 +57,18 @@ export function CodeBlock({ code, language }: { code: string; language?: string 
   return (
     <div className="ce-mentor-code group relative my-3 overflow-hidden rounded-lg border">
       <div className="flex items-center justify-between border-b border-cyan/15 bg-cyan/5 px-3 py-1.5">
-        <span className="font-mono text-[10px] font-medium uppercase tracking-wider text-cyan/90">{lang}</span>
+        <span className="font-mono text-2.5 font-medium uppercase tracking-wider text-cyan/90">{lang}</span>
         <button
           type="button"
           onClick={() => void copy()}
-          className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] text-muted-foreground transition hover:bg-muted/30 hover:text-foreground"
+          className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-2.5 text-muted-foreground transition hover:bg-muted/30 hover:text-foreground"
           aria-label="Копировать код"
         >
           {copied ? <Check className="size-3 text-success" /> : <Copy className="size-3" />}
           {copied ? "Скопировано" : "Копировать"}
         </button>
       </div>
-      <pre className="ce-mentor-code-pre max-h-64 overflow-x-auto p-3 text-[13px] leading-relaxed">
+      <pre className="ce-mentor-code-pre max-h-64 overflow-x-auto p-3 text-3.25 leading-relaxed">
         <code className="hljs" dangerouslySetInnerHTML={{ __html: html }} />
       </pre>
     </div>

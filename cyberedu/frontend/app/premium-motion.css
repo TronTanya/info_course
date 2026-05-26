@@ -1,0 +1,212 @@
+/**
+ * Premium motion — CSS layers (pairs with Framer Motion components)
+ */
+
+@layer components {
+  /* Page shell subtle enter (no-JS fallback) */
+  .ce-motion-page {
+    animation: ce-motion-page-in var(--duration-slow) var(--ease-out-expo) forwards;
+  }
+
+  /** Dashboard/admin: только Framer или без анимации — без двойного blur/opacity */
+  .ce-motion-page--static {
+    animation: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+
+  @keyframes ce-motion-page-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+      filter: blur(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+  }
+
+  .ce-motion-blur-in {
+    animation: ce-motion-blur-in var(--duration-slower) var(--ease-out-expo) forwards;
+  }
+
+  @keyframes ce-motion-blur-in {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+      filter: blur(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+  }
+
+  .ce-motion-stagger-1 {
+    animation-delay: 50ms;
+  }
+  .ce-motion-stagger-2 {
+    animation-delay: 100ms;
+  }
+  .ce-motion-stagger-3 {
+    animation-delay: 150ms;
+  }
+  .ce-motion-stagger-4 {
+    animation-delay: 200ms;
+  }
+
+  /* Gentle float */
+  .ce-motion-float {
+    animation: ce-motion-float 7s var(--ease-in-out-soft) infinite;
+  }
+
+  .ce-motion-float--slow {
+    animation-duration: 9s;
+  }
+
+  .ce-motion-float--offset {
+    animation-delay: -2.5s;
+  }
+
+  @keyframes ce-motion-float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-7px);
+    }
+  }
+
+  /* Animated mesh / gradient drift */
+  .ce-motion-gradient-shift {
+    background-size: 200% 200%;
+    animation: ce-motion-gradient-shift 18s var(--ease-in-out-soft) infinite alternate;
+  }
+
+  @keyframes ce-motion-gradient-shift {
+    0% {
+      background-position: 0% 40%;
+    }
+    100% {
+      background-position: 100% 60%;
+    }
+  }
+
+  /* Mouse-follow glow (set --motion-mx / --motion-my via JS) */
+  .ce-mouse-glow {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .ce-mouse-glow::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(
+      520px circle at var(--motion-mx, 50%) var(--motion-my, 40%),
+      rgb(var(--ce-brand-rgb) / 0.14),
+      transparent 58%
+    );
+    transition: opacity var(--duration-normal) var(--ease-out-expo);
+  }
+
+  .ce-mouse-glow--lit::after {
+    opacity: 1;
+  }
+
+  /* Card / panel hover lighting */
+  .ce-hover-light {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  .ce-hover-light::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(
+      380px circle at var(--hover-mx, 50%) var(--hover-my, 50%),
+      rgb(255 255 255 / 0.07),
+      transparent 52%
+    );
+    transition: opacity var(--duration-fast) var(--ease-out-expo);
+  }
+
+  .ce-hover-light:hover::before,
+  .ce-hover-light:focus-within::before {
+    opacity: 1;
+  }
+
+  /* Magnetic button spotlight */
+  .ce-magnetic {
+    position: relative;
+    isolation: isolate;
+    will-change: transform;
+  }
+
+  .ce-magnetic::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(
+      120px circle at var(--btn-mx, 50%) var(--btn-my, 50%),
+      rgb(var(--ce-accent-rgb) / 0.35),
+      transparent 65%
+    );
+    transition: opacity var(--duration-fast) var(--ease-out-expo);
+  }
+
+  .ce-magnetic:hover::before {
+    opacity: 1;
+  }
+
+  .ce-hero-magnetic-btn.ce-magnetic::before {
+    opacity: 0.6;
+  }
+
+  /* Soft parallax layer */
+  .ce-parallax-layer {
+    will-change: transform;
+    transition: transform 0.12s var(--ease-out-expo);
+  }
+
+  /* Ambient gradient mesh enhancement */
+  .ce-premium-mesh.ce-motion-gradient-shift {
+    opacity: 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ce-motion-page,
+  .ce-motion-blur-in,
+  .ce-motion-float,
+  .ce-motion-gradient-shift {
+    animation: none !important;
+  }
+
+  .ce-mouse-glow::after,
+  .ce-hover-light::before,
+  .ce-magnetic::before {
+    display: none;
+  }
+
+  .ce-parallax-layer {
+    transform: none !important;
+    transition: none !important;
+  }
+}

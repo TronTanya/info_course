@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import * as Dialog from "@radix-ui/react-dialog";
+import { Menu } from "lucide-react";
 import {
   adminNav,
   guestAuthLinks,
@@ -13,30 +13,17 @@ import {
   studentSecondaryNav,
 } from "@/lib/design-system/nav-config";
 import { logoutAction } from "@/lib/actions/logout";
+import { FloatingNavLink } from "@/components/layout/floating-nav/floating-nav-link";
+import { FloatingNavMobile, type FloatingNavMobileItem } from "@/components/layout/floating-nav/floating-nav-mobile";
+import { CommandPaletteTrigger } from "@/components/layout/command-palette-provider";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { isNavHrefActive, isAdminPrimaryActive } from "@/lib/nav-active";
 import { isStudentQuickNavActive, resolveStudentNavPaths, type StudentQuickNavKey } from "@/lib/nav-resolve";
-import { navLinkClass } from "@/components/layout/nav-link-styles";
 import { UserMenu, type UserMenuUser } from "@/components/layout/user-menu";
 import { cn } from "@/lib/utils";
 
 type NavVariant = "guest" | "user" | "admin";
-
-function MenuIcon() {
-  return (
-    <svg className="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
-    </svg>
-  );
-}
 
 function isPublicLinkActive(pathname: string, href: string): boolean {
   if (href.startsWith("/#")) return pathname === "/";
@@ -51,13 +38,17 @@ export function SiteHeaderNav({
   user?: UserMenuUser | null;
 }) {
   const pathname = usePathname() ?? "";
-  const [open, setOpen] = React.useState(false);
+  const [mobileOpen, setMobileOpen] = React.useState(false);
   const isGuest = variant === "guest";
   const isAdmin = variant === "admin";
   const paths = resolveStudentNavPaths(pathname);
-  const close = () => setOpen(false);
 
-  type DrawerLink = { href: string; label: string; key?: StudentQuickNavKey; icon?: React.ComponentType<{ className?: string }> };
+  type DrawerLink = {
+    href: string;
+    label: string;
+    key?: StudentQuickNavKey;
+    icon?: React.ComponentType<{ className?: string }>;
+  };
 
   const drawerLinks: DrawerLink[] = isGuest
     ? guestNavLinks.map((i) => ({ href: i.href, label: i.label }))
@@ -69,147 +60,152 @@ export function SiteHeaderNav({
         ];
 
   function isDrawerLinkActive(href: string, key?: StudentQuickNavKey): boolean {
-    if (key && !isAdmin && !isGuest) {
-      return isStudentQuickNavActive(pathname, key);
-    }
-    if (isAdmin && href === "/admin/modules") {
-      return isAdminPrimaryActive(pathname, href);
-    }
+    if (key && !isAdmin && !isGuest) return isStudentQuickNavActive(pathname, key);
+    if (isAdmin && href === "/admin/modules") return isAdminPrimaryActive(pathname, href);
     return isNavHrefActive(pathname, href);
   }
+
+  const mobileItems: FloatingNavMobileItem[] = drawerLinks.map((item) => ({
+    href: item.href,
+    label: item.label,
+    active: isDrawerLinkActive(item.href, item.key),
+    icon: item.icon,
+  }));
+
+  const layoutId = isGuest ? "guest-nav-indicator" : isAdmin ? "admin-nav-indicator" : "app-nav-indicator";
 
   return (
     <>
       {isGuest ? (
-        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 md:flex" aria-label="Основная навигация">
+        <nav className="ce-floating-nav__links ce-floating-nav__links--md" aria-label="Основная навигация">
           {publicNavLinks.map((item) => (
-            <Link
+            <FloatingNavLink
               key={item.href}
               href={item.href}
-              className={navLinkClass(false, isPublicLinkActive(pathname, item.href))}
-              aria-current={isPublicLinkActive(pathname, item.href) ? "page" : undefined}
+              active={isPublicLinkActive(pathname, item.href)}
+              layoutId={layoutId}
             >
               {item.label}
-            </Link>
+            </FloatingNavLink>
           ))}
-          <Link
-            href={guestAuthLinks.login}
-            className={navLinkClass(false, isNavHrefActive(pathname, guestAuthLinks.login))}
-          >
+          <span className="ce-floating-nav__divider hidden md:block" aria-hidden />
+          <FloatingNavLink href={guestAuthLinks.login} active={isNavHrefActive(pathname, guestAuthLinks.login)} layoutId={layoutId}>
             {guestAuthLinks.loginLabel}
-          </Link>
-          <Button asChild size="sm" variant="primary" className="ml-1 shadow-sm">
-            <Link href={guestAuthLinks.register}>{guestAuthLinks.registerLabel}</Link>
-          </Button>
+          </FloatingNavLink>
         </nav>
-      ) : null}
+      ) : isAdmin ? (
+        <nav className="ce-floating-nav__links ce-floating-nav__links--xl" aria-label="Разделы админки">
+          {adminNav.slice(0, 5).map((item) => (
+            <FloatingNavLink
+              key={item.href}
+              href={item.href}
+              active={
+                item.href === "/admin/modules"
+                  ? isAdminPrimaryActive(pathname, item.href)
+                  : isNavHrefActive(pathname, item.href)
+              }
+              layoutId={layoutId}
+            >
+              {item.label}
+            </FloatingNavLink>
+          ))}
+        </nav>
+      ) : (
+        <nav className="ce-floating-nav__links ce-floating-nav__links--xl" aria-label="Разделы кабинета">
+          {studentQuickNav.slice(0, 4).map((item) => (
+            <FloatingNavLink
+              key={item.key}
+              href={paths[item.key]}
+              active={isStudentQuickNavActive(pathname, item.key)}
+              layoutId={layoutId}
+            >
+              {item.label}
+            </FloatingNavLink>
+          ))}
+        </nav>
+      )}
 
-      <div className={cn("ml-auto flex shrink-0 items-center gap-2", isGuest ? "md:ml-0" : "")}>
+      <div className="ce-floating-nav__actions">
+        {isAdmin ? (
+          <Button asChild variant="primary" size="sm" className="hidden min-h-9 rounded-full px-3 lg:inline-flex">
+            <a
+              href="/api/admin/users/export"
+              title="Список пользователей в CSV"
+              aria-label="Выгрузить CSV"
+            >
+              <span className="hidden xl:inline">CSV</span>
+              <span className="xl:hidden">↓</span>
+            </a>
+          </Button>
+        ) : null}
+        {!isGuest ? <CommandPaletteTrigger /> : null}
+        <ThemeToggle className="hidden sm:inline-flex" />
         {!isGuest && user ? <UserMenu user={user} variant={isAdmin ? "admin" : "user"} /> : null}
 
-        <div className={cn("flex shrink-0 items-center gap-2", isGuest ? "md:hidden" : "lg:hidden")}>
-          {isGuest ? (
-            <Button asChild size="sm" variant="primary" className="sm:hidden">
-              <Link href={guestAuthLinks.register}>Старт</Link>
-            </Button>
-          ) : null}
+        {isGuest ? (
+          <Button asChild size="sm" variant="primary" className="hidden min-h-9 rounded-full px-4 sm:inline-flex md:hidden">
+            <Link href={guestAuthLinks.register}>Старт</Link>
+          </Button>
+        ) : null}
 
-          <Dialog.Root open={open} onOpenChange={setOpen}>
-            <Dialog.Trigger asChild>
-              <Button type="button" variant="outline" size="icon" className="shrink-0 min-h-11 min-w-11" aria-label="Открыть меню">
-                <MenuIcon />
-              </Button>
-            </Dialog.Trigger>
-            <Dialog.Portal>
-              <Dialog.Overlay className="fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-              <Dialog.Content
-                className={cn(
-                  "fixed inset-y-0 z-50 flex w-[min(100vw-1rem,20rem)] flex-col border-border bg-card shadow-2xl outline-none",
-                  isGuest
-                    ? "right-0 border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right"
-                    : "left-0 border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
-                  "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 duration-200",
-                )}
-              >
-                <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                  <Dialog.Title className="text-base font-semibold text-foreground">
-                    {isGuest ? "Меню" : isAdmin ? "Админка" : "Кабинет"}
-                  </Dialog.Title>
-                  <Dialog.Description className="sr-only">
-                    {isGuest
-                      ? "Навигация по сайту и ссылки для входа"
-                      : isAdmin
-                        ? "Быстрый переход по разделам админки"
-                        : "Навигация по кабинету обучения"}
-                  </Dialog.Description>
-                  <Dialog.Close asChild>
-                    <Button type="button" variant="ghost" size="icon" className="min-h-11 min-w-11" aria-label="Закрыть меню">
-                      <CloseIcon />
-                    </Button>
-                  </Dialog.Close>
-                </div>
-                <nav className="flex flex-1 flex-col gap-2 overflow-y-auto p-4" aria-label="Мобильная навигация">
-                  {isAdmin ? (
-                    <div className="pb-1">
-                      <Dialog.Close asChild>
-                        <Button asChild variant="primary" className="w-full min-h-11">
-                          <a href="/api/admin/users/export" onClick={close} title="CSV для Excel">
-                            Выгрузка CSV
-                          </a>
-                        </Button>
-                      </Dialog.Close>
-                    </div>
-                  ) : null}
-                  {isGuest ? (
-                    <div className="mb-2 flex flex-col gap-2 border-b border-border pb-4">
-                      <Dialog.Close asChild>
-                        <Button asChild variant="outline" className="w-full min-h-11">
-                          <Link href={guestAuthLinks.login} onClick={close}>
-                            {guestAuthLinks.loginLabel}
-                          </Link>
-                        </Button>
-                      </Dialog.Close>
-                      <Dialog.Close asChild>
-                        <Button asChild variant="primary" className="w-full min-h-11">
-                          <Link href={guestAuthLinks.register} onClick={close}>
-                            {guestAuthLinks.registerLabel}
-                          </Link>
-                        </Button>
-                      </Dialog.Close>
-                    </div>
-                  ) : null}
-                  {drawerLinks.map((item) => {
-                    const linkKey = item.key ?? item.href;
-                    const active = isDrawerLinkActive(item.href, item.key);
-                    const Icon = item.icon;
-                    return (
-                      <Dialog.Close asChild key={linkKey}>
-                        <Link href={item.href} className={navLinkClass(true, active)} onClick={close}>
-                          {Icon ? <Icon className="size-4 shrink-0" aria-hidden /> : null}
-                          {item.label}
-                        </Link>
-                      </Dialog.Close>
-                    );
-                  })}
-                  {!isGuest ? (
-                    <form action={logoutAction} className="mt-2 border-t border-border pt-4">
-                      <Dialog.Close asChild>
-                        <button
-                          type="submit"
-                          className={cn(navLinkClass(true), "w-full text-left text-danger")}
-                          onClick={close}
-                        >
-                          Выйти
-                        </button>
-                      </Dialog.Close>
-                    </form>
-                  ) : null}
-                </nav>
-              </Dialog.Content>
-            </Dialog.Portal>
-          </Dialog.Root>
-        </div>
+        <button
+          type="button"
+          className={cn("ce-floating-nav-menu-btn", isGuest ? "md:hidden" : "xl:hidden")}
+          aria-label="Открыть меню"
+          aria-expanded={mobileOpen}
+          onClick={() => setMobileOpen(true)}
+        >
+          <Menu className="size-4" />
+        </button>
       </div>
+
+      <FloatingNavMobile
+        open={mobileOpen}
+        onOpenChange={setMobileOpen}
+        title={isGuest ? "Меню" : isAdmin ? "Админка" : "Кабинет"}
+        items={mobileItems}
+        headerSlot={
+          isAdmin ? (
+            <Button asChild variant="primary" className="w-full min-h-10 rounded-2xl">
+              <a href="/api/admin/users/export" title="CSV для Excel">
+                Выгрузка CSV
+              </a>
+            </Button>
+          ) : isGuest ? null : undefined
+        }
+        footerSlot={
+          isGuest ? (
+            <div className="flex flex-col gap-2">
+              <ThemeToggle className="mx-auto min-h-11 w-full max-w-48 rounded-2xl border border-border" />
+              <Button asChild size="lg" variant="outline" className="w-full min-h-11 rounded-2xl">
+                <Link href={guestAuthLinks.login}>{guestAuthLinks.loginLabel}</Link>
+              </Button>
+              <Button asChild size="lg" className="w-full min-h-11 rounded-2xl">
+                <Link href={guestAuthLinks.register}>{guestAuthLinks.registerLabel}</Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {!isAdmin ? (
+                <CommandPaletteTrigger
+                  showLabel
+                  className="w-full min-h-11 justify-center rounded-2xl"
+                  onActivate={() => setMobileOpen(false)}
+                />
+              ) : null}
+              <div className="flex items-center justify-between gap-2 rounded-2xl border border-border px-3 py-2">
+                <span className="text-sm font-medium text-foreground">Тема</span>
+                <ThemeToggle />
+              </div>
+              <form action={logoutAction}>
+                <Button type="submit" variant="outline" className="w-full min-h-11 rounded-2xl text-danger hover:text-danger">
+                  Выйти
+                </Button>
+              </form>
+            </div>
+          )
+        }
+      />
     </>
   );
 }

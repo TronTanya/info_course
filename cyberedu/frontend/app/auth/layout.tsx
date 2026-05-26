@@ -1,15 +1,13 @@
 import Link from "next/link";
 import { AuthSplitLayout } from "@/components/auth/auth-split-layout";
 import { BrandLogoFullImg } from "@/components/brand/brand-logo";
-import { TechAmbient } from "@/components/effects/tech-ambient";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip">
-      <TechAmbient />
-      <header className="relative z-10 flex min-h-14 items-center justify-between border-b border-border/60 bg-background/80 px-4 backdrop-blur-md sm:px-6">
+    <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip bg-background">
+      <header className="relative z-10 flex min-h-14 items-center justify-between border-b border-border bg-card px-4 sm:px-6">
         <Link href="/" className="block transition-opacity hover:opacity-90" aria-label="CyberEdu — на главную">
-          <BrandLogoFullImg className="h-8 w-auto max-w-[10rem]" />
+          <BrandLogoFullImg className="h-8 w-auto max-w-40" />
         </Link>
         <Link
           href="/"

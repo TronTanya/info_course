@@ -48,7 +48,7 @@ export function MobileDrawer({
     <>
       <button
         type="button"
-        className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden"
+        className="fixed inset-0 z-40 bg-background/75 backdrop-blur-md lg:hidden"
         aria-label="Закрыть панель"
         onClick={() => onOpenChange(false)}
       />
@@ -58,13 +58,14 @@ export function MobileDrawer({
         aria-modal="true"
         aria-labelledby={titleId}
         className={cn(
-          "fixed inset-y-0 z-50 flex w-[min(100vw,22rem)] flex-col border-border bg-card shadow-2xl lg:hidden",
+          "ce-mobile-drawer-panel ce-mobile-drawer-panel--sheet fixed z-50 flex flex-col lg:hidden",
           side === "left" ? "left-0 border-r" : "right-0 border-l",
           className,
         )}
       >
-        <div className="flex min-h-11 items-center justify-between border-b border-border px-4 py-3">
-          <h2 id={titleId} className="text-base font-semibold text-foreground">
+        <div className="ce-mobile-sheet__handle mt-2 lg:hidden" aria-hidden />
+        <div className="flex min-h-11 items-center justify-between border-b border-white/8 px-4 py-3">
+          <h2 id={titleId} className="font-heading text-base font-semibold text-foreground">
             {title}
           </h2>
           <Button type="button" variant="ghost" size="icon" onClick={() => onOpenChange(false)} aria-label="Закрыть">

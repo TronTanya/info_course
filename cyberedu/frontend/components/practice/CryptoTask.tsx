@@ -146,7 +146,7 @@ export function CryptoTask({ moduleId, practicalTaskId, disabled, onResult }: Cr
       <PracticeTaskStep title="2. Base64">
         <p className="text-sm text-muted-foreground leading-relaxed">
           Строка в кодировке Base64:{" "}
-          <span className="break-all font-mono text-[13px] text-foreground">{CRYPTO_B64_STRING}</span>. Введите
+          <span className="break-all font-mono text-3.25 text-foreground">{CRYPTO_B64_STRING}</span>. Введите
           декодированный текст (латиница).
         </p>
         <Input

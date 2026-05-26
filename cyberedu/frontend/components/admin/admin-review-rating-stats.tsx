@@ -1,11 +1,14 @@
 "use client";
 
+import * as React from "react";
 import type { ReviewRatingStat } from "@/lib/admin-review-rating-stats";
-import { SectionCard } from "@/components/ui/section-card";
+import { AdminTableCard } from "@/components/admin/admin-table-card";
 import type { TooltipContentProps } from "recharts";
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Cell, Pie, PieChart, Tooltip } from "recharts";
 
 const SLICE_COLORS = ["#dc2626", "#ea580c", "#ca8a04", "#16a34a", "#047857"] as const;
+const CHART_W = 300;
+const CHART_H = 260;
 
 type Datum = ReviewRatingStat & { label: string };
 
@@ -31,6 +34,12 @@ export function AdminReviewRatingStatsPanel({
   stats: ReadonlyArray<ReviewRatingStat>;
   total: number;
 }) {
+  const [chartReady, setChartReady] = React.useState(false);
+
+  React.useEffect(() => {
+    setChartReady(true);
+  }, []);
+
   if (total === 0) {
     return null;
   }
@@ -41,74 +50,75 @@ export function AdminReviewRatingStatsPanel({
   const hasAny = pieData.length > 0;
 
   return (
-    <SectionCard
-      variant="lab"
+    <AdminTableCard
+      className="ce-admin-rating-stats"
       title="Распределение оценок"
-      description={`Доля отзывов по числу звёзд (всего ${total}). Диаграмма и таблица считаются по всем записям в списке ниже, включая скрытые с публикации.`}
+      description={`Доля отзывов по числу звёзд (всего ${total}). Считается по всем записям в списке ниже, включая скрытые с публикации.`}
     >
-        <div className="grid gap-8 md:grid-cols-2 md:items-center">
-          <div className="mx-auto aspect-square w-full max-w-[280px] md:max-w-[320px]">
-            {hasAny ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Tooltip content={ReviewPieTooltip} />
-                  <Pie
-                    data={pieData}
-                    dataKey="count"
-                    nameKey="label"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius="52%"
-                    outerRadius="88%"
-                    paddingAngle={2}
-                    stroke="var(--card)"
-                    strokeWidth={2}
-                  >
-                    {pieData.map((entry) => (
-                      <Cell key={entry.stars} fill={SLICE_COLORS[entry.stars - 1]} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                Нет данных для диаграммы.
-              </p>
-            )}
-          </div>
-
-          <div className="overflow-hidden rounded-lg border border-border">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-muted/50 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  <th className="px-4 py-2.5">Оценка</th>
-                  <th className="px-4 py-2.5 text-right">Отзывов</th>
-                  <th className="px-4 py-2.5 text-right">Доля</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.map((row, i) => (
-                  <tr key={row.stars} className="border-b border-border/80 last:border-0">
-                    <td className="px-4 py-2.5">
-                      <span className="inline-flex items-center gap-2">
-                        <span
-                          className="size-2.5 shrink-0 rounded-full"
-                          style={{ backgroundColor: SLICE_COLORS[i] }}
-                          aria-hidden
-                        />
-                        <span className="tabular-nums font-medium text-foreground">{row.stars} из 5</span>
-                      </span>
-                    </td>
-                    <td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">{row.count}</td>
-                    <td className="px-4 py-2.5 text-right tabular-nums font-medium text-foreground">
-                      {row.percent}%
-                    </td>
-                  </tr>
+      <div className="grid min-w-0 gap-8 p-4 sm:p-6 md:grid-cols-2 md:items-start">
+        <div className="ce-admin-rating-chart mx-auto flex w-full max-w-80 shrink-0 items-center justify-center md:mx-0">
+          {hasAny && chartReady ? (
+            <PieChart width={CHART_W} height={CHART_H} className="max-w-full">
+              <Tooltip content={ReviewPieTooltip} />
+              <Pie
+                data={pieData}
+                dataKey="count"
+                nameKey="label"
+                cx={CHART_W / 2}
+                cy={CHART_H / 2}
+                innerRadius={CHART_H * 0.22}
+                outerRadius={CHART_H * 0.38}
+                paddingAngle={2}
+                stroke="var(--card)"
+                strokeWidth={2}
+              >
+                {pieData.map((entry) => (
+                  <Cell key={entry.stars} fill={SLICE_COLORS[entry.stars - 1]} />
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </Pie>
+            </PieChart>
+          ) : (
+            <div
+              className="flex items-center justify-center rounded-xl border border-dashed border-border bg-muted/40 text-sm text-muted-foreground"
+              style={{ width: CHART_W, height: CHART_H, maxWidth: "100%" }}
+            >
+              {hasAny ? "Загрузка диаграммы…" : "Нет данных для диаграммы."}
+            </div>
+          )}
         </div>
-    </SectionCard>
+
+        <div className="ce-admin-rating-side-table min-w-0 rounded-lg border border-border">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border bg-muted text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <th className="px-4 py-2.5">Оценка</th>
+                <th className="px-4 py-2.5 text-right">Отзывов</th>
+                <th className="px-4 py-2.5 text-right">Доля</th>
+              </tr>
+            </thead>
+            <tbody className="bg-card">
+              {stats.map((row, i) => (
+                <tr key={row.stars} className="border-b border-border last:border-0">
+                  <td className="px-4 py-2.5 text-foreground">
+                    <span className="inline-flex items-center gap-2">
+                      <span
+                        className="size-2.5 shrink-0 rounded-full"
+                        style={{ backgroundColor: SLICE_COLORS[i] }}
+                        aria-hidden
+                      />
+                      <span className="tabular-nums font-medium">{row.stars} из 5</span>
+                    </span>
+                  </td>
+                  <td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">{row.count}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums font-medium text-foreground">
+                    {row.percent}%
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </AdminTableCard>
   );
 }

@@ -42,12 +42,13 @@ export function CourseModuleCard({ row, modules, isNext = false, index = 0 }: Co
   const card = (
     <article
       className={cn(
-        "ce-course-module-card group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border shadow-card",
-        "transition-[border-color,box-shadow,transform] duration-200",
+        "ce-learn-mission-card ce-course-module-card group relative flex h-full min-w-0 flex-col overflow-hidden",
+        "transition-colors transition-shadow transition-transform duration-200",
         moduleStatusAccent(status === "current" ? "in_progress" : status),
-        "hover:shadow-[var(--shadow-card-hover)] motion-safe:hover:-translate-y-0.5 motion-reduce:hover:translate-y-0",
-        isNext && "ring-2 ring-primary/35",
-        status === "completed" && "border-success/30",
+        "hover:shadow-card-hover motion-safe:hover:-translate-y-0.5 motion-reduce:hover:translate-y-0",
+        isNext && "ce-learn-mission-card--current ring-2 ring-primary/35",
+        status === "completed" && "ce-learn-mission-card--complete",
+        status === "locked" && "ce-learn-mission-card--locked",
       )}
       style={{ animationDelay: `${(index % 6) * 40}ms` }}
     >
@@ -63,7 +64,7 @@ export function CourseModuleCard({ row, modules, isNext = false, index = 0 }: Co
       />
 
       {isNext ? (
-        <span className="absolute right-3 top-3 z-[1] rounded-lg border border-primary/40 bg-primary/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary">
+        <span className="absolute right-3 top-3 z-1 rounded-lg border border-primary/40 bg-primary/15 px-2 py-0.5 text-2xs font-bold uppercase tracking-wider text-primary">
           Текущая миссия
         </span>
       ) : null}
@@ -71,7 +72,7 @@ export function CourseModuleCard({ row, modules, isNext = false, index = 0 }: Co
       <div className="flex flex-1 flex-col gap-4 p-5 sm:p-6">
         <header className="space-y-3 pr-12">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-primary/90">
+            <span className="font-mono text-2.5 font-bold uppercase tracking-eyebrow-sm text-primary/90">
               Модуль {row.module.orderNumber}
             </span>
             {status === "completed" ? (
@@ -93,7 +94,7 @@ export function CourseModuleCard({ row, modules, isNext = false, index = 0 }: Co
           {row.unlocked ? (
             <Link
               href={hubHref}
-              className="block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="block rounded-sm focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
             >
               <h2 className="font-display text-lg font-semibold leading-snug tracking-tight text-foreground transition-colors group-hover:text-primary sm:text-xl">
                 {row.module.title}
@@ -211,9 +212,9 @@ function ContentStat({
   return (
     <div className="rounded-xl border border-border/70 bg-background/60 px-2 py-2">
       <Icon className="mx-auto size-4 text-primary" aria-hidden />
-      <dt className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">{label}</dt>
+      <dt className="mt-1 text-2.5 uppercase tracking-wide text-muted-foreground">{label}</dt>
       <dd className="text-sm font-bold tabular-nums text-foreground">{value}</dd>
-      <dd className="mt-0.5 line-clamp-1 text-[9px] text-muted-foreground">{caption}</dd>
+      <dd className="mt-0.5 line-clamp-1 text-2xs text-muted-foreground">{caption}</dd>
     </div>
   );
 }

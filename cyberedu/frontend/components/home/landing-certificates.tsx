@@ -65,7 +65,7 @@ export function LandingCertificates() {
           </Button>
         </div>
 
-        <div className="ce-cert-card border-glow relative mx-auto w-full max-w-md p-6 sm:p-8">
+        <div className="ce-cert-card ds-card relative mx-auto w-full max-w-md p-6 sm:p-8">
           <div className="pointer-events-none absolute -right-12 -top-8 h-32 w-32 rounded-full bg-accent/15 blur-2xl" aria-hidden />
           <div className="relative space-y-4">
             <div className="flex items-start justify-between gap-3">
@@ -81,7 +81,7 @@ export function LandingCertificates() {
               <p className="mt-2 text-foreground/80">Выпускник: И. О. Фамилия</p>
               <p className="mt-1">Дата выдачи: —</p>
             </div>
-            <p className="text-center text-[10px] uppercase tracking-widest text-muted-foreground">Образец оформления</p>
+            <p className="text-center text-2.5 uppercase tracking-widest text-muted-foreground">Образец оформления</p>
           </div>
         </div>
       </div>

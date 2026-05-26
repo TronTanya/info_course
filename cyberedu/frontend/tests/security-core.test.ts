@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { moderateUserPrompt, sanitizeChatHistory } from "@/lib/security/ai-moderation";
-import { isSafeExternalHttpsUrl, sanitizePlainText } from "@/lib/security/sanitize";
+import { isSafeExternalHttpsUrl, isSafeMarkdownHref, sanitizePlainText } from "@/lib/security/sanitize";
 import { isLoginLocked, recordFailedLogin, clearLoginAttempts } from "@/lib/security/login-attempts";
 
 describe("security/ai-moderation", () => {
@@ -27,16 +27,26 @@ describe("security/sanitize", () => {
   it("strips html from plain text", () => {
     expect(sanitizePlainText("<script>alert(1)</script>hello", 100)).toBe("alert(1)hello");
   });
+
+  it("blocks dangerous markdown href schemes", () => {
+    expect(isSafeMarkdownHref("javascript:alert(1)")).toBe(false);
+    expect(isSafeMarkdownHref("data:text/html,abc")).toBe(false);
+    expect(isSafeMarkdownHref("//evil.example")).toBe(false);
+    expect(isSafeMarkdownHref("https://example.com/path")).toBe(true);
+    expect(isSafeMarkdownHref("/dashboard/course")).toBe(true);
+  });
 });
 
 describe("security/login-attempts", () => {
-  it("locks after repeated failures", () => {
+  it("locks after repeated failures", async () => {
     const email = "test-lock@example.com";
     const ip = "10.0.0.1";
-    clearLoginAttempts(email, ip);
-    for (let i = 0; i < 8; i++) recordFailedLogin(email, ip);
-    expect(isLoginLocked(email, ip)).toBe(true);
-    clearLoginAttempts(email, ip);
+    await clearLoginAttempts(email, ip);
+    for (let i = 0; i < 8; i++) {
+      await recordFailedLogin(email, ip);
+    }
+    await expect(isLoginLocked(email, ip)).resolves.toBe(true);
+    await clearLoginAttempts(email, ip);
   });
 });
 

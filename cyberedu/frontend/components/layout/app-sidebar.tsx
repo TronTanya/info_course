@@ -13,10 +13,12 @@ import {
   studentSecondaryNav,
   type NavItem,
 } from "@/lib/design-system/nav-config";
+import { navVariants } from "@/lib/design-system/components";
 import { motionPresets, motionWithReducedMotion } from "@/lib/design-system/motion";
 import { isNavHrefActive, isAdminPrimaryActive } from "@/lib/nav-active";
 import { isStudentQuickNavActive, resolveStudentNavPaths } from "@/lib/nav-resolve";
 import { NavRailLink } from "@/components/layout/nav-rail-link";
+import { cn } from "@/lib/utils";
 
 export type AppSidebarVariant = "student" | "admin";
 
@@ -39,14 +41,19 @@ export function AppSidebar({ variant }: { variant: AppSidebarVariant }) {
 
   return (
     <motion.aside
-      className="ce-sidebar hidden shrink-0 lg:block"
+      className={cn(navVariants.sidebar, "hidden shrink-0 lg:block")}
       {...motionWithReducedMotion(motionPresets.slideUp, reduce)}
       aria-label={variant === "admin" ? "Навигация админки" : "Навигация кабинета"}
     >
-      <div className="ce-sidebar-inner sticky top-[calc(var(--header-height,4.5rem)+1rem)] flex max-h-[calc(100dvh-var(--header-height,4.5rem)-2rem)] flex-col gap-1 overflow-y-auto p-3">
+      <div
+        className={cn(
+          navVariants.panel,
+          "ce-cockpit-sidebar ce-sidebar-inner sticky top-[calc(var(--header-height,4.5rem)+1rem)] max-h-[calc(100dvh-var(--header-height,4.5rem)-2rem)]",
+        )}
+      >
         <div className="mb-2 flex items-center justify-between gap-2 px-2">
           <span className="ce-hud-chip">lab online</span>
-          <span className="font-mono text-[10px] text-muted-foreground">v2026</span>
+          <span className="font-mono text-2.5 text-muted-foreground">v2026</span>
         </div>
         <p className="px-3 pb-2 typo-eyebrow text-primary/90">
           {variant === "admin" ? "Администрирование" : "Обучение"}
@@ -63,7 +70,7 @@ export function AppSidebar({ variant }: { variant: AppSidebarVariant }) {
                 />
               ))}
             </nav>
-            <p className="mt-4 px-3 pb-1 font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <p className="mt-4 px-3 pb-1 font-mono text-2.5 font-bold uppercase tracking-wider text-muted-foreground">
               Контент
             </p>
             <nav className="flex flex-col gap-0.5" aria-label="Управление контентом">
@@ -73,7 +80,7 @@ export function AppSidebar({ variant }: { variant: AppSidebarVariant }) {
             </nav>
             {adminNavSecondary.length > 0 ? (
               <>
-                <p className="mt-4 px-3 pb-1 font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                <p className="mt-4 px-3 pb-1 font-mono text-2.5 font-bold uppercase tracking-wider text-muted-foreground">
                   Ещё
                 </p>
                 <nav className="flex flex-1 flex-col gap-0.5" aria-label="Дополнительно">
@@ -98,7 +105,7 @@ export function AppSidebar({ variant }: { variant: AppSidebarVariant }) {
                 />
               ))}
             </nav>
-            <p className="mt-4 px-3 pb-1 font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <p className="mt-4 px-3 pb-1 font-mono text-2.5 font-bold uppercase tracking-wider text-muted-foreground">
               Ещё
             </p>
             <nav className="flex flex-1 flex-col gap-0.5" aria-label="Дополнительно">
@@ -132,7 +139,7 @@ export function AppSidebar({ variant }: { variant: AppSidebarVariant }) {
         <form action={logoutAction} className="mt-auto border-t border-border/60 pt-3">
           <button
             type="submit"
-            className="flex w-full min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex w-full min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
           >
             <LogOut className="size-4 shrink-0" aria-hidden />
             Выйти

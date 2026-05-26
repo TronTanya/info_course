@@ -29,7 +29,7 @@ export default async function CertificatePage() {
           backHref="/dashboard"
           backLabel="← Кабинет"
           breadcrumbItems={dashboardSectionBreadcrumbs("Сертификат")}
-          eyebrow="CyberEdu Academy"
+          eyebrow="Официальный документ"
           title="Официальный сертификат"
           subtitle="Электронный документ с номером реестра, QR-кодом и публичной проверкой подлинности."
         />
@@ -53,7 +53,7 @@ export default async function CertificatePage() {
                   <Award className="size-6" aria-hidden />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="font-mono text-[10px] uppercase tracking-widest text-cyan">Trusted credential</p>
+                  <p className="font-mono text-2.5 uppercase tracking-widest text-cyan">Trusted credential</p>
                   <p className="mt-1 font-display text-lg font-semibold text-foreground">{state.courseTitle}</p>
                   <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
                     <ShieldCheck className="size-4 text-success" aria-hidden />

@@ -1,10 +1,13 @@
 import * as React from "react";
+import { widgetVariants } from "@/lib/design-system/components";
+import { typography } from "@/lib/design-system/tokens";
 import { cn } from "@/lib/utils";
 
 const variants = {
-  default: "ce-metric-card",
-  accent: "ce-metric-card ce-metric-card--accent",
-  cyan: "ce-metric-card ce-metric-card--cyan",
+  default: widgetVariants.base,
+  accent: widgetVariants.accent,
+  cyan: widgetVariants.accent,
+  hero: widgetVariants.hero,
 } as const;
 
 export type MetricCardProps = {
@@ -16,20 +19,18 @@ export type MetricCardProps = {
   className?: string;
 };
 
-/** Компактная метрика (дашборд, модуль, админка). */
+/** Dashboard metric widget */
 export function MetricCard({ label, value, hint, icon, variant = "default", className }: MetricCardProps) {
   return (
-    <div className={cn(variants[variant], "min-w-0 px-3 py-3 sm:px-4", className)}>
+    <div className={cn(variants[variant], "min-w-0 p-4 sm:p-5", className)}>
       <div className="flex items-start justify-between gap-2 sm:gap-3">
         <div className="min-w-0 flex-1">
-          <p className="typo-label break-words">{label}</p>
-          <p className="mt-1 break-words text-lg font-semibold tabular-nums tracking-tight text-foreground sm:text-xl">
-            {value}
-          </p>
-          {hint ? <p className="typo-caption mt-0.5 break-words">{hint}</p> : null}
+          <p className={widgetVariants.label}>{label}</p>
+          <p className={cn(widgetVariants.value, "mt-1 wrap-break-word")}>{value}</p>
+          {hint ? <p className={cn(typography.caption, "mt-1 wrap-break-word")}>{hint}</p> : null}
         </div>
         {icon ? (
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary sm:size-10">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl border border-primary/25 bg-primary/12 text-primary">
             {icon}
           </span>
         ) : null}

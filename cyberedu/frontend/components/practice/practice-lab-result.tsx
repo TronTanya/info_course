@@ -9,13 +9,13 @@ import { classifyFormFeedback } from "@/lib/form-feedback";
 import { cn } from "@/lib/utils";
 
 const stateShell: Record<PracticeLabState, string> = {
-  not_started: "border-border/60",
-  in_progress: "border-primary/30 ring-primary/15",
-  submitted: "border-warning/35 bg-warning/[0.06] ring-warning/20",
-  passed: "border-success/40 bg-success/[0.08] ring-success/25",
-  needs_review: "border-warning/40 bg-warning/[0.08] ring-warning/25",
-  wrong: "border-danger/40 bg-danger/[0.06] ring-danger/25 ce-practice-result--wrong",
-  correct: "border-success/40 bg-success/[0.08] ring-success/25 ce-practice-result--correct",
+  not_started: "ce-mission-panel",
+  in_progress: "ce-mission-panel ce-mission-validation--running",
+  submitted: "ce-mission-panel",
+  passed: "ce-mission-panel ce-learn-mission-card--complete ce-practice-result--correct",
+  needs_review: "ce-mission-panel",
+  wrong: "ce-mission-panel ce-mission-validation--failed ce-practice-result--wrong",
+  correct: "ce-mission-panel ce-learn-mission-card--complete ce-practice-result--correct",
 };
 
 export function PracticeLabResult({
@@ -54,7 +54,7 @@ export function PracticeLabResult({
           role="status"
           aria-live="polite"
         >
-          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Статус лаборатории</p>
+          <p className="font-mono text-2.5 uppercase tracking-widest text-muted-foreground">Статус лаборатории</p>
           <p
             className={cn(
               "mt-1 font-display text-sm font-semibold",

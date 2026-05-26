@@ -16,22 +16,22 @@ import {
 } from "@/lib/course-path-ui";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PremiumCard } from "@/components/ui/premium-card";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { cn } from "@/lib/utils";
 
 function nodeRing(status: ReturnType<typeof getRoadmapStatus>): string {
+  const base = "ce-learn-mission-node";
   switch (status) {
     case "completed":
-      return "border-success/50 bg-success/15 text-success shadow-[0_0_16px_color-mix(in_oklab,var(--success)_25%,transparent)]";
+      return cn(base, "ce-learn-mission-node--complete border-success/50 bg-success/15 text-success");
     case "current":
-      return "border-primary bg-primary/20 text-primary shadow-[0_0_20px_color-mix(in_oklab,var(--primary)_35%,transparent)]";
+      return cn(base, "ce-learn-mission-node--current border-primary bg-primary/20 text-primary");
     case "in_progress":
-      return "border-primary/50 bg-primary/12 text-primary";
+      return cn(base, "border-primary/50 bg-primary/12 text-primary");
     case "available":
-      return "border-primary/35 bg-primary/8 text-primary";
+      return cn(base, "border-primary/35 bg-primary/8 text-primary");
     default:
-      return "border-muted-foreground/35 bg-muted/40 text-muted-foreground";
+      return cn(base, "border-muted-foreground/35 bg-muted/40 text-muted-foreground");
   }
 }
 
@@ -70,7 +70,7 @@ function MissionNode({
       <div className="flex flex-col items-center">
         <div
           className={cn(
-            "relative z-[1] flex size-11 shrink-0 items-center justify-center rounded-xl border-2 font-mono text-sm font-bold tabular-nums sm:size-12",
+            "relative z-1 flex size-11 shrink-0 items-center justify-center rounded-xl border-2 font-mono text-sm font-bold tabular-nums sm:size-12",
             nodeRing(status),
           )}
           aria-hidden
@@ -80,7 +80,7 @@ function MissionNode({
         {!isLast ? (
           <div
             className={cn(
-              "mt-1 w-0.5 flex-1 min-h-[2rem] rounded-full",
+              "mt-1 w-0.5 flex-1 min-h-8 rounded-full",
               row.moduleCompleted ? "bg-success/45" : row.unlocked ? "bg-primary/30" : "bg-border",
             )}
             aria-hidden
@@ -88,13 +88,12 @@ function MissionNode({
         ) : null}
       </div>
 
-      <PremiumCard
-        variant={status === "current" ? "glow" : "default"}
-        padding="md"
+      <article
         className={cn(
-          "mb-6 min-w-0 flex-1",
-          status === "locked" && "opacity-90",
-          status === "completed" && "border-success/25",
+          "ce-learn-mission-card mb-6 min-w-0 flex-1 p-4 sm:p-5",
+          status === "current" && "ce-learn-mission-card--current",
+          status === "locked" && "ce-learn-mission-card--locked",
+          status === "completed" && "ce-learn-mission-card--complete",
         )}
       >
         <div className="flex flex-wrap items-start justify-between gap-2">
@@ -103,7 +102,7 @@ function MissionNode({
             {badge.label}
           </Badge>
           {status === "current" ? (
-            <span className="inline-flex items-center gap-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-primary">
+            <span className="inline-flex items-center gap-1 font-mono text-2.5 font-semibold uppercase tracking-wider text-primary">
               <Target className="size-3" aria-hidden />
               Mission active
             </span>
@@ -112,7 +111,7 @@ function MissionNode({
 
         <div className="mt-3 space-y-2">
           {row.unlocked ? (
-            <Link href={hubHref} className="block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <Link href={hubHref} className="block rounded-sm focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring">
               <h3 className="font-display text-lg font-semibold leading-snug text-foreground hover:text-primary">
                 {row.module.title}
               </h3>
@@ -174,7 +173,7 @@ function MissionNode({
             </>
           )}
         </div>
-      </PremiumCard>
+      </article>
     </motion.li>
   );
 }
@@ -187,7 +186,7 @@ function MetaChip({
   label: string;
 }) {
   return (
-    <div className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-muted/20 px-2 py-1 text-[11px] text-muted-foreground">
+    <div className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-muted/20 px-2 py-1 text-2.75 text-muted-foreground">
       {Icon ? <Icon className="size-3 shrink-0 text-primary" aria-hidden /> : null}
       <span>{label}</span>
     </div>
@@ -209,7 +208,7 @@ export function CourseMissionRoadmap({
     <section className="space-y-4" aria-labelledby="course-mission-roadmap-heading">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="typo-eyebrow text-primary">Mission map</p>
+          <p className="ce-learn-os-eyebrow">Mission map</p>
           <h2 id="course-mission-roadmap-heading" className="font-display text-xl font-semibold text-foreground sm:text-2xl">
             Cyber mission roadmap
           </h2>
@@ -217,7 +216,7 @@ export function CourseMissionRoadmap({
             Модули открываются по порядку. Текущая миссия подсвечена — закрытый контент недоступен до разблокировки.
           </p>
         </div>
-        <ul className="flex flex-wrap gap-x-4 gap-y-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+        <ul className="flex flex-wrap gap-x-4 gap-y-1 text-2.5 font-medium uppercase tracking-wide text-muted-foreground">
           <li className="flex items-center gap-1.5">
             <span className="size-2 rounded-full bg-success" aria-hidden /> Завершён
           </li>

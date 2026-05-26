@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSession, signIn } from "next-auth/react";
@@ -8,13 +8,29 @@ import { AuthFormFooter } from "@/components/auth/auth-form-footer";
 import { AuthGlassCard } from "@/components/auth/auth-glass-card";
 import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
+import { AuthVerifySentBanner } from "@/components/auth/auth-verify-sent-banner";
 import { FormMessage } from "@/components/ui/form-message";
 import { Input } from "@/components/ui/input";
+import { safeCallbackUrl } from "@/lib/auth/safe-callback-url";
+import { AuthDevCredentialsHint } from "@/components/auth/auth-dev-credentials-hint";
+import { loginSchema } from "@/lib/validation";
 
-function safeCallbackUrl(raw: string | null): string | null {
-  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
-  return raw;
+function authErrorMessage(code: string | null): string | null {
+  if (!code) return null;
+  switch (code) {
+    case "CredentialsSignin":
+      return "Неверный email или пароль. Проверьте данные или сбросьте пароль.";
+    case "MissingCSRF":
+      return "Сессия формы устарела. Обновите страницу и попробуйте снова.";
+    default:
+      return "Не удалось войти. Обновите страницу или попробуйте позже.";
+  }
 }
+
+type LoginFieldErrors = {
+  email?: string[];
+  password?: string[];
+};
 
 export function LoginForm() {
   const router = useRouter();
@@ -22,44 +38,87 @@ export function LoginForm() {
   const formErrorId = useId();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<LoginFieldErrors>({});
 
   const registered = searchParams.get("registered") === "1";
+  const verifySent = searchParams.get("verify_sent") === "1";
   const resetSent = searchParams.get("reset") === "sent";
+  const authError = authErrorMessage(searchParams.get("error"));
+  const prefilledEmail = searchParams.get("email")?.trim() ?? "";
+  const prefilledPassword = searchParams.get("password") ?? "";
+
+  useEffect(() => {
+    if (!prefilledPassword) return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("password");
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+  }, [prefilledPassword]);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const email = String(fd.get("email") ?? "").trim();
     const password = String(fd.get("password") ?? "");
-    setPending(true);
+
     setError(null);
+    setFieldErrors({});
+
+    const parsed = loginSchema.safeParse({ email, password });
+    if (!parsed.success) {
+      setFieldErrors(parsed.error.flatten().fieldErrors);
+      return;
+    }
+
+    setPending(true);
     try {
       const res = await signIn("credentials", {
-        email,
-        password,
+        email: parsed.data.email,
+        password: parsed.data.password,
         redirect: false,
       });
       if (!res || res.ok !== true) {
-        setError("Не удалось войти. Проверьте email и пароль или зарегистрируйте новый аккаунт.");
+        const code = res?.error ?? null;
+        setError(
+          authErrorMessage(code) ??
+            "Не удалось войти. Проверьте email и пароль. После нескольких ошибок вход блокируется на 15 минут.",
+        );
         return;
       }
-      const session = await getSession();
-      const role = session?.user?.role;
-      if (role === "ADMIN") {
-        router.refresh();
-        router.push("/admin");
-        return;
-      }
-      let dest = safeCallbackUrl(searchParams.get("callbackUrl")) ?? "/dashboard/profile";
-      if (dest.startsWith("/admin")) {
-        dest = "/dashboard/profile";
-      }
+
+      // Cookie сессии иногда появляется с задержкой — без ожидания getSession() пустой и редирект «не входит».
       router.refresh();
-      router.push(dest);
+      let session = await getSession();
+      for (let attempt = 0; attempt < 12 && !session?.user; attempt += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        session = await getSession();
+      }
+
+      if (!session?.user) {
+        const fallback = safeCallbackUrl(searchParams.get("callbackUrl"));
+        window.location.assign(fallback);
+        return;
+      }
+
+      const role = session.user.role;
+      const emailVerified = Boolean(session.user.emailVerified);
+      if (role === "ADMIN") {
+        window.location.assign("/admin");
+        return;
+      }
+      if (role === "USER" && !emailVerified) {
+        const verifyDest = safeCallbackUrl(searchParams.get("callbackUrl"));
+        window.location.assign(
+          `/auth/verify-email?verify_sent=1&callbackUrl=${encodeURIComponent(verifyDest)}`,
+        );
+        return;
+      }
+      window.location.assign(safeCallbackUrl(searchParams.get("callbackUrl")));
     } finally {
       setPending(false);
     }
   }
+
+  const formLevelError = error && !fieldErrors.email && !fieldErrors.password;
 
   return (
     <AuthGlassCard
@@ -74,37 +133,47 @@ export function LoginForm() {
         </AuthFormFooter>
       }
     >
+      {verifySent ? <AuthVerifySentBanner /> : null}
       {registered ? (
-        <FormMessage variant="success">Регистрация прошла успешно. Войдите с теми же данными.</FormMessage>
+        <FormMessage variant="success">
+          Регистрация прошла успешно. Войдите с теми же данными — мы уже отправили письмо для подтверждения
+          email.
+        </FormMessage>
       ) : null}
       {resetSent ? (
         <FormMessage variant="success">
           Если аккаунт с таким email существует, мы отправим инструкции по сбросу пароля.
         </FormMessage>
       ) : null}
+      {authError ? <FormMessage variant="error">{authError}</FormMessage> : null}
+      <AuthDevCredentialsHint />
 
       <form onSubmit={onSubmit} className="space-y-4" noValidate>
-        {error ? <FormMessage id={formErrorId}>{error}</FormMessage> : null}
+        {formLevelError ? <FormMessage id={formErrorId}>{error}</FormMessage> : null}
         <Input
           autoComplete="email"
           label="Email"
           name="email"
           type="email"
           placeholder="name@example.ru"
+          defaultValue={prefilledEmail}
           required
           disabled={pending}
-          aria-invalid={error ? true : undefined}
-          aria-describedby={error ? formErrorId : undefined}
+          error={fieldErrors.email?.[0]}
+          aria-invalid={fieldErrors.email?.[0] || formLevelError ? true : undefined}
+          aria-describedby={formLevelError ? formErrorId : undefined}
         />
         <div className="space-y-2">
           <PasswordInput
             autoComplete="current-password"
             label="Пароль"
             name="password"
+            defaultValue={prefilledPassword}
             required
             disabled={pending}
-            aria-invalid={error ? true : undefined}
-            aria-describedby={error ? formErrorId : undefined}
+            error={fieldErrors.password?.[0]}
+            aria-invalid={fieldErrors.password?.[0] || formLevelError ? true : undefined}
+            aria-describedby={formLevelError ? formErrorId : undefined}
           />
           <div className="flex justify-end">
             <Link

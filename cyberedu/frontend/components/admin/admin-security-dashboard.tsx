@@ -41,18 +41,18 @@ function KpiTile({
   hint: string;
   tone?: "default" | "success" | "warning" | "danger";
 }) {
-  const bar =
+  const barTone =
     tone === "success"
-      ? "from-success/80"
+      ? "ce-polish-stat-bar--success"
       : tone === "warning"
-        ? "from-warning/80"
+        ? "ce-polish-stat-bar--warn"
         : tone === "danger"
-          ? "from-danger/80"
-          : "from-primary/80";
+          ? "ce-polish-stat-bar--danger"
+          : undefined;
 
   return (
     <article className={cn(cyber.adminKpi, "relative overflow-hidden rounded-2xl border pt-0")}>
-      <div className={cn("h-1 w-full bg-linear-to-r via-accent/50 to-transparent", bar)} aria-hidden />
+      <div className={cn("ce-polish-stat-bar", barTone)} aria-hidden />
       <div className="space-y-1 px-5 pb-5 pt-4">
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
         <p className="text-2xl font-bold tabular-nums tracking-tight sm:text-3xl">{value}</p>
@@ -64,7 +64,7 @@ function KpiTile({
 
 function StatusBadge({ ok }: { ok: boolean }) {
   return (
-    <Badge variant={ok ? "success" : "danger"} className="font-mono text-[10px] uppercase">
+    <Badge variant={ok ? "success" : "danger"} className="font-mono text-2.5 uppercase">
       {ok ? "OK" : "FAIL"}
     </Badge>
   );
@@ -90,7 +90,7 @@ export function AdminSecurityDashboard({
           <a
             key={s.id}
             href={`#admin-${s.id}`}
-            className="rounded-xl px-3 py-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+            className="rounded-xl px-3 py-2 font-mono text-2.75 font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
           >
             {s.label}
           </a>
@@ -100,7 +100,7 @@ export function AdminSecurityDashboard({
       <section id="admin-overview" className="scroll-mt-24 space-y-4">
         <header className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Overview</p>
+            <p className="font-mono text-2.5 font-bold uppercase tracking-eyebrow text-primary">Overview</p>
             <h2 className="font-display text-xl font-semibold text-foreground">Состояние платформы</h2>
           </div>
           <Badge variant={system.appStatus === "ok" ? "success" : "warning"} className="gap-1">
@@ -138,7 +138,7 @@ export function AdminSecurityDashboard({
       <section id="admin-users" className="scroll-mt-24 space-y-4">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-primary">User management</p>
+            <p className="font-mono text-2.5 font-bold uppercase tracking-eyebrow text-primary">User management</p>
             <h2 className="font-display text-xl font-semibold text-foreground">Пользователи</h2>
             <p className="mt-1 text-sm text-muted-foreground">Поиск, фильтры по роли и прогрессу, действия в меню строки.</p>
           </div>
@@ -156,7 +156,7 @@ export function AdminSecurityDashboard({
 
       <section id="admin-content" className="scroll-mt-24 space-y-4">
         <header>
-          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Content management</p>
+          <p className="font-mono text-2.5 font-bold uppercase tracking-eyebrow text-primary">Content management</p>
           <h2 className="font-display text-xl font-semibold text-foreground">Контент курса</h2>
         </header>
         <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
@@ -164,7 +164,7 @@ export function AdminSecurityDashboard({
             <li key={c.href}>
               <Link
                 href={c.href}
-                className="group flex h-full flex-col rounded-2xl border border-border/70 bg-card/80 p-4 transition-[border-color,box-shadow] hover:border-primary/35 hover:shadow-card"
+                className="group flex h-full flex-col rounded-2xl border border-border/70 bg-card/80 p-4 transition-colors transition-shadow hover:border-primary/35 hover:shadow-card"
               >
                 <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                   {c.label === "Модули" ? (
@@ -199,7 +199,7 @@ export function AdminSecurityDashboard({
 
       <section id="admin-analytics" className="scroll-mt-24 space-y-4">
         <header>
-          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Analytics</p>
+          <p className="font-mono text-2.5 font-bold uppercase tracking-eyebrow text-primary">Analytics</p>
           <h2 className="font-display text-xl font-semibold text-foreground">Аналитика</h2>
         </header>
         <div className="grid gap-4 lg:grid-cols-2">
@@ -254,7 +254,7 @@ export function AdminSecurityDashboard({
                       style={{ height: `${Math.max(4, (d.count / maxActivity) * 100)}%` }}
                       title={`${d.count} событий`}
                     />
-                    <span className="hidden text-[9px] text-muted-foreground sm:block">{d.label}</span>
+                    <span className="hidden text-2xs text-muted-foreground sm:block">{d.label}</span>
                   </li>
                 ))}
               </ul>
@@ -288,7 +288,7 @@ export function AdminSecurityDashboard({
                 data.failureTasks.map((t) => (
                   <div
                     key={t.taskId}
-                    className="flex items-center justify-between gap-2 rounded-xl border border-danger/20 bg-danger/[0.04] px-3 py-2"
+                    className="flex items-center justify-between gap-2 rounded-xl border border-danger/20 bg-danger/4 px-3 py-2"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{t.title}</p>
@@ -306,7 +306,7 @@ export function AdminSecurityDashboard({
 
       <section id="admin-security" className="scroll-mt-24 space-y-4">
         <header>
-          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Security</p>
+          <p className="font-mono text-2.5 font-bold uppercase tracking-eyebrow text-primary">Security</p>
           <h2 className="font-display text-xl font-semibold text-foreground">Система и безопасность</h2>
         </header>
         <div className="grid gap-4 lg:grid-cols-2">
@@ -333,13 +333,13 @@ export function AdminSecurityDashboard({
                   variant={
                     system.redis === "ok" ? "success" : system.redis === "skipped" ? "secondary" : "danger"
                   }
-                  className="font-mono text-[10px] uppercase"
+                  className="font-mono text-2.5 uppercase"
                 >
                   {system.redis}
                 </Badge>
               </div>
               {system.warnings.length > 0 ? (
-                <ul className="space-y-2 rounded-xl border border-warning/30 bg-warning/[0.06] p-3">
+                <ul className="space-y-2 rounded-xl border border-warning/30 bg-warning/6 p-3">
                   {system.warnings.map((w) => (
                     <li key={w} className="flex gap-2 text-sm text-warning">
                       <AlertTriangle className="size-4 shrink-0" aria-hidden />
@@ -400,7 +400,7 @@ function IssueRow({ issue }: { issue: AdminSecurityDashboardData["system"]["issu
     <>
       <p className="text-sm font-medium text-foreground">{issue.title}</p>
       <p className="text-xs text-muted-foreground">{issue.subtitle}</p>
-      <time className="mt-1 block text-[10px] tabular-nums text-muted-foreground">
+      <time className="mt-1 block text-2.5 tabular-nums text-muted-foreground">
         {new Date(issue.at).toLocaleString("ru-RU")}
       </time>
     </>

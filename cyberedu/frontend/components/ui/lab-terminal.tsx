@@ -26,9 +26,9 @@ export function LabTerminal({
             <span className="ce-terminal-dot-green size-2.5 rounded-full" />
           </span>
           {title ? (
-            <span className="ce-terminal-dim ml-1 min-w-0 truncate font-mono text-[11px]">{title}</span>
+            <span className="ce-terminal-dim ml-1 min-w-0 truncate font-mono text-2.75">{title}</span>
           ) : null}
-          <span className="ce-terminal-live ml-auto font-mono text-[10px] font-semibold uppercase tracking-widest">
+          <span className="ce-terminal-live ml-auto font-mono text-2.5 font-semibold uppercase tracking-widest">
             live
           </span>
         </div>

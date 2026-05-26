@@ -8,14 +8,8 @@ import { cn } from "@/lib/utils";
 
 export function ThemeToggle({ className }: { className?: string }) {
   const { resolved, setTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    queueMicrotask(() => setMounted(true));
-  }, []);
-
-  const isDark = mounted && resolved === "dark";
-  const label = !mounted ? "Переключить тему" : isDark ? "Включить светлую тему" : "Включить тёмную тему";
+  const isDark = resolved === "dark";
+  const label = isDark ? "Включить светлую тему" : "Включить тёмную тему";
 
   return (
     <Button
@@ -27,7 +21,8 @@ export function ThemeToggle({ className }: { className?: string }) {
       title={label}
       onClick={() => setTheme(resolved === "dark" ? "light" : "dark")}
     >
-      {isDark ? <Sun className="size-[1.15rem]" aria-hidden /> : <Moon className="size-[1.15rem]" aria-hidden />}
+      <Sun className="size-4.5 hidden dark:inline" aria-hidden />
+      <Moon className="size-4.5 inline dark:hidden" aria-hidden />
     </Button>
   );
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ClipboardCheck } from "lucide-react";
 import type { ProfileCourseStats, ProfileRecentTest } from "@/lib/profile-course-stats";
 import type { DashboardWeakTopic } from "@/lib/dashboard-ui";
+import { ProfileListPager } from "@/components/profile/profile-list-pager";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -66,8 +67,10 @@ export function ProfileTestResults({
           }
         />
       ) : (
-        <ul className="mt-4 space-y-2">
-          {recentTests.map((t) => (
+        <ProfileListPager
+          className="mt-4"
+          items={recentTests}
+          renderItem={(t) => (
             <li key={`${t.moduleId}-${t.at}`}>
               <Link
                 href={`/dashboard/course/${t.moduleId}/test`}
@@ -80,12 +83,12 @@ export function ProfileTestResults({
                 <div className="flex shrink-0 items-center gap-2">
                   <Badge variant={t.passed ? "success" : "danger"}>{t.passed ? "Зачёт" : "Не зачтён"}</Badge>
                   <span className="text-sm font-semibold tabular-nums text-foreground">{t.percent}%</span>
-                  <span className="text-[10px] text-muted-foreground">{formatAt(t.at)}</span>
+                  <span className="text-2.5 text-muted-foreground">{formatAt(t.at)}</span>
                 </div>
               </Link>
             </li>
-          ))}
-        </ul>
+          )}
+        />
       )}
 
       {weakTopics.length > 0 ? (

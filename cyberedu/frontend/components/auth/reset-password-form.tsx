@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form-message";
 import type { ResetPasswordState } from "@/lib/actions/password-reset";
 import { resetPasswordAction } from "@/lib/actions/password-reset";
+import { resetPasswordSchema } from "@/lib/validation";
 
 export function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -24,11 +25,30 @@ export function ResetPasswordForm() {
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    fd.set("token", token);
+    const password = String(fd.get("password") ?? "");
+    const confirmPassword = String(fd.get("confirmPassword") ?? "");
+
+    const parsed = resetPasswordSchema.safeParse({ token, password, confirmPassword });
+    if (!parsed.success) {
+      const flat = parsed.error.flatten();
+      setState({
+        errors: {
+          password: flat.fieldErrors.password,
+          confirmPassword: flat.fieldErrors.confirmPassword,
+          _form: flat.formErrors.length ? flat.formErrors : undefined,
+        },
+      });
+      return;
+    }
+
     setPending(true);
     setState({});
     try {
-      const result = await resetPasswordAction({}, fd);
+      const submitFd = new FormData();
+      submitFd.set("token", parsed.data.token);
+      submitFd.set("password", parsed.data.password);
+      submitFd.set("confirmPassword", parsed.data.confirmPassword);
+      const result = await resetPasswordAction({}, submitFd);
       if (result.ok) {
         setSuccess(true);
         return;

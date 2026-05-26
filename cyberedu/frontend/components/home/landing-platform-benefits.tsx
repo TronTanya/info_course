@@ -41,7 +41,7 @@ export function LandingPlatformBenefits() {
       id="platform"
       eyebrow="Платформа CyberEdu"
       title="Преимущества для студента"
-      description="Premium LMS-опыт: тёмная cyber-тема, аккуратные карточки и фокус на практике — без перегруза эффектами."
+      description="Премиальный LMS-опыт: тёмная cyber-тема, аккуратные карточки и фокус на практике — без перегруза эффектами."
     >
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {benefits.map((item) => {

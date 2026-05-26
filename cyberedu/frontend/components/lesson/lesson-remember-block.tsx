@@ -7,7 +7,7 @@ export function LessonRememberBlock({ title, items }: { title: string; items: st
   return (
     <section id="lesson-remember" className="scroll-mt-28">
       <LearningCallout variant="success" title={title} label="Важно запомнить">
-        <ul className="mt-1 space-y-2 text-[15px] leading-relaxed">
+        <ul className="mt-1 space-y-2 text-base leading-relaxed">
           {items.map((item, i) => (
             <li key={i} className="flex gap-2.5 text-pretty">
               <Bookmark className="mt-1 size-3.5 shrink-0 opacity-80" aria-hidden />

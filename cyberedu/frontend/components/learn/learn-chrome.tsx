@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { CyberAmbient, CyberPageShell } from "@/components/cyber/cyber-shell";
 import { CyberPageHeader } from "@/components/cyber/cyber-page-header";
 import { CyberPanel } from "@/components/cyber/cyber-panel";
-import { ScrollReveal } from "@/components/effects/scroll-reveal";
+import { BlurReveal, HoverLight } from "@/components/motion";
 import type { BreadcrumbItem } from "@/components/ui/breadcrumbs";
 import { motionPresets } from "@/lib/design-system/motion";
 import { cn } from "@/lib/utils";
@@ -15,7 +15,9 @@ export function LearnAmbient() {
 }
 
 export function LearnPageShell({ children, className }: { children: ReactNode; className?: string }) {
-  return <CyberPageShell className={cn("min-w-0 overflow-x-clip", className)}>{children}</CyberPageShell>;
+  return (
+    <CyberPageShell className={cn("ce-learn-os min-w-0 overflow-x-clip", className)}>{children}</CyberPageShell>
+  );
 }
 
 export function LearnSection({
@@ -28,9 +30,9 @@ export function LearnSection({
   delay?: number;
 }) {
   return (
-    <ScrollReveal delay={delay} className={className}>
+    <BlurReveal delay={delay} className={className}>
       {children}
-    </ScrollReveal>
+    </BlurReveal>
   );
 }
 
@@ -44,9 +46,11 @@ export function LearnPanel({
   beam?: boolean;
 }) {
   return (
-    <CyberPanel beam={beam} className={cn("card-gradient", className)}>
-      {children}
-    </CyberPanel>
+    <HoverLight>
+      <CyberPanel beam={beam} className={cn("ce-learn-os-panel card-gradient", className)}>
+        {children}
+      </CyberPanel>
+    </HoverLight>
   );
 }
 

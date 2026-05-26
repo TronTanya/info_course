@@ -20,7 +20,7 @@ const topics = [
   },
   {
     icon: Globe,
-    title: "Web threats",
+    title: "Угрозы веб-приложений",
     description: "OWASP, XSS/CSRF, сессии и контроли на периметре веб-приложений.",
   },
   {
@@ -30,20 +30,14 @@ const topics = [
   },
   {
     icon: Siren,
-    title: "Incident response",
+    title: "Реагирование на инциденты",
     description: "Триаж, эскалация, фиксация фактов и рекомендации для защиты, не для атак.",
   },
 ] as const;
 
-export function LandingWhatYouLearn() {
+export function WhatYouLearnGrid() {
   return (
-    <LandingSection
-      id="what-you-learn"
-      eyebrow="Программа"
-      title="Что вы изучите"
-      description="Шесть опорных тем — от базовой модели угроз до реагирования на инциденты. Каждая тема закрепляется тестом и практикой."
-      accent
-    >
+    <>
       <span id="modules" className="sr-only">
         Программа курса
       </span>
@@ -60,6 +54,20 @@ export function LandingWhatYouLearn() {
           );
         })}
       </div>
+    </>
+  );
+}
+
+export function LandingWhatYouLearn() {
+  return (
+    <LandingSection
+      id="what-you-learn"
+      eyebrow="Программа"
+      title="Что вы изучите"
+      description="Шесть опорных тем — от базовой модели угроз до реагирования на инциденты. Каждая тема закрепляется тестом и практикой."
+      accent
+    >
+      <WhatYouLearnGrid />
     </LandingSection>
   );
 }

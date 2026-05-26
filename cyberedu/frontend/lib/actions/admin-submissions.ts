@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import type { SubmissionStatus } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { updatePracticeStatusAfterAdminReview } from "@/lib/practice-progress-engine";
-import { requireAdmin } from "@/lib/permissions";
+import { requireAdminAction } from "@/lib/security/admin-action-guard";
 import { parseReviewSubmissionScore } from "@/lib/submission-review-score";
 
 export type AdminSubmissionReviewState = { error?: string };
@@ -21,7 +21,7 @@ export async function reviewSubmissionAction(
   _prev: AdminSubmissionReviewState | null,
   formData: FormData,
 ): Promise<AdminSubmissionReviewState> {
-  const session = await requireAdmin();
+  const session = await requireAdminAction();
 
   const submissionId = String(formData.get("submissionId") ?? "").trim();
   if (!submissionId) return { error: "Не указана отправка." };

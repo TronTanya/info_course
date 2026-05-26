@@ -29,7 +29,7 @@ export function MissionPanel({
 }: MissionPanelProps) {
   return (
     <section className={cn(variants[variant], "relative p-5 sm:p-6", className)} aria-labelledby="mission-panel-title">
-      <div className="relative z-[1] flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="relative z-1 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0 space-y-2">
           {eyebrow ? <p className="typo-eyebrow text-primary">{eyebrow}</p> : null}
           <h2 id="mission-panel-title" className="typo-h2 text-balance">
@@ -38,7 +38,7 @@ export function MissionPanel({
           {description ? <p className="typo-body-muted max-w-xl text-pretty">{description}</p> : null}
           {children ? <div className="pt-1">{children}</div> : null}
         </div>
-        {actions ? <div className="relative z-[1] flex shrink-0 flex-wrap gap-2 lg:justify-end">{actions}</div> : null}
+        {actions ? <div className="relative z-1 flex shrink-0 flex-wrap gap-2 lg:justify-end">{actions}</div> : null}
       </div>
     </section>
   );

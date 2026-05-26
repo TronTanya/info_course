@@ -1,0 +1,30 @@
+/**
+ * Auth — Stripe-like single column (Phase 3)
+ */
+
+@layer components {
+  .ce-app-auth-main {
+    background: var(--background);
+  }
+
+  .ce-auth-split {
+    max-width: 28rem;
+  }
+
+  .ce-auth-card {
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border);
+    background: var(--card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .ce-auth-card__body {
+    padding: 1.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .ce-auth-card__body {
+      padding: 2rem;
+    }
+  }
+}

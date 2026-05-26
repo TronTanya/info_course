@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/permissions";
+import { requireAdminAction } from "@/lib/security/admin-action-guard";
 import { SECURITY_ACTIONS } from "@/lib/security/audit-actions";
 import { logAdminSecurityEvent } from "@/lib/security/audit";
 
@@ -76,7 +76,7 @@ export async function createModuleAction(
   _prev: AdminModuleFormState | null,
   formData: FormData,
 ): Promise<AdminModuleFormState> {
-  await requireAdmin();
+  await requireAdminAction();
   const courseId = await primaryCourseId();
   if (!courseId) return { error: "Курс не найден в системе." };
 
@@ -103,7 +103,7 @@ export async function updateModuleAction(
   _prev: AdminModuleFormState | null,
   formData: FormData,
 ): Promise<AdminModuleFormState> {
-  await requireAdmin();
+  await requireAdminAction();
   const moduleId = String(formData.get("moduleId") ?? "").trim();
   if (!moduleId) return { error: "Не указан модуль." };
 
@@ -138,7 +138,7 @@ export async function moveModuleAction(
   moduleId: string,
   direction: "up" | "down",
 ): Promise<{ ok?: boolean; error?: string }> {
-  await requireAdmin();
+  await requireAdminAction();
   const m = await prisma.module.findUnique({ where: { id: moduleId } });
   if (!m) return { error: "Модуль не найден." };
 
@@ -164,7 +164,7 @@ export async function moveModuleAction(
 }
 
 export async function toggleModuleActiveAction(moduleId: string) {
-  const session = await requireAdmin();
+  const session = await requireAdminAction();
   const m = await prisma.module.findUnique({ where: { id: moduleId } });
   if (!m) return;
   const nextActive = !m.isActive;
@@ -182,7 +182,7 @@ export async function toggleModuleActiveAction(moduleId: string) {
 }
 
 export async function deleteModuleAction(moduleId: string): Promise<{ ok?: boolean; error?: string }> {
-  await requireAdmin();
+  await requireAdminAction();
   const n = await prisma.progress.count({ where: { moduleId } });
   if (n > 0) {
     return {
@@ -195,7 +195,7 @@ export async function deleteModuleAction(moduleId: string): Promise<{ ok?: boole
 }
 
 export async function createLessonForModuleAction(moduleId: string) {
-  await requireAdmin();
+  await requireAdminAction();
   const mod = await prisma.module.findUnique({ where: { id: moduleId } });
   if (!mod) {
     redirect("/admin/modules");

@@ -14,6 +14,7 @@ export {
   stripHtmlTags,
   sanitizePlainText,
   isSafeExternalHttpsUrl,
+  isSafeMarkdownHref,
   escapeIlikePattern,
 } from "@/lib/security/sanitize";
 export {

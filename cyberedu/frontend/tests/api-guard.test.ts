@@ -17,6 +17,16 @@ vi.mock("@/lib/security/audit", () => ({
   securityAudit: vi.fn(),
 }));
 
+const prismaUserFindUnique = vi.hoisted(() => vi.fn());
+
+vi.mock("@/lib/db", () => ({
+  prisma: {
+    user: {
+      findUnique: prismaUserFindUnique,
+    },
+  },
+}));
+
 import type { Session } from "next-auth";
 import type { Mock } from "vitest";
 import { auth } from "@/lib/auth";
@@ -42,6 +52,10 @@ describe("security/api-guard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(enforceRateLimit).mockResolvedValue({ allowed: true });
+    prismaUserFindUnique.mockImplementation(async ({ where }: { where: { id: string } }) => {
+      if (where.id === "admin1") return { role: "ADMIN" as const };
+      return { role: "USER" as const };
+    });
   });
 
   it("withPublicApiRoute allows unauthenticated access", async () => {
@@ -62,8 +76,9 @@ describe("security/api-guard", () => {
     );
   });
 
-  it("requireAdmin rejects non-admin", async () => {
-    authMock.mockResolvedValue(session({ id: "u1", role: "USER" }));
+  it("requireAdmin rejects when DB role is not ADMIN", async () => {
+    authMock.mockResolvedValue(session({ id: "u1", role: "ADMIN" }));
+    prismaUserFindUnique.mockResolvedValue({ role: "USER" });
     const POST = withApiGuard({ requireAdmin: true }, async () => Response.json({ ok: true }));
     const res = await POST(new Request("http://localhost/api/admin/export", { method: "POST" }));
     expect(res.status).toBe(403);

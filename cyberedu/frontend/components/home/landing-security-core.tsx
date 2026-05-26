@@ -84,9 +84,9 @@ export function LandingSecurityCore({ className }: LandingSecurityCoreProps) {
             className="ce-security-core-node absolute -translate-x-1/2 -translate-y-1/2"
             style={{ left: `${node.x}%`, top: `${node.y}%` }}
           >
-            <span className="ce-security-core-node-inner inline-flex min-w-[4.5rem] flex-col items-center gap-0.5 rounded-xl border border-primary/20 bg-card/95 px-2 py-1.5 text-center shadow-card backdrop-blur-sm transition-[border-color,box-shadow,transform] duration-200 hover:border-primary/45 hover:shadow-[var(--shadow-glow)]">
-              <span className="size-1.5 rounded-full bg-primary shadow-[0_0_10px_color-mix(in_oklab,var(--primary)_70%,transparent)]" />
-              <span className="font-mono text-[9px] font-semibold uppercase tracking-wider text-foreground/90 sm:text-[10px]">
+            <span className="ce-security-core-node-inner inline-flex min-w-18 flex-col items-center gap-0.5 rounded-xl border border-primary/20 bg-card px-2 py-1.5 text-center shadow-card transition-colors transition-shadow transition-transform duration-200 hover:border-primary/35 hover:shadow-card-hover">
+              <span className="size-1.5 rounded-full bg-primary" />
+              <span className="font-mono text-2xs font-semibold uppercase tracking-wider text-foreground/90 sm:text-2.5">
                 {node.label}
               </span>
             </span>
@@ -95,7 +95,7 @@ export function LandingSecurityCore({ className }: LandingSecurityCoreProps) {
       </ul>
 
       <div className="pointer-events-none absolute left-1/2 top-1/2 w-[min(70%,11rem)] -translate-x-1/2 -translate-y-1/2 text-center">
-        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-primary sm:text-xs">Security</p>
+        <p className="font-mono text-2.5 font-semibold uppercase tracking-eyebrow text-primary sm:text-xs">Security</p>
         <p className="font-display text-lg font-bold tracking-tight text-foreground sm:text-xl">Core</p>
       </div>
     </div>

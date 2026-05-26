@@ -25,12 +25,12 @@ export function PracticeLabLayout({ breadcrumb, header, main, aside, className }
   return (
     <div
       className={cn(
-        "lab-shell hero-glow ce-learn-lab ce-practice-cyber-lab ce-animate-in ce-immersive-mobile-pad min-w-0 overflow-x-clip pb-24 sm:pb-0",
+        "ce-mission-lab lab-shell ce-learn-lab ce-animate-in ce-immersive-mobile-pad min-w-0 overflow-x-clip pb-24 sm:pb-0",
         className,
       )}
     >
       <header className="lab-shell-header relative px-4 py-5 sm:px-6 sm:py-6">
-        <div className="ce-learn-grid pointer-events-none absolute inset-0 opacity-[0.12]" aria-hidden />
+        <div className="ce-learn-grid pointer-events-none absolute inset-0 opacity-12" aria-hidden />
         <div className="relative mb-3 hidden h-0.5 w-24 rounded-full bg-linear-to-r from-primary via-accent to-transparent sm:block" aria-hidden />
         {breadcrumb ? <div className="min-w-0">{breadcrumb}</div> : null}
         <div className={breadcrumb ? "mt-4" : ""}>{header}</div>

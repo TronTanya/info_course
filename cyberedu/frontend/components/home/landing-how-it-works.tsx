@@ -37,16 +37,9 @@ const steps = [
 
 const staggerClass = ["ce-stagger-1", "ce-stagger-2", "ce-stagger-3", "ce-stagger-4", "ce-stagger-5"] as const;
 
-export function LandingHowItWorks() {
+export function HowItWorksTimeline() {
   return (
-    <LandingSection
-      id="how-it-works"
-      eyebrow="Как проходит обучение"
-      title="Один трек — от урока до сертификата"
-      description="Каждый модуль выстраивается по циклу: теория, проверка, практика, поддержка наставника и зачёт в прогрессе."
-      accent
-    >
-      <div className="relative mx-auto max-w-5xl">
+    <div id="how-it-works" className="relative mx-auto max-w-5xl scroll-mt-28">
         <div
           className="pointer-events-none absolute left-[8%] right-[8%] top-8 hidden h-px bg-linear-to-r from-transparent via-primary/40 to-transparent lg:block"
           aria-hidden
@@ -58,13 +51,12 @@ export function LandingHowItWorks() {
               <li
                 key={s.n}
                 className={cn(
-                  "ce-animate-in ce-glass ce-card-glow flex h-full flex-col gap-3 rounded-2xl p-5",
-                  "transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-[var(--shadow-card-hover)] motion-reduce:hover:translate-y-0",
+                  "ce-animate-in ds-card flex h-full flex-col gap-3 rounded-2xl p-5",
                   staggerClass[index],
                 )}
               >
                 <div className="flex items-center gap-3">
-                  <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-primary/30 bg-linear-to-br from-primary/15 to-accent/10 font-mono text-sm font-bold text-primary shadow-sm">
+                  <span className="ce-polish-step-icon size-11 shrink-0 font-mono text-sm font-bold text-primary">
                     {s.n}
                   </span>
                   <Icon className="size-5 text-primary" strokeWidth={1.75} aria-hidden />
@@ -78,6 +70,19 @@ export function LandingHowItWorks() {
           })}
         </ol>
       </div>
+  );
+}
+
+export function LandingHowItWorks() {
+  return (
+    <LandingSection
+      id="how-it-works"
+      eyebrow="Как проходит обучение"
+      title="Один трек — от урока до сертификата"
+      description="Каждый модуль выстраивается по циклу: теория, проверка, практика, поддержка наставника и зачёт в прогрессе."
+      accent
+    >
+      <HowItWorksTimeline />
     </LandingSection>
   );
 }

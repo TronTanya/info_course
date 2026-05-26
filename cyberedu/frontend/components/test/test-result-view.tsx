@@ -192,7 +192,7 @@ export function TestResultView({
       </SectionCard>
 
       {wrong.length > 0 ? (
-        <section className="space-y-3 rounded-2xl border border-danger/25 bg-danger/[0.04] p-5 ring-1 ring-danger/15 sm:p-6">
+        <section className="space-y-3 rounded-2xl border border-danger/25 bg-danger/4 p-5 ring-1 ring-danger/15 sm:p-6">
           <h3 className="flex items-center gap-2 font-display text-base font-semibold text-foreground">
             <AlertTriangle className="size-4 text-danger" aria-hidden />
             Что повторить
