@@ -32,9 +32,11 @@ export type QuickNavItem = {
 };
 
 /** Публичный маркетинговый сайт (лендинг, шапка гостя). */
+/** Якоря лендинга (логотип ведёт на `/`). */
 export const publicNavLinks: { href: string; label: string; external?: boolean }[] = [
-  { href: "/", label: "Главная" },
   { href: "/#product", label: "Платформа" },
+  { href: "/#reviews", label: "Отзывы" },
+  { href: "/#faq", label: "FAQ" },
   { href: "/#start", label: "Начать" },
 ];
 
@@ -104,7 +106,7 @@ export const studentSecondaryNav: NavItem[] = [
 
 /** Главные разделы админки (шапка, mobile chips, верх sidebar). */
 export const adminNavPrimary: NavItem[] = [
-  { href: "/admin", label: "Обзор", icon: LayoutDashboard, description: "Admin overview" },
+  { href: "/admin", label: "Обзор", icon: LayoutDashboard, description: "Сводка по курсу и очереди проверки" },
   { href: "/admin/users", label: "Студенты", icon: Users, description: "Аккаунты и прогресс" },
   { href: "/admin/modules", label: "Контент", icon: FolderOpen, description: "Модули, лекции, тесты, практики" },
   { href: "/admin/submissions", label: "Проверка практик", icon: ClipboardList, description: "Работы студентов" },

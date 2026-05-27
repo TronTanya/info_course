@@ -385,3 +385,27 @@
     filter: none !important;
   }
 }
+
+/* Mobile landing conversion bar */
+@layer components {
+  .ce-landing-sticky-cta__panel {
+    animation: ce-sticky-cta-in 0.35s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
+  }
+
+  @keyframes ce-sticky-cta-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.75rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ce-landing-sticky-cta__panel {
+      animation: none;
+    }
+  }
+}

@@ -51,10 +51,6 @@ export function AppSidebar({ variant }: { variant: AppSidebarVariant }) {
           "ce-cockpit-sidebar ce-sidebar-inner sticky top-[calc(var(--header-height,4.5rem)+1rem)] max-h-[calc(100dvh-var(--header-height,4.5rem)-2rem)]",
         )}
       >
-        <div className="mb-2 flex items-center justify-between gap-2 px-2">
-          <span className="ce-hud-chip">lab online</span>
-          <span className="font-mono text-2.5 text-muted-foreground">v2026</span>
-        </div>
         <p className="px-3 pb-2 typo-eyebrow text-primary/90">
           {variant === "admin" ? "Администрирование" : "Обучение"}
         </p>

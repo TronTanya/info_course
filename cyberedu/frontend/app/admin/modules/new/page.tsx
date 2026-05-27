@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { AdminBreadcrumbs, adminBreadcrumbItems } from "@/components/admin/admin-breadcrumbs";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { AdminModuleCreateForm } from "@/components/admin/admin-module-create-form";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
@@ -16,12 +16,12 @@ export default async function AdminNewModulePage() {
           title="Новый модуль"
           description="Модуль будет добавлен в конец курса. Порядок можно изменить в списке модулей или при редактировании."
           breadcrumb={
-            <Link href="/admin/modules" className="hover:text-foreground">
-              ← Модули
-            </Link>
+            <AdminBreadcrumbs items={adminBreadcrumbItems("Новый модуль", { href: "/admin/modules", label: "Модули" })} />
           }
         />
-        <AdminModuleCreateForm />
+        <div className="pb-24">
+          <AdminModuleCreateForm />
+        </div>
       </div>
     </AdminShell>
   );

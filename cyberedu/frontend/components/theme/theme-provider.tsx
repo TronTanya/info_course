@@ -75,6 +75,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [theme, mounted]);
 
   const setTheme = React.useCallback((next: Theme) => {
+    const dark = resolveDark(next);
+    applyTheme(dark);
+    setResolved(dark ? "dark" : "light");
+    try {
+      localStorage.setItem(STORAGE_KEY, next);
+    } catch {
+      /* ignore */
+    }
     setThemeState(next);
   }, []);
 

@@ -31,7 +31,7 @@ export function LessonHeader({
     <header className="ce-learn-os-panel ce-learn-os-panel--glow space-y-4 rounded-2xl! border-0 p-4 sm:p-5">
       <nav className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground" aria-label="Навигация">
         <Link href="/dashboard/course" className="font-mono text-2.5 hover:text-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring rounded-sm">
-          mission map
+          Карта курса
         </Link>
         <span aria-hidden>/</span>
         <Link href={moduleHref} className="hover:text-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring rounded-sm">

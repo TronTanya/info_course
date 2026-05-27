@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { AdminBreadcrumbs, adminBreadcrumbItems } from "@/components/admin/admin-breadcrumbs";
 import { AdminLmsDashboard } from "@/components/admin/admin-lms-dashboard";
 import { AdminDashboardChartsLazy } from "@/components/admin/admin-dashboard-charts-lazy";
 import { AdminDashboardQuickActions } from "@/components/admin/admin-dashboard-panels";
@@ -25,14 +27,22 @@ export default async function AdminHomePage() {
     <AdminShell>
       <div className="space-y-8">
         <AdminPageHeader
-          eyebrow="CyberEdu · LMS"
+          breadcrumb={<AdminBreadcrumbs items={adminBreadcrumbItems("Обзор")} />}
+          eyebrow="Панель LMS"
           title="Панель управления"
-          description="Обзор обучения, очередь проверки, сертификаты и события безопасности. Доступ только для ADMIN."
+          description="Обзор обучения, очередь проверки, сертификаты и события безопасности. Доступ только для администраторов."
           meta={
             <>
-              <Badge variant="secondary">RBAC: ADMIN</Badge>
+              <Badge variant="secondary">Доступ администратора</Badge>
               {lms.overview.pendingSubmissions > 0 ? (
-                <Badge variant="warning">{lms.overview.pendingSubmissions} на проверке</Badge>
+                <Link
+                  href="/admin/submissions?filter=pending"
+                  className="inline-flex rounded-full focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <Badge variant="warning" className="cursor-pointer hover:opacity-90">
+                    {lms.overview.pendingSubmissions} на проверке
+                  </Badge>
+                </Link>
               ) : (
                 <Badge variant="success">Очередь пуста</Badge>
               )}

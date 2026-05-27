@@ -2,7 +2,14 @@
  * Idempotency для Server Actions (Redis + dev in-memory).
  * Повтор с тем же ключом возвращает сохранённый результат без повторной записи в БД.
  */
-import { isDevMemoryFallbackAllowed } from "@/lib/security/rate-limit-service";
+import {
+  isDevMemoryFallbackAllowed,
+  isProductionRuntime,
+} from "@/lib/security/rate-limit-service";
+
+/** Сообщение для UI при недоступности Redis в production (согласовано с server-action-rate-limit). */
+export const IDEMPOTENCY_UNAVAILABLE_MESSAGE =
+  "Сервис временно недоступен. Повторите попытку через несколько минут.";
 
 const DEFAULT_TTL_MS = 60 * 60 * 1000;
 const MAX_KEY_LEN = 128;
@@ -117,6 +124,9 @@ export async function withIdempotency<T>(opts: {
   }
 
   if (!isDevMemoryFallbackAllowed()) {
+    if (isProductionRuntime()) {
+      throw new Error(IDEMPOTENCY_UNAVAILABLE_MESSAGE);
+    }
     return opts.run();
   }
 

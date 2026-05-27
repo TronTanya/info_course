@@ -46,16 +46,16 @@ export function LearningProgressStrip({
     <div className={cn("ce-learn-os-progress grid grid-cols-1 gap-5 p-4 md:grid-cols-2 md:p-5", className)}>
       <div className="min-w-0 space-y-3">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <p className="ce-learn-os-eyebrow">Course telemetry</p>
+          <p className="ce-learn-os-eyebrow">Прогресс курса</p>
           <Link href="/dashboard/course" className="font-mono text-2.5 font-medium text-primary hover:underline">
-            mission map →
+            карта курса →
           </Link>
         </div>
         <p className="truncate text-sm font-medium text-foreground">{courseTitle}</p>
         <OsProgressBar label="Прогресс курса" value={courseProgressPercent} complete={courseProgressPercent >= 100} />
       </div>
       <div className="min-w-0 space-y-3 border-t border-white/8 pt-5 md:border-t-0 md:border-l md:pl-5 md:pt-0">
-        <p className="ce-learn-os-eyebrow text-muted-foreground">Active module</p>
+        <p className="ce-learn-os-eyebrow text-muted-foreground">Текущий модуль</p>
         <p className="truncate text-sm font-medium text-foreground">{moduleTitle}</p>
         <OsProgressBar
           label={`Шаги: ${moduleStepsLabel}`}

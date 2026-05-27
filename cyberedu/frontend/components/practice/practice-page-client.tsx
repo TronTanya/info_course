@@ -543,6 +543,9 @@ function TextAnswerForm({
   }
   return (
     <div className="space-y-4">
+      <p className="text-xs text-muted-foreground" role="note">
+        Черновик ответа сохраняется в этом браузере до отправки на проверку.
+      </p>
       <PracticeLabTerminal title="stdout — введите ответ">
         <Textarea
           label="Поле ответа"
@@ -553,26 +556,28 @@ function TextAnswerForm({
           className="ce-terminal-input min-h-40 border-0 bg-transparent shadow-none focus-visible:ring-(--terminal-accent)/40"
         />
       </PracticeLabTerminal>
-      <Button
-        type="button"
-        variant="primary"
-        className="w-full sm:w-auto"
-        loading={pending}
-        disabled={!okLen || pending}
-        onClick={() => {
-          onMessage(null, null);
-          startTransition(async () => {
-            const res = await submitPracticeTextAction({ moduleId, practicalTaskId: taskId, text });
-            if (res.error) onMessage(res.error, null);
-            else {
-              clearDraft();
-              onMessage(null, "Работа отправлена на проверку.");
-            }
-          });
-        }}
-      >
-        Проверить
-      </Button>
+      <div className="ce-practice-sticky-submit">
+        <Button
+          type="button"
+          variant="primary"
+          className="w-full sm:w-auto"
+          loading={pending}
+          disabled={!okLen || pending}
+          onClick={() => {
+            onMessage(null, null);
+            startTransition(async () => {
+              const res = await submitPracticeTextAction({ moduleId, practicalTaskId: taskId, text });
+              if (res.error) onMessage(res.error, null);
+              else {
+                clearDraft();
+                onMessage(null, "Работа отправлена на проверку.");
+              }
+            });
+          }}
+        >
+          Проверить
+        </Button>
+      </div>
     </div>
   );
 }

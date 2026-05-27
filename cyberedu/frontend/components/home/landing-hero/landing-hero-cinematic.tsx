@@ -221,6 +221,27 @@ export function LandingHeroCinematic({ startHref, programHref }: LandingHeroCine
                 </li>
               ))}
             </motion.ul>
+
+            <motion.dl
+              custom={6}
+              variants={motionVariants}
+              initial={reduce ? false : "hidden"}
+              animate="show"
+              className="flex flex-wrap gap-x-8 gap-y-3 border-t border-border/60 pt-6"
+              aria-label="Ключевые показатели платформы"
+            >
+              {[
+                { label: "Модулей", value: "12+" },
+                { label: "SOC-лаб", value: "24+" },
+                { label: "AI-наставник", value: "24/7" },
+                { label: "Регистрация", value: "Бесплатно" },
+              ].map((item) => (
+                <div key={item.label}>
+                  <dt className="text-xs text-muted-foreground">{item.label}</dt>
+                  <dd className="font-heading text-lg font-semibold tracking-tight text-foreground">{item.value}</dd>
+                </div>
+              ))}
+            </motion.dl>
           </div>
 
           <motion.div

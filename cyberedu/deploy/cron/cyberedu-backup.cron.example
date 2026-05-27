@@ -1,0 +1,12 @@
+# Пример cron на VPS (root или deploy-user). Путь к репозиторию — подставьте свой.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# PostgreSQL + uploads — ежедневно 03:15 UTC
+15 3 * * * cd /opt/cyberedu && BACKUP_DIR=/var/backups/cyberedu RETENTION_DAYS=14 ./scripts/backup-production.sh >>/var/log/cyberedu-backup.log 2>&1
+
+# Health — каждые 5 минут (алерт через logger / внешний uptime)
+*/5 * * * * cd /opt/cyberedu && BASE_URL=https://your-domain.example CHECK_NGINX=1 ./scripts/monitor-health.sh || logger -t cyberedu-health "FAIL"
+
+# Restore drill — раз в квартал (первое воскресенье месяца 04:00 UTC, пример)
+# 0 4 1 1,4,7,10 * cd /opt/cyberedu && BACKUP_SQL_GZ=/var/backups/cyberedu/latest/postgres.sql.gz ./scripts/restore-drill.sh >>/var/log/cyberedu-restore-drill.log 2>&1

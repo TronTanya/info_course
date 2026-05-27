@@ -242,19 +242,45 @@ REDIS_URL=redis://127.0.0.1:6379 ENVIRONMENT=production \
 
 ### Backup notes
 
-**PostgreSQL** (ежедневно, хранить off-server):
+**Автоматизированный скрипт** (PostgreSQL + uploads, retention, symlink `latest`):
 
 ```bash
-docker compose -f docker-compose.prod.yml --env-file .env.production exec -T postgres \
-  pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" | gzip > /backups/cyberedu-$(date +%F).sql.gz
+cd cyberedu
+BACKUP_DIR=/var/backups/cyberedu RETENTION_DAYS=14 ./scripts/backup-production.sh
+```
+
+Cron-пример: [`deploy/cron/cyberedu-backup.cron.example`](../deploy/cron/cyberedu-backup.cron.example).
+
+**Квартальная проверка restore:**
+
+```bash
+BACKUP_SQL_GZ=/var/backups/cyberedu/latest/postgres.sql.gz ./scripts/restore-drill.sh
 ```
 
 | Рекомендация | Значение |
 |--------------|----------|
-| Retention | 7 daily + 4 weekly (настройте под политику) |
-| Restore test | Раз в квартал на staging |
-| Uploads volume | Named volume `frontend_uploads` — бэкапить отдельно (`tar`/snapshot) |
+| Retention | 14 дней по умолчанию (`RETENTION_DAYS`) |
+| Restore test | `./scripts/restore-drill.sh` раз в квартал |
+| Uploads volume | Включены в `backup-production.sh` (`uploads.tar.gz`) |
 | Секреты | Бэкап **не** должен содержать `.env.production` в открытом виде |
+
+### Uptime / monitoring (cron)
+
+```bash
+BASE_URL=https://your-domain CHECK_NGINX=1 ./scripts/monitor-health.sh
+# exit 1 → настроить alerting (logger, UptimeRobot, PagerDuty)
+```
+
+### GHCR deploy + rollback
+
+```bash
+# .env.production: GHCR_OWNER, CYBEREDU_IMAGE_TAG, затем:
+DEPLOY_FROM_GHCR=1 ./deploy/scripts/vps-deploy.sh
+# откат на предыдущий тег:
+./scripts/rollback-production.sh
+```
+
+Состояние релиза: `.deploy/last-release.env`, `.deploy/previous-release.env` (в `.gitignore`).
 
 Подробнее: [DEPLOYMENT.md § Backups](./DEPLOYMENT.md#backups), [migrations/UPLOADS_VOLUME.md](./migrations/UPLOADS_VOLUME.md).
 

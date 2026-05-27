@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import { RegisterForm } from "@/components/auth/register-form";
+import { LoadingState } from "@/components/ui/loading-state";
 import { buildPublicMetadata } from "@/lib/seo/build-page-metadata";
 
 export const metadata = buildPublicMetadata({
@@ -8,5 +10,9 @@ export const metadata = buildPublicMetadata({
 });
 
 export default function RegisterPage() {
-  return <RegisterForm />;
+  return (
+    <Suspense fallback={<LoadingState size="sm" label="Загрузка формы регистрации…" />}>
+      <RegisterForm />
+    </Suspense>
+  );
 }

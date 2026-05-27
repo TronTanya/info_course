@@ -76,9 +76,15 @@ export function LandingActProduct() {
           </ActBlock>
         </div>
 
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-center text-sm text-muted-foreground">
           <Link href="#start" className="font-medium text-primary underline-offset-4 hover:underline">
-            Перейти к регистрации
+            Начать бесплатно
+          </Link>
+          <span className="hidden text-border sm:inline" aria-hidden>
+            ·
+          </span>
+          <Link href="#faq" className="font-medium text-primary underline-offset-4 hover:underline">
+            Частые вопросы
           </Link>
         </p>
       </div>

@@ -21,7 +21,7 @@ export default async function AdminUsersPage() {
         <AdminPageHeader
           breadcrumb={<AdminBreadcrumbs items={adminBreadcrumbItems("Пользователи")} />}
           title="Пользователи"
-          description="Учётные записи платформы. Поиск и фильтр по роли — в панели таблицы. Колонка «Отчёт курса» — число строк в course_progress."
+          description="Учётные записи платформы: прогресс по курсу, роль и последняя активность. Поиск и фильтр по роли — в панели таблицы."
           actions={
             <Button asChild variant="primary" className="w-full sm:w-auto">
               <a href="/api/admin/users/export">Скачать отчёт CSV</a>

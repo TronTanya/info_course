@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AdminBreadcrumbs, adminBreadcrumbItems } from "@/components/admin/admin-breadcrumbs";
 import { AdminDualTable } from "@/components/admin/admin-dual-table";
 import { AdminMobileCard } from "@/components/admin/admin-mobile-card";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
@@ -8,6 +9,7 @@ import { AdminShell } from "@/components/layout/admin-shell";
 import { getAdminCertificateRows } from "@/lib/admin-certificates-list";
 import { certificateVerifyUrl } from "@/lib/certificate";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { UiStatePanel } from "@/components/ui/ui-state-panel";
 
 export const metadata: Metadata = {
@@ -21,9 +23,10 @@ export default async function AdminCertificatesPage() {
     <AdminShell>
       <div className="space-y-6">
         <AdminPageHeader
+          breadcrumb={<AdminBreadcrumbs items={adminBreadcrumbItems("Сертификаты")} />}
           eyebrow="Реестр · CyberEdu"
           title="Сертификаты"
-          description="Публичная проверка подлинности: страница /certificate/verify/<код>."
+          description="Публичная проверка подлинности: страница /certificate/verify/<код>. Сертификаты выдаются после завершения всех модулей курса."
         />
 
         <AdminTableCard title="Реестр выданных" description={`${rows.length} записей (последние 500)`}>
@@ -31,8 +34,12 @@ export default async function AdminCertificatesPage() {
             state={rows.length === 0 ? "empty" : "idle"}
             className="m-4 py-10"
             title="Сертификатов пока нет"
-            description="Они появятся после завершения курса студентами."
-            terminalLine="registry --empty"
+            description="Они появятся после завершения курса студентами и выдачи в системе."
+            action={
+              <Button asChild variant="outline" size="sm">
+                <Link href="/admin/modules">Модули курса</Link>
+              </Button>
+            }
           >
             <AdminDualTable
               mobile={
@@ -52,14 +59,24 @@ export default async function AdminCertificatesPage() {
                         <Badge variant="warning">PDF не записан</Badge>
                       )}
                       <p className="break-all font-mono text-xs text-muted-foreground">{r.verificationCode}</p>
-                      <Link
-                        className="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
-                        href={certificateVerifyUrl(r.verificationCode)}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Открыть проверку
-                      </Link>
+                      <div className="flex flex-col gap-2 pt-1">
+                        <Button asChild variant="secondary" size="sm" className="w-full min-h-11">
+                          <Link
+                            href={certificateVerifyUrl(r.verificationCode)}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Открыть проверку
+                          </Link>
+                        </Button>
+                        {r.pdfUrl ? (
+                          <Button asChild variant="outline" size="sm" className="w-full min-h-11">
+                            <a href={r.pdfUrl} target="_blank" rel="noreferrer">
+                              Скачать PDF
+                            </a>
+                          </Button>
+                        ) : null}
+                      </div>
                     </AdminMobileCard>
                   ))}
                 </div>

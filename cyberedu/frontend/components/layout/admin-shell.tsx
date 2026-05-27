@@ -25,12 +25,20 @@ export function AdminShell({
         <div className="relative z-0 min-w-0">
           <AdminMobileNav />
           <p className="mb-4 mt-3 lg:hidden">
-            <Link
-              href="/dashboard/profile"
-              className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/6 px-3 py-2 typo-caption font-semibold text-primary shadow-sm transition-colors hover:border-primary/35 hover:bg-primary/10"
-            >
-              ← В личный кабинет
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/admin"
+                className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/6 px-3 py-2 typo-caption font-semibold text-primary shadow-sm transition-colors hover:border-primary/35 hover:bg-primary/10"
+              >
+                ← К обзору админки
+              </Link>
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-muted/30 px-3 py-2 typo-caption font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Личный кабинет
+              </Link>
+            </div>
           </p>
           <DashboardLayout stack="tight">{children}</DashboardLayout>
         </div>

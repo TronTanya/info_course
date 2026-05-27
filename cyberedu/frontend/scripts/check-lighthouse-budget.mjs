@@ -22,7 +22,7 @@ const a11y = categories.accessibility?.score ?? 0;
 const clsAudit = report.audits?.["cumulative-layout-shift"];
 const cls = typeof clsAudit?.numericValue === "number" ? clsAudit.numericValue : null;
 
-const minPerf = Number(process.env.LH_MIN_PERF ?? "0.58");
+const minPerf = Number(process.env.LH_MIN_PERF ?? "0.62");
 const minA11y = Number(process.env.LH_MIN_A11Y ?? "0.88");
 const maxCls = Number(process.env.LH_MAX_CLS ?? "0.12");
 

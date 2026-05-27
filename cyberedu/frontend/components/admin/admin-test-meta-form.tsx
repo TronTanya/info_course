@@ -30,7 +30,7 @@ export function AdminTestMetaForm({
       ) : null}
       <Input name="title" label="Название теста" required defaultValue={title} disabled={pending} />
       <Input name="minScore" type="number" min={0} label="Проходной балл" defaultValue={String(minScore)} disabled={pending} />
-      <Button type="submit" size="sm" loading={pending}>
+      <Button type="submit" variant="primary" size="sm" loading={pending}>
         Сохранить название и порог
       </Button>
     </form>

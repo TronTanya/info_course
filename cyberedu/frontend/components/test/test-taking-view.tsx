@@ -12,8 +12,8 @@ import { FormFeedback } from "@/components/ui/form-feedback";
 import { PendingBanner } from "@/components/ui/pending-banner";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { Textarea } from "@/components/ui/textarea";
+import { TestKeyboardHintsBar } from "@/components/test/test-keyboard-hints-bar";
 import { useTestTakingKeyboard } from "@/lib/hooks/use-test-taking-keyboard";
-import { testKeyboardHints } from "@/lib/test-ui";
 import { cyber } from "@/lib/design-system/cyber";
 import { cn } from "@/lib/utils";
 
@@ -145,6 +145,12 @@ export function TestTakingView({
             onSelect={onIndexChange}
             disabled={pending}
           />
+          <TestKeyboardHintsBar className="hidden sm:flex" />
+          {draftNote ? (
+            <p className="text-xs text-muted-foreground" role="note">
+              Черновик сохраняется в этом браузере — можно закрыть вкладку и вернуться позже.
+            </p>
+          ) : null}
         </div>
       </header>
 
@@ -163,12 +169,6 @@ export function TestTakingView({
               }
             />
           ) : null}
-          {draftNote ? (
-            <p className="text-xs text-muted-foreground" role="note">
-              Ответы сохраняются автоматически в этом браузере — можно переключаться между вопросами.
-            </p>
-          ) : null}
-
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-lg border border-primary/25 bg-primary/10 px-2.5 py-1 font-mono text-xs font-semibold text-primary">
@@ -232,9 +232,7 @@ export function TestTakingView({
           )}
 
           {q.questionType !== "TEXT" && q.answers.length > 0 ? (
-            <p className="text-xs text-muted-foreground" id="test-keyboard-hint">
-              {testKeyboardHints}
-            </p>
+            <TestKeyboardHintsBar className="sm:hidden" />
           ) : null}
 
           <nav className="ce-test-sticky-actions flex flex-col gap-3 border-t border-border/60 pt-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">

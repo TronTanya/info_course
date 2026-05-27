@@ -318,7 +318,7 @@ export function ModuleTestRunner({
             setError(null);
             setSubmitOpen(true);
           }}
-          draftNote={isDraftDirty}
+          draftNote={draftEnabled}
         />
         <TestExitDialog
           open={exitOpen}

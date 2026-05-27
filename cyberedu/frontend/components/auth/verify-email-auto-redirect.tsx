@@ -44,8 +44,8 @@ export function VerifyEmailAutoRedirect({ callbackUrl, enabled }: Props) {
   if (!enabled) return null;
 
   return (
-    <p className="text-center text-sm text-muted-foreground" role="status">
-      Перенаправляем в личный кабинет…
+    <p className="rounded-xl border border-success/25 bg-success/8 px-4 py-3 text-center text-sm text-muted-foreground" role="status">
+      Email подтверждён. Перенаправляем через пару секунд…
     </p>
   );
 }

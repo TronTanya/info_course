@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AdminBreadcrumbs, adminBreadcrumbItems } from "@/components/admin/admin-breadcrumbs";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminSubmissionReviewForm } from "@/components/admin/admin-submission-review-form";
 import { AdminShell } from "@/components/layout/admin-shell";
@@ -9,6 +9,11 @@ import { SectionCard } from "@/components/ui/section-card";
 import { prisma } from "@/lib/db";
 
 type Props = { params: Promise<{ submissionId: string }> };
+
+function truncateTitle(title: string, max = 48): string {
+  const t = title.trim();
+  return t.length <= max ? t : `${t.slice(0, max - 1)}…`;
+}
 
 function statusRu(s: string): string {
   const m: Record<string, string> = {
@@ -119,13 +124,16 @@ export default async function AdminSubmissionDetailPage({ params }: Props) {
           title={sub.practicalTask.title}
           description={`Модуль: ${sub.practicalTask.module.title}`}
           breadcrumb={
-            <Link href="/admin/submissions" className="hover:text-foreground">
-              ← Все отправки
-            </Link>
+            <AdminBreadcrumbs
+              items={adminBreadcrumbItems(truncateTitle(sub.practicalTask.title), {
+                href: "/admin/submissions",
+                label: "Проверка практик",
+              })}
+            />
           }
         />
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,380px)]">
+        <div className="grid gap-8 pb-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,380px)]">
           <div className="space-y-6">
             <SectionCard variant="lab" title="Студент" flushTitle>
               <dl className="space-y-2 text-sm">

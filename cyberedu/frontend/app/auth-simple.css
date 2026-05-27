@@ -7,8 +7,16 @@
     background: var(--background);
   }
 
+  .ce-auth-split-wrap {
+    width: 100%;
+  }
+
   .ce-auth-split {
     max-width: 28rem;
+  }
+
+  .ce-auth-aside {
+    padding-top: 0.25rem;
   }
 
   .ce-auth-card {

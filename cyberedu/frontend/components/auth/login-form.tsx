@@ -123,7 +123,7 @@ export function LoginForm() {
   return (
     <AuthGlassCard
       title="Вход"
-      description="Войдите в защищённую сессию CyberEdu."
+      description="Email и пароль — доступ к курсу, лабораториям и AI-наставнику."
       footer={
         <AuthFormFooter>
           Нет аккаунта?{" "}

@@ -249,7 +249,7 @@ jobs:
           npm run perf:lighthouse:ci
         env:
           BASE_URL: http://127.0.0.1:3100
-          LH_MIN_PERF: "0.58"
+          LH_MIN_PERF: "0.62"
           LH_MIN_A11Y: "0.88"
           LH_MAX_CLS: "0.12"
 

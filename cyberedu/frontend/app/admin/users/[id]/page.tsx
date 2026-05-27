@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { SubmissionStatus } from "@prisma/client";
 import { Calendar, GraduationCap, Mail, MapPin, School, Shield, UserCircle } from "lucide-react";
+import { AdminBreadcrumbs, adminBreadcrumbItems } from "@/components/admin/admin-breadcrumbs";
 import { AdminDualTable } from "@/components/admin/admin-dual-table";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { getAdminUserDetail } from "@/lib/admin-user-detail";
@@ -79,14 +80,15 @@ export default async function AdminUserDetailPage({ params }: Props) {
     year: "numeric",
   });
 
+  const breadcrumbLabel =
+    displayName.length > 36 ? `${displayName.slice(0, 35)}…` : displayName;
+
   return (
     <AdminShell>
       <div className="space-y-8">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Button asChild variant="outline" size="sm" className="border-border/80 bg-card/80 shadow-sm">
-            <Link href="/admin/users">← К списку пользователей</Link>
-          </Button>
-        </div>
+        <AdminBreadcrumbs
+          items={adminBreadcrumbItems(breadcrumbLabel, { href: "/admin/users", label: "Студенты" })}
+        />
 
         <header className="ce-user-profile-hero p-6 sm:p-8 lg:p-10">
           <div className="ce-user-profile-hero-blob" aria-hidden />

@@ -30,7 +30,7 @@ export function CourseTrackHero({ data }: { data: UserCourseProgressResult }) {
         <div className="min-w-0 space-y-5">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="primary" className="font-mono text-2.5 uppercase tracking-wider">
-              Learn OS · Mission track
+              Траектория обучения
             </Badge>
             <Badge variant="outline" className="border-primary/25 font-mono text-2.5 uppercase tracking-widest">
               {level.label}

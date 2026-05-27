@@ -19,13 +19,56 @@ import { MetricCard } from "@/components/ui/metric-card";
 import { SectionCard } from "@/components/ui/section-card";
 
 const QUICK_ACTIONS = [
-  { href: "/admin/users", label: "Пользователи", icon: Users, description: "Поиск и карточки" },
+  { href: "/admin/users", label: "Студенты", icon: Users, description: "Аккаунты и прогресс" },
   { href: "/admin/modules", label: "Модули", icon: BookOpen, description: "Структура курса" },
-  { href: "/admin/submissions?filter=pending", label: "Проверка работ", icon: ClipboardList, description: "Очередь отправок" },
-  { href: "/admin/tests", label: "Тесты", icon: LayoutDashboard, description: "Контрольные" },
-  { href: "/admin/practical-tasks", label: "Практика", icon: FlaskConical, description: "Лаборатории" },
-  { href: "/api/admin/users/export", label: "CSV отчёт", icon: FileDown, description: "Выгрузка Excel" },
+  { href: "/admin/submissions?filter=pending", label: "Проверка практик", icon: ClipboardList, description: "Очередь на оценку" },
+  { href: "/admin/tests", label: "Тесты", icon: LayoutDashboard, description: "Вопросы и баллы" },
+  { href: "/admin/practical-tasks", label: "Практика", icon: FlaskConical, description: "Задания модулей" },
+  { href: "/api/admin/users/export", label: "Экспорт CSV", icon: FileDown, description: "Список студентов" },
 ] as const;
+
+const quickActionTileClass =
+  "flex min-w-0 items-center gap-3 overflow-hidden rounded-xl border border-border/70 bg-card px-3 py-3 text-sm transition-colors hover:border-primary/30 hover:bg-muted/30";
+
+function AdminQuickActionTile({
+  href,
+  label,
+  description,
+  icon: Icon,
+  external,
+}: {
+  href: string;
+  label: string;
+  description: string;
+  icon: (typeof QUICK_ACTIONS)[number]["icon"];
+  external?: boolean;
+}) {
+  const inner = (
+    <>
+      <span className="ce-admin-quick-action-icon flex size-9 shrink-0 items-center justify-center rounded-lg text-primary">
+        <Icon className="size-4" aria-hidden />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-medium leading-snug text-foreground">{label}</span>
+        <span className="mt-0.5 block text-xs leading-relaxed text-pretty text-muted-foreground">{description}</span>
+      </span>
+    </>
+  );
+
+  if (external) {
+    return (
+      <a href={href} className={quickActionTileClass}>
+        {inner}
+      </a>
+    );
+  }
+
+  return (
+    <Link href={href} className={quickActionTileClass}>
+      {inner}
+    </Link>
+  );
+}
 
 export function AdminDashboardKpiGrid({ stats }: { stats: AdminDashboardStats }) {
   const tiles = [
@@ -69,44 +112,26 @@ export function AdminDashboardKpiGrid({ stats }: { stats: AdminDashboardStats })
 
 export function AdminDashboardQuickActions() {
   return (
-    <SectionCard variant="lab" title="Быстрые действия" description="Частые переходы без поиска в меню" flushTitle>
-        <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {QUICK_ACTIONS.map((a) => {
-            const Icon = a.icon;
-            const isExport = a.href.startsWith("/api/");
-            return (
-              <li key={a.href}>
-                {isExport ? (
-                  <a
-                    href={a.href}
-                    className="flex items-center gap-3 rounded-xl border border-border/70 bg-card/80 px-3 py-3 text-sm transition-colors hover:border-primary/30 hover:bg-primary/5"
-                  >
-                    <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <Icon className="size-4" aria-hidden />
-                    </span>
-                    <span>
-                      <span className="font-medium text-foreground">{a.label}</span>
-                      <span className="mt-0.5 block text-xs text-muted-foreground">{a.description}</span>
-                    </span>
-                  </a>
-                ) : (
-                  <Link
-                    href={a.href}
-                    className="flex items-center gap-3 rounded-xl border border-border/70 bg-card/80 px-3 py-3 text-sm transition-colors hover:border-primary/30 hover:bg-primary/5"
-                  >
-                    <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <Icon className="size-4" aria-hidden />
-                    </span>
-                    <span>
-                      <span className="font-medium text-foreground">{a.label}</span>
-                      <span className="mt-0.5 block text-xs text-muted-foreground">{a.description}</span>
-                    </span>
-                  </Link>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+    <SectionCard
+      variant="default"
+      title="Быстрые действия"
+      description="Частые разделы админки"
+      flushTitle
+      className="min-w-0"
+    >
+      <ul className="ce-admin-quick-actions grid list-none grid-cols-1 gap-2 p-0">
+        {QUICK_ACTIONS.map((a) => (
+          <li key={a.href} className="min-w-0">
+            <AdminQuickActionTile
+              href={a.href}
+              label={a.label}
+              description={a.description}
+              icon={a.icon}
+              external={a.href.startsWith("/api/")}
+            />
+          </li>
+        ))}
+      </ul>
     </SectionCard>
   );
 }

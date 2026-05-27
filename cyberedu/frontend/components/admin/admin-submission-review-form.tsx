@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import Link from "next/link";
+import { AdminFormStickyBar } from "@/components/admin/admin-form-sticky-bar";
 import { reviewSubmissionAction, type AdminSubmissionReviewState } from "@/lib/actions/admin-submissions";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -88,14 +88,11 @@ export function AdminSubmissionReviewForm({
         <option value="NEEDS_REVISION">На доработке</option>
       </Select>
 
-      <div className="flex flex-wrap gap-2">
-        <Button type="submit" loading={pending} disabled={!canReview}>
+      <AdminFormStickyBar backHref="/admin/submissions" backLabel="К списку отправок">
+        <Button type="submit" variant="primary" loading={pending} disabled={!canReview}>
           Сохранить проверку
         </Button>
-        <Button type="button" variant="outline" asChild>
-          <Link href="/admin/submissions">К списку</Link>
-        </Button>
-      </div>
+      </AdminFormStickyBar>
     </form>
   );
 }

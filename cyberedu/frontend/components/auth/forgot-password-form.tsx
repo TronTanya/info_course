@@ -93,6 +93,10 @@ export function ForgotPasswordForm() {
         <Button className="w-full" size="lg" type="submit" loading={pending} disabled={pending}>
           Отправить ссылку
         </Button>
+        <p className="text-center text-xs leading-relaxed text-muted-foreground">
+          Из соображений безопасности мы не сообщаем, зарегистрирован ли email — письмо придёт только если аккаунт
+          существует.
+        </p>
       </form>
     </AuthGlassCard>
   );

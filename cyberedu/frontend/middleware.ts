@@ -3,12 +3,17 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { applySecurityHeaders } from "@/lib/security/headers";
 import { verifyApiCsrf } from "@/lib/security/csrf";
+import { isProductionRuntime } from "@/lib/security/rate-limit-service";
 function withSecurityHeaders(res: NextResponse): NextResponse {
   return applySecurityHeaders(res);
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (isProductionRuntime() && pathname.startsWith("/api/dev/")) {
+    return withSecurityHeaders(NextResponse.json({ error: "not_found" }, { status: 404 }));
+  }
 
   // Dev: localhost и 127.0.0.1 — разные хосты для cookie; NextAuth сессия «теряется» на 127.0.0.1.
   if (

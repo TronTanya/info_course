@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { AdminBreadcrumbs, adminBreadcrumbItems } from "@/components/admin/admin-breadcrumbs";
 import { AdminProfileHero } from "@/components/admin/admin-profile-hero";
 import { AdminSecurityDashboard } from "@/components/admin/admin-security-dashboard";
 import { AdminShell } from "@/components/layout/admin-shell";
@@ -8,7 +9,8 @@ import { getAdminUserListRows } from "@/lib/admin-users-list";
 import { getCurrentUser } from "@/lib/permissions";
 
 export const metadata: Metadata = {
-  title: "Админка · Security Dashboard",
+  title: "Аудит и безопасность",
+  description: "Состояние платформы, пользователи, контент и журнал событий.",
 };
 
 function buildInitials(first: string | null, last: string | null, email: string) {
@@ -43,6 +45,7 @@ export default async function AdminProfilePage() {
   return (
     <AdminShell>
       <div className="space-y-8">
+        <AdminBreadcrumbs items={adminBreadcrumbItems("Аудит")} />
         <AdminProfileHero
           email={user.email}
           displayName={displayName}

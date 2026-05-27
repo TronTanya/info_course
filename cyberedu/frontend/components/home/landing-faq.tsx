@@ -49,7 +49,7 @@ export function LandingFaq() {
               "open:border-primary/25 open:shadow-card-hover",
             )}
           >
-            <summary className="cursor-pointer list-none px-5 py-4 text-sm font-semibold text-foreground marker:content-none [&::-webkit-details-marker]:hidden">
+            <summary className="cursor-pointer list-none rounded-2xl px-5 py-4 text-sm font-semibold text-foreground outline-none marker:content-none transition-colors hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
               <span className="flex items-center justify-between gap-4">
                 {item.q}
                 <span

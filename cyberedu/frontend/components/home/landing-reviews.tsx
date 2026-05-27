@@ -1,5 +1,8 @@
+import Link from "next/link";
 import { ReviewStars } from "@/components/reviews/review-stars";
+import { LandingSection } from "@/components/home/landing-section";
 import { SectionCard } from "@/components/ui/section-card";
+import { Button } from "@/components/ui/button";
 import { getPublishedReviews } from "@/lib/reviews";
 
 const MAX_REVIEWS = 4;
@@ -8,17 +11,12 @@ export async function LandingReviews() {
   const reviews = await getPublishedReviews(MAX_REVIEWS);
 
   return (
-    <section className="ce-section ce-section-stack" aria-labelledby="reviews-heading">
-      <div className="mx-auto max-w-3xl text-center">
-        <p className="ce-eyebrow">Сообщество</p>
-        <h2 id="reviews-heading" className="ds-typo-h2 mt-3">
-          Отзывы студентов
-        </h2>
-        <p className="mt-4 text-pretty text-base text-muted-foreground sm:text-lg">
-          Публикуются только отзывы после модерации. Оставить свой могут пользователи после первого завершённого модуля.
-        </p>
-      </div>
-
+    <LandingSection
+      id="reviews"
+      eyebrow="Сообщество"
+      title="Отзывы студентов"
+      description="Публикуются только отзывы после модерации. Свой отзыв можно оставить после первого завершённого модуля."
+    >
       {reviews.length === 0 ? (
         <div className="ce-polish-empty mx-auto max-w-lg px-6 py-12 text-center">
           <p className="text-sm font-medium text-foreground">Пока нет опубликованных отзывов</p>
@@ -39,7 +37,9 @@ export async function LandingReviews() {
               <ReviewStars value={r.rating} />
               <div className="mt-4">
                 <p className="font-semibold text-foreground">{r.name}</p>
-                <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-muted-foreground">{r.educationalInstitution}</p>
+                <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-muted-foreground">
+                  {r.educationalInstitution}
+                </p>
               </div>
               <blockquote className="mt-4 line-clamp-6 flex-1 border-l-2 border-primary/25 pl-3 text-sm leading-relaxed text-muted-foreground">
                 {r.text}
@@ -48,6 +48,12 @@ export async function LandingReviews() {
           ))}
         </div>
       )}
-    </section>
+
+      <p className="text-center">
+        <Button asChild variant="outline" size="sm" className="rounded-full">
+          <Link href="/reviews">Все отзывы</Link>
+        </Button>
+      </p>
+    </LandingSection>
   );
 }

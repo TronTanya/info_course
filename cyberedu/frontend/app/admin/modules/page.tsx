@@ -35,7 +35,7 @@ export default async function AdminModulesPage() {
         <UiStatePanel
           state="empty"
           title="Курс не найден"
-          description="Добавьте курс в Prisma seed или админ-инструменты БД."
+          description="Создайте запись курса в базе данных (миграция или начальное наполнение), затем обновите страницу."
         />
       </AdminShell>
     );

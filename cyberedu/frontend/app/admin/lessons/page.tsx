@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminDualTable } from "@/components/admin/admin-dual-table";
+import { AdminTable, AdminTableBody, AdminTableHead } from "@/components/admin/admin-table";
 import { AdminBreadcrumbs, adminBreadcrumbItems } from "@/components/admin/admin-breadcrumbs";
 import { AdminMobileCard } from "@/components/admin/admin-mobile-card";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
@@ -69,35 +70,26 @@ export default async function AdminLessonsPage() {
                         </p>
                         <p className="mt-1 text-sm font-medium text-foreground">{l.title}</p>
                       </div>
-                      <Link
-                        href={`/admin/lessons/${l.id}/edit`}
-                        className="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
-                      >
-                        Редактировать
-                      </Link>
+                      <Button asChild variant="secondary" size="sm" className="w-full min-h-11">
+                        <Link href={`/admin/lessons/${l.id}/edit`}>Редактировать</Link>
+                      </Button>
                     </AdminMobileCard>
                   ))}
                 </div>
               }
               desktop={
-                <table className="w-full min-w-140 text-left text-sm">
-                  <thead className="sticky top-0 z-10 border-b border-border bg-muted/80 text-xs uppercase text-muted-foreground backdrop-blur-sm">
+                <AdminTable minWidth="640px" caption="Лекции курса">
+                  <AdminTableHead>
                     <tr>
-                      <th scope="col" className="px-4 py-3 font-medium">
-                        Модуль
-                      </th>
-                      <th scope="col" className="px-4 py-3 font-medium">
-                        Лекция
-                      </th>
-                      <th scope="col" className="px-4 py-3 text-right font-medium">
-                        Действия
-                      </th>
+                      <th>Модуль</th>
+                      <th>Лекция</th>
+                      <th className="text-right">Действия</th>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
+                  </AdminTableHead>
+                  <AdminTableBody>
                     {lessons.map((l) => (
-                      <tr key={l.id} className="hover:bg-muted/30">
-                        <td className="px-4 py-3">
+                      <tr key={l.id}>
+                        <td>
                           <span className="text-muted-foreground tabular-nums">#{l.module.orderNumber}</span>{" "}
                           <Link
                             href={`/admin/modules/${l.module.id}/edit`}
@@ -106,19 +98,16 @@ export default async function AdminLessonsPage() {
                             {l.module.title}
                           </Link>
                         </td>
-                        <td className="px-4 py-3 text-foreground">{l.title}</td>
-                        <td className="px-4 py-3 text-right">
-                          <Link
-                            href={`/admin/lessons/${l.id}/edit`}
-                            className="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
-                          >
-                            Редактировать
-                          </Link>
+                        <td className="text-foreground">{l.title}</td>
+                        <td className="text-right">
+                          <Button asChild variant="secondary" size="sm">
+                            <Link href={`/admin/lessons/${l.id}/edit`}>Редактировать</Link>
+                          </Button>
                         </td>
                       </tr>
                     ))}
-                  </tbody>
-                </table>
+                  </AdminTableBody>
+                </AdminTable>
               }
             />
           </UiStatePanel>

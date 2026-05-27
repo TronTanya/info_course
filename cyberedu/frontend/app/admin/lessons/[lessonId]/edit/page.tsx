@@ -1,12 +1,17 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AdminBreadcrumbs, adminBreadcrumbItems } from "@/components/admin/admin-breadcrumbs";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { AdminLessonEditorForm } from "@/components/admin/admin-lesson-editor-form";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { prisma } from "@/lib/db";
 
 type Props = { params: Promise<{ lessonId: string }> };
+
+function truncateTitle(title: string, max = 40): string {
+  const t = title.trim();
+  return t.length <= max ? t : `${t.slice(0, max - 1)}…`;
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lessonId } = await params;
@@ -37,19 +42,17 @@ export default async function AdminEditLessonPage({ params }: Props) {
 
   return (
     <AdminShell>
-      <div className="space-y-6">
+      <div className="space-y-6 pb-24">
         <AdminPageHeader
           title="Редактирование лекции"
           description="Текст в формате, совместимом с отображением в курсе (# и ## для заголовков, абзацы через пустую строку). Используйте вкладку «Превью»."
           breadcrumb={
-            <div className="flex flex-wrap gap-x-4 gap-y-1">
-              <Link href="/admin/lessons" className="hover:text-foreground">
-                ← Лекции
-              </Link>
-              <Link href={`/admin/modules/${lesson.moduleId}/edit`} className="hover:text-foreground">
-                Модуль
-              </Link>
-            </div>
+            <AdminBreadcrumbs
+              items={adminBreadcrumbItems(truncateTitle(lesson.title), {
+                href: "/admin/lessons",
+                label: "Лекции",
+              })}
+            />
           }
         />
         <div className="max-w-3xl">

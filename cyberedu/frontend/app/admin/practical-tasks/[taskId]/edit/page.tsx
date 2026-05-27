@@ -1,12 +1,17 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AdminBreadcrumbs, adminBreadcrumbItems } from "@/components/admin/admin-breadcrumbs";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { AdminPracticalTaskForm } from "@/components/admin/admin-practical-task-form";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { prisma } from "@/lib/db";
 
 type Props = { params: Promise<{ taskId: string }> };
+
+function truncateTitle(title: string, max = 40): string {
+  const t = title.trim();
+  return t.length <= max ? t : `${t.slice(0, max - 1)}…`;
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { taskId } = await params;
@@ -37,17 +42,15 @@ export default async function AdminEditPracticalTaskPage({ params }: Props) {
           title="Редактирование задания"
           description="Изменение типа переключает набор полей — сохраните, чтобы применить настройки к форме студента."
           breadcrumb={
-            <div className="flex flex-wrap gap-x-4 gap-y-1">
-              <Link href="/admin/practical-tasks" className="hover:text-foreground">
-                ← Практика
-              </Link>
-              <Link href={`/admin/modules/${task.moduleId}/edit`} className="hover:text-foreground">
-                Модуль
-              </Link>
-            </div>
+            <AdminBreadcrumbs
+              items={adminBreadcrumbItems(truncateTitle(task.title), {
+                href: "/admin/practical-tasks",
+                label: "Практика",
+              })}
+            />
           }
         />
-        <div>
+        <div className="pb-24">
         <AdminPracticalTaskForm
           key={task.id}
           modules={modules}

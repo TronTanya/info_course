@@ -256,7 +256,8 @@ a:focus-visible {
   }
 
   @media (max-width: 639px) {
-    .ce-test-sticky-actions {
+    .ce-test-sticky-actions,
+    .ce-practice-sticky-submit {
       position: sticky;
       bottom: 0;
       z-index: 15;
@@ -557,6 +558,7 @@ a:focus-visible {
   .ce-app-marketing-main {
     position: relative;
     isolation: isolate;
+    scroll-padding-top: calc(var(--floating-nav-height) + var(--floating-nav-top) + 1.25rem);
   }
   .ce-app-marketing-main > * {
     position: relative;

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AdminBreadcrumbs, adminBreadcrumbItems } from "@/components/admin/admin-breadcrumbs";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminReviewRatingSummary } from "@/components/admin/admin-review-rating-summary";
 import {
@@ -44,6 +45,7 @@ export default async function AdminReviewsPage({ searchParams }: Props) {
     <AdminShell>
       <div className="ce-admin-reviews-page min-w-0 space-y-6">
         <AdminPageHeader
+          breadcrumb={<AdminBreadcrumbs items={adminBreadcrumbItems("Отзывы")} />}
           title="Отзывы"
           description="Публикация, снятие с публикации и удаление. На сайте показываются только отзывы с признаком «опубликован»."
         />

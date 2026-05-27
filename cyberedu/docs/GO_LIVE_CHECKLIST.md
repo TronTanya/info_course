@@ -2,13 +2,14 @@
 
 Отмечайте `[x]` на **staging**, максимально близком к production (`ENVIRONMENT=production`, Redis, TLS, те же compose-файлы).
 
-Связанные документы: [DEFENSE_READINESS.md](./DEFENSE_READINESS.md) (**защита / пилот — команды + ручной UI**) · [OPERATIONS.md](./OPERATIONS.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [checklists/FINAL_CHECKLIST.md](./checklists/FINAL_CHECKLIST.md) · [STORAGE.md](./STORAGE.md)
+Связанные документы: [PRODUCTION_AUDIT_2026-05.md](./PRODUCTION_AUDIT_2026-05.md) (полный audit) · [DEFENSE_READINESS.md](./DEFENSE_READINESS.md) (**защита / пилот — команды + ручной UI**) · [OPERATIONS.md](./OPERATIONS.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [checklists/FINAL_CHECKLIST.md](./checklists/FINAL_CHECKLIST.md) · [STORAGE.md](./STORAGE.md)
 
 ---
 
 ## Required checks
 
 - [ ] **CI green** на `main` ([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml))
+- [ ] **TLS gate passed:** `deploy/nginx/conf.d/cyberedu.ssl.conf` существует, без `YOUR_DOMAIN`; `./deploy/scripts/vps-deploy.sh` не требует `ALLOW_HTTP_BOOTSTRAP=1`
 - [ ] `cd cyberedu/frontend && npm ci`
 - [ ] `cd cyberedu/frontend && npm run lint`
 - [ ] `cd cyberedu/frontend && npm run typecheck`
@@ -45,12 +46,15 @@
 - [ ] `RUN_SEED=0`, демо-учётки `*.local` отсутствуют или отключены
 - [ ] Секреты уникальны (не из `.env.example`): `AUTH_SECRET`, `JWT_SECRET_KEY`, `INTERNAL_API_KEY`, `POSTGRES_PASSWORD`, `REDIS_PASSWORD`
 - [ ] `.env.production` не в git; `chmod 600`
+- [ ] HTTP redirect на HTTPS включён (`curl -I http://<domain>` → `301` на `https://...`)
 
 ---
 
 ## Operations
 
-- [ ] **Backups configured** — Postgres `pg_dump` + volume `frontend_uploads` ([OPERATIONS.md § Backup notes](./OPERATIONS.md#backup-notes))
+- [ ] **Backups configured** — `./scripts/backup-production.sh` + cron ([`deploy/cron/cyberedu-backup.cron.example`](../deploy/cron/cyberedu-backup.cron.example))
+- [ ] **Restore drill** — `BACKUP_SQL_GZ=.../latest/postgres.sql.gz ./scripts/restore-drill.sh` (квартал)
+- [ ] **Uptime monitor** — cron `BASE_URL=... CHECK_NGINX=1 ./scripts/monitor-health.sh` или внешний ping `/api/health`
 - [ ] **Logs monitored** — `docker compose logs`, ротация json-file; алерт на 5xx / disk
 - [ ] **Healthchecks enabled** — `docker compose ps` → `healthy` (postgres, redis, frontend, backend, nginx)
 - [ ] **Secrets rotated** от dev/staging
@@ -73,6 +77,6 @@ CHECK_REDIS=1 BASE_URL=https://your-staging-domain ./scripts/staging-smoke.sh
 | `UPLOAD_STORAGE_DRIVER=s3` | Зарезервировано, **NOT IMPLEMENTED** |
 | JWT sessions без shared store | Несколько реплик Next → sticky sessions или доработка |
 | AI | Зависит от внешнего API; без ключа — graceful degradation |
-| CSP | По умолчанию report-only в prod; переход на enforce — отдельный шаг |
+| CSP | По умолчанию **enforce** в prod; откат: `CSP_MODE=report-only` |
 
 См. также [PRODUCTION_READINESS.md](./PRODUCTION_READINESS.md) · [OPERATIONS.md § Troubleshooting](./OPERATIONS.md#troubleshooting).

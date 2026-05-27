@@ -42,10 +42,10 @@ export function AdminProfileHero({
                 Администратор
               </Badge>
               <Badge variant={appStatus === "ok" ? "outline" : "warning"}>
-                {appStatus === "ok" ? "Система OK" : "Внимание"}
+                {appStatus === "ok" ? "Система в норме" : "Есть предупреждения"}
               </Badge>
             </div>
-            <p className={cyber.monoLabel}>Security Dashboard</p>
+            <p className={cyber.monoLabel}>Аудит и безопасность</p>
             <h1 className="typo-h2 mt-1 text-balance">{displayName}</h1>
             <p className="mt-1 font-mono text-xs text-muted-foreground">{email}</p>
             <p className="typo-caption mt-1">{memberSinceLabel}</p>

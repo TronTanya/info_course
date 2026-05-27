@@ -46,7 +46,7 @@ export function LearningSidebarPanel({
   return (
     <div className="flex h-full flex-col gap-6">
       <div>
-        <p className="ce-learn-os-eyebrow">Mission track</p>
+        <p className="ce-learn-os-eyebrow">Траектория курса</p>
         <ul className="mt-3 max-h-[min(40vh,280px)] space-y-1 overflow-y-auto pr-1">
           {modules.map((m) => (
             <li key={m.id}>
@@ -72,7 +72,7 @@ export function LearningSidebarPanel({
       </div>
 
       <div>
-        <p className="ce-learn-os-eyebrow text-muted-foreground">Module ops</p>
+        <p className="ce-learn-os-eyebrow text-muted-foreground">Шаги модуля</p>
         <ol className="mt-3 space-y-1">
           {steps.map((step) => {
             const Icon = stepIcons[step.kind] ?? BookOpen;

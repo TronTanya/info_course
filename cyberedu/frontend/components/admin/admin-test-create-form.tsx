@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import Link from "next/link";
+import { AdminFormStickyBar } from "@/components/admin/admin-form-sticky-bar";
 import { createTestAction, type AdminTestFormState } from "@/lib/actions/admin-tests";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,17 @@ import { Select } from "@/components/ui/select";
 
 export type ModuleOption = { id: string; title: string; orderNumber: number };
 
-export function AdminTestCreateForm({ modules }: { modules: ModuleOption[] }) {
+export function AdminTestCreateForm({
+  modules,
+  defaultModuleId = "",
+  cancelHref = "/admin/tests",
+}: {
+  modules: ModuleOption[];
+  defaultModuleId?: string;
+  cancelHref?: string;
+}) {
+  const selectedModuleId =
+    defaultModuleId && modules.some((m) => m.id === defaultModuleId) ? defaultModuleId : "";
   const [state, formAction, pending] = useActionState<AdminTestFormState | null, FormData>(
     createTestAction,
     null,
@@ -23,10 +33,23 @@ export function AdminTestCreateForm({ modules }: { modules: ModuleOption[] }) {
           {state.error}
         </Alert>
       ) : null}
-      <Select name="moduleId" label="Модуль" required defaultValue="" disabled={pending}>
-        <option value="" disabled>
-          Выберите модуль
-        </option>
+      {selectedModuleId ? (
+        <p className="text-sm text-muted-foreground" role="status">
+          Модуль выбран из карточки редактирования — при необходимости смените его в списке.
+        </p>
+      ) : null}
+      <Select
+        name="moduleId"
+        label="Модуль"
+        required
+        defaultValue={selectedModuleId}
+        disabled={pending}
+      >
+        {!selectedModuleId ? (
+          <option value="" disabled>
+            Выберите модуль
+          </option>
+        ) : null}
         {modules.map((m) => (
           <option key={m.id} value={m.id}>
             #{m.orderNumber} · {m.title}
@@ -43,14 +66,11 @@ export function AdminTestCreateForm({ modules }: { modules: ModuleOption[] }) {
         disabled={pending}
         hint="Минимум баллов для зачёта. Текстовые вопросы «только ручная проверка» в эту сумму не входят."
       />
-      <div className="flex flex-wrap gap-2">
-        <Button type="submit" loading={pending}>
+      <AdminFormStickyBar backHref={cancelHref} backLabel="Отмена">
+        <Button type="submit" variant="primary" loading={pending}>
           Создать и перейти к вопросам
         </Button>
-        <Button type="button" variant="outline" asChild>
-          <Link href="/admin/tests">Отмена</Link>
-        </Button>
-      </div>
+      </AdminFormStickyBar>
     </form>
   );
 }

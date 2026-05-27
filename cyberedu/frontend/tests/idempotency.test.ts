@@ -18,6 +18,19 @@ describe("security/idempotency", () => {
     expect(normalizeIdempotencyKey("short")).toBeNull();
   });
 
+  it("withIdempotency fails closed in production without Redis", async () => {
+    vi.stubEnv("ENVIRONMENT", "production");
+    delete process.env.REDIS_URL;
+
+    await expect(
+      withIdempotency({
+        scope: "test",
+        idempotencyKey: "idem-key-12345678",
+        run: vi.fn().mockResolvedValue({ ok: true }),
+      }),
+    ).rejects.toThrow(/временно недоступен/i);
+  });
+
   it("withIdempotency returns cached result on second call (memory)", async () => {
     const run = vi.fn().mockResolvedValue({ ok: true, n: 1 });
     const opts = { scope: "test", idempotencyKey: "idem-key-12345678", run };

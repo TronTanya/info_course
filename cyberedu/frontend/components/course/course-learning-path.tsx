@@ -2,6 +2,7 @@ import { CourseModuleCard } from "@/components/course/course-module-card";
 import { CourseMissionRoadmap } from "@/components/course/course-mission-roadmap";
 import { CoursePathNav } from "@/components/course/course-path-nav";
 import { CourseTrackHero } from "@/components/course/course-track-hero";
+import { CourseTrackLegend } from "@/components/course/course-track-legend";
 import { findFocusModule } from "@/lib/dashboard-ui";
 import type { UserCourseProgressResult } from "@/lib/progress";
 import { BlurReveal } from "@/components/motion";
@@ -20,6 +21,7 @@ export function CourseLearningPath({ data }: { data: UserCourseProgressResult })
         <CourseTrackHero data={data} />
       </MobileImmersiveCard>
       <CourseMissionRoadmap modules={data.modules} focusModuleId={focusId} />
+      <CourseTrackLegend />
 
       <BlurReveal as="section" className="space-y-5 border-t border-white/8 pt-6 lg:pt-8" delay={0.06} aria-labelledby="course-modules-heading">
         <SectionHeader

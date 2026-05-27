@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import Link from "next/link";
 import type { CheckType, PracticalTaskType } from "@prisma/client";
+import { AdminFormStickyBar } from "@/components/admin/admin-form-sticky-bar";
 import { savePracticalTaskAction, type AdminPracticalFormState } from "@/lib/actions/admin-practical-tasks";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -48,9 +48,13 @@ const STRUCTURED_SCENARIO_TYPES = new Set<PracticalTaskType>([
 export function AdminPracticalTaskForm({
   modules,
   initial,
+  defaultModuleId = "",
+  cancelHref = "/admin/practical-tasks",
 }: {
   modules: ModuleOption[];
   initial?: PracticalTaskInitial | null;
+  defaultModuleId?: string;
+  cancelHref?: string;
 }) {
   const [state, formAction, pending] = useActionState<AdminPracticalFormState | null, FormData>(
     savePracticalTaskAction,
@@ -60,6 +64,11 @@ export function AdminPracticalTaskForm({
   const [taskType, setTaskType] = useState<PracticalTaskType>(initial?.taskType ?? "TEXT_ANSWER");
 
   const firstModuleId = modules[0]?.id ?? "";
+  const presetModuleId =
+    !initial?.moduleId && defaultModuleId && modules.some((m) => m.id === defaultModuleId)
+      ? defaultModuleId
+      : "";
+  const moduleSelectDefault = initial?.moduleId ?? (presetModuleId || firstModuleId);
 
   return (
     <form action={formAction} className="mx-auto max-w-3xl space-y-8">
@@ -73,12 +82,17 @@ export function AdminPracticalTaskForm({
 
       <div className="space-y-4 rounded-2xl border border-border bg-card p-4 shadow-card">
         <h2 className="text-sm font-semibold text-foreground">Основное</h2>
+        {presetModuleId ? (
+          <p className="text-sm text-muted-foreground" role="status">
+            Модуль выбран из карточки редактирования — при необходимости смените его в списке.
+          </p>
+        ) : null}
         <Select
           name="moduleId"
           label="Модуль"
           required
           disabled={pending || modules.length === 0}
-          defaultValue={initial?.moduleId ?? firstModuleId}
+          defaultValue={moduleSelectDefault}
         >
           {modules.map((m) => (
             <option key={m.id} value={m.id}>
@@ -278,14 +292,11 @@ export function AdminPracticalTaskForm({
         </div>
       ) : null}
 
-      <div className="flex flex-wrap gap-2">
-        <Button type="submit" loading={pending}>
-          {initial?.id ? "Сохранить" : "Создать задание"}
+      <AdminFormStickyBar backHref={cancelHref} backLabel="К списку практик">
+        <Button type="submit" variant="primary" loading={pending}>
+          {initial?.id ? "Сохранить задание" : "Создать задание"}
         </Button>
-        <Button type="button" variant="outline" asChild>
-          <Link href="/admin/practical-tasks">К списку</Link>
-        </Button>
-      </div>
+      </AdminFormStickyBar>
     </form>
   );
 }

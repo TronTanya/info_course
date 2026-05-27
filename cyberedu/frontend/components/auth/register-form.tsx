@@ -10,6 +10,7 @@ import { AuthFormFooter } from "@/components/auth/auth-form-footer";
 import { safeCallbackUrl } from "@/lib/auth/safe-callback-url";
 import { AuthGlassCard } from "@/components/auth/auth-glass-card";
 import { PasswordInput } from "@/components/auth/password-input";
+import { PasswordRequirements } from "@/components/auth/password-requirements";
 import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form-message";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,7 @@ function RegisterFormInner() {
   const [pending, setPending] = useState(false);
   const [state, setState] = useState<RegisterActionState>({});
   const [success, setSuccess] = useState(false);
+  const [password, setPassword] = useState("");
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -78,7 +80,7 @@ function RegisterFormInner() {
   return (
     <AuthGlassCard
       title="Регистрация"
-      description="Создайте учётную запись и начните модульный курс."
+      description="Бесплатно. Первый модуль доступен сразу после подтверждения email."
       footer={
         <AuthFormFooter>
           Уже есть аккаунт?{" "}
@@ -119,7 +121,9 @@ function RegisterFormInner() {
           required
           error={state.errors?.password?.[0]}
           disabled={pending}
+          onChange={(e) => setPassword(e.target.value)}
         />
+        <PasswordRequirements password={password} />
         <PasswordInput
           autoComplete="new-password"
           label="Подтверждение пароля"

@@ -1,0 +1,28 @@
+# Override: образы из GHCR (Release workflow) вместо локальной сборки.
+#
+#   export GHCR_OWNER=your-github-org
+#   export CYBEREDU_IMAGE_TAG=v1.2.3   # semver tag из git tag v1.2.3
+#   docker compose -f docker-compose.prod.yml -f docker-compose.prod.ghcr.yml \
+#     --env-file .env.production pull
+#   docker compose -f docker-compose.prod.yml -f docker-compose.prod.ghcr.yml \
+#     --env-file .env.production up -d --no-build --remove-orphans
+#
+# Или: DEPLOY_FROM_GHCR=1 ./deploy/scripts/vps-deploy.sh
+
+name: cyberedu-prod
+
+services:
+  backend:
+    image: ghcr.io/${GHCR_OWNER:?set GHCR_OWNER}/cyberedu-backend:${CYBEREDU_IMAGE_TAG:?set CYBEREDU_IMAGE_TAG}
+    pull_policy: always
+    build: !reset null
+
+  frontend-migrate:
+    image: ghcr.io/${GHCR_OWNER}/cyberedu-frontend-migrate:${CYBEREDU_IMAGE_TAG}
+    pull_policy: always
+    build: !reset null
+
+  frontend:
+    image: ghcr.io/${GHCR_OWNER}/cyberedu-frontend:${CYBEREDU_IMAGE_TAG}
+    pull_policy: always
+    build: !reset null

@@ -3,6 +3,7 @@ import { CheckCircle2, ClipboardCheck, FlaskConical, QrCode, ShieldCheck, User }
 import { BrandLogoMark } from "@/components/brand/brand-logo";
 import { LandingSection } from "@/components/home/landing-section";
 import { Button } from "@/components/ui/button";
+import { authSafe } from "@/lib/auth";
 
 const requirements = [
   { icon: CheckCircle2, text: "Пройти все модули курса по порядку трека." },
@@ -12,7 +13,16 @@ const requirements = [
 ] as const;
 
 /** Act 3 — certificate proof + primary CTA */
-export function LandingActClosing() {
+export async function LandingActClosing() {
+  const session = await authSafe();
+  const isAuthenticated = Boolean(session?.user);
+  const primaryHref = isAuthenticated
+    ? session?.user?.role === "ADMIN"
+      ? "/admin"
+      : "/dashboard/course"
+    : "/auth/register";
+  const primaryLabel = isAuthenticated ? "Перейти в кабинет" : "Создать аккаунт";
+
   return (
     <LandingSection
       id="start"
@@ -48,11 +58,17 @@ export function LandingActClosing() {
           </ul>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <Button asChild size="lg" className="w-full sm:w-auto">
-              <Link href="/auth/register">Создать аккаунт</Link>
+              <Link href={primaryHref}>{primaryLabel}</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
-              <Link href="/auth/login">Уже есть аккаунт</Link>
-            </Button>
+            {!isAuthenticated ? (
+              <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
+                <Link href="/auth/login">Уже есть аккаунт</Link>
+              </Button>
+            ) : (
+              <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
+                <Link href="/dashboard/profile">Мой профиль</Link>
+              </Button>
+            )}
           </div>
         </div>
 

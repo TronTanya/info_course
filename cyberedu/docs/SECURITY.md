@@ -44,8 +44,10 @@
 
 Для `POST`/`PUT`/`PATCH`/`DELETE` на `/api/*` (кроме `/api/auth/*`):
 
-- Проверка `Origin` / `Referer`
-- Double-submit cookie pattern (`lib/security/csrf.ts`)
+- Проверка `Origin` / `Referer` (`lib/security/csrf.ts`, `middleware.ts`)
+- Server Actions: встроенная проверка Origin в Next.js App Router
+
+Production: задайте `AUTH_URL` / `NEXT_PUBLIC_APP_URL` и `TRUSTED_PROXY=1` за reverse proxy (см. `instrumentation.ts`).
 
 ### Rate limiting
 
@@ -90,27 +92,29 @@ dependencies=[Depends(require_internal_api_key)]
 
 Production без ключа → fail closed.
 
+## Auth.js (NextAuth v5)
+
+В production используется `next-auth@5.0.0-beta` — на npm **нет** stable v5 для App Router (latest 4.x — другая ветка). Держите `next-auth` на последнем `beta`, следите за [релизами Auth.js](https://github.com/nextauthjs/next-auth/releases). Апгрейд на stable v5 — отдельный milestone после GA.
+
 ## HTTP security headers
 
 Источник: `frontend/lib/security/headers.ts`, применяется в **`next.config.ts`** (`headers()`) и **`middleware.ts`** (`applySecurityHeaders`) — все HTML/API-ответы приложения, включая `_next/static` (через config).
 
-### Rollout CSP (сначала report-only, потом enforce)
+### CSP (production default: enforce)
 
-| Этап | `CSP_MODE` | Заголовок |
+| Режим | `CSP_MODE` | Заголовок |
 |------|------------|-----------|
-| 1 — мониторинг (default prod) | `report-only` или не задан | `Content-Security-Policy-Report-Only` |
-| 2 — блокировка | `enforce` | `Content-Security-Policy` |
+| **Production (default)** | не задан или `enforce` | `Content-Security-Policy` |
+| Откат / мониторинг | `report-only` | `Content-Security-Policy-Report-Only` |
 | Dev / отладка | `off` (default) | CSP не отправляется |
 
-Политика **одинакова** в report-only и enforce — нарушения видны в отчётах до включения блокировки. Готовая строка: `getEnforceReadyCsp()` в коде.
+Политика **одинакова** в report-only и enforce. Готовая строка: `getEnforceReadyCsp()` в коде.
 
-Опционально: `CSP_REPORT_URI=/api/csp-report` (нужен свой Route Handler для приёма отчётов).
+Опционально: `CSP_REPORT_URI` — URL приёма отчётов браузера.
 
 ```bash
-# production (.env.production)
-CSP_MODE=report-only
-# после 1–2 недель без ложных срабатываний:
-CSP_MODE=enforce
+# production (.env.production) — enforce по умолчанию
+# CSP_MODE=report-only   # откат при ложных срабатываниях
 ```
 
 ### Заголовки (production security)

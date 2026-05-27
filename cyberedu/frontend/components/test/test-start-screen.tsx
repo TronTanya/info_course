@@ -1,6 +1,7 @@
 "use client";
 
 import { Clock, ListChecks, Target, ArrowRight } from "lucide-react";
+import { TestKeyboardHintsBar } from "@/components/test/test-keyboard-hints-bar";
 import {
   formatPassingScore,
   formatTestDuration,
@@ -103,6 +104,8 @@ export function TestStartScreen({
             ))}
           </ul>
         </SectionCard>
+
+        <TestKeyboardHintsBar />
 
         <Button type="button" variant="primary" size="lg" className="w-full sm:w-auto" disabled={disabled} onClick={onStart}>
           {status === "passed" ? "Пройти снова" : "Начать тест"}

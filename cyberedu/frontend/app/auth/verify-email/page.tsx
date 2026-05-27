@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { Mail } from "lucide-react";
 import { AuthGlassCard } from "@/components/auth/auth-glass-card";
 import { AuthFormFooter } from "@/components/auth/auth-form-footer";
+import { AuthStatusSteps } from "@/components/auth/auth-status-steps";
 import { VerifyEmailAutoRedirect } from "@/components/auth/verify-email-auto-redirect";
 import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form-message";
+import { LoadingState } from "@/components/ui/loading-state";
 import { authSafe } from "@/lib/auth";
 import { safeCallbackUrl } from "@/lib/auth/safe-callback-url";
 import { verifyEmailToken, sendVerificationEmailAction } from "@/lib/actions/email-verification";
@@ -45,10 +48,16 @@ async function VerifyEmailContent({
     verification.kind === "already_verified" ||
     isAlreadyVerified;
 
+  const userEmail = session?.user?.email?.trim();
+
   return (
     <AuthGlassCard
       title="Подтверждение email"
-      description="Для доступа к личному кабинету подтвердите адрес электронной почты."
+      description={
+        userEmail
+          ? `Подтвердите ${userEmail}, чтобы открыть кабинет, тесты и лаборатории.`
+          : "Для доступа к личному кабинету подтвердите адрес электронной почты."
+      }
       footer={
         <AuthFormFooter>
           <Link className="font-semibold text-primary underline-offset-4 hover:underline" href="/auth/login">
@@ -57,7 +66,34 @@ async function VerifyEmailContent({
         </AuthFormFooter>
       }
     >
-      <div className="space-y-4">
+      <div className="space-y-5">
+        {!shouldAutoRedirect ? (
+          <div className="flex flex-col gap-3 rounded-xl border border-primary/20 bg-primary/8 px-4 py-3 sm:flex-row sm:items-start">
+            <Mail className="size-5 shrink-0 text-primary sm:mt-0.5" aria-hidden />
+            <div className="min-w-0 flex-1">
+            <AuthStatusSteps
+              steps={[
+                {
+                  title: "Откройте письмо от CyberEdu",
+                  description: "Проверьте папку «Спам», если письма нет во входящих.",
+                  done: verifySentBanner || sentState === "ok",
+                },
+                {
+                  title: "Нажмите ссылку подтверждения",
+                  description: "Ссылка одноразовая и действует ограниченное время.",
+                  done: verification.kind === "verified",
+                },
+                {
+                  title: "Вернитесь в кабинет",
+                  description: "После подтверждения откроются все разделы курса.",
+                  done: shouldAutoRedirect,
+                },
+              ]}
+            />
+            </div>
+          </div>
+        ) : null}
+
         {verifySentBanner ? (
           <FormMessage variant="success">Письмо с подтверждением отправлено. Проверьте входящие и спам.</FormMessage>
         ) : null}
@@ -117,7 +153,7 @@ export default function VerifyEmailPage({
   searchParams: Promise<{ token?: string; callbackUrl?: string; sent?: string; verify_sent?: string }>;
 }) {
   return (
-    <Suspense>
+    <Suspense fallback={<LoadingState size="sm" label="Проверяем статус email…" />}>
       <VerifyEmailContent searchParams={searchParams} />
     </Suspense>
   );

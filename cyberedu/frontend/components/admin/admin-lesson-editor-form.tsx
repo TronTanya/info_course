@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { AdminFormStickyBar } from "@/components/admin/admin-form-sticky-bar";
 import { updateLessonAction, type AdminLessonFormState } from "@/lib/actions/admin-lessons";
 
 type LessonRow = {
@@ -90,17 +91,14 @@ export function AdminLessonEditorForm({
           </TabsContent>
         </Tabs>
       </div>
-      <div className="flex flex-wrap gap-2">
-        <Button type="submit" loading={pending}>
-          Сохранить
-        </Button>
-        <Button type="button" variant="outline" asChild>
-          <Link href="/admin/lessons">К списку лекций</Link>
-        </Button>
-        <Button type="button" variant="outline" asChild>
+      <AdminFormStickyBar backHref="/admin/lessons" backLabel="К списку лекций">
+        <Button type="button" variant="outline" asChild disabled={pending}>
           <Link href={`/admin/modules/${lesson.moduleId}/edit`}>К модулю</Link>
         </Button>
-      </div>
+        <Button type="submit" variant="primary" loading={pending}>
+          Сохранить лекцию
+        </Button>
+      </AdminFormStickyBar>
     </form>
   );
 }

@@ -23,11 +23,11 @@ import { cyber } from "@/lib/design-system/cyber";
 import { cn } from "@/lib/utils";
 
 const SECTIONS = [
-  { id: "overview", label: "Overview" },
-  { id: "users", label: "Users" },
-  { id: "content", label: "Content" },
-  { id: "analytics", label: "Analytics" },
-  { id: "security", label: "Security" },
+  { id: "overview", label: "Обзор" },
+  { id: "users", label: "Пользователи" },
+  { id: "content", label: "Контент" },
+  { id: "analytics", label: "Аналитика" },
+  { id: "security", label: "Безопасность" },
 ] as const;
 
 function KpiTile({
@@ -65,7 +65,7 @@ function KpiTile({
 function StatusBadge({ ok }: { ok: boolean }) {
   return (
     <Badge variant={ok ? "success" : "danger"} className="font-mono text-2.5 uppercase">
-      {ok ? "OK" : "FAIL"}
+      {ok ? "Норма" : "Ошибка"}
     </Badge>
   );
 }
@@ -100,12 +100,12 @@ export function AdminSecurityDashboard({
       <section id="admin-overview" className="scroll-mt-24 space-y-4">
         <header className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="font-mono text-2.5 font-bold uppercase tracking-eyebrow text-primary">Overview</p>
+            <p className="font-mono text-2.5 font-bold uppercase tracking-eyebrow text-primary">Обзор</p>
             <h2 className="font-display text-xl font-semibold text-foreground">Состояние платформы</h2>
           </div>
           <Badge variant={system.appStatus === "ok" ? "success" : "warning"} className="gap-1">
             <Shield className="size-3" aria-hidden />
-            {system.appStatus === "ok" ? "Operational" : "Degraded"}
+            {system.appStatus === "ok" ? "Работает" : "Есть сбои"}
           </Badge>
         </header>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
@@ -130,7 +130,7 @@ export function AdminSecurityDashboard({
                 ? `${overview.testPassRatePercent}%`
                 : "—"
             }
-            hint={`${overview.testAttemptsTotal} попыток · pass rate`}
+            hint={`${overview.testAttemptsTotal} попыток · доля сдач`}
           />
         </div>
       </section>
@@ -138,7 +138,7 @@ export function AdminSecurityDashboard({
       <section id="admin-users" className="scroll-mt-24 space-y-4">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="font-mono text-2.5 font-bold uppercase tracking-eyebrow text-primary">User management</p>
+            <p className="font-mono text-2.5 font-bold uppercase tracking-eyebrow text-primary">Управление пользователями</p>
             <h2 className="font-display text-xl font-semibold text-foreground">Пользователи</h2>
             <p className="mt-1 text-sm text-muted-foreground">Поиск, фильтры по роли и прогрессу, действия в меню строки.</p>
           </div>
@@ -156,7 +156,7 @@ export function AdminSecurityDashboard({
 
       <section id="admin-content" className="scroll-mt-24 space-y-4">
         <header>
-          <p className="font-mono text-2.5 font-bold uppercase tracking-eyebrow text-primary">Content management</p>
+          <p className="font-mono text-2.5 font-bold uppercase tracking-eyebrow text-primary">Управление контентом</p>
           <h2 className="font-display text-xl font-semibold text-foreground">Контент курса</h2>
         </header>
         <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
@@ -199,7 +199,7 @@ export function AdminSecurityDashboard({
 
       <section id="admin-analytics" className="scroll-mt-24 space-y-4">
         <header>
-          <p className="font-mono text-2.5 font-bold uppercase tracking-eyebrow text-primary">Analytics</p>
+          <p className="font-mono text-2.5 font-bold uppercase tracking-eyebrow text-primary">Аналитика</p>
           <h2 className="font-display text-xl font-semibold text-foreground">Аналитика</h2>
         </header>
         <div className="grid gap-4 lg:grid-cols-2">
@@ -306,7 +306,7 @@ export function AdminSecurityDashboard({
 
       <section id="admin-security" className="scroll-mt-24 space-y-4">
         <header>
-          <p className="font-mono text-2.5 font-bold uppercase tracking-eyebrow text-primary">Security</p>
+          <p className="font-mono text-2.5 font-bold uppercase tracking-eyebrow text-primary">Безопасность</p>
           <h2 className="font-display text-xl font-semibold text-foreground">Система и безопасность</h2>
         </header>
         <div className="grid gap-4 lg:grid-cols-2">
@@ -352,7 +352,7 @@ export function AdminSecurityDashboard({
               )}
               <Button asChild variant="outline" size="sm">
                 <a href="/api/health" target="_blank" rel="noopener noreferrer">
-                  API health JSON
+                  Статус API (JSON)
                 </a>
               </Button>
           </SectionCard>

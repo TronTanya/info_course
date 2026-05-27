@@ -72,6 +72,19 @@ docker compose -f docker-compose.prod.yml \
   --env-file .env.production up -d --build
 ```
 
+Рекомендуемый путь (c guard от HTTP-only релиза):
+
+```bash
+./deploy/scripts/vps-deploy.sh
+```
+
+Скрипт по умолчанию требует `deploy/nginx/conf.d/cyberedu.ssl.conf` без placeholder `YOUR_DOMAIN`.
+Одноразовый bootstrap без TLS (только для выпуска certbot) — явно:
+
+```bash
+ALLOW_HTTP_BOOTSTRAP=1 ./deploy/scripts/vps-deploy.sh
+```
+
 Verify:
 
 ```bash
@@ -80,7 +93,13 @@ curl -fsS http://127.0.0.1/nginx-health
 curl -fsS http://127.0.0.1/api/health
 ```
 
-Script: `deploy/scripts/vps-deploy.sh`
+Script: `deploy/scripts/vps-deploy.sh` (перед `up` вызывает `./scripts/validate-prod-env.sh` — слабые секреты, `RUN_SEED`, placeholders).
+
+Локально проверить env без деплоя:
+
+```bash
+make -C cyberedu validate-prod-env ENV_FILE=.env.production
+```
 
 Post-deploy smoke (с Redis на production):
 
@@ -104,6 +123,7 @@ npm run test:e2e:prod:local    # migrate, seed (E2E_PRODUCTION_SMOKE), build, st
 3. Certbot → `deploy/nginx/certs/`
 4. Enable `deploy/nginx/conf.d/cyberedu.ssl.conf` (from `.ssl.conf.example`)
 5. `docker compose ... restart nginx`
+6. Убедиться, что `deploy/nginx/conf.d/cyberedu.conf` редиректит `http://` → `https://`
 
 ## CI/CD
 
@@ -112,7 +132,14 @@ npm run test:e2e:prod:local    # migrate, seed (E2E_PRODUCTION_SMOKE), build, st
 | `ci.yml` | PR / push `main` | lint, test, docker build smoke |
 | `release.yml` | tag `v*.*.*` | GHCR images |
 
-Deploy from GHCR: set image tags in compose override or pull by digest.
+Deploy from GHCR:
+
+```bash
+# .env.production: GHCR_OWNER=your-org CYBEREDU_IMAGE_TAG=v1.2.3
+DEPLOY_FROM_GHCR=1 ./deploy/scripts/vps-deploy.sh
+```
+
+Uses `docker-compose.prod.ghcr.yml` + `--no-build`. Digests: `.deploy/last-images.txt`.
 
 ## Migrations
 
@@ -124,12 +151,13 @@ Deploy from GHCR: set image tags in compose override or pull by digest.
 ## Backups
 
 ```bash
-# Example daily backup (cron on host)
-docker compose -f docker-compose.prod.yml exec -T postgres \
-  pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" | gzip > /backups/cyberedu-$(date +%F).sql.gz
+cd cyberedu
+BACKUP_DIR=/var/backups/cyberedu ./scripts/backup-production.sh
+# restore drill (quarterly):
+BACKUP_SQL_GZ=/var/backups/cyberedu/latest/postgres.sql.gz ./scripts/restore-drill.sh
 ```
 
-Retention: 7 daily, 4 weekly — adjust per policy. **Test restore** quarterly.
+Cron: `deploy/cron/cyberedu-backup.cron.example`. Retention: `RETENTION_DAYS` (default 14). **Test restore** quarterly via `restore-drill.sh`.
 
 ## Logs
 
@@ -173,6 +201,14 @@ External uptime: monitor `https://<domain>/api/health` and `/nginx-health`.
 
 ## Rollback
 
-1. Note current image digest/tag
-2. `docker compose up -d` with previous tags
-3. If DB migration broke: restore from backup, redeploy previous app version
+1. GHCR: `./scripts/rollback-production.sh` (uses `.deploy/previous-release.env` from last `vps-deploy.sh`)
+2. Build on server: set `CYBEREDU_IMAGE_TAG` / rebuild previous git commit, then `vps-deploy.sh`
+3. If DB migration broke: restore from backup (`restore-drill.sh` validates dumps), redeploy previous app version
+
+## Monitoring (cron / uptime)
+
+```bash
+BASE_URL=https://your-domain CHECK_NGINX=1 ./scripts/monitor-health.sh
+```
+
+Exit code `1` when `/api/health` is not `ok` or Redis is `error` in production.

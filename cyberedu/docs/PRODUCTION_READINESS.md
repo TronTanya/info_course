@@ -57,6 +57,7 @@
 |----------|------------|
 | [checklists/FINAL_CHECKLIST.md](./checklists/FINAL_CHECKLIST.md) | Полный pre-production чеклист |
 | [checklists/RELEASE_CHECKLIST.md](./checklists/RELEASE_CHECKLIST.md) | Релиз по тегу / версии |
+| [PRODUCTION_AUDIT_2026-05.md](./PRODUCTION_AUDIT_2026-05.md) | Полный production audit (May 2026) |
 | [checklists/SECURITY_CHECKLIST.md](./checklists/SECURITY_CHECKLIST.md) | Безопасность |
 | [checklists/DEPLOYMENT_CHECKLIST.md](./checklists/DEPLOYMENT_CHECKLIST.md) | Деплой на VPS |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Архитектура |

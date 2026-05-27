@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import Link from "next/link";
+import { AdminFormStickyBar } from "@/components/admin/admin-form-sticky-bar";
 import { createModuleAction, type AdminModuleFormState } from "@/lib/actions/admin-modules";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -33,14 +33,11 @@ export function AdminModuleCreateForm() {
         <input type="checkbox" name="isActive" defaultChecked className="size-4 rounded border-border" />
         Модуль активен (виден в курсе)
       </label>
-      <div className="flex flex-wrap gap-2">
-        <Button type="submit" loading={pending}>
+      <AdminFormStickyBar backHref="/admin/modules" backLabel="Отмена">
+        <Button type="submit" variant="primary" loading={pending}>
           Создать модуль
         </Button>
-        <Button type="button" variant="outline" asChild>
-          <Link href="/admin/modules">Отмена</Link>
-        </Button>
-      </div>
+      </AdminFormStickyBar>
     </form>
   );
 }

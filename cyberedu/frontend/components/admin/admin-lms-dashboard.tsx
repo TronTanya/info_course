@@ -118,13 +118,13 @@ export function AdminLmsDashboard({
               )}
             </DifficultBlock>
 
-            <DifficultBlock title="Модули с низким completion" empty="Все модули выше 70% завершения.">
+            <DifficultBlock title="Модули с низким завершением" empty="Все модули выше 70% завершения.">
               {difficult.modules.length === 0 ? null : (
                 <ul className="space-y-2">
                   {difficult.modules.map((m) => (
                     <li key={m.moduleId}>
                       <Link
-                        href={`/dashboard/course/${m.moduleId}`}
+                        href={`/admin/modules/${m.moduleId}/edit`}
                         className="flex items-center justify-between gap-2 rounded-lg border border-border/70 px-3 py-2 text-sm transition-colors hover:border-primary/25 hover:bg-primary/5"
                       >
                         <span className="font-medium text-foreground">{m.title}</span>
@@ -166,7 +166,16 @@ export function AdminLmsDashboard({
             ) : null}
           </div>
           {submissionQueue.length === 0 ? (
-            <EmptyState className="mt-4 py-8" title="Очередь пуста" description="Новые отправки появятся здесь." />
+            <EmptyState
+              className="mt-4 py-8"
+              title="Очередь пуста"
+              description="Нет работ, ожидающих проверки. Новые отправки появятся после сдачи практики студентами."
+              action={
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/admin/submissions">Все отправки</Link>
+                </Button>
+              }
+            />
           ) : (
             <ul className="mt-4 space-y-2">
               {submissionQueue.map((s) => (
@@ -226,7 +235,7 @@ export function AdminLmsDashboard({
                   <div className="flex items-center gap-2">
                     <Badge variant={c.hasPdf ? "success" : "warning"}>{c.hasPdf ? "PDF" : "нет PDF"}</Badge>
                     <Link href={c.verifyHref} className="text-xs font-medium text-primary hover:underline" target="_blank" rel="noreferrer">
-                      Verify
+                      Проверка
                     </Link>
                   </div>
                 </li>
@@ -241,7 +250,7 @@ export function AdminLmsDashboard({
         <SectionCard variant="lab" flushTitle className="p-4 sm:p-6" id="audit">
           <div className="flex items-center gap-2">
             <Shield className="size-5 text-cyan" aria-hidden />
-            <h2 className="font-display text-base font-semibold text-foreground">Audit / Security</h2>
+            <h2 className="font-display text-base font-semibold text-foreground">Журнал безопасности</h2>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">Последние события реестра (без PII в meta).</p>
           {auditEvents.length === 0 ? (
@@ -249,7 +258,6 @@ export function AdminLmsDashboard({
               className="mt-4 py-6"
               title="Событий пока нет"
               description="Аудит пишется в security_audit_log при действиях в системе."
-              terminalLine="audit --empty"
             />
           ) : (
             <ul className="mt-4 max-h-80 space-y-2 overflow-y-auto">
@@ -266,21 +274,21 @@ export function AdminLmsDashboard({
                     <Badge variant={severityBadge(e.severity)}>{e.severity}</Badge>
                     {e.sensitive ? (
                       <Badge variant="outline" className="text-2.5">
-                        sensitive
+                        чувствительное
                       </Badge>
                     ) : null}
                   </div>
                   <p className="mt-1 text-muted-foreground">
                     {formatAt(e.at)}
                     {e.path ? ` · ${e.path}` : ""}
-                    {e.actorId ? ` · actor ${e.actorId.slice(0, 8)}…` : ""}
+                    {e.actorId ? ` · ID ${e.actorId.slice(0, 8)}…` : ""}
                   </p>
                 </li>
               ))}
             </ul>
           )}
           <Button asChild variant="ghost" size="sm" className="mt-4">
-            <Link href="/admin/profile">Security dashboard</Link>
+            <Link href="/admin/profile">Открыть аудит</Link>
           </Button>
         </SectionCard>
       </div>

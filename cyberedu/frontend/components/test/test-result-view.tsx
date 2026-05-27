@@ -114,6 +114,33 @@ export function TestResultView({
         </dl>
       </CyberHero>
 
+      {!passed ? (
+        <section
+          className="rounded-2xl border border-danger/30 bg-danger/5 p-5 ring-1 ring-danger/15 sm:p-6"
+          aria-labelledby="test-retry-plan-heading"
+        >
+          <h3
+            id="test-retry-plan-heading"
+            className="flex items-center gap-2 font-display text-base font-semibold text-foreground"
+          >
+            <BookOpen className="size-4 text-danger" aria-hidden />
+            С чего начать повторение
+          </h3>
+          <p className="mt-2 text-sm text-pretty text-muted-foreground">
+            Вернитесь к лекции модуля, пройдите блок «Ключевые идеи» и разберите вопросы из раздела «Что повторить» ниже.
+          </p>
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <Button asChild variant="primary" size="lg" className="w-full sm:w-auto">
+              <Link href={lessonHref}>К лекции</Link>
+            </Button>
+            <Button type="button" variant="outline" size="lg" className="w-full sm:w-auto" onClick={onRetry}>
+              <RotateCcw className="size-4" aria-hidden />
+              Повторить тест
+            </Button>
+          </div>
+        </section>
+      ) : null}
+
       {passed ? (
         <SuccessState
           compact

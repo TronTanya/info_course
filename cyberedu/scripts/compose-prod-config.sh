@@ -5,6 +5,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ENV_FILE="${ENV_FILE:-$ROOT/.env.prod.example}"
 COMPOSE_FILE="${COMPOSE_FILE:-$ROOT/docker-compose.prod.yml}"
+VALIDATE_GHCR="${VALIDATE_GHCR:-0}"
 
 if [[ ! -f "$ENV_FILE" ]]; then
   echo "compose-prod-config: нет файла $ENV_FILE" >&2
@@ -12,4 +13,11 @@ if [[ ! -f "$ENV_FILE" ]]; then
   exit 1
 fi
 
-exec docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" config "$@"
+args=(--env-file "$ENV_FILE" -f "$COMPOSE_FILE")
+if [[ "$VALIDATE_GHCR" == "1" ]]; then
+  args+=(-f "$ROOT/docker-compose.prod.ghcr.yml")
+  export GHCR_OWNER="${GHCR_OWNER:-ci-org}"
+  export CYBEREDU_IMAGE_TAG="${CYBEREDU_IMAGE_TAG:-v0.0.0-ci}"
+fi
+
+exec docker compose "${args[@]}" config "$@"

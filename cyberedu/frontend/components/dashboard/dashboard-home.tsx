@@ -3,6 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { DashboardAchievementsPreview } from "@/components/dashboard/dashboard-achievements-preview";
 import { DashboardContinueHero } from "@/components/dashboard/dashboard-continue-hero";
+import { DashboardOnboardingBanner } from "@/components/dashboard/dashboard-onboarding-banner";
 import { DashboardEmpty } from "@/components/dashboard/dashboard-empty";
 import { DashboardLastTestResult } from "@/components/dashboard/dashboard-last-test-result";
 import { DashboardNextPractice } from "@/components/dashboard/dashboard-next-practice";
@@ -63,6 +64,8 @@ export function DashboardHome({
         aiPanel={<MentorDockedPanel stats={stats} modules={modules} />}
       >
         <CockpitHeader displayName={displayName} stats={stats} modules={modules} />
+
+        <DashboardOnboardingBanner stats={stats} modules={modules} />
 
         <div className="ce-cockpit-span-12">
           <DashboardContinueHero stats={stats} modules={modules} />

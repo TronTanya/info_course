@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AdminBreadcrumbs, adminBreadcrumbItems } from "@/components/admin/admin-breadcrumbs";
+import { AdminTestEditStickyNav } from "@/components/admin/admin-test-edit-sticky-nav";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { AdminTestMetaForm } from "@/components/admin/admin-test-meta-form";
 import { AdminTestQuestionCard } from "@/components/admin/admin-test-question-card";
 import { Alert } from "@/components/ui/alert";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { prisma } from "@/lib/db";
 import { createQuestionAction } from "@/lib/actions/admin-tests";
 
@@ -21,6 +23,11 @@ type Props = {
   params: Promise<{ testId: string }>;
   searchParams: Promise<{ err?: string }>;
 };
+
+function truncateTitle(title: string, max = 40): string {
+  const t = title.trim();
+  return t.length <= max ? t : `${t.slice(0, max - 1)}…`;
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { testId } = await params;
@@ -53,19 +60,17 @@ export default async function AdminEditTestPage({ params, searchParams }: Props)
 
   return (
     <AdminShell>
-      <div className="space-y-6">
+      <div className="space-y-6 pb-24">
       <AdminPageHeader
         title="Редактирование теста"
         description={`Модуль: ${test.module.title}. Порог прохождения считается только по вопросам с автоматической оценкой.`}
         breadcrumb={
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            <Link href="/admin/tests" className="hover:text-foreground">
-              ← Тесты
-            </Link>
-            <Link href={`/admin/modules/${test.module.id}/edit`} className="hover:text-foreground">
-              Модуль
-            </Link>
-          </div>
+          <AdminBreadcrumbs
+            items={adminBreadcrumbItems(truncateTitle(test.title), {
+              href: "/admin/tests",
+              label: "Тесты",
+            })}
+          />
         }
       />
 
@@ -88,7 +93,17 @@ export default async function AdminEditTestPage({ params, searchParams }: Props)
         </div>
 
         {n === 0 ? (
-          <p className="text-sm text-muted-foreground">Вопросов нет — нажмите «Добавить вопрос».</p>
+          <EmptyState
+            title="Вопросов пока нет"
+            description="Добавьте первый вопрос, затем настройте тип, баллы и варианты ответов. Без вопросов студент не сможет пройти тест."
+            action={
+              <form action={createQuestionAction.bind(null, test.id)}>
+                <Button type="submit" variant="primary">
+                  Добавить первый вопрос
+                </Button>
+              </form>
+            }
+          />
         ) : (
           <div className="space-y-6">
             {test.questions.map((q, idx) => (
@@ -118,6 +133,8 @@ export default async function AdminEditTestPage({ params, searchParams }: Props)
           </div>
         )}
       </div>
+
+      <AdminTestEditStickyNav moduleId={test.module.id} />
       </div>
     </AdminShell>
   );

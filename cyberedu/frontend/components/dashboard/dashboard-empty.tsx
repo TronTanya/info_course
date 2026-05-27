@@ -7,12 +7,17 @@ export function DashboardEmpty() {
   return (
     <EmptyState
       title="Курс пока не подключён"
-      description="Администратор ещё не настроил программу в системе. Когда курс появится, здесь отобразятся прогресс и следующие шаги."
+      description="Администратор ещё не опубликовал программу. Обновите страницу позже или вернитесь на главную — мы уведомим, когда курс будет доступен."
       icon={<BookOpen className="size-7 opacity-70" aria-hidden />}
       action={
-        <Button asChild variant="outline">
-          <Link href="/">На главную</Link>
-        </Button>
+        <div className="flex flex-wrap justify-center gap-2">
+          <Button asChild variant="primary">
+            <Link href="/dashboard/settings">Настройки профиля</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/">На главную</Link>
+          </Button>
+        </div>
       }
     />
   );

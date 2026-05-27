@@ -11,11 +11,13 @@ import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form-message";
 import type { ResetPasswordState } from "@/lib/actions/password-reset";
 import { resetPasswordAction } from "@/lib/actions/password-reset";
+import { PasswordRequirements } from "@/components/auth/password-requirements";
 import { resetPasswordSchema } from "@/lib/validation";
 
 export function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") ?? "";
+  const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
   const [state, setState] = useState<ResetPasswordState>({});
   const [success, setSuccess] = useState(false);
@@ -123,7 +125,9 @@ export function ResetPasswordForm() {
           required
           error={state.errors?.password?.[0]}
           disabled={pending}
+          onChange={(e) => setPassword(e.target.value)}
         />
+        <PasswordRequirements password={password} />
         <PasswordInput
           autoComplete="new-password"
           label="Подтверждение пароля"

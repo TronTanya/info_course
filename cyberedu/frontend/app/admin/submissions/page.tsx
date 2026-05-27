@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { Prisma } from "@prisma/client";
+import { AdminBreadcrumbs, adminBreadcrumbItems } from "@/components/admin/admin-breadcrumbs";
 import { AdminDualTable } from "@/components/admin/admin-dual-table";
 import { AdminFilterTabs } from "@/components/admin/admin-filter-tabs";
 import { AdminMobileCard } from "@/components/admin/admin-mobile-card";
@@ -64,6 +65,36 @@ function statusRu(s: string): string {
   return m[s] ?? s;
 }
 
+function submissionEmptyCopy(active: string): { title: string; description: string } {
+  switch (active) {
+    case "pending":
+      return {
+        title: "Очередь пуста",
+        description: "Нет работ, ожидающих проверки. Новые отправки появятся после сдачи практики студентами.",
+      };
+    case "accepted":
+      return {
+        title: "Нет принятых работ",
+        description: "Принятые отправки отобразятся здесь после проверки преподавателем.",
+      };
+    case "rejected":
+      return {
+        title: "Нет отклонённых работ",
+        description: "Отклонённые отправки будут показаны в этом списке.",
+      };
+    case "revision":
+      return {
+        title: "Нет работ на доработке",
+        description: "Отправки со статусом «На доработке» появятся после решения проверяющего.",
+      };
+    default:
+      return {
+        title: "Нет отправок",
+        description: "По выбранному фильтру работ не найдено. Проверьте другую вкладку или дождитесь сдачи практики.",
+      };
+  }
+}
+
 const TABS: { href: string; label: string; match: string }[] = [
   { href: "/admin/submissions", label: "Все", match: "all" },
   { href: "/admin/submissions?filter=pending", label: "Ожидают проверки", match: "pending" },
@@ -99,10 +130,13 @@ export default async function AdminSubmissionsPage({ searchParams }: Props) {
     },
   });
 
+  const empty = submissionEmptyCopy(active);
+
   return (
     <AdminShell>
       <div className="space-y-6">
         <AdminPageHeader
+          breadcrumb={<AdminBreadcrumbs items={adminBreadcrumbItems("Проверка практик")} />}
           eyebrow="Проверка · Cyber Lab"
           title="Практические отправки"
           description="Отправки со статусом не «черновик». После «Принято» пересчитывается прогресс модуля и курс."
@@ -117,9 +151,17 @@ export default async function AdminSubmissionsPage({ searchParams }: Props) {
           <UiStatePanel
             state={rows.length === 0 ? "empty" : "idle"}
             className="m-4 py-10"
-            title="Нет отправок"
-            description="По выбранному фильтру работ не найдено."
-            terminalLine="queue --empty"
+            title={empty.title}
+            description={empty.description}
+            action={
+              rows.length === 0 ? (
+                <Button asChild variant="outline" size="sm">
+                  <Link href={active === "pending" ? "/admin/modules" : "/admin/submissions?filter=pending"}>
+                    {active === "pending" ? "Модули и практики" : "Ожидают проверки"}
+                  </Link>
+                </Button>
+              ) : undefined
+            }
           >
             <AdminDualTable
               mobile={

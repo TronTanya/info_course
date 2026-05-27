@@ -3,10 +3,10 @@ import { devTrustedOriginsForNext } from "./lib/security/dev-trusted-origin";
 import { securityHeadersList } from "./lib/security/headers";
 
 const nextConfig: NextConfig = {
-  // LAN IP (192.168.x.x) и localhost — разные origins; без этого dev/HMR и auth ломаются.
   allowedDevOrigins: devTrustedOriginsForNext(),
   serverExternalPackages: ["nodemailer"],
-  output: "standalone",
+  // Standalone — только для Docker/VPS. На Vercel (VERCEL=1) используем стандартный output.
+  ...(process.env.VERCEL ? {} : { output: "standalone" as const }),
   outputFileTracingIncludes: {
     "/api/certificates/**/*": [
       "./node_modules/dejavu-fonts-ttf/**/*",
@@ -14,13 +14,22 @@ const nextConfig: NextConfig = {
     ],
   },
   async redirects() {
-    return [
+    const routes: { source: string; destination: string; permanent: boolean }[] = [
       {
         source: "/dashboard/ui-kit",
         destination: "/dashboard/profile",
         permanent: true,
       },
     ];
+    // Production build: dev-only API недоступны (дополнение к middleware 404).
+    if (process.env.NODE_ENV === "production") {
+      routes.push({
+        source: "/api/dev/:path*",
+        destination: "/404",
+        permanent: false,
+      });
+    }
+    return routes;
   },
   async headers() {
     return [

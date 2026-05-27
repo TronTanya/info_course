@@ -13,7 +13,7 @@ fi
 
 if [[ ! -d .venv ]]; then
   "$PY" -m venv .venv
-  .venv/bin/pip install -q -r requirements.txt
+  .venv/bin/pip install -q -r requirements-dev.txt
 fi
 
 export ENVIRONMENT="${ENVIRONMENT:-development}"
