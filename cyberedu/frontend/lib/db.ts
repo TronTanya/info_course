@@ -3,7 +3,12 @@ import { PrismaClient } from "@prisma/client";
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined };
 
-if (process.env.NODE_ENV === "production" && !process.env.DATABASE_URL?.trim()) {
+const isNextProductionBuild = process.env.NEXT_PHASE === "phase-production-build";
+if (
+  process.env.NODE_ENV === "production" &&
+  !isNextProductionBuild &&
+  !process.env.DATABASE_URL?.trim()
+) {
   throw new Error("DATABASE_URL не задан. Укажите строку подключения к PostgreSQL для Prisma.");
 }
 

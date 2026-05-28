@@ -2,5 +2,16 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "installCommand": "npm ci",
-  "buildCommand": "npm run build"
+  "buildCommand": "npm run build",
+  "build": {
+    "env": {
+      "DATABASE_URL": "postgresql://build:build@127.0.0.1:5432/cyberedu?schema=public",
+      "AUTH_SECRET": "vercel-build-placeholder-min-32-characters",
+      "AUTH_URL": "https://placeholder.vercel.app",
+      "NEXT_PUBLIC_APP_URL": "https://placeholder.vercel.app",
+      "NEXTAUTH_URL": "https://placeholder.vercel.app",
+      "NEXTAUTH_SECRET": "vercel-build-placeholder-min-32-characters",
+      "ENVIRONMENT": "production"
+    }
+  }
 }

@@ -1,0 +1,4 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "node -e \"console.error('\\n\\n[Vercel] Укажите Root Directory: cyberedu/frontend\\n  Project → Settings → General → Root Directory → cyberedu/frontend\\n  Node.js Version → 20.x\\n\\n'); process.exit(1)\""
+}
