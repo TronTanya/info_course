@@ -36,7 +36,8 @@ Node.js: **Project → Settings → General → Node.js Version → 20.x**.
 
 1. **Deployments** → последний деплой → статус **Ready** (не Error).
 2. Открывайте URL из карточки **Visit** у успешного деплоя, не старый preview.
-3. Если в логах сборки: `Укажите Root Directory: cyberedu/frontend` — задайте Root Directory и redeploy.
+
+В корне репозитория **нет** `vercel.json` — конфиг только в `cyberedu/frontend/vercel.json`. Без Root Directory Vercel снова покажет 404.
 
 ## Локальная проверка
 
