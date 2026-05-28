@@ -28,6 +28,7 @@ html:has(.ce-admin-route-root):not(.dark) {
 
 html.dark:has(.ce-admin-route-root) {
   color-scheme: dark;
+  --ce-bg-elevated: var(--card);
 }
 
 .ce-admin-route-root {
@@ -170,6 +171,15 @@ body:has(.ce-admin-route)::after {
   word-break: break-word;
 }
 
+/* Keep text readable even when utility classes try to mute nested spans. */
+.ce-admin-route .ce-admin-users-grid__body-row [role="cell"],
+.ce-admin-route .ce-admin-users-grid__body-row [role="cell"] * {
+  opacity: 1 !important;
+  color: var(--foreground) !important;
+  -webkit-text-fill-color: currentcolor !important;
+  text-shadow: none !important;
+}
+
 .ce-admin-users-grid__name {
   font-weight: 600;
 }
@@ -178,6 +188,64 @@ body:has(.ce-admin-route)::after {
 .ce-admin-users-grid__muted {
   color: var(--muted-foreground) !important;
   -webkit-text-fill-color: currentcolor !important;
+}
+
+/* Dark mode: muted values in students list should remain readable. */
+html.dark .ce-admin-route .ce-admin-users-grid__email,
+html.dark .ce-admin-route .ce-admin-users-grid__muted {
+  color: color-mix(in oklab, var(--foreground) 72%, var(--muted-foreground)) !important;
+}
+
+/* Students tab mostly shows USER rows; keep them slightly brighter on dark background. */
+html.dark .ce-admin-route .ce-admin-users-grid__body-row--user [role="cell"],
+html.dark .ce-admin-route .ce-admin-users-grid__body-row--user [role="cell"] * {
+  color: color-mix(in oklab, var(--foreground) 92%, #fff) !important;
+}
+
+/* Badges: backdrop-blur ломает текст в grid (Chrome/Safari) */
+.ce-admin-route .ce-admin-badge {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  -webkit-text-fill-color: currentcolor !important;
+  background-image: none !important;
+  animation: none !important;
+}
+
+html.dark .ce-admin-route .ce-admin-badge[class*="bg-primary"] {
+  background: color-mix(in oklab, var(--primary) 18%, var(--card)) !important;
+  color: var(--primary) !important;
+}
+
+html.dark .ce-admin-route .ce-admin-badge[class*="bg-white"] {
+  background: color-mix(in oklab, var(--muted) 55%, var(--card)) !important;
+  color: var(--foreground) !important;
+}
+
+/* Users table: plain text must stay visible (badges use .ce-admin-badge). */
+.ce-admin-users-table td,
+.ce-admin-users-table th {
+  color: var(--foreground);
+  opacity: 1;
+}
+
+.ce-admin-users-table td.text-muted-foreground {
+  color: var(--muted-foreground);
+}
+
+.ce-admin-users-table__name {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+/* Do not hide users table instances via CSS: it can hide the real content shell. */
+
+/* Avoid forced compositing: it can hide glyphs in Chrome/Safari after filtering. */
+
+.ce-admin-route .ce-text-shimmer {
+  animation: none !important;
+  background: none !important;
+  -webkit-text-fill-color: currentcolor !important;
+  color: inherit !important;
 }
 
 .ce-admin-route .ce-admin-data-table-wrap .ce-admin-users-grid [role="cell"] *,
@@ -213,8 +281,8 @@ body:has(.ce-admin-route)::after {
   isolation: auto;
 }
 
-/* Next.js RSC streaming can briefly mount duplicate table shells — keep one visible */
-.ce-admin-reviews-page .ce-admin-reviews-table-wrap ~ .ce-admin-reviews-table-wrap {
+/* Next.js RSC streaming — keep the last table shell */
+.ce-admin-reviews-page .ce-admin-reviews-table-wrap:not(:last-of-type) {
   display: none !important;
 }
 

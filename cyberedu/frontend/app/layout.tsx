@@ -7,19 +7,22 @@ const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin", "cyrillic"],
   display: "swap",
+  preload: true,
 });
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  subsets: ["latin", "cyrillic"],
+  weight: ["500", "600", "700"],
   display: "swap",
+  preload: false,
 });
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
-  subsets: ["latin"],
+  subsets: ["latin", "cyrillic"],
   display: "swap",
+  preload: false,
 });
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3100";
@@ -60,7 +63,7 @@ export default function RootLayout({
   return (
     <html
       lang="ru"
-      className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} dark h-full antialiased`}
       suppressHydrationWarning
     >
       <head>

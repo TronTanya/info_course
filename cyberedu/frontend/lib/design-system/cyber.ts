@@ -33,9 +33,9 @@ export const cyber = {
   learnMissionCard: "ce-learn-mission-card",
   missionLab: "ce-mission-lab",
   missionTopbar: "ce-mission-topbar",
-  /** Solid surface — no backdrop-filter (admin tables lose text on desktop scroll otherwise). */
+  /** Solid surface — no backdrop-filter; do not clip-x (hides first columns of wide tables). */
   adminTable:
-    "ce-admin-table-card overflow-x-clip overflow-y-visible rounded-2xl border border-border bg-card shadow-sm",
+    "ce-admin-table-card overflow-x-visible overflow-y-visible rounded-2xl border border-border bg-card shadow-sm",
   adminMobileCard:
     "ce-admin-mobile-card ce-glass rounded-2xl border border-primary/15 p-4 shadow-card",
   adminKpi:

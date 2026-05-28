@@ -99,6 +99,7 @@ services:
       - "127.0.0.1:3100:3000"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-cyberedu}:${POSTGRES_PASSWORD:-cyberedu_dev_password}@postgres:5432/${POSTGRES_DB:-cyberedu}?schema=public
+      DIRECT_URL: postgresql://${POSTGRES_USER:-cyberedu}:${POSTGRES_PASSWORD:-cyberedu_dev_password}@postgres:5432/${POSTGRES_DB:-cyberedu}?schema=public
       AUTH_SECRET: ${AUTH_SECRET:-dev-secret-change-me-in-production-min-32-chars}
       AUTH_URL: ${AUTH_URL:-http://localhost:3100}
       NEXTAUTH_URL: ${AUTH_URL:-http://localhost:3100}

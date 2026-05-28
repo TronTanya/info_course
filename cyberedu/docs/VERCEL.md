@@ -20,7 +20,10 @@ Node.js: **Project → Settings → General → Node.js Version → 20.x**.
 
 | Переменная | Пример |
 |------------|--------|
-| `DATABASE_URL` | `postgresql://user:pass@host.neon.tech/neondb?sslmode=require` |
+| `DATABASE_URL` | Supabase transaction pooler `:6543?pgbouncer=true` или Neon/Railway |
+| `DIRECT_URL` | Supabase session pooler `:5432` (для `prisma migrate` на build) |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://xxxx.supabase.co` (если используете Storage / Data API) |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_…` из Dashboard |
 | `AUTH_SECRET` | ≥32 случайных символов |
 | `AUTH_URL` | `https://ваш-домен.vercel.app` |
 | `NEXT_PUBLIC_APP_URL` | тот же URL |
@@ -28,7 +31,7 @@ Node.js: **Project → Settings → General → Node.js Version → 20.x**.
 | `NEXTAUTH_SECRET` | тот же, что `AUTH_SECRET` |
 | `ENVIRONMENT` | `production` |
 
-Без внешнего Postgres (Neon, Supabase, Railway) приложение **соберётся**, но страницы с БД не заработают.
+Без внешнего Postgres (Neon, **Supabase**, Railway) приложение **соберётся**, но страницы с БД не заработают. Подробнее: [SUPABASE.md](./SUPABASE.md).
 
 Опционально: `REDIS_URL` (rate limit / idempotency), `OPENAI_API_KEY` (AI).
 

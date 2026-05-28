@@ -15,26 +15,19 @@ export function AdminRouteLoading({ variant = "table", className }: AdminRouteLo
         <PageHeaderSkeleton />
         {variant === "dashboard" ? <CardGridSkeleton count={6} /> : null}
         {variant === "table" ? (
-          <div className="overflow-hidden rounded-2xl border border-border bg-card">
-            <div className="flex flex-wrap gap-3 border-b border-border p-4">
-              <Skeleton className="h-10 w-full max-w-xs rounded-xl" />
-              <Skeleton className="h-10 w-28 rounded-xl" />
-            </div>
-            <div className="space-y-2 p-4">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full rounded-lg" />
-              ))}
-            </div>
+          <div className="overflow-hidden rounded-2xl border border-border bg-card p-4 sm:p-6">
+            <Skeleton className="mb-4 h-10 w-full max-w-md rounded-xl" shimmer={false} />
+            <Skeleton className="h-[min(28rem,55vh)] w-full rounded-xl" shimmer={false} />
           </div>
         ) : null}
         {variant === "form" ? (
           <div className="space-y-4 rounded-2xl border border-border bg-card p-6">
-            <Skeleton className="h-10 w-full max-w-md" />
-            <Skeleton className="h-32 w-full rounded-xl" />
-            <Skeleton className="h-32 w-full rounded-xl" />
+            <Skeleton className="h-10 w-full max-w-md" shimmer={false} />
+            <Skeleton className="h-32 w-full rounded-xl" shimmer={false} />
+            <Skeleton className="h-32 w-full rounded-xl" shimmer={false} />
             <div className="flex gap-2 pt-2">
-              <Skeleton className="h-10 w-28 rounded-xl" />
-              <Skeleton className="h-10 w-24 rounded-xl" />
+              <Skeleton className="h-10 w-28 rounded-xl" shimmer={false} />
+              <Skeleton className="h-10 w-24 rounded-xl" shimmer={false} />
             </div>
           </div>
         ) : null}

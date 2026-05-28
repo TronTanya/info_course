@@ -2,15 +2,8 @@
 
 import type { AdminUserListRow } from "@/lib/admin-users-list";
 import { AdminRowMenu } from "@/components/admin/admin-row-menu";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-
-function progressBadgeVariant(pct: number): "secondary" | "warning" | "primary" | "success" {
-  if (pct >= 100) return "success";
-  if (pct >= 50) return "primary";
-  if (pct > 0) return "warning";
-  return "secondary";
-}
+import { AdminTable, AdminTableBody, AdminTableHead } from "@/components/admin/admin-table";
+import type { AdminTableDensity } from "@/components/admin/admin-table-toolbar";
 
 function formatLastActivity(iso: string | null): string {
   if (!iso) return "—";
@@ -35,183 +28,118 @@ function UserRowMenu({ userId }: { userId: string }) {
   );
 }
 
-const DASHBOARD_COLS =
-  "ce-admin-users-grid__row--dashboard grid-cols-[minmax(7rem,1.1fr)_minmax(8rem,1.3fr)_5.5rem_4.5rem_4.5rem_4.5rem_minmax(5.5rem,0.9fr)_4.5rem_2.25rem]";
-
-const FULL_COLS =
-  "ce-admin-users-grid__row--full grid-cols-[minmax(7rem,1fr)_minmax(8rem,1.1fr)_5.5rem_minmax(6rem,1fr)_4rem_3rem_minmax(5rem,0.9fr)_4.5rem_4.5rem_4rem_4rem_4.5rem_2.25rem]";
-
-/**
- * Desktop-список студентов: CSS Grid вместо &lt;table&gt; — обход бага Chrome/Safari
- * (пропадает текст в ячейках при backdrop-filter / glass на широких экранах).
- */
 export function AdminUsersDesktopTable({
   rows,
   dashboardView = false,
+  density = "comfortable",
 }: {
   rows: AdminUserListRow[];
   dashboardView?: boolean;
+  density?: AdminTableDensity;
 }) {
-  const rowCols = dashboardView ? DASHBOARD_COLS : FULL_COLS;
-
   return (
-    <div
-      className="ce-admin-users-grid min-w-0"
-      role="table"
-      aria-label={dashboardView ? "Студенты — краткий список" : "Пользователи платформы"}
+    <AdminTable
+      className="ce-admin-users-table"
+      minWidth={dashboardView ? "48rem" : "64rem"}
+      density={density}
+      caption={dashboardView ? "Студенты — краткий список" : "Пользователи платформы"}
     >
-        <div role="rowgroup" className="sticky top-0 z-10">
-          <div
-            role="row"
-            className={cn(
-              "ce-admin-users-grid__row ce-admin-users-grid__head text-xs font-semibold uppercase tracking-wide text-muted-foreground",
-              rowCols,
-            )}
-          >
-            <div role="columnheader" className="ce-admin-users-grid__cell">
-              ФИО
-            </div>
-            <div role="columnheader" className="ce-admin-users-grid__cell">
-              Email
-            </div>
-            <div role="columnheader" className="ce-admin-users-grid__cell">
-              Роль
-            </div>
+      <AdminTableHead>
+        <tr>
+          <th>ФИО</th>
+          <th>Email</th>
+          <th>Роль</th>
+          {!dashboardView ? (
+            <>
+              <th>Уч. заведение</th>
+              <th>Группа</th>
+              <th>Курс</th>
+              <th>Спец.</th>
+              <th>Рег.</th>
+            </>
+          ) : null}
+          <th>Прогресс</th>
+          {dashboardView ? (
+            <>
+              <th>Тесты</th>
+              <th>Практика</th>
+              <th>Активность</th>
+            </>
+          ) : (
+            <>
+              <th>Баллы</th>
+              <th>Отчёт</th>
+            </>
+          )}
+          <th>Серт.</th>
+          <th className="text-right" aria-label="Действия" />
+        </tr>
+      </AdminTableHead>
+      <AdminTableBody>
+        {rows.map((r) => (
+          <tr key={r.id}>
+            <td className="min-w-36 ce-admin-users-table__name">
+              <span className="block text-foreground">{r.fullName}</span>
+            </td>
+            <td className="min-w-40 max-w-56 break-all">
+              <span className="block text-muted-foreground">{r.email}</span>
+            </td>
+            <td>
+              <span style={{ color: "var(--foreground)", opacity: 1 }}>
+                {r.role === "ADMIN" ? "Админ" : "Студент"}
+              </span>
+            </td>
             {!dashboardView ? (
               <>
-                <div role="columnheader" className="ce-admin-users-grid__cell">
-                  Уч. заведение
-                </div>
-                <div role="columnheader" className="ce-admin-users-grid__cell">
-                  Группа
-                </div>
-                <div role="columnheader" className="ce-admin-users-grid__cell">
-                  Курс
-                </div>
-                <div role="columnheader" className="ce-admin-users-grid__cell">
-                  Спец.
-                </div>
-                <div role="columnheader" className="ce-admin-users-grid__cell">
-                  Рег.
-                </div>
+                <td className="text-muted-foreground">{r.educationalInstitution}</td>
+                <td className="tabular-nums text-muted-foreground">{r.studyGroup}</td>
+                <td className="tabular-nums text-muted-foreground">{r.studyCourseYear}</td>
+                <td className="text-muted-foreground">{r.specialty}</td>
+                <td className="tabular-nums text-muted-foreground">
+                  {new Date(r.createdAt).toLocaleDateString("ru-RU")}
+                </td>
               </>
             ) : null}
-            <div role="columnheader" className="ce-admin-users-grid__cell">
-              Прогресс
-            </div>
+            <td>
+              {r.role === "USER" ? (
+                <span className="tabular-nums" style={{ color: "var(--foreground)", opacity: 1 }}>
+                  {r.overallProgressPercent}%
+                </span>
+              ) : (
+                <span className="text-muted-foreground">—</span>
+              )}
+            </td>
             {dashboardView ? (
               <>
-                <div role="columnheader" className="ce-admin-users-grid__cell">
-                  Тесты
-                </div>
-                <div role="columnheader" className="ce-admin-users-grid__cell">
-                  Практика
-                </div>
-                <div role="columnheader" className="ce-admin-users-grid__cell">
-                  Активность
-                </div>
+                <td className="tabular-nums text-sm text-muted-foreground">
+                  {r.role === "USER" ? `${r.testsPassedCount}/${r.testAttemptCount}` : "—"}
+                </td>
+                <td className="tabular-nums text-sm text-muted-foreground">
+                  {r.role === "USER" ? r.practicesCompletedCount : "—"}
+                </td>
+                <td className="whitespace-nowrap text-xs tabular-nums text-muted-foreground">
+                  {formatLastActivity(r.lastActivityAt)}
+                </td>
               </>
             ) : (
               <>
-                <div role="columnheader" className="ce-admin-users-grid__cell">
-                  Баллы
-                </div>
-                <div role="columnheader" className="ce-admin-users-grid__cell whitespace-normal">
-                  Отчёт
-                </div>
+                <td className="tabular-nums font-medium">{r.role === "USER" ? r.totalScore : "—"}</td>
+                <td className="tabular-nums text-muted-foreground">{r.courseProgressRowCount}</td>
               </>
             )}
-            <div role="columnheader" className="ce-admin-users-grid__cell">
-              Серт.
-            </div>
-            <div role="columnheader" className="ce-admin-users-grid__cell" aria-label="Действия" />
-          </div>
-        </div>
-
-        <div role="rowgroup">
-          {rows.map((r) => (
-            <div
-              key={r.id}
-              role="row"
-              className={cn("ce-admin-users-grid__row ce-admin-users-grid__body-row", rowCols)}
-            >
-              <div role="cell" className="ce-admin-users-grid__cell ce-admin-users-grid__name">
-                {r.fullName}
-              </div>
-              <div role="cell" className="ce-admin-users-grid__cell ce-admin-users-grid__email break-all">
-                {r.email}
-              </div>
-              <div role="cell" className="ce-admin-users-grid__cell">
-                <Badge variant={r.role === "ADMIN" ? "outline" : "secondary"} className="text-2.5">
-                  {r.role === "ADMIN" ? "Админ" : "Студент"}
-                </Badge>
-              </div>
-              {!dashboardView ? (
-                <>
-                  <div role="cell" className="ce-admin-users-grid__cell ce-admin-users-grid__muted">
-                    {r.educationalInstitution}
-                  </div>
-                  <div role="cell" className="ce-admin-users-grid__cell ce-admin-users-grid__muted tabular-nums">
-                    {r.studyGroup}
-                  </div>
-                  <div role="cell" className="ce-admin-users-grid__cell ce-admin-users-grid__muted tabular-nums">
-                    {r.studyCourseYear}
-                  </div>
-                  <div role="cell" className="ce-admin-users-grid__cell ce-admin-users-grid__muted">
-                    {r.specialty}
-                  </div>
-                  <div role="cell" className="ce-admin-users-grid__cell ce-admin-users-grid__muted tabular-nums">
-                    {new Date(r.createdAt).toLocaleDateString("ru-RU")}
-                  </div>
-                </>
-              ) : null}
-              <div role="cell" className="ce-admin-users-grid__cell">
-                {r.role === "USER" ? (
-                  <Badge variant={progressBadgeVariant(r.overallProgressPercent)} className="tabular-nums">
-                    {r.overallProgressPercent}%
-                  </Badge>
-                ) : (
-                  <span className="ce-admin-users-grid__muted">—</span>
-                )}
-              </div>
-              {dashboardView ? (
-                <>
-                  <div role="cell" className="ce-admin-users-grid__cell ce-admin-users-grid__muted tabular-nums text-sm">
-                    {r.role === "USER" ? `${r.testsPassedCount}/${r.testAttemptCount}` : "—"}
-                  </div>
-                  <div role="cell" className="ce-admin-users-grid__cell ce-admin-users-grid__muted tabular-nums text-sm">
-                    {r.role === "USER" ? r.practicesCompletedCount : "—"}
-                  </div>
-                  <div
-                    role="cell"
-                    className="ce-admin-users-grid__cell ce-admin-users-grid__muted whitespace-nowrap text-xs tabular-nums"
-                  >
-                    {formatLastActivity(r.lastActivityAt)}
-                  </div>
-                </>
+            <td>
+              {r.hasCertificate ? (
+                <span className="font-medium text-success">Выдан</span>
               ) : (
-                <>
-                  <div role="cell" className="ce-admin-users-grid__cell tabular-nums font-medium">
-                    {r.role === "USER" ? r.totalScore : "—"}
-                  </div>
-                  <div role="cell" className="ce-admin-users-grid__cell ce-admin-users-grid__muted tabular-nums">
-                    {r.courseProgressRowCount}
-                  </div>
-                </>
+                <span className="text-muted-foreground">Нет</span>
               )}
-              <div role="cell" className="ce-admin-users-grid__cell">
-                {r.hasCertificate ? (
-                  <span className="font-medium text-success">Выдан</span>
-                ) : (
-                  <span className="ce-admin-users-grid__muted">Нет</span>
-                )}
-              </div>
-              <div role="cell" className="ce-admin-users-grid__cell flex justify-end">
-                <UserRowMenu userId={r.id} />
-              </div>
-            </div>
-          ))}
-        </div>
-    </div>
+            </td>
+            <td className="text-right">
+              <UserRowMenu userId={r.id} />
+            </td>
+          </tr>
+        ))}
+      </AdminTableBody>
+    </AdminTable>
   );
 }

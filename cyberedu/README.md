@@ -109,7 +109,7 @@ npm run smoke:staging:local   # migrate, build, start, prod e2e (скрипт)
 | [`docs/STORAGE.md`](./docs/STORAGE.md) | Uploads: local only, S3 NOT IMPLEMENTED |
 | [`docs/screenshots/`](./docs/screenshots/) | UX-скриншоты |
 
-Дополнительно: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) · [`docs/DATABASE.md`](./docs/DATABASE.md) · [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) · [`docs/checklists/`](./docs/checklists/)
+Дополнительно: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) · [`docs/DATABASE.md`](./docs/DATABASE.md) · [`docs/SUPABASE.md`](./docs/SUPABASE.md) · [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) · [`docs/checklists/`](./docs/checklists/)
 
 ## Скриншоты для защиты
 

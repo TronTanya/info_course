@@ -17,7 +17,7 @@ export default async function AdminUsersPage() {
 
   return (
     <AdminShell>
-      <div className="space-y-6">
+      <div className="ce-admin-users-page space-y-6">
         <AdminPageHeader
           breadcrumb={<AdminBreadcrumbs items={adminBreadcrumbItems("Пользователи")} />}
           title="Пользователи"

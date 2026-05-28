@@ -37,8 +37,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Только placeholder на этапе сборки — не передавайте реальные секреты через --build-arg.
 # Runtime: DATABASE_URL, AUTH_SECRET, OPENAI_API_KEY задаются в docker-compose (environment / env_file).
 ARG DATABASE_URL=postgresql://build:build@127.0.0.1:5432/cyberedu?schema=public
+ARG DIRECT_URL=postgresql://build:build@127.0.0.1:5432/cyberedu?schema=public
 ARG AUTH_SECRET=build-placeholder-secret-min-32-chars-do-not-use-in-prod
 ENV DATABASE_URL=${DATABASE_URL}
+ENV DIRECT_URL=${DIRECT_URL}
 ENV AUTH_SECRET=${AUTH_SECRET}
 
 RUN --mount=type=cache,target=/root/.npm \

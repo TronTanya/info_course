@@ -17,21 +17,21 @@ test.describe("Admin users table visibility", () => {
 
     const wrap = page.getByTestId("admin-data-table-wrap");
     await expect(wrap).toBeVisible({ timeout: 15_000 });
-    await expect(wrap.locator('[role="row"].ce-admin-users-grid__body-row').first()).toBeVisible({
+    await expect(wrap.locator(".ce-admin-users-table tbody tr").first()).toBeVisible({
       timeout: 15_000,
     });
 
-    const firstNameCell = wrap.locator(".ce-admin-users-grid__name").first();
+    const firstNameCell = wrap.locator(".ce-admin-users-table__name").first();
     await expect(firstNameCell).toBeVisible();
 
     const metrics = await page.evaluate(() => {
       const wrapEl = document.querySelector('[data-testid="admin-data-table-wrap"]');
-      const row = wrapEl?.querySelector('[role="row"].ce-admin-users-grid__body-row');
-      const nameCell = wrapEl?.querySelector(".ce-admin-users-grid__name");
+      const row = wrapEl?.querySelector(".ce-admin-users-table tbody tr");
+      const nameCell = wrapEl?.querySelector(".ce-admin-users-table__name");
       const shell = document.querySelector(".ce-admin-shell");
       if (!wrapEl || !row || !nameCell || !shell) return { error: "missing nodes" };
       return {
-        rowCount: wrapEl.querySelectorAll('[role="row"].ce-admin-users-grid__body-row').length,
+        rowCount: wrapEl.querySelectorAll(".ce-admin-users-table tbody tr").length,
         wrapScrollHeight: wrapEl.scrollHeight,
         rowHeight: row.getBoundingClientRect().height,
         shellBackdrop: getComputedStyle(shell).backdropFilter,

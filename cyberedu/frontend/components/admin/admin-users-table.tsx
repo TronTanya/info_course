@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AdminDualTable } from "@/components/admin/admin-dual-table";
 import { AdminMobileCard } from "@/components/admin/admin-mobile-card";
 import { AdminRowMenu } from "@/components/admin/admin-row-menu";
@@ -103,6 +103,7 @@ export function AdminUsersTable({
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [progressFilter, setProgressFilter] = useState<string>("all");
   const [density, setDensity] = useState<AdminTableDensity>("comfortable");
+  const tableScrollRef = useRef<HTMLDivElement>(null);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -114,6 +115,17 @@ export function AdminUsersTable({
       return matchesSearch(r, q);
     });
   }, [rows, search, roleFilter, progressFilter]);
+
+  useLayoutEffect(() => {
+    const wrap = tableScrollRef.current;
+    if (!wrap) return;
+    const resetScroll = () => {
+      wrap.scrollTop = 0;
+      wrap.scrollLeft = 0;
+    };
+    resetScroll();
+    requestAnimationFrame(resetScroll);
+  }, [roleFilter, progressFilter, search, filtered.length]);
 
   const displayRows = embedded ? filtered.slice(0, 12) : filtered;
 
@@ -194,6 +206,7 @@ export function AdminUsersTable({
         />
       ) : (
         <AdminDualTable
+          ref={tableScrollRef}
           mobile={
             <div className="space-y-4 p-4 sm:p-5">
               {displayRows.map((r) => (
@@ -248,7 +261,9 @@ export function AdminUsersTable({
               ))}
             </div>
           }
-          desktop={<AdminUsersDesktopTable rows={displayRows} dashboardView={dashboardView} />}
+          desktop={
+            <AdminUsersDesktopTable rows={displayRows} dashboardView={dashboardView} density={density} />
+          }
         />
       )}
     </div>
