@@ -2,7 +2,8 @@
  * Учёт неудачных попыток входа (brute force / credential stuffing).
  */
 
-import { enforceRateLimit, RATE_LIMIT_POLICIES } from "@/lib/security/rate-limit";
+import { enforceRateLimit, RATE_LIMIT_POLICIES, isMemoryFallbackAllowed } from "@/lib/security/rate-limit";
+import { getSharedRedisClient } from "@/lib/security/redis-client";
 
 type AttemptBucket = { failures: number; lockedUntil: number };
 
@@ -19,54 +20,38 @@ type RedisClient = {
   incr: (key: string) => Promise<number>;
   pExpire: (key: string, ms: number) => Promise<number>;
   pTTL: (key: string) => Promise<number>;
-  connect: () => Promise<void>;
-  on: (event: string, listener: () => void) => void;
 };
 
-let redisPromise: Promise<RedisClient | null> | null = null;
+async function getRedis(): Promise<RedisClient | null> {
+  const client = await getSharedRedisClient();
+  return client as RedisClient | null;
+}
 
 function isProductionRuntime(): boolean {
   const environment = (process.env.ENVIRONMENT ?? "").trim().toLowerCase();
   return environment === "production" || environment === "prod";
 }
 
+function loginLockoutUsesMemoryFallback(): boolean {
+  return !isProductionRuntime() || isMemoryFallbackAllowed();
+}
+
 function warnRedisUnavailable(): void {
   if (redisUnavailableWarned) return;
   redisUnavailableWarned = true;
-  const msg = isProductionRuntime()
+  const msg = isProductionRuntime() && !isMemoryFallbackAllowed()
     ? "[auth] Redis unavailable for login lockout; denying lockout checks (fail-closed)."
     : "[auth] Redis unavailable for login lockout; fallback to in-memory lockout (not shared across replicas).";
-  if (isProductionRuntime()) {
+  if (isProductionRuntime() && !isMemoryFallbackAllowed()) {
     console.error(msg);
     return;
   }
   console.warn(msg);
 }
 
-/** Production без Redis: не ослаблять brute-force через in-memory fallback. */
+/** Production без Redis (не Vercel): не ослаблять brute-force через in-memory fallback. */
 function loginLockoutFailClosed(): { locked: boolean; failures: number } {
   return { locked: true, failures: MAX_FAILURES };
-}
-
-async function getRedis(): Promise<RedisClient | null> {
-  const url = process.env.REDIS_URL?.trim();
-  if (!url) return null;
-  if (!redisPromise) {
-    redisPromise = (async () => {
-      try {
-        const redisMod = (await import("redis")) as typeof import("redis");
-        const client = redisMod.createClient({ url });
-        client.on("error", () => {
-          /* per-request fallback */
-        });
-        await client.connect();
-        return client as unknown as RedisClient;
-      } catch {
-        return null;
-      }
-    })();
-  }
-  return redisPromise;
 }
 
 function key(email: string, ip: string): string {
@@ -122,7 +107,7 @@ export async function isLoginLocked(email: string, ip: string): Promise<boolean>
   const redis = await getRedis();
   if (!redis) {
     warnRedisUnavailable();
-    if (isProductionRuntime()) return true;
+    if (!loginLockoutUsesMemoryFallback()) return true;
     return isLoginLockedMemory(email, ip);
   }
   try {
@@ -130,7 +115,7 @@ export async function isLoginLocked(email: string, ip: string): Promise<boolean>
     return ttl > 0;
   } catch {
     warnRedisUnavailable();
-    if (isProductionRuntime()) return true;
+    if (!loginLockoutUsesMemoryFallback()) return true;
     return isLoginLockedMemory(email, ip);
   }
 }
@@ -142,7 +127,7 @@ export async function recordFailedLogin(
   const redis = await getRedis();
   if (!redis) {
     warnRedisUnavailable();
-    if (isProductionRuntime()) return loginLockoutFailClosed();
+    if (!loginLockoutUsesMemoryFallback()) return loginLockoutFailClosed();
     return recordFailedLoginMemory(email, ip);
   }
   try {
@@ -160,7 +145,7 @@ export async function recordFailedLogin(
     return { locked: false, failures };
   } catch {
     warnRedisUnavailable();
-    if (isProductionRuntime()) return loginLockoutFailClosed();
+    if (!loginLockoutUsesMemoryFallback()) return loginLockoutFailClosed();
     return recordFailedLoginMemory(email, ip);
   }
 }

@@ -41,8 +41,11 @@
 | `NEXTAUTH_SECRET` | тот же, что `AUTH_SECRET` |
 | `ENVIRONMENT` | `production` |
 | `TRUSTED_PROXY` | `1` (на Vercel опционально — включается автоматически) |
+| `REDIS_URL` | опционально (Upstash/Vercel KV); без Redis на Vercel вход работает через in-memory fallback |
 
 Без `AUTH_URL` на Vercel приложение подставит origin из `VERCEL_URL` / `VERCEL_PROJECT_PRODUCTION_URL` при старте.
+
+**Критично:** без `DATABASE_URL` и `AUTH_SECRET` вход и страницы с БД не работают.
 
 Без внешнего Postgres (Neon, **Supabase**, Railway) приложение **соберётся**, но страницы с БД не заработают. Подробнее: [SUPABASE.md](./SUPABASE.md).
 

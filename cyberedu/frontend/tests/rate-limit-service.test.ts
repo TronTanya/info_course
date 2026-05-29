@@ -80,8 +80,9 @@ describe("security/rate-limit-service", () => {
     }
   });
 
-  it("denies in production when Redis is unavailable", async () => {
+  it("denies in production when Redis is unavailable (non-Vercel)", async () => {
     process.env.ENVIRONMENT = "production";
+    delete process.env.VERCEL;
     const warn = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const denied = await enforceRateLimit({
       scope: "test:prod",
@@ -93,6 +94,21 @@ describe("security/rate-limit-service", () => {
     if (!denied.allowed) {
       expect(denied.reason).toBe("unavailable");
     }
+    warn.mockRestore();
+  });
+
+  it("allows in-memory fallback on Vercel without Redis", async () => {
+    process.env.ENVIRONMENT = "production";
+    process.env.VERCEL = "1";
+    delete process.env.REDIS_URL;
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const allowed = await enforceRateLimit({
+      scope: "auth:login",
+      clientIp: "203.0.113.11",
+      max: 5,
+      windowMs: 60_000,
+    });
+    expect(allowed.allowed).toBe(true);
     warn.mockRestore();
   });
 

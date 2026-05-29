@@ -12,6 +12,7 @@ import {
 export type { RateLimitDenyReason, RateLimitResult } from "@/lib/security/rate-limit-service";
 export {
   enforceRateLimit,
+  isMemoryFallbackAllowed,
   rateLimitSubject,
   RATE_LIMIT_POLICIES,
 } from "@/lib/security/rate-limit-service";

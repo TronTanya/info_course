@@ -37,21 +37,25 @@ const MAX_MEMORY_KEYS = 25_000;
 let memoryFallbackWarned = false;
 let redisFailureWarned = false;
 
+import { getSharedRedisClient, resetSharedRedisClientForTests } from "@/lib/security/redis-client";
+
 type RedisClient = {
   eval: (script: string, options: { keys: string[]; arguments: string[] }) => Promise<unknown>;
-  connect: () => Promise<void>;
-  on: (event: string, listener: () => void) => void;
 };
-
-let redisPromise: Promise<RedisClient | null> | null = null;
 
 function isProductionRuntime(): boolean {
   const environment = (process.env.ENVIRONMENT ?? "").trim().toLowerCase();
   return environment === "production" || environment === "prod";
 }
 
+/** In-memory limiter when Redis is absent (dev always; Vercel serverless without Redis). */
+export function isMemoryFallbackAllowed(): boolean {
+  if (!isProductionRuntime()) return true;
+  return (process.env.VERCEL ?? "").trim() === "1";
+}
+
 function isDevMemoryFallbackAllowed(): boolean {
-  return !isProductionRuntime();
+  return isMemoryFallbackAllowed();
 }
 
 function isAutomatedTestRuntime(): boolean {
@@ -132,24 +136,8 @@ function memoryFixedWindowConsume(key: string, max: number, windowMs: number): R
 }
 
 async function getRedis(): Promise<RedisClient | null> {
-  const url = process.env.REDIS_URL?.trim();
-  if (!url) return null;
-  if (!redisPromise) {
-    redisPromise = (async () => {
-      try {
-        const redisMod = (await import("redis")) as typeof import("redis");
-        const client = redisMod.createClient({ url });
-        client.on("error", () => {
-          /* per-request fallback */
-        });
-        await client.connect();
-        return client as unknown as RedisClient;
-      } catch {
-        return null;
-      }
-    })();
-  }
-  return redisPromise;
+  const client = await getSharedRedisClient();
+  return client as RedisClient | null;
 }
 
 async function redisFixedWindowConsume(
@@ -274,10 +262,10 @@ export function consumeRateLimitSyncDevOnly_DEPRECATED_DO_NOT_USE_IN_SERVER_ACTI
 
 /** Сброс singleton Redis (тесты). */
 export function resetRateLimitServiceForTests(): void {
-  redisPromise = null;
+  resetSharedRedisClientForTests();
   memory.clear();
   memoryFallbackWarned = false;
   redisFailureWarned = false;
 }
 
-export { isDevMemoryFallbackAllowed, isProductionRuntime };
+export { isDevMemoryFallbackAllowed, isMemoryFallbackAllowed, isProductionRuntime };

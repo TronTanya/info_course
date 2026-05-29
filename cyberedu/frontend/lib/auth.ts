@@ -4,6 +4,7 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/db";
+import { withDbRetry } from "@/lib/prisma-retry";
 import { SECURITY_ACTIONS } from "@/lib/security/audit-actions";
 import { logSecurityEvent } from "@/lib/security/audit";
 import {
@@ -137,10 +138,12 @@ const nextAuth = NextAuth({
           return null;
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email },
-          select: { id: true, email: true, passwordHash: true, role: true, emailVerified: true },
-        });
+        const user = await withDbRetry(() =>
+          prisma.user.findUnique({
+            where: { email },
+            select: { id: true, email: true, passwordHash: true, role: true, emailVerified: true },
+          }),
+        );
         if (!user?.passwordHash) {
           await recordFailedLogin(email, ip);
           logSecurityEvent({
