@@ -46,6 +46,8 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "seed": "prisma db seed",
+    "seed:remote": "node scripts/seed-via-cli.mjs",
+    "seed:retry": "powershell -ExecutionPolicy Bypass -File scripts/run-seed-retry.ps1",
     "seed:verify-password": "tsx scripts/verify-seed-password-preservation.ts",
     "certs:regenerate-pdf": "tsx scripts/regenerate-certificate-pdfs.ts",
     "postinstall": "prisma generate"
@@ -64,7 +66,7 @@
     "@react-pdf/renderer": "^4.5.1",
     "@redis/client": "^5.12.1",
     "@supabase/ssr": "^0.6.1",
-    "@supabase/supabase-js": "^2.49.8",
+    "@supabase/supabase-js": "^2.106.2",
     "@tanstack/react-query": "^5.90.12",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",

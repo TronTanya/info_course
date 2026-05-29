@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "cd cyberedu/frontend && npm install",
+  "buildCommand": "cd cyberedu/frontend && npm run build",
+  "devCommand": "cd cyberedu/frontend && npm run dev -- --port 3100"
+}

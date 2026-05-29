@@ -2,26 +2,36 @@
 
 Ошибка **404 NOT_FOUND** (белая страница Vercel с `Code: NOT_FOUND`) — это **не** маршрут приложения, а отсутствие успешного деплоя или неверная настройка проекта.
 
+Сообщение **`[Vercel] Укажите Root Directory: cyberedu/frontend`** — сборка запущена из корня репозитория без Next.js. Исправление ниже (вариант A или B).
+
 ## Обязательные настройки проекта
 
 | Параметр | Значение |
 |----------|----------|
-| **Root Directory** | `cyberedu/frontend` |
+| **Root Directory** | `cyberedu/frontend` **или** корень репо (см. вариант B) |
 | **Framework** | Next.js |
-| **Node.js Version** | **20.x** (не 24.x) |
+| **Node.js Version** | **20.x** (не 24.x; в репо есть `.nvmrc` → `20`) |
 | **Build Command** | `npm run build` (по умолчанию) |
-| **Install Command** | `npm ci` |
+| **Install Command** | `npm install` (или `npm ci`, если lock-файл закоммичен) |
 
-Root Directory: **Project → Settings → General → Root Directory**.
+### Вариант A (рекомендуется в UI)
 
-Node.js: **Project → Settings → General → Node.js Version → 20.x**.
+**Project → Settings → General → Root Directory** → `cyberedu/frontend` → Save.
+
+**Node.js Version** → **20.x**.
+
+### Вариант B (корень репозитория)
+
+В корне есть [`vercel.json`](../../vercel.json) и [`package.json`](../../package.json): install/build идут в `cyberedu/frontend`. Root Directory можно оставить пустым (`.`). После push сделайте **Redeploy**.
+
+Шаблон переменных для Vercel: [`cyberedu/frontend/.env.vercel.example`](../frontend/.env.vercel.example).
 
 ## Переменные окружения (Production)
 
 | Переменная | Пример |
 |------------|--------|
-| `DATABASE_URL` | Supabase transaction pooler `:6543?pgbouncer=true` или Neon/Railway |
-| `DIRECT_URL` | Supabase session pooler `:5432` (для `prisma migrate` на build) |
+| `DATABASE_URL` | Supabase transaction pooler `:6543?pgbouncer=true&connection_limit=1` (serverless) |
+| `DIRECT_URL` | Supabase session pooler `:5432` (для `prisma migrate deploy` в CI, опционально) |
 | `NEXT_PUBLIC_SUPABASE_URL` | `https://xxxx.supabase.co` (если используете Storage / Data API) |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_…` из Dashboard |
 | `AUTH_SECRET` | ≥32 случайных символов |
@@ -35,14 +45,30 @@ Node.js: **Project → Settings → General → Node.js Version → 20.x**.
 
 Опционально: `REDIS_URL` (rate limit / idempotency), `OPENAI_API_KEY` (AI).
 
+## Ошибка `npm ci` / Missing from lock file
+
+Если сборка падает на `Missing: @supabase/storage-js … from lock file`:
+
+1. Закоммитьте актуальный `cyberedu/frontend/package-lock.json` с вашего ПК (после `npm install` в `cyberedu/frontend`).
+2. Либо в Vercel оставьте **Install Command** = `npm install` (уже в `vercel.json`).
+
+После синхронизации lock-файла можно снова перейти на `npm ci` для более быстрых сборок.
+
 ## После push
 
 1. **Deployments** → последний деплой → статус **Ready** (не Error).
 2. Открывайте URL из карточки **Visit** у успешного деплоя, не старый preview.
 
-В корне репозитория **нет** `vercel.json` — конфиг только в `cyberedu/frontend/vercel.json`. Без Root Directory Vercel снова покажет 404.
+Конфиг сборки: корневой [`vercel.json`](../../vercel.json) и [`cyberedu/frontend/vercel.json`](../frontend/vercel.json) (placeholder env на build).
 
-## Локальная проверка
+## Локальная проверка (Windows)
+
+```powershell
+cd cyberedu\frontend\scripts
+.\dev.ps1
+```
+
+Или после перезапуска PowerShell:
 
 ```bash
 cd cyberedu/frontend && npm ci && npm run build

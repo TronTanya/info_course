@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { Prisma } from "@prisma/client";
 import { AdminBreadcrumbs, adminBreadcrumbItems } from "@/components/admin/admin-breadcrumbs";
+import { AdminDbUnavailableBanner } from "@/components/admin/admin-db-unavailable-banner";
 import { AdminDualTable } from "@/components/admin/admin-dual-table";
 import { AdminFilterTabs } from "@/components/admin/admin-filter-tabs";
 import { AdminMobileCard } from "@/components/admin/admin-mobile-card";
@@ -12,6 +13,7 @@ import { AdminShell } from "@/components/layout/admin-shell";
 import { Button } from "@/components/ui/button";
 import { UiStatePanel } from "@/components/ui/ui-state-panel";
 import { prisma } from "@/lib/db";
+import { isDbConnectionError, withDbRetry } from "@/lib/prisma-retry";
 
 export const metadata: Metadata = {
   title: "Отправки практики",
@@ -105,11 +107,10 @@ const TABS: { href: string; label: string; match: string }[] = [
 
 type Props = { searchParams: Promise<{ filter?: string }> };
 
-export default async function AdminSubmissionsPage({ searchParams }: Props) {
-  const { filter } = await searchParams;
-  const active = filter ?? "all";
+type SubmissionRow = Awaited<ReturnType<typeof loadSubmissionRows>>[number];
 
-  const rows = await prisma.submission.findMany({
+async function loadSubmissionRows(filter: string | undefined) {
+  return prisma.submission.findMany({
     where: filterWhere(filter),
     orderBy: { createdAt: "desc" },
     take: 300,
@@ -129,12 +130,28 @@ export default async function AdminSubmissionsPage({ searchParams }: Props) {
       },
     },
   });
+}
+
+export default async function AdminSubmissionsPage({ searchParams }: Props) {
+  const { filter } = await searchParams;
+  const active = filter ?? "all";
+
+  let dbUnavailable = false;
+  let rows: SubmissionRow[] = [];
+  try {
+    rows = await withDbRetry(() => loadSubmissionRows(filter));
+  } catch (error) {
+    if (!isDbConnectionError(error)) throw error;
+    dbUnavailable = true;
+    console.warn("[AdminSubmissionsPage] БД недоступна:", error);
+  }
 
   const empty = submissionEmptyCopy(active);
 
   return (
     <AdminShell>
       <div className="space-y-6">
+        {dbUnavailable ? <AdminDbUnavailableBanner /> : null}
         <AdminPageHeader
           breadcrumb={<AdminBreadcrumbs items={adminBreadcrumbItems("Проверка практик")} />}
           eyebrow="Проверка · Cyber Lab"

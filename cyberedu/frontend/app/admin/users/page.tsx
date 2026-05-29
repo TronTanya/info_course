@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminBreadcrumbs, adminBreadcrumbItems } from "@/components/admin/admin-breadcrumbs";
+import { AdminDbUnavailableBanner } from "@/components/admin/admin-db-unavailable-banner";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminTableCard } from "@/components/admin/admin-table-card";
 import { AdminUsersTable } from "@/components/admin/admin-users-table";
 import { AdminShell } from "@/components/layout/admin-shell";
-import { getAdminUserListRows } from "@/lib/admin-users-list";
+import { getAdminUserListRowsWithStatus } from "@/lib/admin-users-list";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
@@ -13,11 +14,12 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminUsersPage() {
-  const rows = await getAdminUserListRows();
+  const { rows, dbUnavailable } = await getAdminUserListRowsWithStatus();
 
   return (
     <AdminShell>
       <div className="ce-admin-users-page space-y-6">
+        {dbUnavailable ? <AdminDbUnavailableBanner /> : null}
         <AdminPageHeader
           breadcrumb={<AdminBreadcrumbs items={adminBreadcrumbItems("Пользователи")} />}
           title="Пользователи"

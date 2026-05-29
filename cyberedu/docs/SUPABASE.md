@@ -21,7 +21,7 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 
 # Prisma → Postgres на Supabase
 # Transaction pooler (приложение, serverless)
-DATABASE_URL="postgresql://prisma.[ref]:[password]@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DATABASE_URL="postgresql://prisma.[ref]:[password]@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1"
 # Session / direct (prisma migrate deploy)
 DIRECT_URL="postgresql://prisma.[ref]:[password]@aws-0-eu-central-1.pooler.supabase.com:5432/postgres"
 ```

@@ -6,9 +6,16 @@ import { AdminDashboardChartsLazy } from "@/components/admin/admin-dashboard-cha
 import { AdminDashboardQuickActions } from "@/components/admin/admin-dashboard-panels";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminShell } from "@/components/layout/admin-shell";
+import { AdminDbUnavailableBanner } from "@/components/admin/admin-db-unavailable-banner";
 import { getAdminDashboardChartsData } from "@/lib/admin-dashboard-charts";
+import {
+  emptyAdminCharts,
+  emptyAdminLmsDashboard,
+  emptyAdminUsers,
+} from "@/lib/admin-db-fallback";
 import { getAdminLmsDashboardData } from "@/lib/admin-lms-dashboard";
 import { getAdminUserListRows } from "@/lib/admin-users-list";
+import { isDbConnectionError } from "@/lib/prisma-retry";
 import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
@@ -17,15 +24,27 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminHomePage() {
-  const [lms, users, charts] = await Promise.all([
-    getAdminLmsDashboardData(),
-    getAdminUserListRows(),
-    getAdminDashboardChartsData(),
-  ]);
+  let dbUnavailable = false;
+  let lms = emptyAdminLmsDashboard;
+  let users = emptyAdminUsers();
+  let charts = emptyAdminCharts;
+
+  try {
+    [lms, users, charts] = await Promise.all([
+      getAdminLmsDashboardData(),
+      getAdminUserListRows(),
+      getAdminDashboardChartsData(),
+    ]);
+  } catch (error) {
+    if (!isDbConnectionError(error)) throw error;
+    dbUnavailable = true;
+    console.warn("[AdminHomePage] БД недоступна, показан пустой обзор:", error);
+  }
 
   return (
     <AdminShell>
       <div className="space-y-8">
+        {dbUnavailable ? <AdminDbUnavailableBanner /> : null}
         <AdminPageHeader
           breadcrumb={<AdminBreadcrumbs items={adminBreadcrumbItems("Обзор")} />}
           eyebrow="Панель LMS"

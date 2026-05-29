@@ -9,7 +9,7 @@ test.describe("Public landing", () => {
   test("hero renders in Russian", async ({ page }) => {
     await page.goto("/", { waitUntil: "load" });
 
-    await expect(page.getByRole("heading", { level: 1 })).toContainText(/Защищай/i);
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(/Информационная безопасность/i);
     await expect(page.getByText(/ОС кибербезопасности с AI/i)).toBeVisible();
     await expect(page.locator("#product-heading")).toContainText(/практики кибербезопасности/i);
   });

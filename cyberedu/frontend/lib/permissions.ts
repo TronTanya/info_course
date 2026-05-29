@@ -4,6 +4,7 @@ import type { Role } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { isModuleUnlocked } from "@/lib/progress";
+import { withDbRetry } from "@/lib/prisma-retry";
 
 export function hasRole(role: Role | undefined, allowed: Role | Role[]) {
   if (!role) return false;
@@ -31,17 +32,41 @@ export async function requireAuth(): Promise<Session> {
 
 /** Роль из БД (не только JWT) — мгновенный отзыв ADMIN. */
 export async function getDbUserRole(userId: string): Promise<Role | null> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { role: true },
+  return withDbRetry(async () => {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+    return user?.role ?? null;
   });
-  return user?.role ?? null;
 }
 
 /** Только ADMIN; иначе на главную. */
 export async function requireAdmin(): Promise<Session> {
   const session = await requireAuth();
-  const role = await getDbUserRole(session.user.id);
+
+  // Dev: роль уже в JWT после входа — не блокируем layout на нестабильном pooler
+  if (process.env.NODE_ENV === "development" && session.user.role === "ADMIN") {
+    return {
+      ...session,
+      user: { ...session.user, role: "ADMIN" },
+    };
+  }
+
+  let role: Role | null = null;
+  try {
+    role = await getDbUserRole(session.user.id);
+  } catch (error) {
+    if (process.env.NODE_ENV === "development" && session.user.role) {
+      console.warn(
+        "[requireAdmin] БД недоступна — используем роль из сессии (только dev):",
+        error instanceof Error ? error.message : error,
+      );
+      role = session.user.role;
+    } else {
+      throw error;
+    }
+  }
   if (role !== "ADMIN") {
     redirect("/");
   }

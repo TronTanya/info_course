@@ -136,8 +136,8 @@ export function LandingHeroCinematic({ startHref, programHref }: LandingHeroCine
                 animate="show"
                 className="ce-hero-premium__headline"
               >
-                <span className="ce-hero-premium__headline-accent block">Защищай.</span>
-                <span className="ce-hero-headline-solid block">Учись. Доминируй.</span>
+                <span className="ce-hero-premium__headline-accent block">Информационная</span>
+                <span className="ce-hero-headline-solid block">безопасность</span>
               </motion.h1>
 
               <motion.p

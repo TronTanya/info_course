@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { parseProfileEducationalInstitution } from "@/lib/profile-school-parse";
+import { isDbConnectionError, withDbRetry } from "@/lib/prisma-retry";
 
 export type AdminUserListRow = {
   id: string;
@@ -35,11 +36,37 @@ function formatFio(p: {
   return [p.lastName, p.firstName, p.middleName].filter(Boolean).join(" ").trim();
 }
 
+export type AdminUserListResult = {
+  rows: AdminUserListRow[];
+  dbUnavailable: boolean;
+};
+
 export async function getAdminUserListRows(): Promise<AdminUserListRow[]> {
-  const course = await prisma.course.findFirst({
-    orderBy: { createdAt: "asc" },
-    select: { id: true },
-  });
+  const { rows } = await getAdminUserListRowsWithStatus();
+  return rows;
+}
+
+export async function getAdminUserListRowsWithStatus(): Promise<AdminUserListResult> {
+  try {
+    const rows = await withDbRetry(loadAdminUserListRows);
+    return { rows, dbUnavailable: false };
+  } catch (error) {
+    if (!isDbConnectionError(error)) throw error;
+    console.warn("[getAdminUserListRows] БД недоступна:", error);
+    return { rows: [], dbUnavailable: true };
+  }
+}
+
+async function loadAdminUserListRows(): Promise<AdminUserListRow[]> {
+  let course: { id: string } | null = null;
+  try {
+    course = await prisma.course.findFirst({
+      orderBy: { createdAt: "asc" },
+      select: { id: true },
+    });
+  } catch {
+    /* прогресс по курсу будет 0 */
+  }
 
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },
