@@ -4,6 +4,10 @@
  */
 import "./lib/00-init-prisma-env";
 import { isTrustedProxyEnabled } from "@/lib/security/request-ip";
+import {
+  bootstrapVercelRuntimeEnv,
+  resolveProductionAuthOrigin,
+} from "@/lib/security/vercel-runtime-env";
 
 function isProductionRuntime(): boolean {
   const environment = (process.env.ENVIRONMENT ?? "").trim().toLowerCase();
@@ -14,9 +18,8 @@ function isProductionRuntime(): boolean {
 
 function validateSecurityRuntimeEnv(): void {
   if (!isProductionRuntime()) return;
-  const authOrigin =
-    process.env.AUTH_URL?.trim() || process.env.NEXT_PUBLIC_APP_URL?.trim() || process.env.NEXTAUTH_URL?.trim();
-  if (!authOrigin) {
+  bootstrapVercelRuntimeEnv();
+  if (!resolveProductionAuthOrigin()) {
     throw new Error(
       "AUTH_URL or NEXT_PUBLIC_APP_URL must be configured in production for CSRF origin validation.",
     );

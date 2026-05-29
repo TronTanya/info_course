@@ -12,7 +12,9 @@ const IPV6_RE =
 
 export function isTrustedProxyEnabled(): boolean {
   const v = (process.env.TRUSTED_PROXY ?? "").trim().toLowerCase();
-  return v === "1" || v === "true" || v === "yes";
+  if (v === "1" || v === "true" || v === "yes") return true;
+  // Vercel terminates TLS at the edge; forwarded client IP headers are trustworthy.
+  return (process.env.VERCEL ?? "").trim() === "1";
 }
 
 export function isValidClientIp(ip: string): boolean {

@@ -14,7 +14,8 @@
       "NEXTAUTH_SECRET": "vercel-build-placeholder-min-32-characters",
       "ENVIRONMENT": "production",
       "NEXT_PUBLIC_SUPABASE_URL": "https://placeholder.supabase.co",
-      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "placeholder"
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "placeholder",
+      "TRUSTED_PROXY": "1"
     }
   }
 }

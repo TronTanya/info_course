@@ -40,6 +40,9 @@
 | `NEXTAUTH_URL` | тот же URL |
 | `NEXTAUTH_SECRET` | тот же, что `AUTH_SECRET` |
 | `ENVIRONMENT` | `production` |
+| `TRUSTED_PROXY` | `1` (на Vercel опционально — включается автоматически) |
+
+Без `AUTH_URL` на Vercel приложение подставит origin из `VERCEL_URL` / `VERCEL_PROJECT_PRODUCTION_URL` при старте.
 
 Без внешнего Postgres (Neon, **Supabase**, Railway) приложение **соберётся**, но страницы с БД не заработают. Подробнее: [SUPABASE.md](./SUPABASE.md).
 
