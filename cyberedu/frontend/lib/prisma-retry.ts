@@ -13,7 +13,7 @@ export function isDbConnectionError(error: unknown): boolean {
     return true;
   }
   if (error instanceof Prisma.PrismaClientUnknownRequestError) {
-    return TRANSIENT_CODES.has(error.code);
+    return CONNECTION_MESSAGE.test(error.message);
   }
   if (
     error instanceof Prisma.PrismaClientKnownRequestError &&
