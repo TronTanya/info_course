@@ -1,4 +1,10 @@
 import { isNavHrefActive } from "@/lib/nav-active";
+import {
+  extractModuleIdFromPath,
+  resolveStudentNavModuleId,
+} from "@/lib/student-nav-module-id";
+
+export { extractModuleIdFromPath } from "@/lib/student-nav-module-id";
 
 /** Ключи быстрой навигации студента (фиксированные маршруты не ломаем). */
 export type StudentQuickNavKey =
@@ -12,20 +18,26 @@ export type StudentQuickNavKey =
 
 export type StudentNavPaths = Record<StudentQuickNavKey, string>;
 
-export function extractModuleIdFromPath(pathname: string): string | null {
-  return pathname.match(/^\/dashboard\/course\/([^/]+)/)?.[1] ?? null;
-}
+/** Контекстные ссылки: урок/тест/практика привязаны к модулю в URL или к последнему открытому модулю. */
+export function resolveStudentNavPaths(
+  pathname: string,
+  moduleIdOverride?: string | null,
+): StudentNavPaths {
+  const moduleId = resolveStudentNavModuleId(pathname, moduleIdOverride);
+  const lessonHref = moduleId
+    ? `/dashboard/course/${moduleId}/lesson`
+    : "/dashboard/continue/lesson";
+  const testHref = moduleId ? `/dashboard/course/${moduleId}/test` : "/dashboard/continue/test";
+  const practiceHref = moduleId
+    ? `/dashboard/course/${moduleId}/practice`
+    : "/dashboard/my-assignments";
 
-/** Контекстные ссылки: урок/тест/практика/наставник привязаны к текущему модулю в URL. */
-export function resolveStudentNavPaths(pathname: string): StudentNavPaths {
-  const moduleId = extractModuleIdFromPath(pathname);
-  const lessonHref = moduleId ? `/dashboard/course/${moduleId}/lesson` : "/dashboard/course";
   return {
     dashboard: "/dashboard",
     course: "/dashboard/course",
     lessons: lessonHref,
-    tests: moduleId ? `/dashboard/course/${moduleId}/test` : "/dashboard/course",
-    practice: moduleId ? `/dashboard/course/${moduleId}/practice` : "/dashboard/my-assignments",
+    tests: testHref,
+    practice: practiceHref,
     mentor: lessonHref,
     profile: "/dashboard/profile",
   };

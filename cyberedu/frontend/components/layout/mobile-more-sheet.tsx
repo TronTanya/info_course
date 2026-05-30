@@ -9,6 +9,7 @@ import {
   studentQuickNav,
   studentSecondaryNav,
 } from "@/lib/design-system/nav-config";
+import { useStudentNavModuleId } from "@/hooks/use-student-nav-module-id";
 import { isStudentQuickNavActive, resolveStudentNavPaths } from "@/lib/nav-resolve";
 import type { StudentQuickNavKey } from "@/lib/nav-resolve";
 import { cn } from "@/lib/utils";
@@ -20,7 +21,8 @@ const navByKey = Object.fromEntries(studentQuickNav.map((item) => [item.key, ite
 
 export function MobileMoreSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const pathname = usePathname() ?? "";
-  const paths = resolveStudentNavPaths(pathname);
+  const moduleId = useStudentNavModuleId();
+  const paths = resolveStudentNavPaths(pathname, moduleId);
   const reduce = useReducedMotion();
 
   return (

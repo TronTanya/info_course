@@ -27,7 +27,12 @@ export function NavRailLink({
     <Link
       href={href}
       onClick={onClick}
-      className={cn(navVariants.link, active && "ds-nav-link--active", compact && "py-2")}
+      className={cn(
+        navVariants.link,
+        "relative z-10",
+        active && "ds-nav-link--active",
+        compact && "py-2",
+      )}
       aria-current={active ? "page" : undefined}
     >
       <span className={navVariants.linkIcon} aria-hidden>

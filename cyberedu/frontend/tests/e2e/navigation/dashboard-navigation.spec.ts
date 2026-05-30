@@ -15,6 +15,18 @@ test.describe("Dashboard navigation", () => {
     await expect(studentPage).toHaveURL(/\/dashboard\/profile/);
   });
 
+  test("sidebar lessons and tests open module pages", async ({ studentPage }) => {
+    await studentPage.goto("/dashboard");
+    await expectDashboardShell(studentPage);
+
+    await navigateCabinetLink(studentPage, /^уроки$/i);
+    await expect(studentPage).toHaveURL(/\/dashboard\/course\/[^/]+\/lesson/);
+
+    await studentPage.goto("/dashboard");
+    await navigateCabinetLink(studentPage, /^тесты$/i);
+    await expect(studentPage).toHaveURL(/\/dashboard\/course\/[^/]+\/test/);
+  });
+
   test("mobile project: course reachable via drawer or link", async ({ studentPage }, testInfo) => {
     test.skip(testInfo.project.name === "desktop", "Mobile nav covered on mobile project");
 

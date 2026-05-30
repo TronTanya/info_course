@@ -32,7 +32,11 @@ export const GET = withAuthApiRoute(
     if (!buf) {
       try {
         buf = await generateCertificatePdf(cert.userId, cert.courseId);
-        await writeCertificatePdfFile(cert.id, buf);
+        try {
+          await writeCertificatePdfFile(cert.id, buf);
+        } catch (writeErr) {
+          console.warn("[certificates/download] PDF cache write failed:", writeErr);
+        }
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         console.error("[certificates/download] PDF regenerate failed:", msg, e);

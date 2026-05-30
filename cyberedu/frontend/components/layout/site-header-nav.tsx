@@ -19,6 +19,7 @@ import { CommandPaletteTrigger } from "@/components/layout/command-palette-provi
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { isNavHrefActive, isAdminPrimaryActive } from "@/lib/nav-active";
+import { useStudentNavModuleId } from "@/hooks/use-student-nav-module-id";
 import { isStudentQuickNavActive, resolveStudentNavPaths, type StudentQuickNavKey } from "@/lib/nav-resolve";
 import { UserMenu, type UserMenuUser } from "@/components/layout/user-menu";
 import { cn } from "@/lib/utils";
@@ -41,7 +42,8 @@ export function SiteHeaderNav({
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const isGuest = variant === "guest";
   const isAdmin = variant === "admin";
-  const paths = resolveStudentNavPaths(pathname);
+  const moduleId = useStudentNavModuleId();
+  const paths = resolveStudentNavPaths(pathname, moduleId);
 
   type DrawerLink = {
     href: string;

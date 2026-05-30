@@ -34,7 +34,6 @@ export default async function CoursePage({ searchParams }: Props) {
   const sp = await searchParams;
   const locked = sp.locked === "1";
   const cta = getContinueFromModules(data.modules, data.course.title);
-
   return (
     <DashboardShell wide>
       <>

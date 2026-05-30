@@ -1,7 +1,6 @@
 import { cn } from "@/lib/utils";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { DashboardContentArea } from "@/components/layout/dashboard-content-area";
-
 export function DashboardShell({
   children,
   className,

@@ -8,10 +8,12 @@ const nextConfig: NextConfig = {
   // Standalone — только для Docker/VPS. На Vercel (VERCEL=1) используем стандартный output.
   ...(process.env.VERCEL ? {} : { output: "standalone" as const }),
   outputFileTracingIncludes: {
-    "/api/certificates/**/*": [
+    "/api/certificates/download/*": [
+      "./assets/fonts/dejavu/**/*",
       "./node_modules/dejavu-fonts-ttf/**/*",
       "./node_modules/@react-pdf/**/*",
     ],
+    "/*": ["./assets/fonts/dejavu/**/*"],
   },
   async redirects() {
     const routes: { source: string; destination: string; permanent: boolean }[] = [

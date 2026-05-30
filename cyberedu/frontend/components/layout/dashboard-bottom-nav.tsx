@@ -8,6 +8,7 @@ import { LayoutGrid } from "lucide-react";
 import { MobileMoreSheet } from "@/components/layout/mobile-more-sheet";
 import { studentMobileTabKeys, studentQuickNav } from "@/lib/design-system/nav-config";
 import { openMentorChat } from "@/lib/ai/mentor-ui/open";
+import { useStudentNavModuleId } from "@/hooks/use-student-nav-module-id";
 import { isStudentQuickNavActive, resolveStudentNavPaths, type StudentQuickNavKey } from "@/lib/nav-resolve";
 import { cn } from "@/lib/utils";
 
@@ -29,7 +30,8 @@ const navByKey = Object.fromEntries(studentQuickNav.map((item) => [item.key, ite
 /** Premium floating tab bar — Linear / iOS style (< lg). */
 export function DashboardBottomNav() {
   const pathname = usePathname() ?? "";
-  const paths = resolveStudentNavPaths(pathname);
+  const moduleId = useStudentNavModuleId();
+  const paths = resolveStudentNavPaths(pathname, moduleId);
   const reduce = useReducedMotion();
   const [moreOpen, setMoreOpen] = useState(false);
 

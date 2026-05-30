@@ -141,6 +141,7 @@ export default async function ModulePage({ params }: Props) {
         description={desc}
       >
         <ModuleOverviewPanel
+          moduleId={moduleId}
           orderNumber={courseModule.orderNumber}
           title={courseModule.title}
           description={desc}

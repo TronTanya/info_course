@@ -29,6 +29,7 @@ type ModuleOverviewPanelProps = {
   continueHref: string;
   continueLabel: string;
   courseHref?: string;
+  moduleId?: string;
   /** Для внутреннего прогресса по шагам (лекция → тест → практика). */
   progressRow?: CourseProgressModuleRow | null;
 };
@@ -46,8 +47,12 @@ export function ModuleOverviewPanel({
   continueHref,
   continueLabel,
   courseHref = "/dashboard/course",
+  moduleId,
   progressRow = null,
 }: ModuleOverviewPanelProps) {
+  const lessonHref = moduleId ? `/dashboard/course/${moduleId}/lesson` : null;
+  const testHref = moduleId ? `/dashboard/course/${moduleId}/test` : null;
+  const practiceHref = moduleId ? `/dashboard/course/${moduleId}/practice` : null;
   const difficulty = moduleDifficultyByOrder(orderNumber);
 
   return (
@@ -66,9 +71,24 @@ export function ModuleOverviewPanel({
           <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">{description}</p>
 
           <dl className="grid grid-cols-3 gap-2 sm:max-w-md">
-            <MetricPill icon={BookOpen} label="Уроки" text={formatLessonCount(contentCounts.lessons)} />
-            <MetricPill icon={ClipboardCheck} label="Тесты" text={formatTestCount(contentCounts.tests)} />
-            <MetricPill icon={FlaskConical} label="Практика" text={formatPracticeCount(contentCounts.practices)} />
+            <MetricPill
+              icon={BookOpen}
+              label="Уроки"
+              text={formatLessonCount(contentCounts.lessons)}
+              href={lessonHref}
+            />
+            <MetricPill
+              icon={ClipboardCheck}
+              label="Тесты"
+              text={formatTestCount(contentCounts.tests)}
+              href={testHref}
+            />
+            <MetricPill
+              icon={FlaskConical}
+              label="Практика"
+              text={formatPracticeCount(contentCounts.practices)}
+              href={practiceHref}
+            />
           </dl>
           {progressRow ? (
             <div className="max-w-xl">
@@ -116,16 +136,31 @@ function MetricPill({
   icon: Icon,
   label,
   text,
+  href,
 }: {
   icon: typeof BookOpen;
   label: string;
   text: string;
+  href?: string | null;
 }) {
-  return (
-    <div className="ce-polish-inset px-2 py-2 text-center">
+  const inner = (
+    <>
       <Icon className="mx-auto size-4 text-primary" aria-hidden />
       <dt className="mt-1 text-2.5 uppercase tracking-wide text-muted-foreground">{label}</dt>
       <dd className="text-xs font-semibold text-foreground">{text}</dd>
-    </div>
+    </>
   );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="ce-polish-inset block px-2 py-2 text-center transition-colors hover:bg-primary/8 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
+      >
+        {inner}
+      </Link>
+    );
+  }
+
+  return <div className="ce-polish-inset px-2 py-2 text-center">{inner}</div>;
 }

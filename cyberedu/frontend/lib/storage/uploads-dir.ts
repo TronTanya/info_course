@@ -9,6 +9,8 @@ import type { StorageNamespace } from "@/lib/storage/types";
 export function uploadsBaseDir(): string {
   const fromEnv = process.env.UPLOADS_DIR?.trim();
   if (fromEnv) return path.resolve(fromEnv);
+  // Vercel serverless: только /tmp доступен для записи
+  if (process.env.VERCEL) return path.join("/tmp", "cyberedu-uploads");
   return path.join(process.cwd(), "uploads");
 }
 

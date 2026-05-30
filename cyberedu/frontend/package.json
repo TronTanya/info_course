@@ -50,7 +50,7 @@
     "seed:retry": "powershell -ExecutionPolicy Bypass -File scripts/run-seed-retry.ps1",
     "seed:verify-password": "tsx scripts/verify-seed-password-preservation.ts",
     "certs:regenerate-pdf": "tsx scripts/regenerate-certificate-pdfs.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate && node scripts/ensure-pdf-fonts.mjs"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

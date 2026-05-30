@@ -1,6 +1,9 @@
+import { createRequire } from "node:module";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+const require = createRequire(import.meta.url);
 
 /** TTF с полной кириллицей (WOFF-subset ломает динамический текст в @react-pdf). */
 const FONT_FILES = {
@@ -22,11 +25,20 @@ type PdfFontModule = {
 
 function fontSearchDirs(): string[] {
   const here = path.dirname(fileURLToPath(import.meta.url));
-  return [
+  const dirs = [
+    path.join(process.cwd(), "assets/fonts/dejavu"),
+    path.join(here, "../assets/fonts/dejavu"),
     path.join(process.cwd(), "node_modules/dejavu-fonts-ttf/ttf"),
     path.join(process.cwd(), "frontend/node_modules/dejavu-fonts-ttf/ttf"),
     path.join(here, "../node_modules/dejavu-fonts-ttf/ttf"),
   ];
+  try {
+    const pkgDir = path.dirname(require.resolve("dejavu-fonts-ttf/package.json"));
+    dirs.unshift(path.join(pkgDir, "ttf"));
+  } catch {
+    /* package missing */
+  }
+  return dirs;
 }
 
 export function resolveCertificatePdfFont(name: keyof typeof FONT_FILES): string {

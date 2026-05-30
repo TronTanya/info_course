@@ -16,6 +16,7 @@ import {
 import { navVariants } from "@/lib/design-system/components";
 import { motionPresets, motionWithReducedMotion } from "@/lib/design-system/motion";
 import { isNavHrefActive, isAdminPrimaryActive } from "@/lib/nav-active";
+import { useStudentNavModuleId } from "@/hooks/use-student-nav-module-id";
 import { isStudentQuickNavActive, resolveStudentNavPaths } from "@/lib/nav-resolve";
 import { NavRailLink } from "@/components/layout/nav-rail-link";
 import { cn } from "@/lib/utils";
@@ -36,7 +37,8 @@ function AdminNavLink({ item, active }: { item: NavItem; active: boolean }) {
 
 export function AppSidebar({ variant }: { variant: AppSidebarVariant }) {
   const pathname = usePathname() ?? "";
-  const paths = resolveStudentNavPaths(pathname);
+  const moduleId = useStudentNavModuleId();
+  const paths = resolveStudentNavPaths(pathname, moduleId);
   const reduce = useReducedMotion();
 
   return (
