@@ -4,6 +4,8 @@ import { consumeRateLimitKey, isProductionRuntime } from "@/lib/security/rate-li
 export type ReadinessChecks = {
   database: "ok" | "error";
   redis: "ok" | "error" | "skipped";
+  adminUser?: boolean;
+  userCount?: number;
 };
 
 async function checkRedisReachable(): Promise<boolean> {
@@ -14,8 +16,16 @@ async function checkRedisReachable(): Promise<boolean> {
 
 export async function runReadinessChecks(): Promise<ReadinessChecks> {
   let database: ReadinessChecks["database"] = "ok";
+  let adminUser = false;
+  let userCount = 0;
   try {
     await prisma.$queryRaw`SELECT 1`;
+    userCount = await prisma.user.count();
+    const admin = await prisma.user.findUnique({
+      where: { email: "admin@cyberedu.local" },
+      select: { id: true, passwordHash: true },
+    });
+    adminUser = Boolean(admin?.passwordHash);
   } catch {
     database = "error";
   }
@@ -25,7 +35,7 @@ export async function runReadinessChecks(): Promise<ReadinessChecks> {
     redis = (await checkRedisReachable()) ? "ok" : "error";
   }
 
-  return { database, redis };
+  return { database, redis, adminUser, userCount };
 }
 
 export function readinessStatus(checks: ReadinessChecks): "ok" | "degraded" {
