@@ -35,14 +35,10 @@ function isPublicLinkActive(pathname: string, href: string): boolean {
   return isNavHrefActive(pathname, href);
 }
 
-type LandingHeaderNavProps = {
-  isAuthenticated: boolean;
-  dashboardHref: string;
-};
-
-export function LandingHeaderNav({ isAuthenticated, dashboardHref }: LandingHeaderNavProps) {
+export function LandingHeaderNav() {
   const pathname = usePathname() ?? "";
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const cabinetHref = guestAuthLinks.cabinetLogin;
 
   const mobileItems: FloatingNavMobileItem[] = publicNavLinks.map((item) => ({
     href: item.href,
@@ -69,20 +65,12 @@ export function LandingHeaderNav({ isAuthenticated, dashboardHref }: LandingHead
         <ThemeToggle className="hidden sm:inline-flex" />
         <SecureModeBadge />
 
-        {isAuthenticated ? (
-          <Button asChild size="sm" variant="primary" className="hidden min-h-9 rounded-full px-4 sm:inline-flex">
-            <Link href={dashboardHref}>Кабинет</Link>
-          </Button>
-        ) : (
-          <>
-            <Button asChild size="sm" variant="ghost" className="hidden min-h-9 rounded-full sm:inline-flex">
-              <Link href={guestAuthLinks.login}>{guestAuthLinks.loginLabel}</Link>
-            </Button>
-            <Button asChild size="sm" variant="primary" className="hidden min-h-9 rounded-full px-4 sm:inline-flex">
-              <Link href={guestAuthLinks.register}>{guestAuthLinks.registerLabel}</Link>
-            </Button>
-          </>
-        )}
+        <Button asChild size="sm" variant="ghost" className="hidden min-h-9 rounded-full sm:inline-flex">
+          <Link href={guestAuthLinks.register}>{guestAuthLinks.registerLabel}</Link>
+        </Button>
+        <Button asChild size="sm" variant="primary" className="hidden min-h-9 rounded-full px-4 sm:inline-flex">
+          <a href={cabinetHref}>{guestAuthLinks.cabinetLabel}</a>
+        </Button>
 
         <button
           type="button"
@@ -107,20 +95,14 @@ export function LandingHeaderNav({ isAuthenticated, dashboardHref }: LandingHead
           </div>
         }
         footerSlot={
-          isAuthenticated ? (
+          <div className="flex flex-col gap-2">
             <Button asChild size="lg" className="w-full min-h-11 rounded-2xl">
-              <Link href={dashboardHref}>Кабинет</Link>
+              <a href={cabinetHref}>{guestAuthLinks.cabinetLabel}</a>
             </Button>
-          ) : (
-            <div className="flex flex-col gap-2">
-              <Button asChild size="lg" variant="outline" className="w-full min-h-11 rounded-2xl">
-                <Link href={guestAuthLinks.login}>{guestAuthLinks.loginLabel}</Link>
-              </Button>
-              <Button asChild size="lg" className="w-full min-h-11 rounded-2xl">
-                <Link href={guestAuthLinks.register}>{guestAuthLinks.registerLabel}</Link>
-              </Button>
-            </div>
-          )
+            <Button asChild size="lg" variant="outline" className="w-full min-h-11 rounded-2xl">
+              <Link href={guestAuthLinks.register}>{guestAuthLinks.registerLabel}</Link>
+            </Button>
+          </div>
         }
       />
     </>

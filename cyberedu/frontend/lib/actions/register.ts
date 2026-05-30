@@ -10,6 +10,7 @@ import { securityLog } from "@/lib/security-log";
 import { serializeProfileInterests } from "@/lib/profile-interests";
 import { registerSchema } from "@/lib/validation";
 import { issueVerificationEmailForUser } from "@/lib/actions/email-verification";
+import { getSmtpConfig, isProductionRuntime } from "@/lib/auth/email-delivery";
 
 const BCRYPT_COST = 12;
 
@@ -121,7 +122,14 @@ export async function registerAction(_prev: RegisterActionState, formData: FormD
     });
 
     securityLog("auth.register", { userId: newUserId });
-    await issueVerificationEmailForUser(newUserId, normalizedEmail);
+    if (!getSmtpConfig() && !isProductionRuntime()) {
+      await prisma.user.update({
+        where: { id: newUserId },
+        data: { emailVerified: new Date() },
+      });
+    } else {
+      await issueVerificationEmailForUser(newUserId, normalizedEmail);
+    }
     return { ok: true, email: normalizedEmail };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {

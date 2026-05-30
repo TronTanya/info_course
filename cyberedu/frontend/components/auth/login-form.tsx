@@ -3,7 +3,7 @@
 import { useEffect, useId, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getSession, signIn } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { AuthFormFooter } from "@/components/auth/auth-form-footer";
 import { AuthGlassCard } from "@/components/auth/auth-glass-card";
 import { PasswordInput } from "@/components/auth/password-input";
@@ -33,7 +33,6 @@ type LoginFieldErrors = {
 };
 
 export function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const formErrorId = useId();
   const [pending, setPending] = useState(false);
@@ -85,33 +84,6 @@ export function LoginForm() {
         return;
       }
 
-      // Cookie сессии иногда появляется с задержкой — без ожидания getSession() пустой и редирект «не входит».
-      router.refresh();
-      let session = await getSession();
-      for (let attempt = 0; attempt < 12 && !session?.user; attempt += 1) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        session = await getSession();
-      }
-
-      if (!session?.user) {
-        const fallback = safeCallbackUrl(searchParams.get("callbackUrl"));
-        window.location.assign(fallback);
-        return;
-      }
-
-      const role = session.user.role;
-      const emailVerified = Boolean(session.user.emailVerified);
-      if (role === "ADMIN") {
-        window.location.assign("/admin");
-        return;
-      }
-      if (role === "USER" && !emailVerified) {
-        const verifyDest = safeCallbackUrl(searchParams.get("callbackUrl"));
-        window.location.assign(
-          `/auth/verify-email?verify_sent=1&callbackUrl=${encodeURIComponent(verifyDest)}`,
-        );
-        return;
-      }
       window.location.assign(safeCallbackUrl(searchParams.get("callbackUrl")));
     } finally {
       setPending(false);

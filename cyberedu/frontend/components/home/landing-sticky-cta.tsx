@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { ArrowRight, Zap } from "lucide-react";
+import { guestAuthLinks } from "@/lib/design-system/nav-config";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -22,8 +23,8 @@ export function LandingStickyCta() {
 
   const isAuthenticated = status === "authenticated" && Boolean(session?.user);
   const dashboardHref = session?.user?.role === "ADMIN" ? "/admin" : "/dashboard/course";
-  const primaryHref = isAuthenticated ? dashboardHref : "/auth/register";
-  const primaryLabel = isAuthenticated ? "Продолжить" : "Начать бесплатно";
+  const primaryHref = isAuthenticated ? dashboardHref : guestAuthLinks.cabinetLogin;
+  const primaryLabel = isAuthenticated ? "Продолжить" : guestAuthLinks.cabinetLabel;
 
   if (!visible) return null;
 
@@ -44,11 +45,11 @@ export function LandingStickyCta() {
             SOC-лабы и AI-наставник
           </p>
           <Button asChild size="sm" className="shrink-0 gap-1.5 rounded-xl px-4" disabled={status === "loading"}>
-            <Link href={status === "loading" ? "#start" : primaryHref}>
+            <a href={status === "loading" ? "#start" : primaryHref}>
               <Zap className="size-3.5" aria-hidden />
               {status === "loading" ? "…" : primaryLabel}
               {status !== "loading" ? <ArrowRight className="size-3.5 opacity-80" aria-hidden /> : null}
-            </Link>
+            </a>
           </Button>
         </div>
       </div>

@@ -43,8 +43,11 @@ export const publicNavLinks: { href: string; label: string; external?: boolean }
 export const guestAuthLinks = {
   login: "/auth/login",
   register: "/auth/register",
+  /** Вход в кабинет; forceLogin=1 — всегда показать форму входа (даже при старой cookie). */
+  cabinetLogin: "/auth/login?callbackUrl=%2Fdashboard&forceLogin=1",
   loginLabel: "Войти",
   registerLabel: "Начать обучение",
+  cabinetLabel: "Кабинет",
 } as const;
 
 /** @deprecated Используйте publicNavLinks — сохранено для обратной совместимости. */
@@ -58,7 +61,7 @@ export const landingFooterNavLinks: { href: string; label: string }[] = [
   ...publicNavLinks,
   { href: "/reviews", label: "Отзывы" },
   { href: "/about", label: "О проекте" },
-  { href: guestAuthLinks.login, label: guestAuthLinks.loginLabel },
+  { href: guestAuthLinks.cabinetLogin, label: guestAuthLinks.cabinetLabel },
 ];
 
 /** Основная навигация студента (sidebar, drawer, command palette). */

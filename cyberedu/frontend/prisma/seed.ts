@@ -1158,13 +1158,19 @@ function demoModuleCompletionTimeline(userId: string, moduleIds: string[]): Date
   return out;
 }
 
-/** Доля демо-пользователей с завершённым курсом (100% модулей) и сертификатом; остальные — в процессе. */
-const DEMO_FULL_COMPLETION_PERCENT = 90;
+/** Доли демо-студентов по прогрессу (сумма = 100). */
+const DEMO_PROGRESS_NONE_PERCENT = 28;
+const DEMO_PROGRESS_PARTIAL_PERCENT = 42;
 
-/** true — все модули закрыты (выпускник по сиду); false — частичный прогресс. `student@` всегда выпускник. */
-function demoUserIsFullCourseGraduate(email: string, userId: string): boolean {
-  if (email === STUDENT_EMAIL) return true;
-  return demoHashUint32(`${userId}|graduate`) % 100 < DEMO_FULL_COMPLETION_PERCENT;
+type DemoProgressTier = "none" | "partial" | "full";
+
+/** student@ — витрина 100%; остальные — не начали / в процессе / выпускник. */
+function demoUserProgressTier(email: string, userId: string): DemoProgressTier {
+  if (email === STUDENT_EMAIL) return "full";
+  const bucket = demoHashUint32(`${userId}|progressTier`) % 100;
+  if (bucket < DEMO_PROGRESS_NONE_PERCENT) return "none";
+  if (bucket < DEMO_PROGRESS_NONE_PERCENT + DEMO_PROGRESS_PARTIAL_PERCENT) return "partial";
+  return "full";
 }
 
 /** Для незавершивших курс: индекс первого «незакрытого» модуля (0…M−1); модули 0…i−1 полностью пройдены. */
@@ -1182,13 +1188,54 @@ function demoPartialModuleFlags(userId: string, moduleIndex: number): {
   score: number;
 } {
   const h = demoHashUint32(`${userId}|partial|${moduleIndex}`);
+  const stage = h % 5;
+  if (stage === 0) {
+    return {
+      lessonCompleted: false,
+      videoCompleted: false,
+      testCompleted: false,
+      practiceCompleted: false,
+      moduleCompleted: false,
+      score: 0,
+    };
+  }
+  if (stage === 1) {
+    return {
+      lessonCompleted: true,
+      videoCompleted: false,
+      testCompleted: false,
+      practiceCompleted: false,
+      moduleCompleted: false,
+      score: 8 + (h % 12),
+    };
+  }
+  if (stage === 2) {
+    return {
+      lessonCompleted: true,
+      videoCompleted: true,
+      testCompleted: false,
+      practiceCompleted: false,
+      moduleCompleted: false,
+      score: 18 + (h % 22),
+    };
+  }
+  if (stage === 3) {
+    return {
+      lessonCompleted: true,
+      videoCompleted: true,
+      testCompleted: true,
+      practiceCompleted: false,
+      moduleCompleted: false,
+      score: 35 + (h % 25),
+    };
+  }
   return {
     lessonCompleted: true,
-    videoCompleted: (h % 4) !== 0,
-    testCompleted: ((h >> 3) % 3) === 0,
-    practiceCompleted: false,
+    videoCompleted: true,
+    testCompleted: true,
+    practiceCompleted: (h % 3) === 0,
     moduleCompleted: false,
-    score: 12 + (h % 38),
+    score: 52 + (h % 28),
   };
 }
 
@@ -1201,7 +1248,7 @@ function demoCertificateIssuedAt(userId: string, lastModuleCompletedAt: Date): D
 }
 
 /**
- * Демо-прогресс: ~90% пользователей закрыли все модули (100% курса), остальные — частично (разная глубина).
+ * Демо-прогресс: ~30% не начинали, ~40% в процессе (разная глубина), ~30% закрыли весь курс.
  * Баллы и даты у полных прохождений по-прежнему различаются. Пользователи ADMIN не затрагиваются.
  */
 async function seedFictitiousDemoProgress(courseId: string): Promise<void> {
@@ -1214,6 +1261,7 @@ async function seedFictitiousDemoProgress(courseId: string): Promise<void> {
 
   const demoEmails = allDemoGraduateEmails();
   const moduleIds = modules.map((m) => m.id);
+  let noneCount = 0;
   let fullCount = 0;
   let partialCount = 0;
 
@@ -1224,10 +1272,18 @@ async function seedFictitiousDemoProgress(courseId: string): Promise<void> {
     });
     if (!user || user.role !== Role.USER) continue;
 
-    const graduate = demoUserIsFullCourseGraduate(email, user.id);
+    const tier = demoUserProgressTier(email, user.id);
     const timeline = demoModuleCompletionTimeline(user.id, moduleIds);
 
-    if (graduate) {
+    if (tier === "none") {
+      noneCount += 1;
+      await prisma.progress.deleteMany({
+        where: { userId: user.id, moduleId: { in: moduleIds } },
+      });
+      continue;
+    }
+
+    if (tier === "full") {
       fullCount += 1;
       for (let i = 0; i < modules.length; i++) {
         const moduleId = modules[i].id;
@@ -1307,7 +1363,7 @@ async function seedFictitiousDemoProgress(courseId: string): Promise<void> {
   }
 
   console.log(
-    `Seed: демо-прогресс курса — полное прохождение (100%): ${fullCount}, в процессе: ${partialCount} (~${100 - DEMO_FULL_COMPLETION_PERCENT}% без сертификата); даты активности в апреле 2026.`,
+    `Seed: демо-прогресс — не начинали: ${noneCount}, в процессе: ${partialCount}, 100% курса: ${fullCount}; даты активности в апреле 2026.`,
   );
 }
 

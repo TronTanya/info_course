@@ -4,6 +4,7 @@ import { BrandLogoMark } from "@/components/brand/brand-logo";
 import { LandingSection } from "@/components/home/landing-section";
 import { Button } from "@/components/ui/button";
 import { authSafe } from "@/lib/auth";
+import { guestAuthLinks } from "@/lib/design-system/nav-config";
 
 const requirements = [
   { icon: CheckCircle2, text: "Пройти все модули курса по порядку трека." },
@@ -62,7 +63,7 @@ export async function LandingActClosing() {
             </Button>
             {!isAuthenticated ? (
               <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
-                <Link href="/auth/login">Уже есть аккаунт</Link>
+                <Link href={guestAuthLinks.cabinetLogin}>Уже есть аккаунт</Link>
               </Button>
             ) : (
               <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">

@@ -4,7 +4,7 @@ import { Suspense, useId, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { AuthVerifySentBanner } from "@/components/auth/auth-verify-sent-banner";
 import { AuthFormFooter } from "@/components/auth/auth-form-footer";
 import { safeCallbackUrl } from "@/lib/auth/safe-callback-url";
@@ -53,8 +53,18 @@ function RegisterFormInner() {
           return;
         }
         router.refresh();
+        let session = await getSession();
+        for (let attempt = 0; attempt < 12 && !session?.user; attempt += 1) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          session = await getSession();
+        }
+        const callbackUrl = safeCallbackUrl(searchParams.get("callbackUrl"));
+        if (session?.user?.emailVerified) {
+          window.location.assign(callbackUrl);
+          return;
+        }
         router.push(
-          `/auth/verify-email?verify_sent=1&callbackUrl=${encodeURIComponent(safeCallbackUrl(searchParams.get("callbackUrl")))}`,
+          `/auth/verify-email?verify_sent=1&callbackUrl=${encodeURIComponent(callbackUrl)}`,
         );
       }
     } finally {

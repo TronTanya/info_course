@@ -100,7 +100,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/auth/verify-email");
 
   if (isAuthEntry) {
-    if (token) {
+    const forceLogin = request.nextUrl.searchParams.get("forceLogin") === "1";
+    if (token && !forceLogin) {
       if (pathname.startsWith("/auth/verify-email")) {
         return withSecurityHeaders(NextResponse.next());
       }

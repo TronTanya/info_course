@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { DOCKER_IMAGE_BUILD_STAMP } from "@/lib/docker-build-stamp";
+import { guestAuthLinks } from "@/lib/design-system/nav-config";
+import { authSafe } from "@/lib/auth";
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const session = await authSafe();
+  const courseHref = session?.user ? "/dashboard/course" : guestAuthLinks.cabinetLogin;
   return (
     <footer className="ce-app-footer mt-auto">
       <div className="container-page flex flex-col gap-4 py-11 sm:flex-row sm:items-center sm:justify-between">
@@ -18,8 +22,8 @@ export function SiteFooter() {
           ) : null}
         </div>
         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-          <Link className="hover:text-primary" href="/dashboard/course">
-            Курс
+          <Link className="hover:text-primary" href={courseHref}>
+            {session?.user ? "Курс" : guestAuthLinks.cabinetLabel}
           </Link>
           <Link className="hover:text-primary" href="/reviews">
             Отзывы

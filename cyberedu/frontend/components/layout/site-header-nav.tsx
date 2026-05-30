@@ -89,8 +89,8 @@ export function SiteHeaderNav({
             </FloatingNavLink>
           ))}
           <span className="ce-floating-nav__divider hidden md:block" aria-hidden />
-          <FloatingNavLink href={guestAuthLinks.login} active={isNavHrefActive(pathname, guestAuthLinks.login)} layoutId={layoutId}>
-            {guestAuthLinks.loginLabel}
+          <FloatingNavLink href={guestAuthLinks.cabinetLogin} active={isNavHrefActive(pathname, "/auth/login")} layoutId={layoutId}>
+            {guestAuthLinks.cabinetLabel}
           </FloatingNavLink>
         </nav>
       ) : isAdmin ? (
@@ -143,9 +143,14 @@ export function SiteHeaderNav({
         {!isGuest && user ? <UserMenu user={user} variant={isAdmin ? "admin" : "user"} /> : null}
 
         {isGuest ? (
-          <Button asChild size="sm" variant="primary" className="hidden min-h-9 rounded-full px-4 sm:inline-flex md:hidden">
-            <Link href={guestAuthLinks.register}>Старт</Link>
-          </Button>
+          <>
+            <Button asChild size="sm" variant="ghost" className="hidden min-h-9 rounded-full sm:inline-flex md:hidden">
+              <Link href={guestAuthLinks.register}>{guestAuthLinks.registerLabel}</Link>
+            </Button>
+            <Button asChild size="sm" variant="primary" className="hidden min-h-9 rounded-full px-4 sm:inline-flex">
+              <a href={guestAuthLinks.cabinetLogin}>{guestAuthLinks.cabinetLabel}</a>
+            </Button>
+          </>
         ) : null}
 
         <button
@@ -177,10 +182,10 @@ export function SiteHeaderNav({
           isGuest ? (
             <div className="flex flex-col gap-2">
               <ThemeToggle className="mx-auto min-h-11 w-full max-w-48 rounded-2xl border border-border" />
-              <Button asChild size="lg" variant="outline" className="w-full min-h-11 rounded-2xl">
-                <Link href={guestAuthLinks.login}>{guestAuthLinks.loginLabel}</Link>
-              </Button>
               <Button asChild size="lg" className="w-full min-h-11 rounded-2xl">
+                <a href={guestAuthLinks.cabinetLogin}>{guestAuthLinks.cabinetLabel}</a>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="w-full min-h-11 rounded-2xl">
                 <Link href={guestAuthLinks.register}>{guestAuthLinks.registerLabel}</Link>
               </Button>
             </div>
