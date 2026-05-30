@@ -1,0 +1,2 @@
+INSERT INTO "VerificationToken" ("identifier", "token", "expires") VALUES
+('email_verify:cmpmc1zx20000lkzm4us0m6p1', 'e0394216be19385fbc555f4cced961dbe4c48e0e0691ef2dbec283449c1c5c88', '2026-05-27 07:47:52.997');

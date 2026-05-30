@@ -37,3 +37,14 @@ docker exec cyberedu-postgres-1 pg_dump -U cyberedu -d cyberedu \
 ```
 
 Adjust container name if your compose project differs (`docker ps`).
+
+## Restore to Supabase (production)
+
+After `git pull`, with `DIRECT_URL` in `frontend/.env`:
+
+```powershell
+cd cyberedu
+powershell -ExecutionPolicy Bypass -File .\scripts\restore-demo-data-to-supabase.ps1
+```
+
+Requires Docker Desktop (uses `postgres:16-alpine` image for `psql`). Then refresh Vercel admin `/admin/users`.

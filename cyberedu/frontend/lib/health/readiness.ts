@@ -1,5 +1,9 @@
 import { prisma } from "@/lib/db";
-import { consumeRateLimitKey, isProductionRuntime } from "@/lib/security/rate-limit-service";
+import {
+  consumeRateLimitKey,
+  isMemoryFallbackAllowed,
+  isProductionRuntime,
+} from "@/lib/security/rate-limit-service";
 
 export type ReadinessChecks = {
   database: "ok" | "error";
@@ -32,7 +36,13 @@ export async function runReadinessChecks(): Promise<ReadinessChecks> {
 
   let redis: ReadinessChecks["redis"] = "skipped";
   if (isProductionRuntime()) {
-    redis = (await checkRedisReachable()) ? "ok" : "error";
+    const redisUrl = process.env.REDIS_URL?.trim();
+    if (!redisUrl) {
+      redis = isMemoryFallbackAllowed() ? "skipped" : "error";
+    } else {
+      const reachable = await checkRedisReachable();
+      redis = reachable ? "ok" : isMemoryFallbackAllowed() ? "skipped" : "error";
+    }
   }
 
   return { database, redis, adminUser, userCount };

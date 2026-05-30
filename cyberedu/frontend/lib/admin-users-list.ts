@@ -36,6 +36,11 @@ function formatFio(p: {
   return [p.lastName, p.firstName, p.middleName].filter(Boolean).join(" ").trim();
 }
 
+/** Учётки автотестов Playwright — не показываем в админке студентов. */
+function isE2eTestAccount(email: string): boolean {
+  return /^e2e-/i.test(email);
+}
+
 export type AdminUserListResult = {
   rows: AdminUserListRow[];
   dbUnavailable: boolean;
@@ -69,7 +74,8 @@ async function loadAdminUserListRows(): Promise<AdminUserListRow[]> {
   }
 
   const users = await prisma.user.findMany({
-    orderBy: { createdAt: "desc" },
+    where: { NOT: { email: { startsWith: "e2e-", mode: "insensitive" } } },
+    orderBy: [{ profile: { lastName: "asc" } }, { profile: { firstName: "asc" } }, { createdAt: "asc" }],
     select: {
       id: true,
       email: true,
@@ -170,7 +176,9 @@ async function loadAdminUserListRows(): Promise<AdminUserListRow[]> {
     return new Date(Math.max(...dates.map((d) => d.getTime()))).toISOString();
   }
 
-  const rows: AdminUserListRow[] = users.map((u) => {
+  const rows: AdminUserListRow[] = users
+    .filter((u) => !isE2eTestAccount(u.email))
+    .map((u) => {
       let overallProgressPercent = 0;
       let totalScore = 0;
 

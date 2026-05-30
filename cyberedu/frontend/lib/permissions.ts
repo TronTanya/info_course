@@ -4,7 +4,7 @@ import type { Role } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { isModuleUnlocked } from "@/lib/progress";
-import { withDbRetry } from "@/lib/prisma-retry";
+import { isDbConnectionError, withDbRetry } from "@/lib/prisma-retry";
 
 export function hasRole(role: Role | undefined, allowed: Role | Role[]) {
   if (!role) return false;
@@ -57,12 +57,19 @@ export async function requireAdmin(): Promise<Session> {
   try {
     role = await getDbUserRole(session.user.id);
   } catch (error) {
-    if (process.env.NODE_ENV === "development" && session.user.role) {
+    const jwtRole = session.user.role;
+    if (jwtRole === "ADMIN" && isDbConnectionError(error)) {
+      console.warn(
+        "[requireAdmin] DB unavailable, using signed JWT ADMIN role:",
+        error instanceof Error ? error.message : error,
+      );
+      role = "ADMIN";
+    } else if (process.env.NODE_ENV === "development" && jwtRole) {
       console.warn(
         "[requireAdmin] БД недоступна — используем роль из сессии (только dev):",
         error instanceof Error ? error.message : error,
       );
-      role = session.user.role;
+      role = jwtRole;
     } else {
       throw error;
     }

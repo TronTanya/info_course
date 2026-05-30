@@ -5,8 +5,8 @@ Set-Location $PSScriptRoot + "\.."
 
 $pwd = "xxXX1234%21%2F%2122"
 $base = "postgresql://postgres.vxihebmodvatwmiasvzp:${pwd}@aws-0-eu-west-1.pooler.supabase.com"
-$env:DATABASE_URL = "${base}:6543/postgres?pgbouncer=true&connect_timeout=60&sslmode=require"
-$env:DIRECT_URL = "${base}:5432/postgres?schema=public&connect_timeout=60&sslmode=require"
+$env:DATABASE_URL = "${base}:6543/postgres?pgbouncer=true&connect_timeout=60&sslmode=require&uselibpqcompat=true"
+$env:DIRECT_URL = "${base}:5432/postgres?schema=public&connect_timeout=60&sslmode=require&uselibpqcompat=true"
 
 $max = 5
 for ($i = 1; $i -le $max; $i++) {

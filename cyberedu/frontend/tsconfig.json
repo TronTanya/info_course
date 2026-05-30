@@ -30,5 +30,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "scripts/backfill-student-activity.ts", "scripts/backfill-student-activity-pg.ts"]
 }

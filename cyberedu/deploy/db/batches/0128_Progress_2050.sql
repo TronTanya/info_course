@@ -1,0 +1,3 @@
+INSERT INTO "Progress" ("id", "userId", "moduleId", "lessonCompleted", "videoCompleted", "testCompleted", "practiceCompleted", "moduleCompleted", "score", "createdAt", "updatedAt") VALUES
+('cmpouzvis02wtlksekga2f6aq', 'cmp66xi6u00cxlktgtzhise1p', 'cmp45qufc0068n52btqvxt8z3', 't', 't', 't', 't', 't', '97', '2026-04-04 10:41:00', '2026-04-04 10:41:00'),
+('cmpouzvis02wvlkse8ueijlp7', 'cmp66xi6u00cxlktgtzhise1p', 'cmp45qugo0097n52b9jvtf14k', 't', 't', 't', 't', 't', '89', '2026-04-05 08:41:00', '2026-04-05 08:41:00');
