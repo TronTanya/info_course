@@ -1,5 +1,5 @@
 import { createRequire } from "node:module";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -52,6 +52,24 @@ export function resolveCertificatePdfFont(name: keyof typeof FONT_FILES): string
   );
 }
 
+let cachedFontDataUrls: Record<keyof typeof FONT_FILES, string> | null = null;
+
+/** Data URL — надёжнее file:// на Vercel serverless, где пути к TTF часто недоступны в рантайме. */
+export function resolveCertificatePdfFontDataUrl(name: keyof typeof FONT_FILES): string {
+  if (!cachedFontDataUrls) {
+    cachedFontDataUrls = {
+      regular: toFontDataUrl(resolveCertificatePdfFont("regular")),
+      bold: toFontDataUrl(resolveCertificatePdfFont("bold")),
+    };
+  }
+  return cachedFontDataUrls[name];
+}
+
+function toFontDataUrl(filePath: string): string {
+  const buf = readFileSync(filePath);
+  return `data:font/ttf;base64,${buf.toString("base64")}`;
+}
+
 /** @deprecated use resolveCertificatePdfFont */
 export function resolveRobotoPdfFont(name: keyof typeof FONT_FILES): string {
   return resolveCertificatePdfFont(name);
@@ -63,8 +81,8 @@ export function registerCertificatePdfFonts(Font: PdfFontModule): void {
   Font.register({
     family: "CertificateSans",
     fonts: [
-      { src: resolveCertificatePdfFont("regular"), fontWeight: 400 },
-      { src: resolveCertificatePdfFont("bold"), fontWeight: 700 },
+      { src: resolveCertificatePdfFontDataUrl("regular"), fontWeight: 400 },
+      { src: resolveCertificatePdfFontDataUrl("bold"), fontWeight: 700 },
     ],
   });
   fontsRegistered = true;
