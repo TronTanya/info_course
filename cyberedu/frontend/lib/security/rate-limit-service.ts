@@ -2,6 +2,7 @@
  * Централизованный rate limiter: Redis (fixed window + TTL), in-memory только в dev с warning.
  */
 import { logError, logWarn } from "@/lib/log/structured";
+import { getSharedRedisClient, resetSharedRedisClientForTests } from "@/lib/security/redis-client";
 
 export type RateLimitDenyReason = "exceeded" | "unavailable";
 
@@ -36,8 +37,6 @@ const memory = new Map<string, MemoryBucket>();
 const MAX_MEMORY_KEYS = 25_000;
 let memoryFallbackWarned = false;
 let redisFailureWarned = false;
-
-import { getSharedRedisClient, resetSharedRedisClientForTests } from "@/lib/security/redis-client";
 
 type RedisClient = {
   eval: (script: string, options: { keys: string[]; arguments: string[] }) => Promise<unknown>;
@@ -268,4 +267,4 @@ export function resetRateLimitServiceForTests(): void {
   redisFailureWarned = false;
 }
 
-export { isDevMemoryFallbackAllowed, isMemoryFallbackAllowed, isProductionRuntime };
+export { isDevMemoryFallbackAllowed, isProductionRuntime };
